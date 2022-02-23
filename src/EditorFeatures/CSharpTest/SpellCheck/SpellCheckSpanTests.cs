@@ -19,36 +19,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck
         [Fact]
         public async Task TestSingleLineComment1()
         {
-            await TestAsync("//{|Comment: Goo|}");
+            await TestAsync("{|Comment:// Goo|}");
         }
 
         [Fact]
         public async Task TestSingleLineComment2()
         {
             await TestAsync(@"
-//{|Comment: Goo|}");
+{|Comment:// Goo|}");
         }
 
         [Fact]
         public async Task TestMultiLineComment1()
         {
-            await TestAsync("/*{|Comment: Goo |}*/");
+            await TestAsync("{|Comment:/* Goo */|}");
         }
 
         [Fact]
         public async Task TestMultiLineComment2()
         {
             await TestAsync(@"
-/*{|Comment:
+{|Comment:/*
    Goo
- |}*/");
+ */|}");
         }
 
         [Fact]
         public async Task TestMultiLineComment3()
         {
             await TestAsync(@"
-/*{|Comment:
+{|Comment:/*
    Goo
  |}");
         }
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck
         public async Task TestMultiLineComment4()
         {
             await TestAsync(@"
-/**/");
+{|Comment:/**/|}");
         }
 
         [Fact]
         public async Task TestMultiLineComment5()
         {
             await TestAsync(@"
-/*{|Comment:/|}");
+{|Comment:/*/|}");
         }
 
         [Fact]
@@ -101,95 +101,95 @@ class {|Identifier:C|}
         [Fact]
         public async Task TestString1()
         {
-            await TestAsync(@"""{|String: goo |}""");
+            await TestAsync(@"{|String:"" goo ""|}");
         }
 
         [Fact]
         public async Task TestString2()
         {
-            await TestAsync(@"""{|String: goo |}");
+            await TestAsync(@"{|String:"" goo |}");
         }
 
         [Fact]
         public async Task TestString3()
         {
             await TestAsync(@"
-""{|String: goo |}""");
+{|String:"" goo ""|}");
         }
 
         [Fact]
         public async Task TestString4()
         {
             await TestAsync(@"
-""{|String: goo |}");
+{|String:"" goo |}");
         }
 
         [Fact]
         public async Task TestString5()
         {
             await TestAsync(@"
-@""{|String: goo |}""");
+{|String:@"" goo ""|}");
         }
 
         [Fact]
         public async Task TestString6()
         {
             await TestAsync(@"
-@""{|String: goo |}");
+{|String:@"" goo |}");
         }
 
         [Fact]
         public async Task TestString7()
         {
-            await TestAsync(@"""""""{|String: goo |}""""""");
+            await TestAsync(@"{|String:"""""" goo """"""|}");
         }
 
         [Fact]
         public async Task TestString8()
         {
-            await TestAsync(@"""""""{|String: goo |}""""");
+            await TestAsync(@"{|String:"""""" goo """"|}");
         }
 
         [Fact]
         public async Task TestString9()
         {
-            await TestAsync(@"""""""{|String: goo |}""");
+            await TestAsync(@"{|String:"""""" goo ""|}");
         }
 
         [Fact]
         public async Task TestString10()
         {
-            await TestAsync(@"""""""{|String: goo |}");
+            await TestAsync(@"{|String:"""""" goo |}");
         }
 
         [Fact]
         public async Task TestString11()
         {
-            await TestAsync(@"""""""{|String:
+            await TestAsync(@"{|String:""""""
     goo 
-    |}""""""");
+    """"""|}");
         }
 
         [Fact]
         public async Task TestString12()
         {
-            await TestAsync(@"""""""{|String:
+            await TestAsync(@"{|String:""""""
     goo
-    |}""""");
+    """"|}");
         }
 
         [Fact]
         public async Task TestString13()
         {
-            await TestAsync(@"""""""{|String:
+            await TestAsync(@"{|String:""""""
     goo
-    |}""");
+    ""|}");
         }
 
         [Fact]
         public async Task TestString14()
         {
-            await TestAsync(@"""""""{|String:
+            await TestAsync(@"{|String:""""""
     goo
     |}");
         }

@@ -21,9 +21,6 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         }
 
         protected abstract string? GetClassificationForIdentifier(SyntaxToken token);
-        protected abstract TextSpan GetSpanForComment(SyntaxTrivia trivia);
-        protected abstract TextSpan GetSpanForRawString(SyntaxToken token);
-        protected abstract TextSpan GetSpanForString(SyntaxToken token);
 
         private static void AddSpan(ArrayBuilder<SpellCheckSpan> spans, SpellCheckSpan span)
         {
@@ -68,14 +65,11 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             ProcessTriviaList(token.LeadingTrivia, syntaxFacts, spans, cancellationToken);
 
             var syntaxKinds = syntaxFacts.SyntaxKinds;
-            if (syntaxFacts.IsStringLiteral(token))
+            if (syntaxFacts.IsStringLiteral(token) ||
+                token.RawKind == syntaxKinds.SingleLineRawStringLiteralToken ||
+                token.RawKind == syntaxKinds.MultiLineRawStringLiteralToken)
             {
-                AddSpan(spans, new SpellCheckSpan(GetSpanForString(token), SpellCheckKind.String));
-            }
-            else if (token.RawKind == syntaxKinds.SingleLineRawStringLiteralToken ||
-                     token.RawKind == syntaxKinds.MultiLineRawStringLiteralToken)
-            {
-                AddSpan(spans, new SpellCheckSpan(GetSpanForRawString(token), SpellCheckKind.String));
+                AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.String));
             }
             else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken &&
                      token.Parent?.RawKind == syntaxKinds.InterpolatedStringText)
@@ -135,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             if (syntaxFacts.IsRegularComment(trivia))
             {
-                AddSpan(spans, new SpellCheckSpan(GetSpanForComment(trivia), SpellCheckKind.Comment));
+                AddSpan(spans, new SpellCheckSpan(trivia.Span, SpellCheckKind.Comment));
             }
             else if (syntaxFacts.IsDocumentationComment(trivia))
             {

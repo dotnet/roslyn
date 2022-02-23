@@ -16,13 +16,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SpellCheck
 
         <Fact>
         Public Async Function TestComment1() As Task
-            Await TestAsync("'{|Comment: Goo |}")
+            Await TestAsync("{|Comment:' Goo |}")
         End Function
 
         <Fact>
         Public Async Function TestComment2() As Task
             Await TestAsync("
-'{|Comment: Goo |}")
+{|Comment:' Goo |}")
         End Function
 
         <Fact>
@@ -53,27 +53,27 @@ end class")
         <Fact>
         Public Async Function TestString1() As Task
             Await TestAsync("
-dim {|Identifier:x|} = ""{|String: goo |}""")
+dim {|Identifier:x|} = {|String:"" goo ""|}")
         End Function
 
         <Fact>
         Public Async Function TestString2() As Task
             Await TestAsync("
-dim {|Identifier:x|} = ""{|String: goo |}")
+dim {|Identifier:x|} = {|String:"" goo |}")
         End Function
 
         <Fact>
         Public Async Function TestString3() As Task
             Await TestAsync("
-dim {|Identifier:x|} = ""{|String:
+dim {|Identifier:x|} = {|String:""
     goo
-|}""")
+""|}")
         End Function
 
         <Fact>
         Public Async Function TestString4() As Task
             Await TestAsync("
-dim {|Identifier:x|} = ""{|String:
+dim {|Identifier:x|} = {|String:""
     goo
 |}")
         End Function
