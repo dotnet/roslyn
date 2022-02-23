@@ -11,7 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal record struct PreviousPullResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
 
     /// <summary>
     /// Specialized cache used by the 'pull' LSP handlers.  Supports storing data to know when to tell a client
