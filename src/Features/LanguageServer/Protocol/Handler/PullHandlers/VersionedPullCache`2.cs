@@ -6,12 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-
     /// <summary>
     /// Specialized cache used by the 'pull' LSP handlers.  Supports storing data to know when to tell a client
     /// that existing results can be reused, or if new results need to be computed.  Multiple keys can be used,
@@ -19,6 +17,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class VersionedPullCache<TCheapVersion, TExpensiveVersion>
     {
+        private readonly string _uniqueKey;
+
         /// <summary>
         /// Lock to protect <see cref="_documentIdToLastResult"/> and <see cref="_nextDocumentResultId"/>.
         /// This enables this type to be used by request handlers that process requests concurrently.
@@ -46,15 +46,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private long _nextDocumentResultId;
 
+        public VersionedPullCache(string uniqueKey)
+        {
+            _uniqueKey = uniqueKey;
+        }
+
         /// <summary>
         /// If results have changed since the last request this calculates and returns a new
         /// non-null resultId to use for subsequent computation and caches it.
         /// </summary>
-        /// <param name="documentToPreviousDiagnosticParams">the resultIds the client sent us.</param>
+        /// <param name="documentToPreviousResult">the resultIds the client sent us.</param>
         /// <param name="document">the document we are currently calculating results for.</param>
         /// <returns>Null when results are unchanged, otherwise returns a non-null new resultId.</returns>
         public async Task<string?> GetNewResultIdAsync(
-            Dictionary<Document, PreviousPullResult> documentToPreviousDiagnosticParams,
+            Dictionary<Document, PreviousPullResult> documentToPreviousResult,
             Document document,
             Func<Task<TCheapVersion>> computeCheapVersionAsync,
             Func<Task<TExpensiveVersion>> computeExpensiveVersionAsync,
@@ -65,44 +70,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             TExpensiveVersion? expensiveVersion = default;
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (documentToPreviousDiagnosticParams.TryGetValue(document, out var previousParams) &&
-                    previousParams.PreviousResultId != null &&
+                if (documentToPreviousResult.TryGetValue(document, out var previousResult) &&
+                    previousResult.PreviousResultId != null &&
                     _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
-                    lastResult.resultId == previousParams.PreviousResultId)
+                    lastResult.resultId == previousResult.PreviousResultId)
                 {
                     cheapVersion = await computeCheapVersionAsync().ConfigureAwait(false);
                     if (cheapVersion != null && cheapVersion.Equals(lastResult.cheapVersion))
                     {
-                        // The client's resultId matches our cached resultId and the project dependent version is an
-                        // exact match for our current project dependent version (meaning the project and none of its dependencies
-                        // have changed, or even forked, since we last calculated diagnostics).
-                        // We return early here to avoid calculating checksums as we know nothing is changed.
+                        // The client's resultId matches our cached resultId and the cheap version is an
+                        // exact match for our current cheap version. We return early here to avoid calculating
+                        // expensive versions as we know nothing is changed.
                         return null;
                     }
 
-                    // The current project dependent version does not match the last reported.  This may be because we've forked
-                    // or reloaded a project, so fall back to calculating project checksums to determine if anything is actually changed.
+                    // The current cheap version does not match the last reported.  This may be because we've forked
+                    // or reloaded a project, so fall back to calculating the full expensive version to determine if
+                    // anything is actually changed.
                     expensiveVersion = await computeExpensiveVersionAsync().ConfigureAwait(false);
                     if (expensiveVersion != null && expensiveVersion.Equals(lastResult.expensiveVersion))
                     {
-                        // Checksums match which means content has not changed and we do not need to re-calculate.
                         return null;
                     }
                 }
 
                 // Client didn't give us a resultId, we have nothing cached, or what we had cached didn't match the current project.
-                // We need to calculate diagnostics and store what we calculated the diagnostics for.
+                // We need to calculate new results and store what we calculated the results for.
 
-                // Keep track of the diagnostics we reported here so that we can short-circuit producing diagnostics for
-                // the same diagnostic set in the future.  Use a custom result-id per type (doc diagnostics or workspace
-                // diagnostics) so that clients of one don't errantly call into the other.  For example, a client
-                // getting document diagnostics should not ask for workspace diagnostics with the result-ids it got for
+                // Keep track of the results we reported here so that we can short-circuit producing results for
+                // the same state of the world in the future.  Use a custom result-id per type (doc requests or workspace
+                // requests) so that clients of one don't errantly call into the other.
+                //
+                // For example, a client getting document diagnostics should not ask for workspace diagnostics with the result-ids it got for
                 // doc-diagnostics.  The two systems are different and cannot share results, or do things like report
                 // what changed between each other.
                 //
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
-                var newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
+                var newResultId = $"{_uniqueKey}:{_nextDocumentResultId++}";
                 cheapVersion ??= await computeCheapVersionAsync().ConfigureAwait(false);
                 expensiveVersion ??= await computeExpensiveVersionAsync().ConfigureAwait(false);
                 _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, cheapVersion, expensiveVersion);

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly VersionedPullCache<VersionStamp, Checksum> _versionedCache = new();
+        private readonly VersionedPullCache<VersionStamp, Checksum> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             _serverKind = serverKind;
             DiagnosticService = diagnosticService;
+            _versionedCache = new(this.GetType().Name);
         }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TDiagnosticsParams diagnosticsParams);
