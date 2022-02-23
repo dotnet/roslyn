@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -11,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -27,13 +30,14 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     [UseExportProvider]
-    public class CodeCleanupTests
+    public partial class CodeCleanupTests
     {
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
@@ -570,6 +574,471 @@ namespace A
             var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
             var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
             Assert.Equal(expectedNumberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task RunThirdPartyFixerCSharp()
+        {
+            const string code = @"
+class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+            default:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+            case 1000:
+            default:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+            default:
+                break;
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+
+            const string expected = @"
+class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+            await TestThirdPartyCodeFixerCSharp<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task RunThirdPartyFixerVisualBasic()
+        {
+            const string code = @"
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select
+    End Sub
+End Class
+";
+
+            const string expected = @"
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select
+    End Sub
+End Class
+";
+            await TestThirdPartyCodeFixerVisualBasic<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotRunThirdPartyFixerWithNoFixAllCSharp()
+        {
+            const string code = @"
+class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+            default:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+            case 1000:
+            default:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+            default:
+                break;
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+
+            await TestThirdPartyCodeFixerCSharp<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(code, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotRunThirdPartyFixerWithNoFixAllVisualBasic()
+        {
+            const string code = @"
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select
+    End Sub
+End Class
+";
+
+            await TestThirdPartyCodeFixerVisualBasic<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(code, code);
+        }
+
+        private static Task TestThirdPartyCodeFixerCSharp<TCodefix, TAnalyzer>(string code, string expected)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, expected, LanguageNames.CSharp);
+        }
+
+        private static Task TestThirdPartyCodeFixerVisualBasic<TCodefix, TAnalyzer>(string code, string expected)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, expected, LanguageNames.VisualBasic);
+        }
+
+        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code, string expected, string language)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+
+            using var workspace = GetTestWorkspaceForLanguage(code, language);
+
+            var options = CodeActionOptions.Default;
+
+            var project = workspace.CurrentSolution.Projects.Single();
+
+            var map = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>{
+                { language, ImmutableArray.Create((DiagnosticAnalyzer)new  TAnalyzer()) }
+            };
+
+            project = project.AddAnalyzerReference(new TestAnalyzerReferenceByLanguage(map));
+
+            workspace.TryApplyChanges(project.Solution);
+
+            // register this workspace to solution crawler so that analyzer service associate itself with given workspace
+            var incrementalAnalyzerProvider = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>() as IIncrementalAnalyzerProvider;
+            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace);
+
+            var hostdoc = workspace.Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+
+            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+            var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+
+            var newDoc = await codeCleanupService.CleanupAsync(
+                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
+
+            var actual = await newDoc.GetTextAsync();
+            Assert.Equal(expected, actual.ToString());
+
+            static TestWorkspace GetTestWorkspaceForLanguage(string code, string language)
+            {
+                if (language == LanguageNames.CSharp)
+                {
+                    return TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
+                }
+
+                if (language == LanguageNames.VisualBasic)
+                {
+                    return TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
+                }
+
+                return null;
+            }
         }
 
         private static string[] GetSupportedDiagnosticIdsForCodeCleanupService(string language)
