@@ -235,13 +235,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => GetDocumentFixAllForIdInSpanAsync(document, range, diagnosticId, DiagnosticSeverity.Hidden, fallbackOptions, cancellationToken);
 
         public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
-            Document document, TextSpan range, string diagnosticId, DiagnosticSeverity severity, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, TextSpan range, string diagnosticId, DiagnosticSeverity minimumSeverity, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                 document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            diagnostics = diagnostics.WhereAsArray(d => d.Severity.GreaterThanOrEqualTo(severity));
+            diagnostics = diagnostics.WhereAsArray(d => d.Severity.GreaterThanOrEqualTo(minimumSeverity));
             if (!diagnostics.Any())
                 return null;
 
