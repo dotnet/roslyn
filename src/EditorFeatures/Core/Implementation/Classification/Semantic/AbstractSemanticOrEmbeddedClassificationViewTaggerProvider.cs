@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-
             return ClassificationUtilities.ProduceTagsAsync(
                 context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
         }
