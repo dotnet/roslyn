@@ -239,7 +239,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false));
+            var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+                document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             diagnostics = diagnostics.WhereAsArray(d => d.Severity.GreaterThanOrEqualTo(severity));
             if (!diagnostics.Any())
                 return null;
