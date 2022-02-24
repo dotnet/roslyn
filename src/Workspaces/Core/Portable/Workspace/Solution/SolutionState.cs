@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                 _filePathToDocumentIdsMap,
                 _dependencyGraph,
                 _lazyAnalyzers,
-                frozenSourceGeneratedDocument: null);
+                _frozenSourceGeneratedDocumentState);
         }
 
         private BranchId GetBranchId()
