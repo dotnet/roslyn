@@ -119,8 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         ? spanToErrorDiagnostics
                         : spanToOtherDiagnostics;
 
-                    var list = preferredMap.GetOrAdd(span, static _ => new List<DiagnosticData>());
-                    list.Add(diagnostic);
+                    preferredMap.MultiAdd(span, diagnostic);
                 }
             }
 
@@ -220,8 +219,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnostic.IsSuppressed)
                     continue;
 
-                var list = spanToDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), static _ => new List<DiagnosticData>());
-                list.Add(diagnostic);
+                spanToDiagnostics.MultiAdd(diagnostic.GetTextSpan(), diagnostic);
             }
 
             // Order diagnostics by DiagnosticId so the fixes are in a deterministic order.
@@ -485,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         continue;
 
                     allFixers.Add(fixer);
-                    fixerToRangesAndDiagnostics.GetOrAdd(fixer, static _ => new()).Add((range, diagnostics));
+                    fixerToRangesAndDiagnostics.MultiAdd(fixer, (range, diagnostics));
                 }
             }
         }
