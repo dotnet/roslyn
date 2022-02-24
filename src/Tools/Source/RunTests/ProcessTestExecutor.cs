@@ -47,8 +47,9 @@ namespace RunTests
                 {
                     MaybeAddSeparator();
                     // https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest#syntax
-                    builder.Append("FullyQualifiedName=");
+                    builder.Append("(FullyQualifiedName=");
                     builder.Append(typeInfo.FullName);
+                    builder.Append(')');
                 }
                 builder.Append(sep);
 
