@@ -120,8 +120,8 @@
   <data name="Add_file_header" xml:space="preserve">
     <value>Add file header</value>
   </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
+  <data name="Fix_name_violation_colon_0" xml:space="preserve">
+    <value>Fix name violation: {0}</value>
   </data>
   <data name="Add_both" xml:space="preserve">
     <value>Add both</value>
@@ -152,5 +152,8 @@
   </data>
   <data name="Add_blank_line_after_block" xml:space="preserve">
     <value>Add blank line after block</value>
+  </data>
+  <data name="Fix_all_name_violations" xml:space="preserve">
+    <value>Fix all name violations</value>
   </data>
 </root>

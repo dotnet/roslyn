@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder[nameof(NamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
+            builder["SymbolSpecificationID"] = applicableRule.SymbolSpecification.ID.ToString();
 
             return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
         }
