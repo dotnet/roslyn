@@ -60,20 +60,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public static string BinaryOperatorNameFromSyntaxKind(SyntaxKind kind)
+        public static string BinaryOperatorNameFromSyntaxKind(SyntaxKind kind, bool isChecked)
         {
-            return BinaryOperatorNameFromSyntaxKindIfAny(kind) ??
-                WellKnownMemberNames.AdditionOperatorName; // This can occur in the presence of syntax errors.
+            return BinaryOperatorNameFromSyntaxKindIfAny(kind, isChecked) ??
+                (isChecked ? WellKnownMemberNames.CheckedAdditionOperatorName : WellKnownMemberNames.AdditionOperatorName); // This can occur in the presence of syntax errors.
         }
 
-        internal static string BinaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind)
+        internal static string BinaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind, bool isChecked)
         {
             switch (kind)
             {
-                case SyntaxKind.PlusToken: return WellKnownMemberNames.AdditionOperatorName;
-                case SyntaxKind.MinusToken: return WellKnownMemberNames.SubtractionOperatorName;
-                case SyntaxKind.AsteriskToken: return WellKnownMemberNames.MultiplyOperatorName;
-                case SyntaxKind.SlashToken: return WellKnownMemberNames.DivisionOperatorName;
+                case SyntaxKind.PlusToken: return isChecked ? WellKnownMemberNames.CheckedAdditionOperatorName : WellKnownMemberNames.AdditionOperatorName;
+                case SyntaxKind.MinusToken: return isChecked ? WellKnownMemberNames.CheckedSubtractionOperatorName : WellKnownMemberNames.SubtractionOperatorName;
+                case SyntaxKind.AsteriskToken: return isChecked ? WellKnownMemberNames.CheckedMultiplyOperatorName : WellKnownMemberNames.MultiplyOperatorName;
+                case SyntaxKind.SlashToken: return isChecked ? WellKnownMemberNames.CheckedDivisionOperatorName : WellKnownMemberNames.DivisionOperatorName;
                 case SyntaxKind.PercentToken: return WellKnownMemberNames.ModulusOperatorName;
                 case SyntaxKind.CaretToken: return WellKnownMemberNames.ExclusiveOrOperatorName;
                 case SyntaxKind.AmpersandToken: return WellKnownMemberNames.BitwiseAndOperatorName;
@@ -91,22 +91,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public static string UnaryOperatorNameFromSyntaxKind(SyntaxKind kind)
+        public static string UnaryOperatorNameFromSyntaxKind(SyntaxKind kind, bool isChecked)
         {
-            return UnaryOperatorNameFromSyntaxKindIfAny(kind) ??
+            return UnaryOperatorNameFromSyntaxKindIfAny(kind, isChecked) ??
                 WellKnownMemberNames.UnaryPlusOperatorName; // This can occur in the presence of syntax errors.
         }
 
-        internal static string UnaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind)
+        internal static string UnaryOperatorNameFromSyntaxKindIfAny(SyntaxKind kind, bool isChecked)
         {
             switch (kind)
             {
                 case SyntaxKind.PlusToken: return WellKnownMemberNames.UnaryPlusOperatorName;
-                case SyntaxKind.MinusToken: return WellKnownMemberNames.UnaryNegationOperatorName;
+                case SyntaxKind.MinusToken: return isChecked ? WellKnownMemberNames.CheckedUnaryNegationOperatorName : WellKnownMemberNames.UnaryNegationOperatorName;
                 case SyntaxKind.TildeToken: return WellKnownMemberNames.OnesComplementOperatorName;
                 case SyntaxKind.ExclamationToken: return WellKnownMemberNames.LogicalNotOperatorName;
-                case SyntaxKind.PlusPlusToken: return WellKnownMemberNames.IncrementOperatorName;
-                case SyntaxKind.MinusMinusToken: return WellKnownMemberNames.DecrementOperatorName;
+                case SyntaxKind.PlusPlusToken: return isChecked ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.IncrementOperatorName;
+                case SyntaxKind.MinusMinusToken: return isChecked ? WellKnownMemberNames.CheckedDecrementOperatorName : WellKnownMemberNames.DecrementOperatorName;
                 case SyntaxKind.TrueKeyword: return WellKnownMemberNames.TrueOperatorName;
                 case SyntaxKind.FalseKeyword: return WellKnownMemberNames.FalseOperatorName;
                 default:
@@ -122,21 +122,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax declaration)
         {
             var opTokenKind = declaration.OperatorToken.Kind;
+            bool isChecked = declaration.CheckedKeyword?.Kind == SyntaxKind.CheckedKeyword;
 
             if (SyntaxFacts.IsBinaryExpressionOperatorToken(opTokenKind))
             {
                 // Some tokens may be either unary or binary operators (e.g. +, -).
-                if (SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opTokenKind) &&
+                if (opTokenKind != SyntaxKind.AsteriskToken && // IsPrefixUnaryExpressionOperatorToken treats it as pointer dereference operator
+                    SyntaxFacts.IsPrefixUnaryExpressionOperatorToken(opTokenKind) &&
                     declaration.ParameterList.Parameters.Count == 1)
                 {
-                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
+                    return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind, isChecked);
                 }
 
-                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opTokenKind);
+                return OperatorFacts.BinaryOperatorNameFromSyntaxKind(opTokenKind, isChecked);
             }
             else if (SyntaxFacts.IsUnaryOperatorDeclarationToken(opTokenKind))
             {
-                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind);
+                return OperatorFacts.UnaryOperatorNameFromSyntaxKind(opTokenKind, isChecked);
             }
             else
             {
@@ -161,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(CheckedUserDefinedOperators) : Adjust?
         public static string UnaryOperatorNameFromOperatorKind(UnaryOperatorKind kind)
         {
             switch (kind & UnaryOperatorKind.OpMask)
@@ -180,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(CheckedUserDefinedOperators) : Adjust?
         public static string BinaryOperatorNameFromOperatorKind(BinaryOperatorKind kind)
         {
             switch (kind & BinaryOperatorKind.OpMask)

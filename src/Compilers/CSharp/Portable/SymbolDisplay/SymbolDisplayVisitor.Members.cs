@@ -644,6 +644,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    if (SyntaxFacts.IsCheckedOperator(operatorName))
+                    {
+                        AddKeyword(SyntaxKind.CheckedKeyword);
+                        AddSpace();
+                    }
+
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol,
                         SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName))));
                 }

@@ -4591,6 +4591,13 @@ interface I1
         [InlineData("I1", "^", "(I1 x, I1 y)")]
         [InlineData("I1", "<<", "(I1 x, int y)")]
         [InlineData("I1", ">>", "(I1 x, int y)")]
+        [InlineData("I1", "checked -", "(I1 x)")]
+        [InlineData("I1", "checked ++", "(I1 x)")]
+        [InlineData("I1", "checked --", "(I1 x)")]
+        [InlineData("I1", "checked +", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked -", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked *", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked /", "(I1 x, I1 y)")]
         public void DefineAbstractStaticOperator_01(string type, string op, string paramList)
         {
             var source1 =
@@ -4682,6 +4689,13 @@ interface I1
         [InlineData("I1", "^", "(I1 x, I1 y)")]
         [InlineData("I1", "<<", "(I1 x, int y)")]
         [InlineData("I1", ">>", "(I1 x, int y)")]
+        [InlineData("I1", "checked -", "(I1 x)")]
+        [InlineData("I1", "checked ++", "(I1 x)")]
+        [InlineData("I1", "checked --", "(I1 x)")]
+        [InlineData("I1", "checked +", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked -", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked *", "(I1 x, I1 y)")]
+        [InlineData("I1", "checked /", "(I1 x, I1 y)")]
         public void DefineAbstractStaticOperator_03(string type, string op, string paramList)
         {
             var source1 =
@@ -4695,10 +4709,12 @@ interface I1
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
+            bool isChecked = op.StartsWith("checked ");
+
             compilation1.VerifyDiagnostics(
                 // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator + (I1 x);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 31 + type.Length)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op.Substring(isChecked ? 8 : 0)).WithLocation(4, 31 + type.Length + (isChecked ? 8 : 0))
                 );
         }
 
@@ -14464,22 +14480,50 @@ public class C2 : C11<int>, I1<int>
             }
         }
 
-        private static string UnaryOperatorName(string op) => OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind());
-        private static string BinaryOperatorName(string op) => op switch { ">>" => WellKnownMemberNames.RightShiftOperatorName, _ => OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind()) };
+        private static string UnaryOperatorName(string op, bool isChecked = false) => OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked);
+        private static string BinaryOperatorName(string op, bool isChecked = false) => op switch { ">>" => WellKnownMemberNames.RightShiftOperatorName, _ => OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(SyntaxFactory.ParseToken(op).Kind(), isChecked: isChecked) };
+
+        private static string GetUnaryOperatorName(string op, bool isChecked, out string checkedKeyword)
+        {
+            string opName = UnaryOperatorName(op, isChecked: false);
+            checkedKeyword = "";
+
+            if (isChecked)
+            {
+                string checkedName = UnaryOperatorName(op, isChecked: true);
+
+                if (checkedName == opName)
+                {
+                    return null; // There is no checked form
+                }
+                else
+                {
+                    opName = checkedName;
+                    checkedKeyword = "checked ";
+                }
+            }
+
+            return opName;
+        }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        public void ImplementAbstractStaticUnaryOperator_01([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
         {
             var typeKeyword = structure ? "struct" : "class";
 
-            string opName = UnaryOperatorName(op);
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    abstract static T operator " + op + @"(T x);
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 
 " + typeKeyword + @"
@@ -14489,31 +14533,31 @@ public interface I1<T> where T : I1<T>
 " + typeKeyword + @"
     C2 : I1<C2>
 {
-    public C2 operator " + op + @"(C2 x) => throw null;
+    public C2 operator " + checkedKeyword + op + @"(C2 x) => throw null;
 }
 
 " + typeKeyword + @"
     C3 : I1<C3>
 {
-    static C3 operator " + op + @"(C3 x) => throw null;
+    static C3 operator " + checkedKeyword + op + @"(C3 x) => throw null;
 }
 
 " + typeKeyword + @"
     C4 : I1<C4>
 {
-    C4 I1<C4>.operator " + op + @"(C4 x) => throw null;
+    C4 I1<C4>.operator " + checkedKeyword + op + @"(C4 x) => throw null;
 }
 
 " + typeKeyword + @"
     C5 : I1<C5>
 {
-    public static int operator " + op + @" (C5 x) => throw null;
+    public static int operator " + checkedKeyword + op + @" (C5 x) => throw null;
 }
 
 " + typeKeyword + @"
     C6 : I1<C6>
 {
-    static int I1<C6>.operator " + op + @" (C6 x) => throw null;
+    static int I1<C6>.operator " + checkedKeyword + op + @" (C6 x) => throw null;
 }
 
 " + typeKeyword + @"
@@ -14536,13 +14580,13 @@ public interface I2<T> where T : I2<T>
 " + typeKeyword + @"
     C9 : I2<C9>
 {
-    public static C9 operator " + op + @"(C9 x) => throw null;
+    public static C9 operator " + checkedKeyword + op + @"(C9 x) => throw null;
 }
 
 " + typeKeyword + @"
     C10 : I2<C10>
 {
-    static C10 I2<C10>.operator " + op + @"(C10 x) => throw null;
+    static C10 I2<C10>.operator " + checkedKeyword + op + @"(C10 x) => throw null;
 }
 ";
 
@@ -14553,43 +14597,43 @@ public interface I2<T> where T : I2<T>
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator +(C1)'
                 //     C1 : I1<C1>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1)").WithLocation(8, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + checkedKeyword + op + "(C1)").WithLocation(8, 10),
                 // (12,10): error CS8928: 'C2' does not implement static interface member 'I1<C2>.operator +(C2)'. 'C2.operator +(C2)' cannot implement the interface member because it is not static.
                 //     C2 : I1<C2>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2)", "C2.operator " + op + "(C2)").WithLocation(12, 10),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + checkedKeyword + op + "(C2)", "C2.operator " + checkedKeyword + op + "(C2)").WithLocation(12, 10),
                 // (14,24): error CS0558: User-defined operator 'C2.operator +(C2)' must be declared static and public
                 //     public C2 operator +(C2 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + op + "(C2)").WithLocation(14, 24),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2)").WithLocation(14, 24 + checkedKeyword.Length),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator +(C3)'. 'C3.operator +(C3)' cannot implement an interface member because it is not public.
                 //     C3 : I1<C3>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + op + "(C3)", "C3.operator " + op + "(C3)").WithLocation(18, 10),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + checkedKeyword + op + "(C3)", "C3.operator " + checkedKeyword + op + "(C3)").WithLocation(18, 10),
                 // (20,24): error CS0558: User-defined operator 'C3.operator +(C3)' must be declared static and public
                 //     static C3 operator +(C3 x) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + op + "(C3)").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3)").WithLocation(20, 24 + checkedKeyword.Length),
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4)'
                 //     C4 : I1<C4>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + op + "(C4)").WithLocation(24, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + checkedKeyword + op + "(C4)").WithLocation(24, 10),
                 // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator +(C4)' must be declared static
                 //     C4 I1<C4>.operator +(C4 x) => throw null;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + op + "(C4)").WithLocation(26, 24),
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (26,24): error CS0539: 'C4.operator +(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     C4 I1<C4>.operator +(C4 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + op + "(C4)").WithLocation(26, 24),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (30,10): error CS0738: 'C5' does not implement interface member 'I1<C5>.operator +(C5)'. 'C5.operator +(C5)' cannot implement 'I1<C5>.operator +(C5)' because it does not have the matching return type of 'C5'.
                 //     C5 : I1<C5>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>.operator " + op + "(C5)", "C5.operator " + op + "(C5)", "C5").WithLocation(30, 10),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>.operator " + checkedKeyword + op + "(C5)", "C5.operator " + checkedKeyword + op + "(C5)", "C5").WithLocation(30, 10),
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.operator +(C6)'
                 //     C6 : I1<C6>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + op + "(C6)").WithLocation(36, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6)").WithLocation(36, 10),
                 // (38,32): error CS0539: 'C6.operator +(C6)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator + (C6 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + op + "(C6)").WithLocation(38, 32),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator +(C7)'
                 //     C7 : I1<C7>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + op + "(C7)").WithLocation(42, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7)").WithLocation(42, 10),
                 // (48,10): error CS0535: 'C8' does not implement interface member 'I1<C8>.operator +(C8)'
                 //     C8 : I1<C8>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C8>").WithArguments("C8", "I1<C8>.operator " + op + "(C8)").WithLocation(48, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C8>").WithArguments("C8", "I1<C8>.operator " + checkedKeyword + op + "(C8)").WithLocation(48, 10),
                 // (50,22): error CS0539: 'C8.op_UnaryPlus(C8)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C8 I1<C8>.op_UnaryPlus(C8 x) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8)").WithLocation(50, 22),
@@ -14601,23 +14645,51 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C10>").WithArguments("C10", "I2<C10>." + opName + "(C10)").WithLocation(65, 11),
                 // (67,33): error CS0539: 'C10.operator +(C10)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C10 I2<C10>.operator +(C10 x) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + op + "(C10)").WithLocation(67, 33)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + checkedKeyword + op + "(C10)").WithLocation(67, 33 + checkedKeyword.Length)
                 );
+        }
+
+        private static string GetBinaryOperatorName(string op, bool isChecked, out string checkedKeyword)
+        {
+            string opName = BinaryOperatorName(op, isChecked: false);
+            checkedKeyword = "";
+
+            if (isChecked)
+            {
+                string checkedName = BinaryOperatorName(op, isChecked: true);
+
+                if (checkedName == opName)
+                {
+                    return null; // There is no checked form
+                }
+                else
+                {
+                    opName = checkedName;
+                    checkedKeyword = "checked ";
+                }
+            }
+
+            return opName;
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
-            var typeKeyword = structure ? "struct" : "class";
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
 
-            string opName = BinaryOperatorName(op);
+            if (opName is null)
+            {
+                return;
+            }
+
+            var typeKeyword = structure ? "struct" : "class";
 
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    abstract static T operator " + op + @"(T x, int y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 
 " + typeKeyword + @"
@@ -14627,31 +14699,31 @@ public interface I1<T> where T : I1<T>
 " + typeKeyword + @"
     C2 : I1<C2>
 {
-    public C2 operator " + op + @"(C2 x, int y) => throw null;
+    public C2 operator " + checkedKeyword + op + @"(C2 x, int y) => throw null;
 }
 
 " + typeKeyword + @"
     C3 : I1<C3>
 {
-    static C3 operator " + op + @"(C3 x, int y) => throw null;
+    static C3 operator " + checkedKeyword + op + @"(C3 x, int y) => throw null;
 }
 
 " + typeKeyword + @"
     C4 : I1<C4>
 {
-    C4 I1<C4>.operator " + op + @"(C4 x, int y) => throw null;
+    C4 I1<C4>.operator " + checkedKeyword + op + @"(C4 x, int y) => throw null;
 }
 
 " + typeKeyword + @"
     C5 : I1<C5>
 {
-    public static int operator " + op + @" (C5 x, int y) => throw null;
+    public static int operator " + checkedKeyword + op + @" (C5 x, int y) => throw null;
 }
 
 " + typeKeyword + @"
     C6 : I1<C6>
 {
-    static int I1<C6>.operator " + op + @" (C6 x, int y) => throw null;
+    static int I1<C6>.operator " + checkedKeyword + op + @" (C6 x, int y) => throw null;
 }
 
 " + typeKeyword + @"
@@ -14674,13 +14746,13 @@ public interface I2<T> where T : I2<T>
 " + typeKeyword + @"
     C9 : I2<C9>
 {
-    public static C9 operator " + op + @"(C9 x, int y) => throw null;
+    public static C9 operator " + checkedKeyword + op + @"(C9 x, int y) => throw null;
 }
 
 " + typeKeyword + @"
     C10 : I2<C10>
 {
-    static C10 I2<C10>.operator " + op + @"(C10 x, int y) => throw null;
+    static C10 I2<C10>.operator " + checkedKeyword + op + @"(C10 x, int y) => throw null;
 }
 ";
 
@@ -14691,43 +14763,43 @@ public interface I2<T> where T : I2<T>
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator >>(C1, int)'
                 //     C1 : I1<C1>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1, int)").WithLocation(8, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + checkedKeyword + op + "(C1, int)").WithLocation(8, 10),
                 // (12,10): error CS8928: 'C2' does not implement static interface member 'I1<C2>.operator >>(C2, int)'. 'C2.operator >>(C2, int)' cannot implement the interface member because it is not static.
                 //     C2 : I1<C2>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2, int)", "C2.operator " + op + "(C2, int)").WithLocation(12, 10),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotStatic, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + checkedKeyword + op + "(C2, int)", "C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(12, 10),
                 // (14,24): error CS0558: User-defined operator 'C2.operator >>(C2, int)' must be declared static and public
                 //     public C2 operator >>(C2 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + op + "(C2, int)").WithLocation(14, 24),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C2.operator " + checkedKeyword + op + "(C2, int)").WithLocation(14, 24 + checkedKeyword.Length),
                 // (18,10): error CS0737: 'C3' does not implement interface member 'I1<C3>.operator >>(C3, int)'. 'C3.operator >>(C3, int)' cannot implement an interface member because it is not public.
                 //     C3 : I1<C3>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + op + "(C3, int)", "C3.operator " + op + "(C3, int)").WithLocation(18, 10),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, "I1<C3>").WithArguments("C3", "I1<C3>.operator " + checkedKeyword + op + "(C3, int)", "C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(18, 10),
                 // (20,24): error CS0558: User-defined operator 'C3.operator >>(C3, int)' must be declared static and public
                 //     static C3 operator >>(C3 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + op + "(C3, int)").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C3.operator " + checkedKeyword + op + "(C3, int)").WithLocation(20, 24 + checkedKeyword.Length),
                 // (24,10): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator >>(C4, int)'
                 //     C4 : I1<C4>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + op + "(C4, int)").WithLocation(24, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator " + checkedKeyword + op + "(C4, int)").WithLocation(24, 10),
                 // (26,24): error CS8930: Explicit implementation of a user-defined operator 'C4.operator >>(C4, int)' must be declared static
                 //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + op + "(C4, int)").WithLocation(26, 24),
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4, int)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (26,24): error CS0539: 'C4.operator >>(C4, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     C4 I1<C4>.operator >>(C4 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + op + "(C4, int)").WithLocation(26, 24),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C4.operator " + checkedKeyword + op + "(C4, int)").WithLocation(26, 24 + checkedKeyword.Length),
                 // (30,10): error CS0738: 'C5' does not implement interface member 'I1<C5>.operator >>(C5, int)'. 'C5.operator >>(C5, int)' cannot implement 'I1<C5>.operator >>(C5, int)' because it does not have the matching return type of 'C5'.
                 //     C5 : I1<C5>
-                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>.operator " + op + "(C5, int)", "C5.operator " + op + "(C5, int)", "C5").WithLocation(30, 10),
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I1<C5>").WithArguments("C5", "I1<C5>.operator " + checkedKeyword + op + "(C5, int)", "C5.operator " + checkedKeyword + op + "(C5, int)", "C5").WithLocation(30, 10),
                 // (36,10): error CS0535: 'C6' does not implement interface member 'I1<C6>.operator >>(C6, int)'
                 //     C6 : I1<C6>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + op + "(C6, int)").WithLocation(36, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C6>").WithArguments("C6", "I1<C6>.operator " + checkedKeyword + op + "(C6, int)").WithLocation(36, 10),
                 // (38,32): error CS0539: 'C6.operator >>(C6, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static int I1<C6>.operator >> (C6 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + op + "(C6, int)").WithLocation(38, 32),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C6.operator " + checkedKeyword + op + "(C6, int)").WithLocation(38, 32 + checkedKeyword.Length),
                 // (42,10): error CS0535: 'C7' does not implement interface member 'I1<C7>.operator >>(C7, int)'
                 //     C7 : I1<C7>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + op + "(C7, int)").WithLocation(42, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C7>").WithArguments("C7", "I1<C7>.operator " + checkedKeyword + op + "(C7, int)").WithLocation(42, 10),
                 // (48,10): error CS0535: 'C8' does not implement interface member 'I1<C8>.operator >>(C8, int)'
                 //     C8 : I1<C8>
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C8>").WithArguments("C8", "I1<C8>.operator " + op + "(C8, int)").WithLocation(48, 10),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C8>").WithArguments("C8", "I1<C8>.operator " + checkedKeyword + op + "(C8, int)").WithLocation(48, 10),
                 // (50,22): error CS0539: 'C8.op_RightShift(C8, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C8 I1<C8>.op_RightShift(C8 x, int y) => throw null;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, opName).WithArguments("C8." + opName + "(C8, int)").WithLocation(50, 22),
@@ -14739,19 +14811,24 @@ public interface I2<T> where T : I2<T>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<C10>").WithArguments("C10", "I2<C10>." + opName + "(C10, int)").WithLocation(65, 11),
                 // (67,33): error CS0539: 'C10.operator >>(C10, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static C10 I2<C10>.operator >>(C10 x, int y) => throw null;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + op + "(C10, int)").WithLocation(67, 33)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C10.operator " + checkedKeyword + op + "(C10, int)").WithLocation(67, 33 + checkedKeyword.Length)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        public void ImplementAbstractStaticUnaryOperator_03([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
+            if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 interface I2 : I1
@@ -14759,62 +14836,62 @@ interface I2 : I1
 
 interface I3 : I1
 {
-    I1 operator " + op + @"(I1 x) => default;
+    I1 operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 
 interface I4 : I1
 {
-    static I1 operator " + op + @"(I1 x) => default;
+    static I1 operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 
 interface I5 : I1
 {
-    I1 I1.operator " + op + @"(I1 x) => default;
+    I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 
 interface I6 : I1
 {
-    static I1 I1.operator " + op + @"(I1 x) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 
 interface I7 : I1
 {
-    abstract static I1 operator " + op + @"(I1 x);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 public interface I11<T> where T : I11<T>
 {
-    abstract static T operator " + op + @"(T x);
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 
 interface I8<T> : I11<T> where T : I8<T>
 {
-    T operator " + op + @"(T x) => default;
+    T operator " + checkedKeyword + op + @"(T x) => default;
 }
 
 interface I9<T> : I11<T> where T : I9<T>
 {
-    static T operator " + op + @"(T x) => default;
+    static T operator " + checkedKeyword + op + @"(T x) => default;
 }
 
 interface I10<T> : I11<T> where T : I10<T>
 {
-    abstract static T operator " + op + @"(T x);
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 
 interface I12<T> : I11<T> where T : I12<T>
 {
-    static T I11<T>.operator " + op + @"(T x) => default;
+    static T I11<T>.operator " + checkedKeyword + op + @"(T x) => default;
 }
 
 interface I13<T> : I11<T> where T : I13<T>
 {
-    abstract static T I11<T>.operator " + op + @"(T x);
+    abstract static T I11<T>.operator " + checkedKeyword + op + @"(T x);
 }
 
 interface I14 : I1
 {
-    abstract static I1 I1.operator " + op + @"(I1 x);
+    abstract static I1 I1.operator " + checkedKeyword + op + @"(I1 x);
 }
 ";
 
@@ -14828,55 +14905,55 @@ interface I14 : I1
             compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (12,17): error CS0558: User-defined operator 'I3.operator +(I1)' must be declared static and public
                 //     I1 operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + op + "(I1)").WithLocation(12, 17),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
                 // (12,17): error CS0562: The parameter of a unary operator must be the containing type
                 //     I1 operator +(I1 x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(12, 17),
+                Diagnostic(badSignatureError, op).WithLocation(12, 17 + checkedKeyword.Length),
                 // (17,24): error CS0562: The parameter of a unary operator must be the containing type
                 //     static I1 operator +(I1 x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(17, 24),
+                Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
                 // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator +(I1)' must be declared static
                 //     I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1)").WithLocation(22, 20),
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
                 // (22,20): error CS0539: 'I5.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + op + "(I1)").WithLocation(22, 20),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1)").WithLocation(22, 20 + checkedKeyword.Length),
                 // (27,27): error CS0539: 'I6.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + op + "(I1)").WithLocation(27, 27),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8921: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator +(I1 x);
-                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33),
+                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
                 // (42,16): error CS0558: User-defined operator 'I8<T>.operator +(T)' must be declared static and public
                 //     T operator +(T x) => default;
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + op + "(T)").WithLocation(42, 16),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T)").WithLocation(42, 16 + checkedKeyword.Length),
                 // (42,16): error CS0562: The parameter of a unary operator must be the containing type
                 //     T operator +(T x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(42, 16),
+                Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0562: The parameter of a unary operator must be the containing type
                 //     static T operator +(T x) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23),
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
                 // (57,30): error CS0539: 'I12<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static T I11<T>.operator +(T x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + op + "(T)").WithLocation(57, 30),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T)").WithLocation(57, 30 + checkedKeyword.Length),
                 // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39 + checkedKeyword.Length),
                 // (62,39): error CS0501: 'I13<T>.operator +(T)' must declare a body because it is not marked abstract, extern, or partial
                 //     abstract static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + op + "(T)").WithLocation(62, 39),
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T)").WithLocation(62, 39 + checkedKeyword.Length),
                 // (62,39): error CS0539: 'I13<T>.operator +(T)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract static T I11<T>.operator +(T x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + op + "(T)").WithLocation(62, 39),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T)").WithLocation(62, 39 + checkedKeyword.Length),
                 // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36 + checkedKeyword.Length),
                 // (67,36): error CS0501: 'I14.operator +(I1)' must declare a body because it is not marked abstract, extern, or partial
                 //     abstract static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + op + "(I1)").WithLocation(67, 36),
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1)").WithLocation(67, 36 + checkedKeyword.Length),
                 // (67,36): error CS0539: 'I14.operator +(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract static I1 I1.operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + op + "(I1)").WithLocation(67, 36)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1)").WithLocation(67, 36 + checkedKeyword.Length)
                 );
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
@@ -14908,13 +14985,18 @@ interface I14 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
+            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x, int y);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 interface I2 : I1
@@ -14922,62 +15004,62 @@ interface I2 : I1
 
 interface I3 : I1
 {
-    I1 operator " + op + @"(I1 x, int y) => default;
+    I1 operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 
 interface I4 : I1
 {
-    static I1 operator " + op + @"(I1 x, int y) => default;
+    static I1 operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 
 interface I5 : I1
 {
-    I1 I1.operator " + op + @"(I1 x, int y) => default;
+    I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 
 interface I6 : I1
 {
-    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 
 interface I7 : I1
 {
-    abstract static I1 operator " + op + @"(I1 x, int y);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 public interface I11<T> where T : I11<T>
 {
-    abstract static T operator " + op + @"(T x, int y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 
 interface I8<T> : I11<T> where T : I8<T>
 {
-    T operator " + op + @"(T x, int y) => default;
+    T operator " + checkedKeyword + op + @"(T x, int y) => default;
 }
 
 interface I9<T> : I11<T> where T : I9<T>
 {
-    static T operator " + op + @"(T x, int y) => default;
+    static T operator " + checkedKeyword + op + @"(T x, int y) => default;
 }
 
 interface I10<T> : I11<T> where T : I10<T>
 {
-    abstract static T operator " + op + @"(T x, int y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 
 interface I12<T> : I11<T> where T : I12<T>
 {
-    static T I11<T>.operator " + op + @"(T x, int y) => default;
+    static T I11<T>.operator " + checkedKeyword + op + @"(T x, int y) => default;
 }
 
 interface I13<T> : I11<T> where T : I13<T>
 {
-    abstract static T I11<T>.operator " + op + @"(T x, int y);
+    abstract static T I11<T>.operator " + checkedKeyword + op + @"(T x, int y);
 }
 
 interface I14 : I1
 {
-    abstract static I1 I1.operator " + op + @"(I1 x, int y);
+    abstract static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 ";
 
@@ -14992,49 +15074,49 @@ interface I14 : I1
             var expected = new[] {
                 // (12,17): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     I1 operator |(I1 x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(12, 17),
+                Diagnostic(badSignatureError, op).WithLocation(12, 17 + checkedKeyword.Length),
                 // (17,24): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static I1 operator |(I1 x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(17, 24),
+                Diagnostic(badSignatureError, op).WithLocation(17, 24 + checkedKeyword.Length),
                 // (22,20): error CS8930: Explicit implementation of a user-defined operator 'I5.operator |(I1, int)' must be declared static
                 //     I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + op + "(I1, int)").WithLocation(22, 20),
+                Diagnostic(ErrorCode.ERR_ExplicitImplementationOfOperatorsMustBeStatic, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
                 // (22,20): error CS0539: 'I5.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + op + "(I1, int)").WithLocation(22, 20),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I5.operator " + checkedKeyword + op + "(I1, int)").WithLocation(22, 20 + checkedKeyword.Length),
                 // (27,27): error CS0539: 'I6.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static I1 I1.operator |(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + op + "(I1, int)").WithLocation(27, 27),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I6.operator " + checkedKeyword + op + "(I1, int)").WithLocation(27, 27 + checkedKeyword.Length),
                 // (32,33): error CS8924: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
                 //     abstract static I1 operator |(I1 x, int y);
-                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33),
+                Diagnostic(badAbstractSignatureError, op).WithLocation(32, 33 + checkedKeyword.Length),
                 // (42,16): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     T operator |(T x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(42, 16),
+                Diagnostic(badSignatureError, op).WithLocation(42, 16 + checkedKeyword.Length),
                 // (47,23): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     static T operator |(T x, int y) => default;
-                Diagnostic(badSignatureError, op).WithLocation(47, 23),
+                Diagnostic(badSignatureError, op).WithLocation(47, 23 + checkedKeyword.Length),
                 // (57,30): error CS0539: 'I12<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static T I11<T>.operator |(T x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + op + "(T, int)").WithLocation(57, 30),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I12<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(57, 30 + checkedKeyword.Length),
                 // (62,39): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(62, 39 + checkedKeyword.Length),
                 // (62,39): error CS0501: 'I13<T>.operator |(T, int)' must declare a body because it is not marked abstract, extern, or partial
                 //     abstract static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + op + "(T, int)").WithLocation(62, 39),
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(62, 39 + checkedKeyword.Length),
                 // (62,39): error CS0539: 'I13<T>.operator |(T, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract static T I11<T>.operator |(T x, int y);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + op + "(T, int)").WithLocation(62, 39),
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I13<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(62, 39 + checkedKeyword.Length),
                 // (67,36): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, op).WithArguments("abstract").WithLocation(67, 36 + checkedKeyword.Length),
                 // (67,36): error CS0501: 'I14.operator |(I1, int)' must declare a body because it is not marked abstract, extern, or partial
                 //     abstract static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + op + "(I1, int)").WithLocation(67, 36),
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1, int)").WithLocation(67, 36 + checkedKeyword.Length),
                 // (67,36): error CS0539: 'I14.operator |(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract static I1 I1.operator |(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + op + "(I1, int)").WithLocation(67, 36)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("I14.operator " + checkedKeyword + op + "(I1, int)").WithLocation(67, 36 + checkedKeyword.Length)
                 };
 
             if (op is "==" or "!=")
@@ -15043,16 +15125,16 @@ interface I14 : I1
                     new[] {
                         // (12,17): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     I1 operator ==(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(12, 17),
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(12, 17 + checkedKeyword.Length),
                         // (17,24): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     static I1 operator ==(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(17, 24),
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(17, 24 + checkedKeyword.Length),
                         // (42,16): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     T operator ==(T x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(42, 16),
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(42, 16 + checkedKeyword.Length),
                         // (47,23): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
                         //     static T operator ==(T x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(47, 23),
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, op).WithLocation(47, 23 + checkedKeyword.Length),
                         }
                     ).ToArray();
             }
@@ -15062,10 +15144,10 @@ interface I14 : I1
                     new[] {
                         // (12,17): error CS0558: User-defined operator 'I3.operator |(I1, int)' must be declared static and public
                         //     I1 operator |(I1 x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + op + "(I1, int)").WithLocation(12, 17),
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1, int)").WithLocation(12, 17 + checkedKeyword.Length),
                         // (42,16): error CS0558: User-defined operator 'I8<T>.operator |(T, int)' must be declared static and public
                         //     T operator |(T x, int y) => default;
-                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + op + "(T, int)").WithLocation(42, 16)
+                        Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I8<T>.operator " + checkedKeyword + op + "(T, int)").WithLocation(42, 16 + checkedKeyword.Length)
                         }
                     ).ToArray();
             }
@@ -15101,32 +15183,37 @@ interface I14 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_04([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        public void ImplementAbstractStaticUnaryOperator_04([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
         {
+            if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var typeKeyword = structure ? "struct" : "class";
 
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 public interface I2<T> where T : I2<T>
 {
-    abstract static T operator " + op + @"(T x);
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 ";
             var source2 =
 typeKeyword + @"
     Test1: I1
 {
-    static I1 I1.operator " + op + @"(I1 x) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 " + typeKeyword + @"
     Test2: I2<Test2>
 {
-    public static Test2 operator " + op + @"(Test2 x) => default;
+    public static Test2 operator " + checkedKeyword + op + @"(Test2 x) => default;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -15138,57 +15225,116 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
-                );
+            DiagnosticDescription[] expected2;
+
+            if (isChecked)
+            {
+                expected2 = new[] {
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator +(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator checked -(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
+                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static Test2 operator checked -(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34)
+                    };
+            }
+            else
+            {
+                expected2 = new[] {
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator +(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                    };
+            }
+
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected2);
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
-                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                //     abstract static I1 operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
-                // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                //     abstract static T operator +(T x);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
-                );
+            DiagnosticDescription[] expected3;
+
+            if (isChecked)
+            {
+                expected3 = new[] {
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator checked --(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator checked --(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
+                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static Test2 operator checked --(Test2 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
+                    // (14,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static I1 operator checked --(I1 x);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(14, 33),
+                    // (14,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator checked --(I1 x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 41),
+                    // (19,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static T operator checked --(T x);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(19, 32),
+                    // (19,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator checked --(T x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 40)
+                    };
+            }
+            else
+            {
+                expected3 = new[] {
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator +(I1 x) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator +(I1 x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator +(T x);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                    };
+            }
+
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected3);
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
+            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var typeKeyword = structure ? "struct" : "class";
 
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x, int y);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 public interface I2<T> where T : I2<T>
 {
-    abstract static T operator " + op + @"(T x, int y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 ";
             var source2 =
 typeKeyword + @"
     Test1: I1
 {
-    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 " + typeKeyword + @"
     Test2: I2<Test2>
 {
-    public static Test2 operator " + op + @"(Test2 x, int y) => default;
+    public static Test2 operator " + checkedKeyword + op + @"(Test2 x, int y) => default;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -15200,47 +15346,98 @@ typeKeyword + @"
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static I1 I1.operator +(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
-                );
+            if (!isChecked)
+            {
+                compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15)
+                    );
+            }
+            else
+            {
+                compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator checked /(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
+                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static Test2 operator checked /(Test2 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34)
+                    );
+            }
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
-                // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static I1 I1.operator +(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
-                // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                //     abstract static I1 operator +(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
-                // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                //     abstract static T operator +(T x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
-                );
+            if (!isChecked)
+            {
+                compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator +(I1 x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33),
+                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator +(T x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32)
+                    );
+            }
+            else
+            {
+                compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                    // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator +(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
+                    // (14,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static I1 operator +(I1 x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(14, 33 + checkedKeyword.Length),
+                    // (19,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator +(T x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(19, 32 + checkedKeyword.Length),
+                    // (4,27): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static I1 I1.operator checked /(I1 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(4, 27),
+                    // (9,34): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static Test2 operator checked /(Test2 x, int y) => default;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(9, 34),
+                    // (14,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static I1 operator checked /(I1 x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(14, 33),
+                    // (19,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static T operator checked /(T x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(19, 32)
+                    );
+            }
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_05([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        public void ImplementAbstractStaticUnaryOperator_05([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
         {
+            if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var typeKeyword = structure ? "struct" : "class";
 
             var source1 =
 @"
 public interface I1<T> where T : I1<T> 
 {
-    abstract static T operator " + op + @"(T x);
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 ";
             var source2 =
 typeKeyword + @"
     Test1: I1<Test1>
 {
-    public static Test1 operator " + op + @"(Test1 x) => default;
+    public static Test1 operator " + checkedKeyword + op + @"(Test1 x) => default;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -15255,7 +15452,7 @@ typeKeyword + @"
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1)", "I1<Test1>.operator " + op + "(Test1)", "Test1").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1)", "Test1").WithLocation(2, 12)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15265,31 +15462,36 @@ typeKeyword + @"
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1)", "I1<Test1>.operator " + op + "(Test1)", "Test1").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1)", "Test1").WithLocation(2, 12),
                 // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator +(T x);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32 + checkedKeyword.Length)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_05([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
+            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var typeKeyword = structure ? "struct" : "class";
 
             var source1 =
 @"
 public interface I1<T> where T : I1<T> 
 {
-    abstract static T operator " + op + @"(T x, int y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 ";
             var source2 =
 typeKeyword + @"
     Test1: I1<Test1>
 {
-    public static Test1 operator " + op + @"(Test1 x, int y) => default;
+    public static Test1 operator " + checkedKeyword + op + @"(Test1 x, int y) => default;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -15304,7 +15506,7 @@ typeKeyword + @"
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1, int)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1, int)", "Test1").WithLocation(2, 12)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15314,31 +15516,36 @@ typeKeyword + @"
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + op + "(Test1, int)", "I1<Test1>.operator " + op + "(Test1, int)", "Test1").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1, int)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1, int)", "Test1").WithLocation(2, 12),
                 // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator >>(T x, int y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 32 + checkedKeyword.Length)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_06([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure)
+        public void ImplementAbstractStaticUnaryOperator_06([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool structure, bool isChecked)
         {
+            if (GetUnaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var typeKeyword = structure ? "struct" : "class";
 
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 ";
             var source2 =
 typeKeyword + @"
     Test1: I1
 {
-    static I1 I1.operator " + op + @"(I1 x) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -15353,7 +15560,7 @@ typeKeyword + @"
             compilation2.VerifyDiagnostics(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27 + checkedKeyword.Length)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15363,31 +15570,36 @@ typeKeyword + @"
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27 + checkedKeyword.Length),
                 // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator +(I1 x);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33 + checkedKeyword.Length)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
+            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var typeKeyword = structure ? "struct" : "class";
 
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x, int y);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 ";
             var source2 =
 typeKeyword + @"
     Test1: I1
 {
-    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -15402,7 +15614,7 @@ typeKeyword + @"
             compilation2.VerifyDiagnostics(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27 + checkedKeyword.Length)
                 );
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
@@ -15412,18 +15624,25 @@ typeKeyword + @"
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27 + checkedKeyword.Length),
                 // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator +(I1 x, int y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33 + checkedKeyword.Length)
                 );
         }
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_07([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure)
+        public void ImplementAbstractStaticUnaryOperator_07([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure, bool isChecked)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
+
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var typeKeyword = structure ? "struct" : "class";
 
@@ -15431,17 +15650,16 @@ typeKeyword + @"
 @"
 public interface I1<T> where T : I1<T>
 {
-    abstract static T operator " + op + @"(T x);
+    abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 
 " + typeKeyword + @"
     C : I1<C>
 {
-    public static C operator " + op + @"(C x) => default;
+    public static C operator " + checkedKeyword + op + @"(C x) => default;
 }
 ";
 
-            var opName = UnaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
@@ -15566,9 +15784,16 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_07([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             // Basic implicit implementation scenario, MethodImpl is emitted
+
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var typeKeyword = structure ? "struct" : "class";
 
@@ -15576,7 +15801,7 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    abstract static T operator " + op + @"(T x, int y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, int y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -15584,7 +15809,7 @@ public partial interface I1<T> where T : I1<T>
 partial " + typeKeyword + @"
     C : I1<C>
 {
-    public static C operator " + op + @"(C x, int y) => default;
+    public static C operator " + checkedKeyword + op + @"(C x, int y) => default;
 }
 ";
             string matchingOp = MatchingBinaryOperator(op);
@@ -15606,7 +15831,6 @@ partial " + typeKeyword + @"
 ";
             }
 
-            var opName = BinaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
@@ -15651,9 +15875,16 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_08([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure)
+        public void ImplementAbstractStaticUnaryOperator_08([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool structure, bool isChecked)
         {
             // Basic explicit implementation scenario
+
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var typeKeyword = structure ? "struct" : "class";
 
@@ -15661,17 +15892,16 @@ partial " + typeKeyword + @"
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 " + typeKeyword + @"
     C : I1
 {
-    static I1 I1.operator " + op + @"(I1 x) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
 
-            var opName = UnaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
@@ -15800,9 +16030,16 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure)
+        public void ImplementAbstractStaticBinaryOperator_08([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool structure, bool isChecked)
         {
             // Basic explicit implementation scenario
+
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var typeKeyword = structure ? "struct" : "class";
 
@@ -15810,13 +16047,13 @@ partial " + typeKeyword + @"
 @"
 public partial interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x, int y);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 partial " + typeKeyword + @"
     C : I1
 {
-    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 ";
             string matchingOp = MatchingBinaryOperator(op);
@@ -15838,7 +16075,6 @@ partial " + typeKeyword + @"
 ";
             }
 
-            var opName = BinaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
@@ -15886,20 +16122,27 @@ partial " + typeKeyword + @"
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_09([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op)
+        public void ImplementAbstractStaticUnaryOperator_09([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
         {
             // Explicit implementation from base is treated as an implementation
+
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 public class C2 : I1
 {
-    static I1 I1.operator " + op + @"(I1 x) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
 
@@ -15915,8 +16158,6 @@ public class C3 : C2, I1
 {
 }
 ";
-
-            var opName = UnaryOperatorName(op);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -16018,20 +16259,27 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_09([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Explicit implementation from base is treated as an implementation
+
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var source1 =
 @"
 public partial interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x, int y);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x, int y);
 }
 
 public partial class C2 : I1
 {
-    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 ";
             string matchingOp = MatchingBinaryOperator(op);
@@ -16065,8 +16313,6 @@ public class C3 : C2, I1
 }
 ";
 
-            var opName = BinaryOperatorName(op);
-
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 foreach (var parseOptions in new[] { TestOptions.Regular9, TestOptions.RegularPreview })
@@ -16094,12 +16340,17 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_10([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        public void ImplementAbstractStaticUnaryOperator_10([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
 
-            var opName = UnaryOperatorName(op);
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
@@ -16218,12 +16469,17 @@ public class C5 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_10([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Implicit implementation is considered only for types implementing interface in source.
             // In metadata, only explicit implementations are considered
 
-            var opName = BinaryOperatorName(op);
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
@@ -16343,11 +16599,16 @@ public class C5 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_11([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        public void ImplementAbstractStaticUnaryOperator_11([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
             // Ignore invalid metadata (non-abstract static virtual method). 
 
-            var opName = UnaryOperatorName(op);
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
@@ -16394,7 +16655,7 @@ public class C1 : I1
 @"
 public class C1 : I1
 {
-    static I1 I1.operator " + op + @"(I1 x) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
 
@@ -16405,7 +16666,7 @@ public class C1 : I1
             compilation2.VerifyEmitDiagnostics(
                 // (4,27): error CS0539: 'C1.operator ~(I1)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static I1 I1.operator ~(I1 x) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + op + "(I1)").WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + checkedKeyword + op + "(I1)").WithLocation(4, 27 + checkedKeyword.Length)
                 );
 
             c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
@@ -16417,11 +16678,16 @@ public class C1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_11([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Ignore invalid metadata (non-abstract static virtual method). 
 
-            var opName = BinaryOperatorName(op);
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
@@ -16469,7 +16735,7 @@ public class C1 : I1
 @"
 public class C1 : I1
 {
-    static I1 I1.operator " + op + @"(I1 x, int y) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 ";
 
@@ -16480,7 +16746,7 @@ public class C1 : I1
             compilation2.VerifyEmitDiagnostics(
                 // (4,27): error CS0539: 'C1.operator <(I1, int)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static I1 I1.operator <(I1 x, int y) => default;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + op + "(I1, int)").WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C1.operator " + checkedKeyword + op + "(I1, int)").WithLocation(4, 27 + checkedKeyword.Length)
                 );
 
             c1 = compilation2.GlobalNamespace.GetTypeMember("C1");
@@ -16492,11 +16758,16 @@ public class C1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_12([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op)
+        public void ImplementAbstractStaticUnaryOperator_12([CombinatorialValues("+", "-", "!", "~", "++", "--", "true", "false")] string op, bool isChecked)
         {
             // Ignore invalid metadata (default interface implementation for a static method)
 
-            var opName = UnaryOperatorName(op);
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
@@ -16536,7 +16807,7 @@ public class C1 : I2
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator ~(I1)'
                 // public class C1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + op + "(I1)").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + checkedKeyword + op + "(I1)").WithLocation(2, 19)
                 );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
@@ -16554,11 +16825,16 @@ public class C1 : I2
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_12([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // Ignore invalid metadata (default interface implementation for a static method)
 
-            var opName = BinaryOperatorName(op);
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1
@@ -16599,7 +16875,7 @@ public class C1 : I2
             compilation1.VerifyEmitDiagnostics(
                 // (2,19): error CS0535: 'C1' does not implement interface member 'I1.operator /(I1, int)'
                 // public class C1 : I2
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + op + "(I1, int)").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("C1", "I1.operator " + checkedKeyword + op + "(I1, int)").WithLocation(2, 19)
                 );
 
             var c1 = compilation1.GlobalNamespace.GetTypeMember("C1");
@@ -16617,22 +16893,29 @@ public class C1 : I2
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_13([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_13([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation declared in base class. 
+
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    abstract static T operator " + op + @"(T x, C1 y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, C1 y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1
 {
-    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+    public static C2 operator " + checkedKeyword + op + @"(C2 x, C1 y) => default;
 }
 
 public class C2 : C1, I1<C2>
@@ -16657,7 +16940,6 @@ public partial class C1
 ";
             }
 
-            var opName = BinaryOperatorName(op);
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
@@ -16727,11 +17009,16 @@ public partial class C1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_14([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op)
+        public void ImplementAbstractStaticUnaryOperator_14([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
-            var opName = UnaryOperatorName(op);
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
@@ -16750,12 +17037,12 @@ public partial class C1
 @"
 class C1 : I1<C1>
 {
-    public static C1 operator " + op + @"(C1 x) => default;
+    public static C1 operator " + checkedKeyword + op + @"(C1 x) => default;
 }
 
 class C2 : I1<C2>
 {
-    static C2 I1<C2>.operator " + op + @"(C2 x) => default;
+    static C2 I1<C2>.operator " + checkedKeyword + op + @"(C2 x) => default;
 }
 ";
 
@@ -16953,11 +17240,16 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_14([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A forwarding method is added for an implicit implementation with modopt mismatch. 
 
-            var opName = BinaryOperatorName(op);
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var ilSource = @"
 .class interface public auto ansi abstract I1`1<(class I1`1<!T>) T>
@@ -16989,13 +17281,13 @@ class C2 : I1<C2>
 
 class C1 : I1<C1>
 {
-    public static C1 operator " + op + @"(C1 x, int y) => default;
+    public static C1 operator " + checkedKeyword + op + @"(C1 x, int y) => default;
 " + additionalMethods + @"
 }
 
 class C2 : I1<C2>
 {
-    static C2 I1<C2>.operator " + op + @"(C2 x, int y) => default;
+    static C2 I1<C2>.operator " + checkedKeyword + op + @"(C2 x, int y) => default;
 }
 ";
 
@@ -17077,20 +17369,27 @@ class C2 : I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticUnaryOperator_15([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op)
+        public void ImplementAbstractStaticUnaryOperator_15([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
+
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var source1 =
 @"
 public interface I1
 {
-    abstract static I1 operator " + op + @"(I1 x);
+    abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
 public partial class C2 : I1
 {
-    static I1 I1.operator " + op + @"(I1 x) => default;
+    static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
 
@@ -17106,8 +17405,6 @@ public class C3 : C2, I1
 {
 }
 ";
-
-            var opName = UnaryOperatorName(op);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -17200,28 +17497,35 @@ public class C3 : C2, I1
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_15([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A forwarding method isn't created if base class implements interface exactly the same way. 
+
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    abstract static T operator " + op + @"(T x, C1 y);
-    abstract static T operator " + op + @"(T x, C2 y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, C1 y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, C2 y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1
 {
-    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+    public static C2 operator " + checkedKeyword + op + @"(C2 x, C1 y) => default;
 }
 
 public partial class C2 : C1, I1<C2>
 {
-    static C2 I1<C2>.operator " + op + @"(C2 x, C2 y) => default;
+    static C2 I1<C2>.operator " + checkedKeyword + op + @"(C2 x, C2 y) => default;
 }
 ";
 
@@ -17261,8 +17565,6 @@ public class C3 : C2, I1<C2>
 {
 }
 ";
-
-            var opName = BinaryOperatorName(op);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -17316,27 +17618,34 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_16([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op)
+        public void ImplementAbstractStaticBinaryOperator_16([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool isChecked)
         {
             // A new implicit implementation is properly considered.
+
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
 
             var source1 =
 @"
 public partial interface I1<T> where T : I1<T>
 {
-    abstract static T operator " + op + @"(T x, C1 y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, C1 y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
 
 public partial class C1 : I1<C2>
 {
-    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+    public static C2 operator " + checkedKeyword + op + @"(C2 x, C1 y) => default;
 }
 
 public partial class C2 : C1
 {
-    public static C2 operator " + op + @"(C2 x, C1 y) => default;
+    public static C2 operator " + checkedKeyword + op + @"(C2 x, C1 y) => default;
 }
 ";
             string matchingOp = MatchingBinaryOperator(op);
@@ -17374,8 +17683,6 @@ public class C3 : C2, I1<C2>
 {
 }
 ";
-
-            var opName = BinaryOperatorName(op);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
@@ -17433,23 +17740,30 @@ public class C3 : C2, I1<C2>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_18([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst)
+        public void ImplementAbstractStaticBinaryOperator_18([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked)
         {
             // An "ambiguity" in implicit implementation declared in generic base class plus interface is generic too.
 
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
             var generic =
 @"
-    public static C1<T, U> operator " + op + @"(C1<T, U> x, U y) => default;
+    public static C1<T, U> operator " + checkedKeyword + op + @"(C1<T, U> x, U y) => default;
 ";
             var nonGeneric =
 @"
-    public static C1<T, U> operator " + op + @"(C1<T, U> x, int y) => default;
+    public static C1<T, U> operator " + checkedKeyword + op + @"(C1<T, U> x, int y) => default;
 ";
             var source1 =
 @"
 public partial interface I1<T, U> where T : I1<T, U>
 {
-    abstract static T operator " + op + @"(T x, U y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, U y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -17478,8 +17792,6 @@ public partial class C1<T, U>
 }
 ";
             }
-
-            var opName = BinaryOperatorName(op);
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -17537,23 +17849,30 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_20([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst)
+        public void ImplementAbstractStaticBinaryOperator_20([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked)
         {
             // Same as ImplementAbstractStaticBinaryOperator_18 only implementation is explicit in source.
 
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
             var generic =
 @"
-    static C1<T, U> I1<C1<T, U>, U>.operator " + op + @"(C1<T, U> x, U y) => default;
+    static C1<T, U> I1<C1<T, U>, U>.operator " + checkedKeyword + op + @"(C1<T, U> x, U y) => default;
 ";
             var nonGeneric =
 @"
-    public static C1<T, U> operator " + op + @"(C1<T, U> x, int y) => default;
+    public static C1<T, U> operator " + checkedKeyword + op + @"(C1<T, U> x, int y) => default;
 ";
             var source1 =
 @"
 public partial interface I1<T, U> where T : I1<T, U>
 {
-    abstract static T operator " + op + @"(T x, U y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, U y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -17581,8 +17900,6 @@ public partial class C1<T, U> : I1<C1<T, U>, U>
 }
 ";
             }
-
-            var opName = BinaryOperatorName(op);
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -17629,23 +17946,30 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 
         [Theory]
         [CombinatorialData]
-        public void ImplementAbstractStaticBinaryOperator_22([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst)
+        public void ImplementAbstractStaticBinaryOperator_22([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<", ">", "<=", ">=", "==", "!=")] string op, bool genericFirst, bool isChecked)
         {
             // Same as ImplementAbstractStaticMethod_18 only implicit implementation is in an intermediate base.
 
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
             var generic =
 @"
-    public static C11<T, U> operator " + op + @"(C11<T, U> x, C1<T, U> y) => default;
+    public static C11<T, U> operator " + checkedKeyword + op + @"(C11<T, U> x, C1<T, U> y) => default;
 ";
             var nonGeneric =
 @"
-    public static C11<T, U> operator " + op + @"(C11<T, int> x, C1<T, U> y) => default;
+    public static C11<T, U> operator " + checkedKeyword + op + @"(C11<T, int> x, C1<T, U> y) => default;
 ";
             var source1 =
 @"
 public partial interface I1<T, U> where T : I1<T, U>
 {
-    abstract static T operator " + op + @"(T x, U y);
+    abstract static T operator " + checkedKeyword + op + @"(T x, U y);
 }
 
 #pragma warning disable CS0660, CS0661 // 'C1' defines operator == or operator != but does not override Object.Equals(object o)/Object.GetHashCode()
@@ -17677,8 +18001,6 @@ public partial class C1<T, U>
 }
 ";
             }
-
-            var opName = BinaryOperatorName(op);
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -26772,6 +27094,288 @@ class C : I1<C>
                 // (19,6): error CS8896: 'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.
                 //     [UnmanagedCallersOnly] static explicit I1<C>.operator C(int i) => null;
                 Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, "UnmanagedCallersOnly").WithLocation(19, 6)
+                );
+        }
+
+        [Theory]
+        [InlineData("+", "op_UnaryPlus")]
+        [InlineData("!", "op_LogicalNot")]
+        [InlineData("~", "op_OnesComplement")]
+        public void UnaryOperators_Checked_Unsupported_01(string op, string name)
+        {
+            var source1 =
+@"
+interface C 
+{
+    public static abstract C operator checked " + op + @"(C x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (4,39): error CS9150: User-defined operator '+' cannot be declared checked
+                //     public static abstract C operator checked +(C x);
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
+                );
+
+            var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
+            var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
+            Assert.Equal(name, opSymbol.Name);
+            Assert.Equal("C C." + name + "(C x)", opSymbol.ToTestDisplayString());
+            Assert.Equal("C.operator " + op + "(C)", opSymbol.ToDisplayString());
+        }
+
+        [Fact]
+        public void UnaryOperators_Checked_Unsupported_02()
+        {
+            var source1 =
+@"
+interface C 
+{
+    public static abstract bool operator checked true(C x);
+    public static abstract bool operator checked false(C x);
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (4,42): error CS9150: User-defined operator 'true' cannot be declared checked
+                //     public static abstract bool operator checked true(C x);
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments("true").WithLocation(4, 42),
+                // (5,42): error CS9150: User-defined operator 'false' cannot be declared checked
+                //     public static abstract bool operator checked false(C x);
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments("false").WithLocation(5, 42)
+                );
+
+            var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
+            var opSymbols = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).ToArray();
+            Assert.Equal(2, opSymbols.Length);
+
+            var opSymbol1 = opSymbols[0];
+            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol1.MethodKind);
+            Assert.Equal("op_True", opSymbol1.Name);
+            Assert.Equal("System.Boolean C.op_True(C x)", opSymbol1.ToTestDisplayString());
+            Assert.Equal("C.operator true(C)", opSymbol1.ToDisplayString());
+
+            var opSymbol2 = opSymbols[1];
+            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol2.MethodKind);
+            Assert.Equal("op_False", opSymbol2.Name);
+            Assert.Equal("System.Boolean C.op_False(C x)", opSymbol2.ToTestDisplayString());
+            Assert.Equal("C.operator false(C)", opSymbol2.ToDisplayString());
+        }
+
+        [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void ImplementAbstractStaticUnaryOperator_16(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked " + op + @"(T x);
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator " + op + @"(C1 x) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator " + op + @"(C2 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator checked --(C1)'
+                // public class C1 : I1<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator checked " + op + "(C1)").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C2' does not implement interface member 'I1<C2>.operator checked --(C2)'
+                // public class C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C2>").WithArguments("C2", "I1<C2>.operator checked " + op + "(C2)").WithLocation(12, 19),
+                // (14,31): error CS0539: 'C2.operator --(C2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator --(C2 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C2)").WithLocation(14, 31)
+                );
+        }
+
+        [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void ImplementAbstractStaticUnaryOperator_17(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x);
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator checked " + op + @"(C1 x) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator checked" + op + @"(C2 x) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator --(C1)'
+                // public class C1 : I1<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1)").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C2' does not implement interface member 'I1<C2>.operator --(C2)'
+                // public class C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2)").WithLocation(12, 19),
+                // (14,38): error CS0539: 'C2.operator checked --(C2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator checked--(C2 x) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2)").WithLocation(14, 38)
+                );
+        }
+
+        [Theory]
+        [InlineData("%", "op_Modulus")]
+        [InlineData("&", "op_BitwiseAnd")]
+        [InlineData("|", "op_BitwiseOr")]
+        [InlineData("^", "op_ExclusiveOr")]
+        [InlineData("<<", "op_LeftShift")]
+        [InlineData(">>", "op_RightShift")]
+        [InlineData("==", "op_Equality")]
+        [InlineData("!=", "op_Inequality")]
+        [InlineData(">", "op_GreaterThan")]
+        [InlineData("<", "op_LessThan")]
+        [InlineData(">=", "op_GreaterThanOrEqual")]
+        [InlineData("<=", "op_LessThanOrEqual")]
+        public void BinaryOperators_Checked_Unsupported_01(string op, string name)
+        {
+            var source1 =
+@"
+interface C 
+{
+    public static abstract C operator checked " + op + @"(C x, int y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                // (4,39): error CS9150: User-defined operator '%' cannot be declared checked
+                //     public static abstract C operator checked %(C x, int y);
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments(op).WithLocation(4, 39)
+                );
+
+            var c = compilation1.SourceModule.GlobalNamespace.GetTypeMember("C");
+            var opSymbol = c.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
+
+            Assert.Equal(MethodKind.UserDefinedOperator, opSymbol.MethodKind);
+            Assert.Equal(name, opSymbol.Name);
+            Assert.Equal("C C." + name + "(C x, System.Int32 y)", opSymbol.ToTestDisplayString());
+            Assert.Equal("C.operator " + op + "(C, int)", opSymbol.ToDisplayString());
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void ImplementAbstractStaticBinaryOperator_23(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator checked " + op + @"(T x, int y);
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator " + op + @"(C1 x, int y) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator " + op + @"(C2 x, int y) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator checked -(C1, int)'
+                // public class C1 : I1<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator checked " + op + "(C1, int)").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C2' does not implement interface member 'I1<C2>.operator checked -(C2, int)'
+                // public class C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C2>").WithArguments("C2", "I1<C2>.operator checked " + op + "(C2, int)").WithLocation(12, 19),
+                // (14,31): error CS0539: 'C2.operator -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator -(C2 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator " + op + "(C2, int)").WithLocation(14, 31)
+                );
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void ImplementAbstractStaticBinaryOperator_24(string op)
+        {
+            var source1 =
+@"
+public interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x, int y);
+}
+
+public class C1 : I1<C1>
+{
+    public static C1 operator checked " + op + @"(C1 x, int y) => default;
+}
+
+public class C2 : I1<C2>
+{
+    static C2 I1<C2>.operator checked" + op + @"(C2 x, int y) => default;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics(
+                // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator -(C1, int)'
+                // public class C1 : I1<C1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1, int)").WithLocation(7, 19),
+                // (12,19): error CS0535: 'C2' does not implement interface member 'I1<C2>.operator -(C2, int)'
+                // public class C2 : I1<C2>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C2>").WithArguments("C2", "I1<C2>.operator " + op + "(C2, int)").WithLocation(12, 19),
+                // (14,38): error CS0539: 'C2.operator checked -(C2, int)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     static C2 I1<C2>.operator checked-(C2 x, int y) => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, op).WithArguments("C2.operator checked " + op + "(C2, int)").WithLocation(14, 38)
                 );
         }
     }
