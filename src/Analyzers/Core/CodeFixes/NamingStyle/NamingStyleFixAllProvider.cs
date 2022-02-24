@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -31,22 +35,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                     _ => default
                 };
 
-                var keys = fixAllContext.CodeActionEquivalenceKey!.Split("|");
+                var keys = fixAllContext.CodeActionEquivalenceKey!.Split('|');
                 RoslynDebug.Assert(keys.Length == 2);
                 RoslynDebug.Assert(Guid.TryParse(keys[0], out _));
                 RoslynDebug.Assert(int.TryParse(keys[1], out _));
 
-                var symbolSpecificationID = keys[0];
-                var complaintNameIndex = int.Parse(keys[1]);
+                var symbolSpecificationId = keys[0];
                 var diagnosticsToFix = diagnostics.WhereAsArray(
-                    d => d.Location.IsInSource && d.Properties["SymbolSpecificationID"] == symbolSpecificationID);
-                if (diagnostics.IsDefaultOrEmpty)
+                    d => d.Location.IsInSource && d.Properties["SymbolSpecificationID"] == symbolSpecificationId);
+                if (diagnosticsToFix.IsDefaultOrEmpty)
                 {
                     return null;
                 }
 
+                var complaintNameIndex = int.Parse(keys[1]);
                 var symbolsToRename = await GetSymbolsToRenameAsync(
-                    fixAllContext.Solution, diagnostics, complaintNameIndex, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    fixAllContext.Solution, diagnosticsToFix, complaintNameIndex, fixAllContext.CancellationToken).ConfigureAwait(false);
                 if (symbolsToRename.IsEmpty)
                 {
                     return null;
@@ -58,11 +62,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                     fixAllContext.CodeActionEquivalenceKey);
             }
 
-            private static Task<Solution> FixAllAsync(Solution solution, ImmutableHashSet<(ISymbol symbol, string newName)> symbolsToRename, CancellationToken cancellationToken)
+            private static Task<Solution> FixAllAsync(Solution solution, ImmutableHashSet<(ISymbol symbol, string newName)> _1, CancellationToken _2)
             {
                 // TODO:
-                // Renamer needs a multiple renaming API which
-                // renaming multiple symbols using the same solution snapshot
+                // Renamer needs a new API which could rename multiple symbols using the same solution snapshot
                 // and calculate the changed documents for each symbol so that we could notify IRefactorNotifyService
                 return Task.FromResult(solution);
             }

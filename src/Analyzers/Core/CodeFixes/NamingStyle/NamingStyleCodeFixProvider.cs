@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var symbol = GetSymbol(root, span, syntaxFactsService, model, cancellationToken);
+
+            // TODO: We should always be able to find the symbol that generated this diagnostic,
+            // but this cannot always be done by simply asking for the declared symbol on the node 
+            // from the symbol's declaration location.
+            // See https://github.com/dotnet/roslyn/issues/16588
             if (symbol == null)
             {
                 return;
@@ -110,13 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             if (node == null)
                 return null;
 
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-            // TODO: We should always be able to find the symbol that generated this diagnostic,
-            // but this cannot always be done by simply asking for the declared symbol on the node 
-            // from the symbol's declaration location.
-            // See https://github.com/dotnet/roslyn/issues/16588
-            return symbol;
+            return semanticModel.GetDeclaredSymbol(node, cancellationToken);
         }
 
         private class FixNameCodeAction : CodeAction
