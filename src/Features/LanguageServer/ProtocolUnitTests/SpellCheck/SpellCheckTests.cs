@@ -397,65 +397,93 @@ class {|Identifier:A|}
             Assert.Equal(results[1].ResultId, results2[1].ResultId);
         }
 
-        //        private static ImmutableArray<(string resultId, Uri uri)> CreateDiagnosticParamsFromPreviousReports(ImmutableArray<TestDiagnosticResult> results)
-        //        {
-        //            return results.Select(r => (r.ResultId, r.Uri)).ToImmutableArray();
-        //        }
+        [Fact]
+        public async Task TestNoChangeIfWorkspaceResultsCalledTwice()
+        {
+            var markup1 =
+@"class {|Identifier:A|}
+{
+}";
+            var markup2 = "";
+            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
-        //        [Fact]
-        //        public async Task TestNoChangeIfWorkspaceDiagnosticsCalledTwice()
-        //        {
-        //            var markup1 =
-        //@"class A {";
-        //            var markup2 = "";
-        // using var testLspServer = await CreateTestLspServerAsync(
-        //                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-        //            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
+            Assert.Equal(2, results.Length);
 
-        //            Assert.Equal(2, results.Length);
-        //            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        //            Assert.Empty(results[1].Diagnostics);
+            var document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
+            var sourceText = await document.GetTextAsync();
+            AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
+            {
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
+                ResultId = "WorkspaceSpellCheckHandler:0",
+                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+            });
+            Assert.Empty(results[1].Ranges);
 
-        //            var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+            var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateParamsFromPreviousReports(results));
 
-        //            Assert.Equal(2, results2.Length);
-        //            Assert.Null(results2[0].Diagnostics);
-        //            Assert.Null(results2[1].Diagnostics);
+            Assert.Equal(2, results2.Length);
+            Assert.Null(results2[0].Ranges);
+            Assert.Null(results2[1].Ranges);
 
-        //            Assert.Equal(results[0].ResultId, results2[0].ResultId);
-        //            Assert.Equal(results[1].ResultId, results2[1].ResultId);
-        //        }
+            Assert.Equal(results[0].ResultId, results2[0].ResultId);
+            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        }
 
-        //        [Fact]
-        //        public async Task TestWorkspaceDiagnosticsRemovedAfterErrorIsFixed()
-        //        {
-        //            var markup1 =
-        //@"class A {";
-        //            var markup2 = "";
-        // using var testLspServer = await CreateTestLspServerAsync(
-        //                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+        [Fact]
+        public async Task TestWorkspaceResultUpdatedAfterEdit()
+        {
+            var markup1 =
+@"class {|Identifier:A|}
+{
+}
 
-        //            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
+";
+            var markup2 = "";
+            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
-        //            Assert.Equal(2, results.Length);
-        //            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        //            Assert.Empty(results[1].Diagnostics);
+            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-        //            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
-        //            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
+            Assert.Equal(2, results.Length);
 
-        //            var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+            var document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
+            var sourceText = await document.GetTextAsync();
+            AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
+            {
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
+                ResultId = "WorkspaceSpellCheckHandler:0",
+                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+            });
+            Assert.Empty(results[1].Ranges);
 
-        //            Assert.Equal(2, results2.Length);
-        //            Assert.Empty(results2[0].Diagnostics);
-        //            // Project has changed, so we re-computed diagnostics as changes in the first file
-        //            // may have changed results in the second.
-        //            Assert.Empty(results2[1].Diagnostics);
+            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
+            buffer.Insert(buffer.CurrentSnapshot.Length, "// comment");
 
-        //            Assert.NotEqual(results[0].ResultId, results2[0].ResultId);
-        //            Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
-        //        }
+            var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateParamsFromPreviousReports(results));
+
+            Assert.Equal(2, results2.Length);
+            document = testLspServer.GetManager().TryGetHostLspSolution()!.Projects.Single().Documents.First();
+            sourceText = await document.GetTextAsync();
+
+            MarkupTestFile.GetSpans(
+@"class {|Identifier:A|}
+{
+}
+
+{|Comment:// comment|}", out _, out IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans);
+
+            AssertJsonEquals(results2[0], new VSInternalWorkspaceSpellCheckableReport
+            {
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
+                ResultId = "WorkspaceSpellCheckHandler:2",
+                Ranges = GetRanges(sourceText, annotatedSpans),
+            });
+            Assert.Null(results2[1].Ranges);
+
+            Assert.NotEqual(results[0].ResultId, results2[0].ResultId);
+            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        }
 
         //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsRemainAfterErrorIsNotFixed()
@@ -575,7 +603,7 @@ class {|Identifier:A|}
         //            await testLspServer.TestWorkspace.ChangeDocumentAsync(csproj2Document.Id, newCsProj2Document.Project.Solution);
 
         //            // Get updated workspace diagnostics for the change.
-        //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
+        //            var previousResultIds = CreateParamsFromPreviousReports(results);
         //            results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: previousResultIds);
         //            AssertEx.NotNull(results);
         //            Assert.Equal(2, results.Length);
@@ -648,7 +676,7 @@ class {|Identifier:A|}
         //            await testLspServer.TestWorkspace.ChangeDocumentAsync(csproj3Document.Id, newCsProj3Document.Project.Solution).ConfigureAwait(false);
 
         //            // Get updated workspace diagnostics for the change.
-        //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
+        //            var previousResultIds = CreateParamsFromPreviousReports(results);
         //            results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: previousResultIds).ConfigureAwait(false);
         //            AssertEx.NotNull(results);
         //            Assert.Equal(3, results.Length);
@@ -708,7 +736,7 @@ class {|Identifier:A|}
         //            await testLspServer.TestWorkspace.ChangeDocumentAsync(csproj2Document.Id, newCsProj2Document.Project.Solution);
 
         //            // Get updated workspace diagnostics for the change.
-        //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
+        //            var previousResultIds = CreateParamsFromPreviousReports(results);
         //            results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResultIds);
         //            AssertEx.NotNull(results);
         //            Assert.Equal(2, results.Length);
@@ -767,7 +795,7 @@ class {|Identifier:A|}
         //            await operations.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         //            // Get updated workspace diagnostics for the change.
-        //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
+        //            var previousResultIds = CreateParamsFromPreviousReports(results);
         //            results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: previousResultIds);
 
         //            AssertEx.NotNull(results);
@@ -822,7 +850,7 @@ class {|Identifier:A|}
         //            await operations.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         //            // Get updated workspace diagnostics for the change.
-        //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
+        //            var previousResultIds = CreateParamsFromPreviousReports(results);
         //            results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: previousResultIds);
 
         //            // Verify that since no actual changes have been made we report unchanged diagnostics.
@@ -878,7 +906,7 @@ class {|Identifier:A|}
         //            await operations.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
         //            // Get updated workspace diagnostics for the change.
-        //            var previousResults = CreateDiagnosticParamsFromPreviousReports(results);
+        //            var previousResults = CreateParamsFromPreviousReports(results);
         //            var previousResultIds = previousResults.Select(param => param.resultId).ToImmutableArray();
         //            results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: previousResults);
 
