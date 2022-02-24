@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -33,10 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<LSP.Range?> HandleRequestAsync(LSP.VSInternalValidateBreakableRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-            if (document == null)
-            {
-                return null;
-            }
+            Contract.ThrowIfNull(document);
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var span = ProtocolConversions.RangeToTextSpan(request.Range, text);
