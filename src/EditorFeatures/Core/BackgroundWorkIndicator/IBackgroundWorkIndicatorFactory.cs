@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -69,20 +68,28 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             bool cancelOnEdit,
             bool cancelOnFocusLost)
         {
+            // Create the indicator in its default/empty state.
             var indicator = (IUIThreadOperationContext)new BackgroundWorkIndicator(
                 this, textView, applicableToSpan, description,
                 cancelOnEdit, cancelOnFocusLost);
 
+            // Then add a single scope representing the how the UI should look initially.
             indicator.AddScope(allowCancellation: true, description);
             return indicator;
         }
 
         private class BackgroundWorkIndicator : IUIThreadOperationContext
         {
+            private enum UpdateRequest
+            {
+                UpdateTooltip,
+                DismissTooltip,
+            }
+
             private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             /// <summary>
-            /// Lock controlling mutation of all data (except <see cref="_disposed"/>) in this indicator, or in any
+            /// Lock controlling mutation of all data (except <see cref="_dismissed"/>) in this indicator, or in any
             /// sub-scopes. Any read/write of mutable data must be protected by this.
             /// </summary>
             public readonly object Gate = new();
@@ -97,10 +104,10 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             private readonly bool _cancelOnFocusLost;
 
             /// <summary>
-            /// Work queue used to batch up UI update requests.  We don't really need to track any data, we just want to
-            /// use this to update the UI every so often after changes come in to our mutable state.
+            /// Work queue used to batch up UI update and Dispose requests.  A value of <see langword="true"/> means
+            /// just update the tool-tip. A value of <see langword="false"/> means we want to dismiss the tool-tip.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue _uiUpdateQueue;
+            private readonly AsyncBatchingWorkQueue<UpdateRequest> _uiUpdateQueue;
 
             /// <summary>
             /// Set of scopes we have.  We always start with one (the one created by the initial call to create the work
@@ -109,10 +116,10 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             private ImmutableArray<BackgroundWorkIndicatorScope> _scopes = ImmutableArray<BackgroundWorkIndicatorScope>.Empty;
 
             /// <summary>
-            /// If we've been disposed or not.  Once disposed, we will close the tooltip showing information.  This
+            /// If we've been dismissed or not.  Once dismissed, we will close the tool-tip showing information.  This
             /// field must only be accessed on the UI thread.
             /// </summary>
-            private bool _disposed = false;
+            private bool _dismissed = false;
 
             private IThreadingContext ThreadingContext => _factory._threadingContext;
 
@@ -132,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
                 _textView = textView;
                 _subjectBuffer = applicableToSpan.Snapshot.TextBuffer;
 
-                // Create a tooltip at the requested position.  Turn off all default behavior for it.  We'll be
+                // Create a tool-tip at the requested position.  Turn off all default behavior for it.  We'll be
                 // controlling everything ourselves.
                 _toolTipPresenter = factory._toolTipPresenterFactory.Create(textView, new ToolTipParameters(
                     trackMouse: false,
@@ -147,9 +154,10 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
                 _cancelOnEdit = cancelOnEdit;
                 _cancelOnFocusLost = cancelOnFocusLost;
 
-                _uiUpdateQueue = new AsyncBatchingWorkQueue(
+                _uiUpdateQueue = new AsyncBatchingWorkQueue<UpdateRequest>(
                     DelayTimeSpan.Short,
                     UpdateUIAsync,
+                    EqualityComparer<UpdateRequest>.Default,
                     factory._listener,
                     _cancellationTokenSource.Token);
 
@@ -159,6 +167,22 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
                 if (cancelOnFocusLost)
                     textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
             }
+
+            public void Dispose()
+                => _uiUpdateQueue.AddWork(UpdateRequest.DismissTooltip);
+
+            /// <summary>
+            /// Called after anyone consuming us makes a change that should be reflected in the UI.
+            /// </summary>
+            internal void EnqueueUIUpdate()
+                => _uiUpdateQueue.AddWork(UpdateRequest.UpdateTooltip);
+
+            /// <summary>
+            /// The same as Dispose.  Anyone taking ownership of this context wants to show their own UI, so we can just
+            /// close ours.
+            /// </summary>
+            public void TakeOwnership()
+                => this.Dispose();
 
             private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
                 => OnEditorCancellationEvent();
@@ -176,17 +200,27 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
                 }
             }
 
-            public void Dispose()
+            private ValueTask UpdateUIAsync(ImmutableArray<UpdateRequest> requests, CancellationToken cancellationToken)
             {
-                this.ThreadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(this.ThreadingContext.DisposalToken);
+                Contract.ThrowIfTrue(requests.IsDefaultOrEmpty, "We must have gotten an actual request to process.");
+                Contract.ThrowIfTrue(requests.Length > 2, "At most we can have two requests in the queue (one to update, one to dismiss).");
+                Contract.ThrowIfFalse(
+                    requests.Contains(UpdateRequest.DismissTooltip) || requests.Contains(UpdateRequest.UpdateTooltip),
+                    "We didn't get an actual event we know about.");
 
-                    // Ensure we only dispose once.
-                    if (_disposed)
+                return requests.Contains(UpdateRequest.DismissTooltip)
+                    ? DismissUIAsync()
+                    : UpdateUIAsync();
+
+                async ValueTask DismissUIAsync()
+                {
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                    // Ensure we only dismiss once.
+                    if (_dismissed)
                         return;
 
-                    _disposed = true;
+                    _dismissed = true;
 
                     // Unhook any event handlers we've setup.
                     if (_cancelOnEdit)
@@ -195,38 +229,26 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
                     if (_cancelOnFocusLost)
                         _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
 
+                    // Finally, dismiss the actual tool-tip.
                     _toolTipPresenter.Dismiss();
-                });
-            }
+                }
 
-            /// <summary>
-            /// The same as Dispose.  Anyone taking ownership of this context wants to show their own UI, so we can just
-            /// close ours.
-            /// </summary>
-            public void TakeOwnership()
-                => this.Dispose();
+                async ValueTask UpdateUIAsync()
+                {
+                    // Build the current description in the background, then switch to the UI thread to actually update the
+                    // tool-tip with it.
+                    var data = this.ReadData();
 
-            /// <summary>
-            /// Called after anyone consuming us makes a change that should be reflected in the UI.
-            /// </summary>
-            internal void EnqueueUIUpdate()
-                => _uiUpdateQueue.AddWork();
+                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            private async ValueTask UpdateUIAsync(CancellationToken cancellationToken)
-            {
-                // Build the current description in the background, then switch to the UI thread to actually update the
-                // tooltip with it.
-                var data = this.ReadData();
+                    // If we've been dismissed already, then no point in continuing.
+                    if (_dismissed)
+                        return;
 
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-                // If we've been disposed (which 
-                if (_disposed)
-                    return;
-
-                // Todo: build a richer tooltip that makes use of things like the progress reported, and perhaps has a
-                // close button.
-                _toolTipPresenter.StartOrUpdate(_trackingSpan, new[] { data.description });
+                    // Todo: build a richer tool-tip that makes use of things like the progress reported, and perhaps has a
+                    // close button.
+                    _toolTipPresenter.StartOrUpdate(_trackingSpan, new[] { data.description });
+                }
             }
 
             public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
