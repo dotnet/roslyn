@@ -2229,7 +2229,7 @@ class C
 
                 ' Verify no diagnostics outside the local decl span
                 span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
-                t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, Nothing)
+                t = Await diagnosticService.TryGetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic:=Nothing)
                 Assert.Empty(t.diagnostics)
             End Using
         End Function
