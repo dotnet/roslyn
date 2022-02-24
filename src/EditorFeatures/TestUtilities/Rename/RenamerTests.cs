@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             }
 
             var options = new DocumentRenameOptions();
+            var originalSolution = solution;
 
             foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
             {

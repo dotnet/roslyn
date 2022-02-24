@@ -204,7 +204,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             // Annotate the container nodes so we can still find and modify them after syntax tree has changed.
-            var annotatedSolution = await AnnotateContainersAsync(solution, containersFromAllDocuments, cancellationToken).ConfigureAwait(false);
+            var renameSymbolNotificationService = solution.Workspace.Services.GetRequiredService<IRenameSymbolNotificationService>();
+            var annotatedSolution = renameSymbolNotificationService is null
+                ? solution
+                : await AnnotateContainersAsync(solution, containersFromAllDocuments, cancellationToken).ConfigureAwait(false);
 
             // Here's the entire process for changing namespace:
             // 1. Change the namespace declaration, fix references and add imports that might be necessary.
@@ -258,7 +261,30 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 ImmutableArray.Create(declaredNamespace, targetNamespace),
                 cancellationToken).ConfigureAwait(false);
 
-            return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+            var finalSolution = await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+
+            if (renameSymbolNotificationService is not null)
+            {
+                foreach (var documentId in documentIds)
+                {
+                    var changedDocument = await finalSolution.GetRequiredDocumentAsync(documentId, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var root = await changedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var annotatedNodes = root.GetAnnotatedNodes(RenameSymbolAnnotation.RenameSymbolKind);
+                    var semanticModel = await changedDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var annotatedNode in annotatedNodes)
+                    {
+                        var annotation = annotatedNode.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind).Single();
+                        RoslynDebug.AssertNotNull(annotation.Data);
+
+                        var symbol = semanticModel.GetDeclaredSymbol(annotatedNode, cancellationToken);
+                        RoslynDebug.AssertNotNull(symbol);
+
+                        await renameSymbolNotificationService.QueueNotificationForSolutionAsync(finalSolution, annotation.Data, symbol.GetSymbolKey(cancellationToken).ToString(),  cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return finalSolution;
         }
 
         protected async Task<ImmutableArray<(DocumentId, SyntaxNode)>> TryGetApplicableContainersFromAllDocumentsAsync(
@@ -336,7 +362,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static ImmutableArray<(SyntaxNode, ISymbol)> GetRenamedSymbolPairs(SyntaxNode container, ISyntaxFacts syntaxFacts, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var typeNodes = container
-                .DescendantNodesAndSelf(node => syntaxFacts.IsNamespaceDeclaration(node) || syntaxFacts.IsTypeDeclaration(node))
+                .DescendantNodesAndSelf(node => syntaxFacts.IsBaseNamespaceDeclaration(node) || syntaxFacts.IsTypeDeclaration(node))
                 .Where(node => syntaxFacts.IsTypeDeclaration(node));
 
             return typeNodes.SelectAsArray(node => (node, semanticModel.GetRequiredDeclaredSymbol(node, cancellationToken)));

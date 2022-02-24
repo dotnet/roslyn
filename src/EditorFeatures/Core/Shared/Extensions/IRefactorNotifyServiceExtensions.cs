@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 var refactorNotifyTask = refactorNotifyServices.TryNotifyChangesAsync(workspace, newSolution, oldSolution, threadContext, cancellationToken);
                 refactorNotifyTask.Wait(cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 // No reason to fail because notify fails, but we want to track failure to see if there's something we're doing wrong. This results
                 // in a potentially bad user experience, but not complete broken and not worth crashing. 
@@ -90,38 +90,19 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             IThreadingContext threadContext,
             CancellationToken cancellationToken)
         {
+            var renameSymbolNotificationService = workspace.Services.GetService<IRenameSymbolNotificationService>();
+            if (renameSymbolNotificationService is null)
+            {
+                return;
+            }
+
             var projectChanges = newSolution.GetChanges(oldSolution).GetProjectChanges().ToImmutableArray();
             var changedDocumentIds = projectChanges.SelectMany(pd => pd.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true)).ToImmutableArray();
-            var _ = PooledDictionary<ISymbol, ISymbol>.GetInstance(out var changedSymbols);
 
-            foreach (var documentId in changedDocumentIds)
+            var changedSymbols = await renameSymbolNotificationService.GetChangedSymbolsAsync(newSolution, oldSolution, cancellationToken).ConfigureAwait(false);
+            if (changedSymbols.IsEmpty)
             {
-                var newDocument = newSolution.GetRequiredDocument(documentId);
-                var oldDocument = oldSolution.GetDocument(documentId);
-
-                if (oldDocument is null)
-                {
-                    continue;
-                }
-
-                var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var oldSemanticModel = await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                var renamedNodes = await GatherAnnotatedNodesAsync(newDocument, cancellationToken).ConfigureAwait(false);
-
-                foreach (var node in renamedNodes)
-                {
-                    foreach (var annotation in node.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind))
-                    {
-                        var oldSymbol = annotation.ResolveSymbol(oldSemanticModel.Compilation);
-                        Contract.ThrowIfNull(oldSymbol);
-
-                        var newSymbol = newSemanticModel.GetDeclaredSymbol(node, cancellationToken);
-                        Contract.ThrowIfNull(newSymbol);
-
-                        changedSymbols.Add(oldSymbol, newSymbol);
-                    }
-                }
+                return;
             }
 
             // TryOn{Before, After}GlobalSymbolRenamed requires calls from the foreground thread. 
@@ -140,23 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                     }
                 }
             }
-        }
-
-        private static async Task<ImmutableArray<SyntaxNode>> GatherAnnotatedNodesAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (!document.SupportsSyntaxTree)
-            {
-                return ImmutableArray.Create<SyntaxNode>();
-            }
-
-            var changedSymbols = ImmutableArray.CreateBuilder<SyntaxNode>();
-
-            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var symbolRenameNodes = syntaxRoot.GetAnnotatedNodes(RenameSymbolAnnotation.RenameSymbolKind);
-
-            changedSymbols.AddRange(symbolRenameNodes);
-
-            return changedSymbols.ToImmutable();
         }
     }
 }

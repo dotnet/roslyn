@@ -52,23 +52,6 @@ namespace Microsoft.CodeAnalysis.Rename
             ? false
             : symbol.DeclaringSyntaxReferences.Any();
 
-        public static ISymbol? ResolveSymbol(this SyntaxAnnotation annotation, Compilation oldCompilation)
-        {
-            if (annotation.Kind != RenameSymbolKind)
-            {
-                throw new InvalidOperationException($"'{annotation}' is not of kind {RenameSymbolKind}");
-            }
-
-            if (string.IsNullOrEmpty(annotation.Data))
-            {
-                throw new InvalidOperationException($"'{annotation}' has no data");
-            }
-
-            var oldSymbolKey = SymbolKey.ResolveString(annotation.Data, oldCompilation);
-
-            return oldSymbolKey.Symbol;
-        }
-
         private static string SerializeData(ISymbol symbol)
             => symbol.GetSymbolKey().ToString();
     }

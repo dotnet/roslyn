@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 foreach (var node in annotatedNodes)
                 {
                     var annotation = node!.GetAnnotations(RenameSymbolAnnotation.RenameSymbolKind).Single();
-                    var originalSymbol = RenameSymbolAnnotation.ResolveSymbol(annotation, originalCompilation);
+                    var originalSymbol = ResolveSymbol(annotation, originalCompilation);
                     var newSymbol = newSemanticModel.GetDeclaredSymbol(node, cancellationToken);
 
                     Assert.NotNull(originalSymbol);
@@ -73,6 +73,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             return MakeSymbolPairs(tuples.ToArray());
+        }
+
+        private static ISymbol? ResolveSymbol(SyntaxAnnotation annotation, Compilation oldCompilation)
+        {
+            Assert.Equal(annotation.Kind, RenameSymbolAnnotation.RenameSymbolKind);
+            Assert.False(string.IsNullOrEmpty(annotation.Data));
+            var oldSymbolKey = SymbolKey.ResolveString(annotation.Data!, oldCompilation);
+
+            return oldSymbolKey.Symbol;
         }
     }
 }
