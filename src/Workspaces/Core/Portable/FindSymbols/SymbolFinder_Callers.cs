@@ -80,12 +80,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (symbol.Kind is SymbolKind.Event or
                 SymbolKind.Method or
-                SymbolKind.Property)
+                SymbolKind.Property or
+                SymbolKind.Field)
             {
                 var collector = new StreamingProgressCollector();
+                var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
                 await FindReferencesAsync(
                     symbol, solution, collector, documents,
-                    FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+                    options, cancellationToken).ConfigureAwait(false);
                 return collector.GetReferencedSymbols();
             }
 
