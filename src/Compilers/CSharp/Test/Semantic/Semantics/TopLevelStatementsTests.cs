@@ -9568,5 +9568,72 @@ void F<T>(T t)
             model.GetOperation(identifier);
             Assert.Equal(OperationKind.Literal, model.GetOperation(tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single()).Kind);
         }
+
+        [Fact]
+        public void TopLevelStatementFollowedByNamespaceDeclarationThenMemberDeclaration_FileScopedNamespace()
+        {
+            var source = @"
+System.Console.WriteLine();
+
+namespace N;
+
+public string S { get; }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "System.Console.WriteLine();").WithLocation(2, 1),
+                // (4,11): error CS8956: File-scoped namespace must precede all other members in a file.
+                // namespace N;
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "N").WithLocation(4, 11),
+                // (6,15): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
+                // public string S { get; }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "S").WithLocation(6, 15)
+            );
+        }
+
+        [Fact]
+        public void TopLevelStatementFollowedByNamespaceDeclarationThenMemberDeclaration_MemberOutsideNamespace()
+        {
+            var source = @"
+System.Console.WriteLine();
+
+namespace N { }
+
+public string S { get; }
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "System.Console.WriteLine();").WithLocation(2, 1),
+                // (6,15): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
+                // public string S { get; }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "S").WithLocation(6, 15)
+            );
+        }
+
+        [Fact]
+        public void TopLevelStatementFollowedByNamespaceDeclarationThenMemberDeclaration_MemberInsideNamespace()
+        {
+            var source = @"
+System.Console.WriteLine();
+
+namespace N
+{
+    public string S { get; }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "System.Console.WriteLine();").WithLocation(2, 1),
+                // (6,19): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
+                //     public string S { get; }
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "S").WithLocation(6, 19)
+            );
+        }
     }
 }
