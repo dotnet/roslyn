@@ -302,53 +302,38 @@ class {|Identifier:A|}
 
             var document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
             var sourceText = await document.GetTextAsync();
-            AssertJsonEquals(results[0], new VSInternalSpellCheckableRangeReport
+            AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
             {
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
                 ResultId = "WorkspaceSpellCheckHandler:0",
                 Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
             });
             Assert.Empty(results[1].Ranges);
         }
 
-        //        [Fact]
-        //        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode()
-        //        {
-        //            var markup1 =
-        //@"class A {";
-        //            var markup2 = "";
-        // using var testLspServer = await CreateTestLspServerAsync(
-        //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, pullDiagnostics: false);
+        [Fact]
+        public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage()
+        {
+            var csharpMarkup =
+@"class A {";
+            var typeScriptMarkup = "???";
 
-        //            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
+            var workspaceXml =
+@$"<Workspace>
+            <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+                <Document FilePath=""C:\C.cs"">{csharpMarkup}</Document>
+            </Project>
+            <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
+                <Document FilePath=""C:\T.ts"">{typeScriptMarkup}</Document>
+            </Project>
+        </Workspace>";
 
-        //            Assert.Equal(2, results.Length);
-        //            Assert.Empty(results[0].Diagnostics);
-        //            Assert.Empty(results[1].Diagnostics);
-        //        }
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
 
-        //        [Fact]
-        //        public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage()
-        //        {
-        //            var csharpMarkup =
-        //@"class A {";
-        //            var typeScriptMarkup = "???";
+            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-        //            var workspaceXml =
-        //@$"<Workspace>
-        //    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        //        <Document FilePath=""C:\C.cs"">{csharpMarkup}</Document>
-        //    </Project>
-        //    <Project Language=""TypeScript"" CommonReferences=""true"" AssemblyName=""TypeScriptProj"">
-        //        <Document FilePath=""C:\T.ts"">{typeScriptMarkup}</Document>
-        //    </Project>
-        //</Workspace>";
-
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
-
-        //            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
-
-        //            Assert.True(results.All(r => r.TextDocument!.Uri.LocalPath == "C:\\C.cs"));
-        //        }
+            Assert.True(results.All(r => r.TextDocument!.Uri.LocalPath == "C:\\C.cs"));
+        }
 
         //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsForSourceGeneratedFiles()
@@ -563,7 +548,7 @@ class {|Identifier:A|}
         //    </Project>
         //</Workspace>";
 
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+        //            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
         //            // Verify we a diagnostic in A.cs since B does not exist
@@ -636,7 +621,7 @@ class {|Identifier:A|}
         //</Workspace>";
 
         // using var testLspServer = await CreateTestLspServerAsync(
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+        //            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
         //            var csproj3Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj3").Single().Documents.First();
 
         //            // Verify we have a diagnostic in C.cs initially.
@@ -696,7 +681,7 @@ class {|Identifier:A|}
         //</Workspace>";
 
         // using var testLspServer = await CreateTestLspServerAsync(
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+        //            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
         //            // Verify we a diagnostic in A.cs since B does not exist
@@ -754,7 +739,7 @@ class {|Identifier:A|}
         //</Workspace>";
 
         // using var testLspServer = await CreateTestLspServerAsync(
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+        //            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
         //            // Verify we a diagnostic in A.cs since B does not exist
@@ -810,7 +795,7 @@ class {|Identifier:A|}
         //</Workspace>";
 
         // using var testLspServer = await CreateTestLspServerAsync(
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+        //            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
         //            // Verify we a diagnostic in A.cs since B does not exist
@@ -867,7 +852,7 @@ class {|Identifier:A|}
         //</Workspace>";
 
         // using var testLspServer = await CreateTestLspServerAsync(
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
+        //            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, BackgroundAnalysisScope.FullSolution).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
         //            // Verify we a diagnostic in A.cs since B does not exist
@@ -951,13 +936,13 @@ class {|Identifier:A|}
             return spans;
         }
 
-        private static async Task<VSInternalSpellCheckableRangeReport[]> RunGetWorkspaceSpellCheckSpansAsync(
+        private static async Task<VSInternalWorkspaceSpellCheckableReport[]> RunGetWorkspaceSpellCheckSpansAsync(
             TestLspServer testLspServer,
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
             bool useProgress = false)
         {
-            BufferedProgress<VSInternalSpellCheckableRangeReport>? progress = useProgress ? BufferedProgress.Create<VSInternalSpellCheckableRangeReport>(null) : null;
-            var spans = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
+            BufferedProgress<VSInternalWorkspaceSpellCheckableReport>? progress = useProgress ? BufferedProgress.Create<VSInternalWorkspaceSpellCheckableReport>(null) : null;
+            var spans = await testLspServer.ExecuteRequestAsync<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>(
                 VSInternalMethods.WorkspaceSpellCheckableRangesName,
                 CreateWorkspaceParams(previousResults, progress),
                 CancellationToken.None).ConfigureAwait(false);
@@ -999,7 +984,7 @@ class {|Identifier:A|}
 
         private static VSInternalWorkspaceSpellCheckableParams CreateWorkspaceParams(
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
-            IProgress<VSInternalSpellCheckableRangeReport[]>? progress = null)
+            IProgress<VSInternalWorkspaceSpellCheckableReport[]>? progress = null)
         {
             return new VSInternalWorkspaceSpellCheckableParams
             {
