@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public ProvidedOffset As Integer
             Public ProvidedPosition As Integer
             Public ProvidedVirtualSpace As Integer
-            Public ProvidedOptions As OptionSet
+            Public ProvidedOptions As NavigationOptions
 
             Public CanNavigateToLineAndOffsetReturnValue As Boolean = True
             Public CanNavigateToPositionReturnValue As Boolean = True
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return If(CanNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As OptionSet, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
+            Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedLineNumber = lineNumber
                 Me.ProvidedOffset = offset
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return TryNavigateToLineAndOffsetReturnValue
             End Function
 
-            Public Function TryNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As OptionSet, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToPosition
+            Public Function TryNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToPosition
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedPosition = position
                 Me.ProvidedVirtualSpace = virtualSpace
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return TryNavigateToPositionReturnValue
             End Function
 
-            Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As OptionSet, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
+            Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedTextSpan = textSpan
                 Me.ProvidedOptions = options
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return TryNavigateToSpanReturnValue
             End Function
 
-            Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As OptionSet, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
+            Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedTextSpan = textSpan
                 Me.ProvidedOptions = options

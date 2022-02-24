@@ -5,7 +5,6 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -16,8 +15,8 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentImplementationName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FindImplementationsHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentImplementationName)]
     internal sealed class FindImplementationsHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IGlobalOptionService _globalOptions;
@@ -28,8 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             _globalOptions = globalOptions;
         }
-
-        public override string Method => LSP.Methods.TextDocumentImplementationName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

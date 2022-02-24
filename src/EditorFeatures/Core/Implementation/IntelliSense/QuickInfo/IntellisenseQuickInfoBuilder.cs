@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal static class IntellisenseQuickInfoBuilder
     {
-        private static async Task<ContainerElement> BuildInteractiveContentAsync(CodeAnalysisQuickInfoItem quickInfoItem,
+        private static async Task<ContainerElement> BuildInteractiveContentAsync(
+            CodeAnalysisQuickInfoItem quickInfoItem,
             IntellisenseQuickInfoBuilderContext? context,
             CancellationToken cancellationToken)
         {
@@ -99,19 +100,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                                       .SelectMany(s => Helpers.BuildInteractiveTextElements(s.TaggedParts, context)));
 
             // build text for RelatedSpan
-            if (quickInfoItem.RelatedSpans.Any() && context?.Document is Document document)
+            if (quickInfoItem.RelatedSpans.Any() && context != null)
             {
-                var classificationOptions = ClassificationOptions.From(document.Project);
-
+                var document = context.Document;
                 var textRuns = new List<ClassifiedTextRun>();
                 var spanSeparatorNeededBefore = false;
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
-                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, classificationOptions, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, context.ClassificationOptions, cancellationToken).ConfigureAwait(false);
 
                     var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans.ToImmutableArray(), tabSize);
+                    var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans, tabSize);
                     var textRunsOfSpan = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont)).ToList();
                     if (textRunsOfSpan.Count > 0)
                     {
@@ -140,13 +140,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             ITrackingSpan trackingSpan,
             CodeAnalysisQuickInfoItem quickInfoItem,
             Document document,
+            ClassificationOptions classificationOptions,
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListener asyncListener,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             CancellationToken cancellationToken)
         {
-            var context = new IntellisenseQuickInfoBuilderContext(document, threadingContext, operationExecutor, asyncListener, streamingPresenter);
+            var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, threadingContext, operationExecutor, asyncListener, streamingPresenter);
             var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);

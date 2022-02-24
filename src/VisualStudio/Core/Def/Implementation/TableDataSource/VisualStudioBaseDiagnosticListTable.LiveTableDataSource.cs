@@ -16,8 +16,10 @@ using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -56,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// </summary>
             private bool _isBuildRunning;
 
-            public LiveTableDataSource(Workspace workspace, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
-                : base(workspace)
+            public LiveTableDataSource(Workspace workspace, IThreadingContext threadingContext, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
+                : base(workspace, threadingContext)
             {
                 _workspace = workspace;
                 _globalOptions = globalOptions;
@@ -107,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ImmutableArray<ITrackingPoint> trackingPoints)
             {
                 var diagnosticSource = (DiagnosticTableEntriesSource)source;
-                var snapshot = new TableEntriesSnapshot(diagnosticSource, version, items, trackingPoints);
+                var snapshot = new TableEntriesSnapshot(ThreadingContext, diagnosticSource, version, items, trackingPoints);
 
                 if (diagnosticSource.SupportSpanTracking && !trackingPoints.IsDefaultOrEmpty)
                 {
@@ -321,11 +323,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 private FrameworkElement[]? _descriptions;
 
                 public TableEntriesSnapshot(
+                    IThreadingContext threadingContext,
                     DiagnosticTableEntriesSource source,
                     int version,
                     ImmutableArray<DiagnosticTableItem> items,
                     ImmutableArray<ITrackingPoint> trackingPoints)
-                    : base(version, items, trackingPoints)
+                    : base(threadingContext, version, items, trackingPoints)
                 {
                     _source = source;
                 }
@@ -475,8 +478,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
-                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
+                public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, options, cancellationToken);
 
                 #region IWpfTableEntriesSnapshot
 

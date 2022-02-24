@@ -7,7 +7,6 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
@@ -27,8 +26,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// we no longer reference VS classified text runs.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentReferencesName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FindAllReferencesHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler : AbstractStatelessRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -46,8 +45,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _globalOptions = globalOptions;
         }
-
-        public override string Method => LSP.Methods.TextDocumentReferencesName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

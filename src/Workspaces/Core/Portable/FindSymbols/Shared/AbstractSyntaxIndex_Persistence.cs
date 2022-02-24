@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("28");
+        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("29");
 
         public readonly Checksum? Checksum;
 

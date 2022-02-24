@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental
 
 using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>;
 
+[Method(ExperimentalMethods.WorkspaceDiagnostic)]
 internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport, WorkspaceDiagnosticReport?>
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -28,8 +29,6 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     {
         _analyzerService = analyzerService;
     }
-
-    public override string Method => ExperimentalMethods.WorkspaceDiagnostic;
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDiagnosticParams diagnosticsParams) => null;
 
@@ -61,9 +60,9 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         return diagnostics;
     }
 
-    protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocuments(context);
+        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, cancellationToken);
     }
 
     protected override ImmutableArray<PreviousResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
