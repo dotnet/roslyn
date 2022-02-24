@@ -5,7 +5,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -198,6 +200,112 @@ namespace $${declaredNamespace}
                     Sources =
                     {
                         (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder), filePath), expected),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        [CombinatorialData]
+        public async Task ChangeNamespace_AddUsingsPlacement(
+            [CombinatorialValues(AddImportPlacement.OutsideNamespace, AddImportPlacement.InsideNamespace)] Enum addImportPlacement)
+        {
+            var defaultNamespace = "A";
+
+            var (folder1, filePath1) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var (folder2, filePath2) = CreateDocumentFilePath(new[] { "B", "C" }, "File2.cs");
+
+            var code1 = @"
+namespace $$Foo.Bar
+{
+    class Class1 : Class2
+    {
+    }
+}
+";
+            var code2 = @"
+namespace Foo.Bar
+{
+    class Class2
+    {
+        Class1 Derived;
+    }
+}
+";
+
+            var expectedOutside1 = @"
+using Foo.Bar;
+
+namespace A.B.C
+{
+    class Class1 : Class2
+    {
+    }
+}
+";
+            var expectedOutside2 = @"
+using A.B.C;
+
+namespace Foo.Bar
+{
+    class Class2
+    {
+        Class1 Derived;
+    }
+}
+";
+
+            var expectedInside1 = @"
+namespace A.B.C
+{
+    using Foo.Bar;
+
+    class Class1 : Class2
+    {
+    }
+}
+";
+            var expectedInside2 = @"
+namespace Foo.Bar
+{
+    using A.B.C;
+
+    class Class2
+    {
+        Class1 Derived;
+    }
+}
+";
+
+            var (expected1, expected2) = (AddImportPlacement)addImportPlacement switch
+            {
+                AddImportPlacement.OutsideNamespace => (expectedOutside1, expectedOutside2),
+                AddImportPlacement.InsideNamespace => (expectedInside1, expectedInside2),
+                _ => throw ExceptionUtilities.UnexpectedValue(addImportPlacement),
+            };
+
+            await new VerifyCS.Test
+            {
+                ProjectFilePath = ProjectFilePath,
+                RootNamespace = defaultNamespace,
+                TestState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder1), filePath1), code1),
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder2), filePath2), code2),
+                    },
+                },
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, (AddImportPlacement)addImportPlacement },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder1), filePath1), expected1),
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder2), filePath2), expected2),
                     },
                 },
             }.RunAsync();
