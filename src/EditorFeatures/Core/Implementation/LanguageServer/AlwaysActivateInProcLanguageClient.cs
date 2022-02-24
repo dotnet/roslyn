@@ -52,10 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = new VSInternalServerCapabilities
-            {
-                SpellCheckingProvider = true,
-            };
+            VSInternalServerCapabilities serverCapabilities;
 
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
             var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
@@ -66,10 +63,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             else
             {
                 // Even if the flag is off, we want to include text sync capabilities.
-                serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
+                serverCapabilities = new VSInternalServerCapabilities
                 {
-                    Change = TextDocumentSyncKind.Incremental,
-                    OpenClose = true,
+                    SpellCheckingProvider = true,
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        Change = TextDocumentSyncKind.Incremental,
+                        OpenClose = true,
+                    },
                 };
             }
 

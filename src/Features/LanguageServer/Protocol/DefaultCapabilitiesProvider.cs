@@ -33,11 +33,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = new ServerCapabilities();
-            if (clientCapabilities is VSInternalClientCapabilities vsClientCapabilities && vsClientCapabilities.SupportsVisualStudioExtensions)
-            {
-                capabilities = GetVSServerCapabilities();
-            }
+            var capabilities = clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true }
+                ? GetVSServerCapabilities()
+                : new ServerCapabilities();
 
             var commitCharacters = CompletionRules.Default.DefaultCommitCharacters.Select(c => c.ToString()).ToArray();
             var triggerCharacters = _completionProviders.SelectMany(
@@ -90,15 +88,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         private static VSServerCapabilities GetVSServerCapabilities()
-        {
-            var vsServerCapabilities = new VSInternalServerCapabilities();
-            vsServerCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
-            vsServerCapabilities.DocumentHighlightProvider = true;
-            vsServerCapabilities.ProjectContextProvider = true;
+            => new VSInternalServerCapabilities()
+            {
+                OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } },
+                DocumentHighlightProvider = true,
+                ProjectContextProvider = true,
 
-            // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
-            vsServerCapabilities.SupportsDiagnosticRequests = false;
-            return vsServerCapabilities;
-        }
+                // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
+                SupportsDiagnosticRequests = false,
+            };
     }
 }
