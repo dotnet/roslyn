@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     }
 
                     var document = solution.GetRequiredDocument(documentId);
-                    var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
+                    var options = _globalOptions.GetCodeActionOptions(document.Project.Language);
                     return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
                 }
             }
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(document);
 
-                var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
+                var options = _globalOptions.GetCodeActionOptions(document.Project.Language);
                 var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }
@@ -289,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 progressTracker.AddItems(project.DocumentIds.Count);
             }
 
-            var options = _globalOptions.GetCodeActionOptions(project.Language, isBlocking: false);
+            var options = _globalOptions.GetCodeActionOptions(project.Language);
 
             foreach (var documentId in project.DocumentIds)
             {

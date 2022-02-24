@@ -10,5 +10,6 @@ namespace Microsoft.CodeAnalysis
     {
         bool DisableRecoverableTrees { get; }
         bool DisableProjectCacheService { get; }
+        bool EnableOpeningSourceGeneratedFilesInWorkspace { get; }
     }
 }

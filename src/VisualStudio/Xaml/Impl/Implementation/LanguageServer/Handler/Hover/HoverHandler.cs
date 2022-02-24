@@ -23,8 +23,8 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(Methods.TextDocumentHoverName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(HoverHandler)), Shared]
+    [Method(Methods.TextDocumentHoverName)]
     internal sealed class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
         private readonly IGlobalOptionService _globalOptions;
@@ -35,8 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
             _globalOptions = globalOptions;
         }
-
-        public override string Method => Methods.TextDocumentHoverName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
 
+        /// <summary>
+        /// Returns true if the two options differ only by preprocessor directives; this allows for us to reuse trees
+        /// if they don't have preprocessor directives in them.
+        /// </summary>
+        bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2);
+
         // new tree from root node
         SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SyntaxNode root);
 

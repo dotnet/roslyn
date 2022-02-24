@@ -3766,7 +3766,7 @@ record struct A(int I, string S);
         }
 
         [Fact]
-        public void Deconstruct_WihtNonReadOnlyGetter_GeneratedAsNonReadOnly()
+        public void Deconstruct_WithNonReadOnlyGetter_GeneratedAsNonReadOnly()
         {
             var src = @"
 record struct A(int I, string S)

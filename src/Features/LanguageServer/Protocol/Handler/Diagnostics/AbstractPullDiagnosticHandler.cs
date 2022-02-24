@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         private long _nextDocumentResultId;
 
-        public abstract string Method { get; }
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context);
+        protected abstract ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates the <see cref="VSInternalDiagnosticReport"/> instance we'll report back to clients to let them know our
@@ -151,7 +149,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedDocuments = GetOrderedDocuments(context);
+            var orderedDocuments = await GetOrderedDocumentsAsync(context, cancellationToken).ConfigureAwait(false);
             context.TraceInformation($"Processing {orderedDocuments.Length} documents");
 
             foreach (var document in orderedDocuments)

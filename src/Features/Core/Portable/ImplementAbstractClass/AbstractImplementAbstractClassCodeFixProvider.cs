@@ -41,9 +41,8 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
             if (classNode == null)
                 return;
 
-            var options = ImplementTypeOptions.From(document.Project);
             var data = await ImplementAbstractClassData.TryGetDataAsync(
-                document, classNode, GetClassIdentifier(classNode), options, cancellationToken).ConfigureAwait(false);
+                document, classNode, GetClassIdentifier(classNode), context.Options.ImplementTypeOptions, cancellationToken).ConfigureAwait(false);
             if (data == null)
                 return;
 
