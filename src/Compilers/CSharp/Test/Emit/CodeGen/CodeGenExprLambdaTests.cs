@@ -3702,7 +3702,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,76): error CS1026: ) expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
-                // (2,79): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,79): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,19): error CS1514: { expected
@@ -3752,7 +3752,7 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,76): error CS1026: ) expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
-                // (2,79): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,79): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,19): error CS1514: { expected

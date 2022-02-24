@@ -42,7 +42,7 @@ using s = delegate*<void>;");
                 // (2,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(2, 11),
-                // (2,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,25): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(2, 25),
                 // (2,7): warning CS8981: The type name 's' only contains lower-cased ascii characters. Such names may become reserved for the language.

@@ -106,7 +106,7 @@ namespace N::A
                 // (2,11): error CS7000: Unexpected use of an aliased name
                 // namespace N::A
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "N::A"),
-                // (4,10): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (4,10): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 //     void Goo()
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Goo"));
 

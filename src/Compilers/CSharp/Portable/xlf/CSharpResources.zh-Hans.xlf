@@ -4152,8 +4152,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
-        <target state="translated">命名空间不能直接包含字段、方法或语句之类的成员</target>
+        <source>A namespace or a top-level entry point cannot directly contain members such as fields or properties</source>
+        <target state="needs-review-translation">命名空间不能直接包含字段、方法或语句之类的成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">

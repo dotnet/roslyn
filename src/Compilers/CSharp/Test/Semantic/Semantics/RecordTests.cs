@@ -86,7 +86,7 @@ record Point(int x, int y);
                 // (2,1): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 1),
-                // (2,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,8): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // record Point { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Point").WithLocation(2, 8),
                 // (2,8): error CS0548: '<invalid-global-code>.Point': property or indexer must have at least one accessor
@@ -243,7 +243,7 @@ record class Point(int x, int y);
 ";
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // record class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(2, 1),
                 // (2,19): error CS1514: { expected

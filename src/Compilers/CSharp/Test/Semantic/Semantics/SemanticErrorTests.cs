@@ -2770,12 +2770,12 @@ namespace ns1
             // TODO (tomat): EOFUnexpected shouldn't be reported if we enable parsing global statements in namespaces
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test,
                 // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
-                // (4,10): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (4,10): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // (4,14): error CS1022: Type or namespace definition, or end-of-file expected
-                // (6,5): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (6,5): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // (6,9): error CS1022: Type or namespace definition, or end-of-file expected
-                // (5,15): error CS0116: A namespace does not directly contain members such as fields or methods
-                // (7,15): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (5,15): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
+                // (7,15): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 4, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 4, Column = 10 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_EOFExpected, Line = 4, Column = 14 },

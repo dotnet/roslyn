@@ -8594,7 +8594,7 @@ class A : B : C
                 // (2,13): error CS1022: Type or namespace definition, or end-of-file expected
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_EOFExpected, ":").WithLocation(2, 13),
-                // (2,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,15): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // class A : B : C
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "C").WithLocation(2, 15),
                 // (3,1): error CS8370: Feature 'top-level statements' is not available in C# 7.3. Please use language version 9.0 or greater.

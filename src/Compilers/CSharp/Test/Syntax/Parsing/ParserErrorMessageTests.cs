@@ -2451,7 +2451,7 @@ Diagnostic(ErrorCode.ERR_EOFExpected, "}"));
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,27): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
                 );
@@ -3882,7 +3882,7 @@ namespace x
    // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
    // public class S.D 
    Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-   // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
+   // (1,16): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
    // public class S.D 
    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
    // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.

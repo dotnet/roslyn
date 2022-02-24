@@ -106,16 +106,16 @@ class C
 [a]fod;
 [b";
             UsingTree(text,
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // asas]
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(2, 1),
                 // (2,5): error CS1022: Type or namespace definition, or end-of-file expected
                 // asas]
                 Diagnostic(ErrorCode.ERR_EOFExpected, "]").WithLocation(2, 5),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // asas
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "asas").WithLocation(4, 1),
-                // (6,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (6,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // sadasdasd]
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "sadasdasd").WithLocation(6, 1),
                 // (6,10): error CS1022: Type or namespace definition, or end-of-file expected
@@ -547,7 +547,7 @@ int x = 0;
 using goo.bar;
 ";
             UsingTree(test,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // garbage
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "garbage").WithLocation(1, 1)
                 );
@@ -780,7 +780,7 @@ class Test : Itest
                 // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-                // (1,16): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,16): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "D").WithLocation(1, 16),
                 // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
@@ -868,7 +868,7 @@ class Test : Itest
                 // (1,27): error CS1002: ; expected
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Basic").WithLocation(1, 27),
-                // (1,27): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,27): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 //  > Roslyn.Utilities.dll!  Basic
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Basic").WithLocation(1, 27)
                 );
@@ -1097,7 +1097,7 @@ partial delegate E { }
 #endif
 aeu";
             UsingTree(test,
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // aeu
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "aeu").WithLocation(4, 1)
                 );
@@ -1121,7 +1121,7 @@ aeu";
         {
             var test = "extern a;";
             UsingTree(test,
-                // (1,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,8): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // extern a;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "a").WithLocation(1, 8)
                 );
@@ -1396,7 +1396,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
                 // (1,19): error CS1022: Type or namespace definition, or end-of-file expected
                 // /*<bind>*/C<object, string/*</bind>*/
                 Diagnostic(ErrorCode.ERR_EOFExpected, ",").WithLocation(1, 19),
-                // (1,21): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,21): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // /*<bind>*/C<object, string/*</bind>*/
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "string").WithLocation(1, 21)
                 );
@@ -1646,7 +1646,7 @@ using VT2 = (int, int);
             var test = "e";
 
             UsingTree(test,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // e
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(1, 1)
                 );
@@ -1675,7 +1675,7 @@ e
 ";
 
             UsingTree(test,
-                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (3,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // e
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 1)
                 );
@@ -1712,7 +1712,7 @@ e
             var test = "abc using";
 
             UsingTree(test,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // abc using
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "abc").WithLocation(1, 1),
                 // (1,10): error CS1001: Identifier expected
@@ -2592,7 +2592,7 @@ e
                 // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
-                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,25): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // using s = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25)
                 );

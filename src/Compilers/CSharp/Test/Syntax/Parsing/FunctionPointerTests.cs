@@ -4108,7 +4108,7 @@ void C()
                 // (1,11): error CS1041: Identifier expected; 'delegate' is a keyword
                 // using t = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(1, 11),
-                // (1,25): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,25): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // using t = delegate*<void>;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">").WithLocation(1, 25)
             );
