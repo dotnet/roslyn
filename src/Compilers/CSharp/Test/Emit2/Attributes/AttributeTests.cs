@@ -587,7 +587,39 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+        }
+
+        [Fact]
+        public void TestCallWithOptionalParametersInsideAttribute()
+        {
+            var source = @"
+using System;
+
+class Attr : Attribute { public Attr(int x) { } }
+
+class C
+{
+    [Attr(M())]
+    void M0() { }
+
+    public static int M(int x = 0) => x;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr(M())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "M()").WithLocation(8, 11));
+
+            var m0 = comp.GetMember<MethodSymbol>("C.M0");
+            var attrs = m0.GetAttributes();
+            Assert.Equal(1, attrs.Length);
+            Assert.Equal(TypedConstantKind.Error, attrs[0].ConstructorArguments.Single().Kind);
         }
 
         [Fact]
@@ -622,7 +654,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -659,7 +695,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<AttributeSyntax>().First();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -695,7 +735,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -731,7 +775,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -766,7 +814,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]

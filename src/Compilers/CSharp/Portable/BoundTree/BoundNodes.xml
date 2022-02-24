@@ -1755,6 +1755,7 @@
     <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstructorExpanded" Type="bool" />
+    <Field Name="ConstructorDefaultArguments" Type="BitVector"/>
     <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
