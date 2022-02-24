@@ -75,10 +75,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             CodeActionRequestPriority priority)
         {
-            // Hence, for Normal or Low priority, we only need to execute analyzers which can report at least one
-            // fixable diagnostic that can have a non-suppression/configuration fix. Note that for
-            // 'CodeActionPriorityRequest.High', we only run compiler analyzer, which always has fixable
-            // diagnostics, so we can pass in null. 
+            // For Normal or Low priority, we only need to execute analyzers which can report at least one fixable
+            // diagnostic that can have a non-suppression/configuration fix.
+            //
+            // For CodeActionPriorityRequest.High, we only run compiler analyzer, which always has fixable diagnostics,
+            // so we can return a null predicate here to include all diagnostics.
 
             if (!(priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low))
                 return null;
