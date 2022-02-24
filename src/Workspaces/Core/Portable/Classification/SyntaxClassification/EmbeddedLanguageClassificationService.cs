@@ -91,23 +91,43 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
 
             private void ProcessToken(SyntaxToken token, CancellationToken cancellationToken)
             {
-                if (!token.Span.IntersectsWith(_textSpan) || !_syntaxTokenKinds.Contains(token.RawKind))
-                    return;
+                cancellationToken.ThrowIfCancellationRequested();
+                ProcessTriviaList(token.LeadingTrivia, cancellationToken);
+                ClassifyToken(token, cancellationToken);
+                ProcessTriviaList(token.TrailingTrivia, cancellationToken);
+            }
 
-                foreach (var language in _languagesProvider.Languages)
+            private readonly void ClassifyToken(SyntaxToken token, CancellationToken cancellationToken)
+            {
+                if (token.Span.IntersectsWith(_textSpan) && _syntaxTokenKinds.Contains(token.RawKind))
                 {
-                    var classifier = language.Classifier;
-                    if (classifier != null)
+                    foreach (var language in _languagesProvider.Languages)
                     {
-                        var count = _result.Count;
-                        classifier.AddClassifications(token, _semanticModel, _options, _result, cancellationToken);
-                        if (_result.Count != count)
+                        var classifier = language.Classifier;
+                        if (classifier != null)
                         {
-                            // This classifier added values.  No need to check the other ones.
-                            return;
+                            var count = _result.Count;
+                            classifier.AddClassifications(token, _semanticModel, _options, _result, cancellationToken);
+                            if (_result.Count != count)
+                            {
+                                // This classifier added values.  No need to check the other ones.
+                                return;
+                            }
                         }
                     }
                 }
+            }
+
+            private void ProcessTriviaList(SyntaxTriviaList triviaList, CancellationToken cancellationToken)
+            {
+                foreach (var trivia in triviaList)
+                    ProcessTrivia(trivia, cancellationToken);
+            }
+
+            private void ProcessTrivia(SyntaxTrivia trivia, CancellationToken cancellationToken)
+            {
+                if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
+                    Recurse(trivia.GetStructure()!, cancellationToken);
             }
         }
     }
