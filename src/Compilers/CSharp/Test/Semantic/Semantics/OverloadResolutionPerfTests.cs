@@ -786,5 +786,231 @@ class C
                 //         int tmp2; // unused
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "tmp2").WithArguments("tmp2").WithLocation(9, 13));
         }
+
+        [Fact]
+        public void NestedLambdasAndOverloads_NoTypes_NoErrors()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0(string s0, string s1, string s2) { }
+    static void F1(string s)
+    {
+        F(s, s0 => {
+        F(s, s1 => {
+        F(s, s2 => {
+            F0(s0, s1, s2);
+        });
+        });
+        });
+    }
+    static void F(string s, Action<string> a) { }
+    static void F(string s, Action<string, string> a) { }
+    static void F(string s, Func<string, string> f) { }
+    static void F(object o, Action<object> a) { }
+    static void F(object o, Action<object, object> a) { }
+    static void F(object o, Func<object, object> f) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new LambdaBindingData();
+            comp.TestOnlyCompilationData = data;
+            var diagnostics = comp.GetDiagnostics();
+            Assert.Equal((136, 186), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
+            diagnostics.Verify();
+        }
+
+        [Fact]
+        [WorkItem(1153265, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1153265")]
+        public void NestedLambdasAndOverloads_NoTypes_Errors()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0(string s0, string s1, string s2) { }
+    static void F1()
+    {
+        F(s, s0 => {
+        F(s, s1 => {
+        F(s, s2 => {
+            F0(s0, s1, s2);
+        });
+        });
+        });
+    }
+    static void F(string s, Action<string> a) { }
+    static void F(string s, Action<string, string> a) { }
+    static void F(string s, Func<string, string> f) { }
+    static void F(object o, Action<object> a) { }
+    static void F(object o, Action<object, object> a) { }
+    static void F(object o, Func<object, object> f) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new LambdaBindingData();
+            comp.TestOnlyCompilationData = data;
+            var diagnostics = comp.GetDiagnostics();
+            Assert.Equal((84, 126), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
+            diagnostics.Verify(
+                // (7,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s0 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(7, 11),
+                // (8,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s1 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(8, 11),
+                // (9,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s2 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(9, 11));
+        }
+
+        [Fact]
+        public void NestedLambdasAndOverloads_ParameterTypes_NoErrors()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0(string s0, string s1, string s2) { }
+    static void F1(string s)
+    {
+        F(s, (string s0) => {
+        F(s, (string s1) => {
+        F(s, (string s2) => {
+            F0(s0, s1, s2);
+        });
+        });
+        });
+    }
+    static void F(string s, Action<string> a) { }
+    static void F(string s, Action<string, string> a) { }
+    static void F(string s, Func<string, string> f) { }
+    static void F(object o, Action<object> a) { }
+    static void F(object o, Action<object, object> a) { }
+    static void F(object o, Func<object, object> f) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new LambdaBindingData();
+            comp.TestOnlyCompilationData = data;
+            var diagnostics = comp.GetDiagnostics();
+            Assert.Equal((14, 28), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
+            diagnostics.Verify();
+        }
+
+        [Fact]
+        public void NestedLambdasAndOverloads_ParameterTypes_Errors()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0(string s0, string s1, string s2) { }
+    static void F1()
+    {
+        F(s, (string s0) => {
+        F(s, (string s1) => {
+        F(s, (string s2) => {
+            F0(s0, s1, s2);
+        });
+        });
+        });
+    }
+    static void F(string s, Action<string> a) { }
+    static void F(string s, Action<string, string> a) { }
+    static void F(string s, Func<string, string> f) { }
+    static void F(object o, Action<object> a) { }
+    static void F(object o, Action<object, object> a) { }
+    static void F(object o, Func<object, object> f) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new LambdaBindingData();
+            comp.TestOnlyCompilationData = data;
+            var diagnostics = comp.GetDiagnostics();
+            Assert.Equal((14, 28), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
+            diagnostics.Verify(
+                // (7,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s0 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(7, 11),
+                // (8,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s1 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(8, 11),
+                // (9,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s2 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(9, 11));
+        }
+
+        [Fact]
+        public void NestedLambdasAndOverloads_ParameterAndReturnTypes_NoErrors()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0(string s0, string s1, string s2) { }
+    static void F1(string s)
+    {
+        F(s, void (string s0) => {
+        F(s, void (string s1) => {
+        F(s, void (string s2) => {
+            F0(s0, s1, s2);
+        });
+        });
+        });
+    }
+    static void F(string s, Action<string> a) { }
+    static void F(string s, Action<string, string> a) { }
+    static void F(string s, Func<string, string> f) { }
+    static void F(object o, Action<object> a) { }
+    static void F(object o, Action<object, object> a) { }
+    static void F(object o, Func<object, object> f) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new LambdaBindingData();
+            comp.TestOnlyCompilationData = data;
+            var diagnostics = comp.GetDiagnostics();
+            Assert.Equal((3, 9), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
+            diagnostics.Verify();
+        }
+
+        [Fact]
+        public void NestedLambdasAndOverloads_ParameterAndReturnTypes_Errors()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F0(string s0, string s1, string s2) { }
+    static void F1()
+    {
+        F(s, void (string s0) => {
+        F(s, void (string s1) => {
+        F(s, void (string s2) => {
+            F0(s0, s1, s2);
+        });
+        });
+        });
+    }
+    static void F(string s, Action<string> a) { }
+    static void F(string s, Action<string, string> a) { }
+    static void F(string s, Func<string, string> f) { }
+    static void F(object o, Action<object> a) { }
+    static void F(object o, Action<object, object> a) { }
+    static void F(object o, Func<object, object> f) { }
+}";
+            var comp = CreateCompilation(source);
+            var data = new LambdaBindingData();
+            comp.TestOnlyCompilationData = data;
+            var diagnostics = comp.GetDiagnostics();
+            Assert.Equal((3, 9), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
+            diagnostics.Verify(
+                // (7,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s0 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(7, 11),
+                // (8,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s1 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(8, 11),
+                // (9,11): error CS0103: The name 's' does not exist in the current context
+                //         F(s, s2 => {
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(9, 11));
+        }
     }
 }

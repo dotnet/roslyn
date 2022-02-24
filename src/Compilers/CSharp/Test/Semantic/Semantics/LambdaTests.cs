@@ -2554,6 +2554,36 @@ class Program
             }
         }
 
+        [Fact]
+        public void TestLambdaWithError20()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+class Program
+{
+    static void Main()
+    {
+        M(string.Empty, y, (x, y) => x.ToString());
+    }
+    static void M<T, U>(T t, U u, Expression<Action<T, U, int>> action) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("x", reference.ToString());
+            var typeInfo = sm.GetTypeInfo(reference);
+            // The inferred parameter type is unknown, unlike similar tests in TestLambdaWithError19,
+            // because BindInvocationExpressionContinued is calling unboundLambda.BindForErrorRecovery(),
+            // which binds the lambda without a delegate type rather than attempting to infer a delegate
+            // type from the inapplicable method, even though the argument error is from 'y' rather
+            // than from the lambda argument.
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+        }
+
         // See MaxParameterListsForErrorRecovery.
         [Fact]
         public void BuildArgumentsForErrorRecovery_ManyOverloads()

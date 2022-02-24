@@ -975,6 +975,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (argument)
                         {
                             case UnboundLambda unboundLambda:
+                                // BindForErrorRecovery() will seal the binding cache for the lambda, and
+                                // will bind the lambda without a delegate type if not previously bound.
+                                // Note that we're calling BindForErrorRecovery() if there are any errors in arguments,
+                                // not necessarily an error for this argument. It's not clear if that's intentional but it can
+                                // improve perf at the expense of Intellisense: see LambdaTests.TestLambdaWithError20().
                                 var boundWithErrors = unboundLambda.BindForErrorRecovery();
                                 diagnostics.AddRange(boundWithErrors.Diagnostics);
                                 break;
@@ -1663,14 +1668,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // bind the argument against each applicable parameter
                             var unboundArgument = (UnboundLambda)argument;
-                            foreach (var parameterList in parameterListList)
+                            if (!unboundArgument.HasBoundForErrorRecovery)
                             {
-                                var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                                if (parameterType?.Kind == SymbolKind.NamedType &&
-                                    (object)parameterType.GetDelegateType() != null)
+                                foreach (var parameterList in parameterListList)
                                 {
-                                    // Just assume we're not in an expression tree for the purposes of error recovery.
-                                    var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
+                                    var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                                    if (parameterType?.Kind == SymbolKind.NamedType &&
+                                        (object)parameterType.GetDelegateType() != null)
+                                    {
+                                        // Just assume we're not in an expression tree for the purposes of error recovery.
+                                        var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType, isExpressionTree: false);
+                                    }
                                 }
                             }
 

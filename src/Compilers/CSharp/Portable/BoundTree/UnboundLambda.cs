@@ -431,6 +431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLambda Bind(NamedTypeSymbol delegateType, bool isExpressionTree)
             => SuppressIfNeeded(Data.Bind(delegateType, isExpressionTree));
 
+        public bool HasBoundForErrorRecovery => Data.HasBoundForErrorRecovery;
+
         public BoundLambda BindForErrorRecovery()
             => SuppressIfNeeded(Data.BindForErrorRecovery());
 
@@ -462,6 +464,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool ParameterIsNullChecked(int index) { return Data.ParameterIsNullChecked(index); }
     }
 
+    /// <summary>
+    /// Lambda binding state, recorded during testing only.
+    /// </summary>
+    internal sealed class LambdaBindingData
+    {
+        /// <summary>
+        /// Number of lambdas bound.
+        /// </summary>
+        internal int LambdaBindingCount;
+
+        internal int UnboundLambdaStateCount;
+    }
+
     internal abstract class UnboundLambdaState
     {
         private UnboundLambda _unboundLambda = null!; // we would prefer this readonly, but we have an initialization cycle.
@@ -483,6 +498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(binder != null);
             Debug.Assert(binder.ContainingMemberOrLambda != null);
+
+            if (binder.Compilation.TestOnlyCompilationData is LambdaBindingData data)
+            {
+                Interlocked.Increment(ref data.UnboundLambdaStateCount);
+            }
 
             if (includeCache)
             {
@@ -530,7 +550,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract Location ParameterLocation(int index);
         public abstract TypeWithAnnotations ParameterTypeWithAnnotations(int index);
         public abstract RefKind RefKind(int index);
-        protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
+        protected BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+        {
+            if (lambdaSymbol.DeclaringCompilation?.TestOnlyCompilationData is LambdaBindingData data)
+            {
+                Interlocked.Increment(ref data.LambdaBindingCount);
+            }
+            return BindLambdaBodyCore(lambdaSymbol, lambdaBodyBinder, diagnostics);
+        }
+        protected abstract BoundBlock BindLambdaBodyCore(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
         /// <summary>
         /// Return the bound expression if the lambda has an expression body and can be reused easily.
@@ -1029,6 +1057,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new WithLambdaParametersBinder(lambdaSymbol, binder);
         }
 
+        public bool HasBoundForErrorRecovery => _errorBinding is { };
+
         // UNDONE: [MattWar]
         // UNDONE: Here we enable the consumer of an unbound lambda that could not be 
         // UNDONE: successfully converted to a best bound lambda to do error recovery 
@@ -1461,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lambdaBodyBinder.CreateBlockFromExpression((ExpressionSyntax)this.Body, expression, diagnostics);
         }
 
-        protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
+        protected override BoundBlock BindLambdaBodyCore(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
         {
             if (this.IsExpressionLambda)
             {
