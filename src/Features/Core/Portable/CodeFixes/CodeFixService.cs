@@ -115,11 +115,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 foreach (var diagnostic in diagnostics)
                 {
-                    var otherMap = diagnostic.Severity == DiagnosticSeverity.Error
+                    var preferredMap = diagnostic.Severity == DiagnosticSeverity.Error
                         ? spanToErrorDiagnostics
                         : spanToOtherDiagnostics;
 
-                    var list = otherMap.GetOrAdd(span, static _ => new List<DiagnosticData>());
+                    var list = preferredMap.GetOrAdd(span, static _ => new List<DiagnosticData>());
                     list.Add(diagnostic);
                 }
             }
