@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
                 {
                     TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                     Range = caret.Range
-                }, new LSP.ClientCapabilities(), null, CancellationToken.None);
+                }, 
+                CancellationToken.None);
         }
     }
 }
