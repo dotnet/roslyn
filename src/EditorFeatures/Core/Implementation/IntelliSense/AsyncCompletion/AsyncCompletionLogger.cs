@@ -46,6 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CommitItemWithTargetTypeFilter,
 
             GetDefaultsMatchTicks,
+
+            SourceInitializationTicks,
+            SourceGetContextCompletedTicks,
+            SourceGetContextCanceledTicks,
+
+            ItemManagerSortTicks,
+            ItemManagerUpdateCompletedTicks,
+            ItemManagerUpdateCanceledTicks,
         }
 
         internal static void LogImportCompletionGetContext(bool isBlocking, bool delayed)
@@ -88,6 +96,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static void LogGetDefaultsMatchTicksDataPoint(int count) =>
             s_statisticLogAggregator.AddDataPoint((int)ActionInfo.GetDefaultsMatchTicks, count);
+
+        internal static void LogSourceInitializationTicksDataPoint(int count)
+        {
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.SourceInitializationTicks, count);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.SourceInitializationTicks, count);
+        }
+
+        internal static void LogSourceGetContextTicksDataPoint(int count, bool isCanceled)
+        {
+            var key = isCanceled
+                ? ActionInfo.SourceGetContextCanceledTicks
+                : ActionInfo.SourceGetContextCompletedTicks;
+
+            s_statisticLogAggregator.AddDataPoint((int)key, count);
+            s_histogramLogAggregator.IncreaseCount((int)key, count);
+        }
+
+        internal static void LogItemManagerSortTicksDataPoint(int count)
+        {
+            s_statisticLogAggregator.AddDataPoint((int)ActionInfo.ItemManagerSortTicks, count);
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.ItemManagerSortTicks, count);
+        }
+
+        internal static void LogItemManagerUpdateDataPoint(int count, bool isCanceled)
+        {
+            var key = isCanceled
+                ? ActionInfo.ItemManagerUpdateCanceledTicks
+                : ActionInfo.ItemManagerUpdateCompletedTicks;
+
+            s_statisticLogAggregator.AddDataPoint((int)key, count);
+            s_histogramLogAggregator.IncreaseCount((int)key, count);
+        }
 
         internal static void ReportTelemetry()
         {
