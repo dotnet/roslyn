@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
+        private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -147,6 +148,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 throw new ArgumentNullException(nameof(filePath));
 
             return new Uri(filePath, UriKind.Absolute);
+        }
+
+        public static Uri GetUriFromPartialFilePath(string? filePath)
+        {
+            if (filePath is null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            return new Uri(SourceGeneratedDocumentBaseUri, filePath);
         }
 
         public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)

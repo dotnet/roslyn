@@ -83,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         internal static async ValueTask<TreeItemViewModel> CreateAsync(
             Solution solution,
             ValueTrackedItem item,
+            ImmutableArray<TreeItemViewModel> children,
             ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
@@ -108,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 globalOptions,
                 threadingContext,
                 fileName,
-                children: ImmutableArray<TreeItemViewModel>.Empty);
+                children);
         }
 
         private void CalculateChildren()
@@ -173,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 cancellationToken).ConfigureAwait(false);
 
             return await valueTrackedItems.SelectAsArrayAsync((item, cancellationToken) =>
-                CreateAsync(_solution, item, TreeViewModel, _glyphService, _valueTrackingService, _globalOptions, ThreadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
+                CreateAsync(_solution, item, children: ImmutableArray<TreeItemViewModel>.Empty, TreeViewModel, _glyphService, _valueTrackingService, _globalOptions, ThreadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
     }
 }
