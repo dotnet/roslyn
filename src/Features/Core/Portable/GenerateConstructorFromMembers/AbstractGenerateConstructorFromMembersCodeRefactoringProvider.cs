@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -43,8 +41,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private readonly IPickMembersService? _pickMembersService_forTesting;
 
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
-
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }
@@ -53,12 +49,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         /// For testing purposes only.
         /// </summary>
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService_forTesting)
-        {
-            _pickMembersService_forTesting = pickMembersService_forTesting;
-
-            _jsonSerializerOptions = new JsonSerializerOptions();
-            _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        }
+            => _pickMembersService_forTesting = pickMembersService_forTesting;
 
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
@@ -71,19 +62,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 (actions) => context.RegisterRefactorings(actions), desiredAccessibility: null, context.CancellationToken);
         }
 
-        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
-            Document priorDocument,
-            TextSpan priorSelection,
-            Document currentDocument,
-            string? serializedIntentData,
-            CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
         {
-            Accessibility? desiredAccessibility = null;
-            if (serializedIntentData != null)
-            {
-                var intentData = JsonSerializer.Deserialize<GenerateConstructorIntentData>(serializedIntentData, _jsonSerializerOptions);
-                desiredAccessibility = intentData.Accessibility;
-            }
+            var accessibility = intentDataProvider.GetIntentData<GenerateConstructorIntentData>()?.Accessibility;
 
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             await ComputeRefactoringsAsync(
@@ -91,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 priorSelection,
                 (singleAction, applicableToSpan) => actions.Add(singleAction),
                 (multipleActions) => actions.AddRange(multipleActions),
-                desiredAccessibility: desiredAccessibility,
+                desiredAccessibility: accessibility,
                 cancellationToken).ConfigureAwait(false);
 
             if (actions.IsEmpty())
@@ -148,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
         }
 
-        private record struct GenerateConstructorIntentData(Accessibility? Accessibility);
+        public record GenerateConstructorIntentData(Accessibility? Accessibility);
 
         private async Task ComputeRefactoringsAsync(
             Document document,

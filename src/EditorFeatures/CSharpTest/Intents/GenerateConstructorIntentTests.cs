@@ -84,7 +84,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 }";
 
             // lang=json
-            var intentData = @"{ ""Accessibility"": ""Private""}";
+            var intentData = @"{ ""accessibility"": ""private""}";
+
+            await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task GenerateConstructorTypedPrivateProtectedWithIntentData()
+        {
+            var initialText =
+@"class C
+{
+    private readonly int _someInt;
+
+    {|typed:private protected C|}
+}";
+            var expectedText =
+@"class C
+{
+    private readonly int _someInt;
+
+    private protected C(int someInt)
+    {
+        _someInt = someInt;
+    }
+}";
+
+            // lang=json
+            var intentData = @"{ ""accessibility"": ""protectedAndInternal""}";
 
             await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
         }
