@@ -140,7 +140,7 @@ namespace C
 
     public class C : I
     {
-        void goo() { }
+        public void goo() { }
     }
 }
         </Document>
@@ -148,7 +148,7 @@ namespace C
 using C;
 namespace G
 {
-    public Class G : I
+    public class G : I
     {
         public void goo()
         {

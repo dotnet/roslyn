@@ -237,9 +237,9 @@ namespace N
 {
     class C
     {
-        public int g$$oo = Goo();
+        public int g$$oo;
 
-        protected int Goo() { goo = 3; }
+        protected void Goo() { goo = 3; }
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
@@ -367,7 +367,7 @@ namespace N
 
     class C : I
     {
-        public async Task Goo()
+        public void Goo()
         {
         }
     }
@@ -474,6 +474,11 @@ namespace N
         void G$$oo()
         {
         }
+
+        void Foo()
+        {   
+            Goo();
+        }
     }
 }";
             using var testState = CallHierarchyTestState.Create(text);
@@ -482,7 +487,7 @@ namespace N
             testState.Workspace.Documents.Single().GetTextBuffer().Insert(0, "/* hello */");
 
             testState.VerifyRoot(root, "N.C.Goo()", new[] { string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), });
-            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.Goo()" });
+            testState.VerifyResult(root, string.Format(EditorFeaturesResources.Calls_To_0, "Goo"), expectedCallers: new[] { "N.C.Foo()" });
         }
     }
 }
