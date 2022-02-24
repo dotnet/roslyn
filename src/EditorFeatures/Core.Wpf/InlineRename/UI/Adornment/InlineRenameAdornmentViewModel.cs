@@ -130,6 +130,28 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             }
         }
 
+        private bool _isCollapsed;
+        public bool IsCollapsed
+        {
+            get => _isCollapsed;
+            set
+            {
+                if (Set(ref _isCollapsed, value))
+                {
+                    NotifyPropertyChanged(nameof(IsExpanded));
+                }
+            }
+        }
+
+        public bool IsExpanded
+        {
+            get => !IsCollapsed;
+            set => IsCollapsed = !value;
+        }
+
+        public bool IsRenameOverloadsEditable
+            => !_session.MustRenameOverloads;
+
         public void Submit()
         {
             _session.Commit();

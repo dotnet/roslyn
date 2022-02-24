@@ -20,5 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public static object BackgroundBrushKey { get; set; } = "BackgroundBrush";
         public static object AccentBarColorKey { get; set; } = "AccentBarBrush";
         public static object ButtonStyleKey { get; set; } = "ButtonStyle";
+        public static object ButtonBorderBrush { get; set; } = "ButtonBorderBrush";
     }
 }
