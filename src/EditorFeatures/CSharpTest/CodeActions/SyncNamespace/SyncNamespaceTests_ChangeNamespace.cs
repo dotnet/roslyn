@@ -2,18 +2,88 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.SyncNamespace;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace.SyncNamespaceTests_ChangeNamespace.SyncNamespaceCodeRefactoringVerifier;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace
 {
-    public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
+    public class SyncNamespaceTests_ChangeNamespace : CSharpSyncNamespaceTestsBase
     {
+        internal static class SyncNamespaceCodeRefactoringVerifier
+        {
+            public sealed class Test : CSharpCodeRefactoringVerifier<CSharpSyncNamespaceCodeRefactoringProvider>.Test
+            {
+                public Test()
+                {
+                    SolutionTransforms.Add(AssignProjectPath);
+                    SolutionTransforms.Add(AssignProjectDefaultNamespace);
+                    SolutionTransforms.Add(AssignDocumentFolders);
+                }
+
+                public string? ProjectFilePath { get; set; }
+
+                public string? RootNamespace { get; set; }
+
+                private Solution AssignProjectPath(Solution solution, ProjectId projectId)
+                {
+                    if (ProjectFilePath is null)
+                    {
+                        throw new NotSupportedException();
+                    }
+
+                    return solution
+                        .WithProjectFilePath(projectId, ProjectFilePath)
+                        .WithProjectDefaultNamespace(projectId, Path.GetFileNameWithoutExtension(PathUtilities.GetFileName(ProjectFilePath)));
+                }
+
+                private Solution AssignProjectDefaultNamespace(Solution solution, ProjectId projectId)
+                {
+                    var defaultNamespace = RootNamespace ?? Path.GetFileNameWithoutExtension(PathUtilities.GetFileName(solution.GetRequiredProject(projectId).FilePath));
+                    if (defaultNamespace is null)
+                    {
+                        throw new NotSupportedException();
+                    }
+
+                    return solution.WithProjectDefaultNamespace(projectId, defaultNamespace);
+                }
+
+                private static Solution AssignDocumentFolders(Solution solution, ProjectId projectId)
+                {
+                    var projectDirectory = PathUtilities.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath);
+                    if (projectDirectory is null)
+                        return solution;
+
+                    foreach (var documentId in solution.GetRequiredProject(projectId).DocumentIds)
+                    {
+                        var document = solution.GetRequiredDocument(documentId);
+                        if (document.FilePath is null)
+                            continue;
+
+                        var documentDirectory = PathUtilities.GetDirectoryName(document.FilePath);
+                        if (documentDirectory is null)
+                            continue;
+
+                        var relativePath = PathUtilities.GetRelativePath(projectDirectory, documentDirectory);
+                        if (relativePath is null || relativePath.Contains(".."))
+                            continue;
+
+                        solution = solution.WithDocumentFolders(documentId, relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar));
+                    }
+
+                    return solution;
+                }
+            }
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task ChangeNamespace_InvalidFolderName1()
         {
@@ -22,21 +92,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
 
             // No change namespace action because the folder name is not valid identifier
             var (folder, filePath) = CreateDocumentFilePath(new[] { "3B", "C" }, "File1.cs");
-            var code =
-$@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
+
+            var code = $@"
+namespace $${declaredNamespace}
 {{    
     class Class1
     {{
     }}
 }}  
-        </Document>
-    </Project>
-</Workspace>";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
+";
+            await new VerifyCS.Test
+            {
+                ProjectFilePath = ProjectFilePath,
+                RootNamespace = defaultNamespace,
+                TestState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder), filePath), code),
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder), filePath), code),
+                    },
+                },
+            }.RunAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -47,21 +130,33 @@ namespace [||]{declaredNamespace}
 
             // No change namespace action because the folder name is not valid identifier
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B.3C", "D" }, "File1.cs");
-            var code =
-$@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
+            var code = $@"
+namespace $${declaredNamespace}
 {{    
     class Class1
     {{
     }}
 }}  
-        </Document>
-    </Project>
-</Workspace>";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal: null);
+";
+            await new VerifyCS.Test
+            {
+                ProjectFilePath = ProjectFilePath,
+                RootNamespace = defaultNamespace,
+                TestState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder), filePath), code),
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder), filePath), code),
+                    },
+                },
+            }.RunAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -71,28 +166,41 @@ namespace [||]{declaredNamespace}
             var declaredNamespace = "Foo.Bar";
 
             var (folder, filePath) = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
-            var code =
-$@"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
-        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
-namespace [||]{declaredNamespace}
-{{
+
+            var code = $@"
+namespace $${declaredNamespace}
+{{    
     class Class1
     {{
     }}
-}}</Document>
-    </Project>
-</Workspace>";
-
-            var expectedSourceOriginal =
-@"namespace A.B.C
+}}  
+";
+            var expected = @"namespace A.B.C
 {
     class Class1
     {
     }
-}";
-            await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+}
+";
+            await new VerifyCS.Test
+            {
+                ProjectFilePath = ProjectFilePath,
+                RootNamespace = defaultNamespace,
+                TestState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder), filePath), code),
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        (PathUtilities.CombinePaths(PathUtilities.CombinePaths(ProjectRootPath, folder), filePath), expected),
+                    },
+                },
+            }.RunAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]

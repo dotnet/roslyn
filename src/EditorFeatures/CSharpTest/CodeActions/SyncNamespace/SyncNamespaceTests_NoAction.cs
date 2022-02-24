@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace
 {
-    public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
+    public class SyncNamespaceTests_NoAction : CSharpSyncNamespaceTestsBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
         public async Task NoAction_NotOnNamespaceDeclaration()

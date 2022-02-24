@@ -28,7 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ChangeNamespace
 {
     /// <summary>
-    /// This intermediate class is used to hide method `TryGetReplacementReferenceSyntax` from <see cref="IChangeNamespaceService" />.
+    /// This intermediate class is used to hide method <see cref="TryGetReplacementReferenceSyntax"/> from <see cref="IChangeNamespaceService" />.
     /// </summary>
     internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
     {
