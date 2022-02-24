@@ -107,7 +107,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
             IntPtr ptr;
             object handleRefObj = new();
 
-
             ptr = Win32GlobalLock(new HandleRef(handleRefObj, handle));
             try
             {
