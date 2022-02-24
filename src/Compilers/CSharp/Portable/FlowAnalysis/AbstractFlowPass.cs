@@ -1521,9 +1521,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(methodGroup.ReceiverOpt);
                     LeaveRegionIfNeeded(methodGroup);
                 }
-                else if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
+                else if (node.MethodOpt?.OriginalDefinition is { } orgDef)
                 {
-                    VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
+                    if (orgDef is LocalFunctionSymbol localFunc)
+                    {
+                        VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
+                    }
+                    else if (orgDef is MethodSymbol me && me.IsExtensionMethod)
+                    {
+                        EnterRegionIfNeeded(methodGroup);
+                        VisitRvalue(methodGroup.ReceiverOpt);
+                        LeaveRegionIfNeeded(methodGroup);
+                    }
                 }
             }
             else
