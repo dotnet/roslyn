@@ -1909,6 +1909,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
+        /// to have it's real output again.
+        /// </summary>
+        public SolutionState WithoutFrozenSourceGeneratedDocuments()
+        {
+            // If there's nothing frozen, there's nothing to do.
+            if (_frozenSourceGeneratedDocumentState == null)
+                return this;
+
+            var projectId = _frozenSourceGeneratedDocumentState.Id.ProjectId;
+
+            // Since we previously froze this document, we should have a CompilationTracker entry for it, and it should be a
+            // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
+            var newTrackerMap = CreateCompilationTrackerMap(projectId, _dependencyGraph);
+            Contract.ThrowIfFalse(newTrackerMap.TryGetValue(projectId, out var existingTracker));
+            var replacingItemTracker = existingTracker as GeneratedFileReplacingCompilationTracker;
+            Contract.ThrowIfNull(replacingItemTracker);
+            newTrackerMap = newTrackerMap.SetItem(projectId, replacingItemTracker.UnderlyingTracker);
+
+            return this.Branch(
+                projectIdToTrackerMap: newTrackerMap,
+                frozenSourceGeneratedDocument: null);
+        }
+
+        /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
