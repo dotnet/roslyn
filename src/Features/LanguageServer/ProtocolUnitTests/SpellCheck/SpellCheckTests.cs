@@ -359,34 +359,43 @@ class {|Identifier:A|}
         //            Assert.Empty(results[1].Diagnostics);
         //        }
 
-        //        [Fact]
-        //        public async Task TestWorkspaceDiagnosticsForRemovedDocument()
-        //        {
-        //            var markup1 =
-        //@"class A {";
-        //            var markup2 = "";
-        // using var testLspServer = await CreateTestLspServerAsync(
-        //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution);
+        [Fact]
+        public async Task TestWorkspaceResultsForRemovedDocument()
+        {
+            var markup1 =
+@"class {|Identifier:A|}
+{
+}";
+            var markup2 = "";
+            using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 });
 
-        //            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
+            var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-        //            Assert.Equal(2, results.Length);
-        //            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        //            Assert.Empty(results[1].Diagnostics);
+            Assert.Equal(2, results.Length);
 
-        //            testLspServer.TestWorkspace.OnDocumentRemoved(testLspServer.TestWorkspace.Documents.First().Id);
+            var document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
+            var sourceText = await document.GetTextAsync();
+            AssertJsonEquals(results[0], new VSInternalWorkspaceSpellCheckableReport
+            {
+                TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
+                ResultId = "WorkspaceSpellCheckHandler:0",
+                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.First().AnnotatedSpans),
+            });
+            Assert.Empty(results[1].Ranges);
 
-        //            var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+            testLspServer.TestWorkspace.OnDocumentRemoved(testLspServer.TestWorkspace.Documents.First().Id);
 
-        //            // First doc should show up as removed.
-        //            Assert.Equal(2, results2.Length);
-        //            Assert.Null(results2[0].Diagnostics);
-        //            Assert.Null(results2[0].ResultId);
+            var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateParamsFromPreviousReports(results));
 
-        //            // Second doc should be changed as the project has changed.
-        //            Assert.Empty(results[1].Diagnostics);
-        //            Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
-        //        }
+            // First doc should show up as removed.
+            Assert.Equal(2, results2.Length);
+            Assert.Null(results2[0].Ranges);
+            Assert.Null(results2[0].ResultId);
+
+            // Second doc should be unchanged
+            Assert.Empty(results[1].Ranges);
+            Assert.Equal(results[1].ResultId, results2[1].ResultId);
+        }
 
         //        private static ImmutableArray<(string resultId, Uri uri)> CreateDiagnosticParamsFromPreviousReports(ImmutableArray<TestDiagnosticResult> results)
         //        {
@@ -991,6 +1000,11 @@ class {|Identifier:A|}
                 PreviousResults = previousResults?.Select(r => new VSInternalStreamingParams { PreviousResultId = r.resultId, TextDocument = new TextDocumentIdentifier { Uri = r.uri } }).ToArray(),
                 PartialResultToken = progress,
             };
+        }
+
+        private static ImmutableArray<(string resultId, Uri uri)> CreateParamsFromPreviousReports(VSInternalWorkspaceSpellCheckableReport[] results)
+        {
+            return results.Select(r => (r.ResultId!, r.TextDocument.Uri)).ToImmutableArray();
         }
     }
 }
