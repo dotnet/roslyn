@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 #if !CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 removing dependency on WorkspaceServices.
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
@@ -48,13 +49,55 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var serializedNamingStyle = diagnostic.Properties[nameof(NamingStyle)];
             var style = NamingStyle.FromXElement(XElement.Parse(serializedNamingStyle));
 
+            var cancellationToken = context.CancellationToken;
             var document = context.Document;
             var span = context.Span;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var symbol = GetSymbol(root, span, syntaxFactsService, model, cancellationToken);
+            if (symbol == null)
+            {
+                return;
+            }
+
+            var fixedNames = style.MakeCompliant(symbol.Name).ToImmutableArray();
+            for (var i = 0; i < fixedNames.Length; i++)
+            {
+                var fixedName = fixedNames[i];
+                // For the fix all provider, we only want to fix all the symbols for a certain rule.
+                // Also encoding the index of the compliant names for this symbol.
+                // It is used by the fix all provider to find the complaint name for all the symbols.
+                var equivalenceKey = string.Concat(diagnostic.Properties["SymbolSpecificationID"], "|", i);
+                context.RegisterCodeFix(
+                    new FixNameCodeAction(
+#if !CODE_STYLE
+                        document.Project.Solution,
+                        symbol,
+                        fixedName,
+#endif
+                        string.Format(CodeFixesResources.Fix_name_violation_colon_0, fixedName),
+                        c => FixAsync(document, symbol, fixedName, c),
+                        equivalenceKey: equivalenceKey),
+                    diagnostic);
+
+            }
+        }
+
+        private static async Task<Solution> FixAsync(
+            Document document, ISymbol symbol, string fixedName, CancellationToken cancellationToken)
+        {
+            return await Renamer.RenameSymbolAsync(
+                document.Project.Solution, symbol, new SymbolRenameOptions(), fixedName,
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        private static ISymbol? GetSymbol(SyntaxNode root, TextSpan span, ISyntaxFactsService syntaxFactsService, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
             var node = root.FindNode(span);
 
-            if (document.GetRequiredLanguageService<ISyntaxFactsService>().IsIdentifierName(node))
+            if (syntaxFactsService.IsIdentifierName(node))
             {
                 // The location we get from the analyzer only contains the identifier token and when we get its containing node,
                 // it is usually the right one (such as a variable declarator, designation or a foreach statement)
@@ -65,44 +108,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             }
 
             if (node == null)
-                return;
+                return null;
 
-            var model = await document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
-            var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
             // TODO: We should always be able to find the symbol that generated this diagnostic,
             // but this cannot always be done by simply asking for the declared symbol on the node 
             // from the symbol's declaration location.
             // See https://github.com/dotnet/roslyn/issues/16588
-
-            if (symbol == null)
-            {
-                return;
-            }
-
-            var fixedNames = style.MakeCompliant(symbol.Name);
-            foreach (var fixedName in fixedNames)
-            {
-                context.RegisterCodeFix(
-                    new FixNameCodeAction(
-#if !CODE_STYLE
-                        document.Project.Solution,
-                        symbol,
-                        fixedName,
-#endif
-                        string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
-                        c => FixAsync(document, symbol, fixedName, c),
-                        equivalenceKey: nameof(NamingStyleCodeFixProvider)),
-                    diagnostic);
-            }
-        }
-
-        private static async Task<Solution> FixAsync(
-            Document document, ISymbol symbol, string fixedName, CancellationToken cancellationToken)
-        {
-            return await Renamer.RenameSymbolAsync(
-                document.Project.Solution, symbol, new SymbolRenameOptions(), fixedName,
-                cancellationToken).ConfigureAwait(false);
+            return symbol;
         }
 
         private class FixNameCodeAction : CodeAction

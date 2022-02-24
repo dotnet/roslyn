@@ -1,8 +1,15 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 {
@@ -24,10 +31,75 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                     _ => default
                 };
 
+                var keys = fixAllContext.CodeActionEquivalenceKey!.Split("|");
+                RoslynDebug.Assert(keys.Length == 2);
+                RoslynDebug.Assert(Guid.TryParse(keys[0], out _));
+                RoslynDebug.Assert(int.TryParse(keys[1], out _));
+
+                var symbolSpecificationID = keys[0];
+                var complaintNameIndex = int.Parse(keys[1]);
+                var diagnosticsToFix = diagnostics.WhereAsArray(
+                    d => d.Location.IsInSource && d.Properties["SymbolSpecificationID"] == symbolSpecificationID);
                 if (diagnostics.IsDefaultOrEmpty)
                 {
                     return null;
                 }
+
+                var symbolsToRename = await GetSymbolsToRenameAsync(
+                    fixAllContext.Solution, diagnostics, complaintNameIndex, fixAllContext.CancellationToken).ConfigureAwait(false);
+                if (symbolsToRename.IsEmpty)
+                {
+                    return null;
+                }
+
+                return new CustomCodeActions.SolutionChangeAction(
+                    CodeFixesResources.Fix_all_name_violations,
+                    c => FixAllAsync(fixAllContext.Solution, symbolsToRename, c),
+                    fixAllContext.CodeActionEquivalenceKey);
+            }
+
+            private static Task<Solution> FixAllAsync(Solution solution, ImmutableHashSet<(ISymbol symbol, string newName)> symbolsToRename, CancellationToken cancellationToken)
+            {
+                // TODO:
+                // Renamer needs a multiple renaming API which
+                // renaming multiple symbols using the same solution snapshot
+                // and calculate the changed documents for each symbol so that we could notify IRefactorNotifyService
+                return Task.FromResult(solution);
+            }
+
+            private static async Task<ImmutableHashSet<(ISymbol symbol, string newName)>> GetSymbolsToRenameAsync(
+                Solution solution,
+                ImmutableArray<Diagnostic> diagnostics,
+                int complaintNameIndex,
+                CancellationToken cancellationToken)
+            {
+                using var _ = PooledHashSet<(ISymbol symbol, string newName)>.GetInstance(out var builder);
+
+                var diagnosticGroups = diagnostics.GroupBy(d => d.Location.SourceTree!);
+                foreach (var (syntaxTree, diagnosticsInTree) in diagnosticGroups)
+                {
+                    var document = solution.GetRequiredDocument(syntaxTree);
+                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    var syntaxFactsService = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    foreach (var diagnostic in diagnosticsInTree)
+                    {
+                        var symbol = GetSymbol(root, diagnostic.Location.SourceSpan, syntaxFactsService, semanticModel, cancellationToken);
+                        if (symbol is not null)
+                        {
+                            var serializedNamingStyle = diagnostic.Properties[nameof(NamingStyle)];
+                            var style = NamingStyle.FromXElement(XElement.Parse(serializedNamingStyle));
+                            var compliantNames = style.MakeCompliant(symbol.Name).ToImmutableArray();
+                            // Try to use the second name if there is one, otherwise, fall back to the first name.
+                            var newName = complaintNameIndex < compliantNames.Length
+                                ? compliantNames[complaintNameIndex]
+                                : compliantNames[0];
+                            builder.Add((symbol, newName));
+                        }
+                    }
+                }
+
+                return builder.ToImmutableHashSet();
             }
 
             private static async Task<ImmutableArray<Diagnostic>> GetSolutionDiagnosticsAsync(FixAllContext fixAllContext)
