@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SuggestedActions
             var attributes = typeof(SuggestedActionsSourceProvider).GetCustomAttributes(inherit: false)
                 .OfType<SuggestedActionPriorityAttribute>()
                 .ToImmutableArray();
-            Assert.Equal(attributes.Length, SuggestedActionsSourceProvider.Orderings.Length);
             AssertEx.SetEqual(attributes.Select(a => a.Priority), SuggestedActionsSourceProvider.Orderings);
         }
     }
