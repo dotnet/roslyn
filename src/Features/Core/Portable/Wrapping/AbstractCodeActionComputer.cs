@@ -50,11 +50,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected readonly Document OriginalDocument;
             protected readonly SourceText OriginalSourceText;
             protected readonly CancellationToken CancellationToken;
-
-            protected readonly bool UseTabs;
-            protected readonly int TabSize;
-            protected readonly string NewLine;
-            protected readonly int WrappingColumn;
+            protected readonly SyntaxWrappingOptions Options;
 
             protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
@@ -70,22 +66,18 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 TWrapper service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                SyntaxWrappingOptions options,
                 CancellationToken cancellationToken)
             {
                 Wrapper = service;
                 OriginalDocument = document;
                 OriginalSourceText = originalSourceText;
                 CancellationToken = cancellationToken;
-
-                UseTabs = options.GetOption(FormattingOptions2.UseTabs);
-                TabSize = options.GetOption(FormattingOptions2.TabSize);
-                NewLine = options.GetOption(FormattingOptions2.NewLine);
-                WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
+                Options = options;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(NewLine));
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(options.NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
@@ -96,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
             {
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), Options.NewLine));
                 newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + NewLine.Length, newSourceText.Length), ""));
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + Options.NewLine.Length, newSourceText.Length), ""));
                 var newDocument = OriginalDocument.WithText(newSourceText);
 
                 var indentationService = Wrapper.IndentationService;
@@ -108,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     indentStyle,
                     CancellationToken);
 
-                return desiredIndentation.GetIndentationString(newSourceText, UseTabs, TabSize);
+                return desiredIndentation.GetIndentationString(newSourceText, Options.UseTabs, Options.TabSize);
             }
 
             /// <summary>

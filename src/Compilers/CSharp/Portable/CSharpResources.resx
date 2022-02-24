@@ -6760,6 +6760,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedTypeForListPattern" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'.</value>
   </data>
+  <data name="ERR_ListPatternRequiresLength" xml:space="preserve">
+    <value>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</value>
+  </data>
   <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
     <value>Slice patterns may not be used for a value of type '{0}'.</value>
   </data>

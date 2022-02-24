@@ -5,7 +5,9 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping.BinaryExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping.ChainedExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
@@ -29,5 +31,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
         Public Sub New()
             MyBase.New(s_wrappers)
         End Sub
+
+        Protected Overrides Function GetWrappingOptions(options As AnalyzerConfigOptions, ideOptions As CodeActionOptions) As SyntaxWrappingOptions
+            Return VisualBasicSyntaxWrappingOptions.Create(options, ideOptions)
+        End Function
     End Class
 End Namespace

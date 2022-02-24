@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             if (virtualChars.IsDefaultOrEmpty)
                 return;
 
+            // Can avoid any work if we got the same number of virtual characters back as characters in the string. In
+            // that case, there are clearly no escaped characters.
+            if (virtualChars.Length == token.Text.Length)
+                return;
+
             foreach (var vc in virtualChars)
             {
                 if (vc.Span.Length > 1)

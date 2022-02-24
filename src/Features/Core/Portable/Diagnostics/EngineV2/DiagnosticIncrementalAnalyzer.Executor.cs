@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Computes all local diagnostics (syntax, semantic) that belong to given document for the given StateSet (analyzer).
         /// </summary>
         private static async Task<DocumentAnalysisData> ComputeDocumentAnalysisDataAsync(
-            DocumentAnalysisExecutor executor, StateSet stateSet, CancellationToken cancellationToken)
+            DocumentAnalysisExecutor executor, StateSet stateSet, bool logTelemetry, CancellationToken cancellationToken)
         {
             var kind = executor.AnalysisScope.Kind;
             var document = executor.AnalysisScope.TextDocument;
@@ -115,7 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // get log title and functionId
             GetLogFunctionIdAndTitle(kind, out var functionId, out var title);
 
-            using (Logger.LogBlock(functionId, GetDocumentLogMessage, title, document, stateSet.Analyzer, cancellationToken))
+            var logLevel = logTelemetry ? LogLevel.Information : LogLevel.Trace;
+            using (Logger.LogBlock(functionId, GetDocumentLogMessage, title, document, stateSet.Analyzer, cancellationToken, logLevel: logLevel))
             {
                 try
                 {
