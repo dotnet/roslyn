@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 // Even if the flag is off, we want to include text sync capabilities.
                 serverCapabilities = new VSInternalServerCapabilities
                 {
-                    SpellCheckingProvider = true,
                     TextDocumentSync = new TextDocumentSyncOptions
                     {
                         Change = TextDocumentSyncKind.Incremental,
