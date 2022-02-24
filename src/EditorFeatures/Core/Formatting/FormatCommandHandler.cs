@@ -176,10 +176,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return;
                 }
 
-                var options = _indentationManager.GetInferredIndentationOptionsAsync(document, _globalOptions, explicitFormat: false, cancellationToken).WaitAndGetResult(cancellationToken);
+                var formattingOptions = _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: false, cancellationToken).WaitAndGetResult(cancellationToken);
+                var indentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions);
 
                 textChanges = service.GetFormattingChangesAsync(
-                    document, typeCharArgs.TypedChar, caretPosition.Value, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document, typeCharArgs.TypedChar, caretPosition.Value, indentationOptions, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else
             {

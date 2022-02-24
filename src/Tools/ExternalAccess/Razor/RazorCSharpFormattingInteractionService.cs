@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,8 +18,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
-    internal readonly record struct RazorFormattingOptions(bool UseTabs, int TabSize, int IndentationSize);
-
     /// <summary>
     /// Enables Razor to utilize Roslyn's C# formatting service.
     /// </summary>
@@ -57,21 +58,45 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             Document document,
             char typedChar,
             int position,
-            RazorFormattingOptions options,
+            RazorIndentationOptions indentationOptions,
+            RazorAutoFormattingOptions autoFormattingOptions,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // TODO: get auto-formatting options from Razor
-            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+            var formattingOptions = GetFormattingOptions(document.Project.Solution, indentationOptions);
+            var roslynIndentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions.UnderlyingObject);
 
-            var indentationOptions = new IndentationOptions(
-                formattingOptions.With(options.UseTabs, options.TabSize, options.IndentationSize),
-                globalOptions.GlobalOptions.GetAutoFormattingOptions(document.Project.Language));
-
-            return await formattingService.GetFormattingChangesAsync(document, typedChar, position, indentationOptions, cancellationToken).ConfigureAwait(false);
+            return await formattingService.GetFormattingChangesAsync(document, typedChar, position, roslynIndentationOptions, cancellationToken).ConfigureAwait(false);
         }
+
+        public static IList<TextChange> GetFormattedTextChanges(
+            Solution solution,
+            SyntaxNode root,
+            TextSpan span,
+            RazorIndentationOptions indentationOptions,
+            CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
+            return Formatter.GetFormattedTextChanges(root, span, solution.Workspace.Services, GetFormattingOptions(solution, indentationOptions), cancellationToken);
+        }
+
+        public static SyntaxNode Format(
+            Solution solution,
+            SyntaxNode root,
+            RazorIndentationOptions indentationOptions,
+            CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
+            return Formatter.Format(root, solution.Workspace.Services, GetFormattingOptions(solution, indentationOptions), cancellationToken: cancellationToken);
+        }
+
+        // Razor does not support editor config but it should still use formatting options stored on Solution:
+        private static SyntaxFormattingOptions GetFormattingOptions(Solution solution, RazorIndentationOptions indentationOptions)
+            => SyntaxFormattingOptions.Create(solution.Options, solution.Workspace.Services, LanguageNames.CSharp).With(
+                useTabs: indentationOptions.UseTabs,
+                tabSize: indentationOptions.TabSize,
+                indentationSize: indentationOptions.IndentationSize);
     }
 }
