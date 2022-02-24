@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
+                    _state.Accessibility,
                     parameterToExistingFieldMap.ToImmutable(),
                     parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,

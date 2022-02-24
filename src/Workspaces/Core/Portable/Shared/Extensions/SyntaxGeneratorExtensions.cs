@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             string typeName,
             INamedTypeSymbol? containingType,
             ImmutableArray<IParameterSymbol> parameters,
+            Accessibility accessibility,
             ImmutableDictionary<string, ISymbol>? parameterToExistingMemberMap,
             ImmutableDictionary<string, string>? parameterToNewMemberMap,
             bool addNullChecks,
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
-                accessibility: containingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
+                accessibility: accessibility,
                 modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(p => p.RequiresUnsafeModifier())),
                 typeName: typeName,
                 parameters: parameters,

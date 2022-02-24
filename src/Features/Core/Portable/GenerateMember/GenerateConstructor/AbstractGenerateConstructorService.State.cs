@@ -646,6 +646,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                         TypeToGenerateIn.Name,
                         TypeToGenerateIn,
                         _parameters,
+                        TypeToGenerateIn.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                         _parameterToExistingMemberMap,
                         newMemberMap,
                         addNullChecks: false,

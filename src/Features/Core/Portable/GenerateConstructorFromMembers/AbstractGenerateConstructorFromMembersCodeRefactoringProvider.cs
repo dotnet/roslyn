@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         private readonly IPickMembersService? _pickMembersService_forTesting;
 
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
+
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider() : this(null)
         {
         }
@@ -49,7 +53,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         /// For testing purposes only.
         /// </summary>
         protected AbstractGenerateConstructorFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService_forTesting)
-            => _pickMembersService_forTesting = pickMembersService_forTesting;
+        {
+            _pickMembersService_forTesting = pickMembersService_forTesting;
+
+            _jsonSerializerOptions = new JsonSerializerOptions();
+            _jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        }
 
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
@@ -59,7 +68,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         {
             return ComputeRefactoringsAsync(context.Document, context.Span,
                 (action, applicableToSpan) => context.RegisterRefactoring(action, applicableToSpan),
-                (actions) => context.RegisterRefactorings(actions), context.CancellationToken);
+                (actions) => context.RegisterRefactorings(actions), desiredAccessibility: null, context.CancellationToken);
         }
 
         public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
@@ -69,12 +78,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             string? serializedIntentData,
             CancellationToken cancellationToken)
         {
+            Accessibility? desiredAccessibility = null;
+            if (serializedIntentData != null)
+            {
+                var intentData = JsonSerializer.Deserialize<GenerateConstructorIntentData>(serializedIntentData, _jsonSerializerOptions);
+                desiredAccessibility = intentData.Accessibility;
+            }
+
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
             await ComputeRefactoringsAsync(
                 priorDocument,
                 priorSelection,
                 (singleAction, applicableToSpan) => actions.Add(singleAction),
                 (multipleActions) => actions.AddRange(multipleActions),
+                desiredAccessibility: desiredAccessibility,
                 cancellationToken).ConfigureAwait(false);
 
             if (actions.IsEmpty())
@@ -131,11 +148,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
         }
 
+        private record struct GenerateConstructorIntentData(Accessibility? Accessibility);
+
         private async Task ComputeRefactoringsAsync(
             Document document,
             TextSpan textSpan,
             Action<CodeAction, TextSpan> registerSingleAction,
             Action<ImmutableArray<CodeAction>> registerMultipleActions,
+            Accessibility? desiredAccessibility,
             CancellationToken cancellationToken)
         {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
@@ -144,7 +164,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             var actions = await GenerateConstructorFromMembersAsync(
-                document, textSpan, addNullChecks: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, textSpan, addNullChecks: false, desiredAccessibility, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (!actions.IsDefault)
             {
                 registerMultipleActions(actions);
@@ -152,7 +172,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
             {
-                var nonSelectionAction = await HandleNonSelectionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+                var nonSelectionAction = await HandleNonSelectionAsync(document, textSpan, desiredAccessibility, cancellationToken).ConfigureAwait(false);
                 if (nonSelectionAction != null)
                 {
                     registerSingleAction(nonSelectionAction.Value.CodeAction, nonSelectionAction.Value.ApplicableToSpan);
@@ -163,6 +183,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         private async Task<(CodeAction CodeAction, TextSpan ApplicableToSpan)?> HandleNonSelectionAsync(
             Document document,
             TextSpan textSpan,
+            Accessibility? desiredAccessibility,
             CancellationToken cancellationToken)
         {
             var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
@@ -225,19 +246,19 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
 
             return (new GenerateConstructorWithDialogCodeAction(
-                    this, document, textSpan, containingType, viableMembers,
+                    this, document, textSpan, containingType, desiredAccessibility, viableMembers,
                     pickMemberOptions.ToImmutable()), typeDeclaration.Span);
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
-            Document document, TextSpan textSpan, bool addNullChecks, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
+                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
                     {
                         return GetCodeActions(document, state, addNullChecks);
