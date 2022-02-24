@@ -5,12 +5,15 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
@@ -60,6 +63,99 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public TestThirdPartyCodeFixWithOutFixAll()
             {
+            }
+        }
+
+        [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp)]
+        private class TestThirdPartyCodeFixModifiesSolution : TestThirdPartyCodeFix
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestThirdPartyCodeFixModifiesSolution()
+            {
+            }
+
+            public override FixAllProvider GetFixAllProvider() => new ModifySolutionFixAll();
+
+            private class ModifySolutionFixAll : FixAllProvider
+            {
+                public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+                {
+                    var solution = fixAllContext.Solution;
+                    return Task.FromResult(CodeAction.Create(
+                            "Remove default case",
+                            async cancellationToken =>
+                            {
+                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync();
+                                Project project = null;
+                                foreach (var kvp in toFix)
+                                {
+                                    var document = kvp.Key;
+                                    project ??= document.Project;
+                                    var diagnostics = kvp.Value;
+                                    var root = await document.GetSyntaxRootAsync(cancellationToken);
+                                    foreach (var diagnostic in diagnostics)
+                                    {
+                                        var node = (await diagnostic.Location.SourceTree.GetRootAsync(cancellationToken)).FindNode(diagnostic.Location.SourceSpan);
+                                        document = document.WithSyntaxRoot(root.RemoveNode(node.Parent, SyntaxRemoveOptions.KeepNoTrivia));
+                                    }
+
+                                    solution = solution.WithDocumentText(document.Id, await document.GetTextAsync());
+                                }
+
+                                return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.cs", SourceText.From(""));
+                            },
+                            nameof(TestThirdPartyCodeFix)));
+                }
+            }
+        }
+
+        [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp)]
+        private class TestThirdPartyCodeFixDoesNotSupportDocumentScope : TestThirdPartyCodeFix
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestThirdPartyCodeFixDoesNotSupportDocumentScope()
+            {
+            }
+
+            public override FixAllProvider GetFixAllProvider() => new ModifySolutionFixAll();
+
+            private class ModifySolutionFixAll : FixAllProvider
+            {
+                public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
+                {
+                    return new[] { FixAllScope.Project, FixAllScope.Solution, FixAllScope.Custom };
+                }
+
+                public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+                {
+                    var solution = fixAllContext.Solution;
+                    return Task.FromResult(CodeAction.Create(
+                            "Remove default case",
+                            async cancellationToken =>
+                            {
+                                var toFix = await fixAllContext.GetDocumentDiagnosticsToFixAsync();
+                                Project project = null;
+                                foreach (var kvp in toFix)
+                                {
+                                    var document = kvp.Key;
+                                    project ??= document.Project;
+                                    var diagnostics = kvp.Value;
+                                    var root = await document.GetSyntaxRootAsync(cancellationToken);
+                                    foreach (var diagnostic in diagnostics)
+                                    {
+                                        var node = (await diagnostic.Location.SourceTree.GetRootAsync(cancellationToken)).FindNode(diagnostic.Location.SourceSpan);
+                                        document = document.WithSyntaxRoot(root.RemoveNode(node.Parent, SyntaxRemoveOptions.KeepNoTrivia));
+                                    }
+
+                                    solution = solution.WithDocumentText(document.Id, await document.GetTextAsync());
+                                }
+
+                                return solution.AddDocument(DocumentId.CreateNewId(project.Id), "new.cs", SourceText.From(""));
+                            },
+                            nameof(TestThirdPartyCodeFix)));
+                }
             }
         }
     }

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -29,6 +30,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -575,160 +577,144 @@ namespace A
             Assert.Equal(expectedNumberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
         }
 
+        private const string _code = @"
+class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+            default:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+            case 1000:
+            default:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+            default:
+                break;
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+
+        private const string _fixed = @"
+class C
+{
+    public void M1(int x, int y)
+    {
+        switch (x)
+        {
+            case 1:
+            case 10:
+                break;
+        }
+
+        switch (y)
+        {
+            case 1:
+                break;
+        }
+
+        switch (x)
+        {
+            case 1:
+                break;
+            case 1000:
+                break;
+        }
+
+        switch (y)
+        {
+        }
+
+        switch (y) { }
+
+        switch (x)
+        {
+            case :
+            case 1000:
+                break;
+        }
+    }
+}
+";
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task RunThirdPartyFixer()
         {
-            const string code = @"
-class C
-{
-    public void M1(int x, int y)
-    {
-        switch (x)
-        {
-            case 1:
-            case 10:
-                break;
-            default:
-                break;
-        }
-
-        switch (y)
-        {
-            case 1:
-                break;
-            case 1000:
-            default:
-                break;
-        }
-
-        switch (x)
-        {
-            case 1:
-                break;
-            case 1000:
-                break;
-        }
-
-        switch (y)
-        {
-            default:
-                break;
-        }
-
-        switch (y) { }
-
-        switch (x)
-        {
-            case :
-            case 1000:
-                break;
-        }
-    }
-}
-";
-
-            const string expected = @"
-class C
-{
-    public void M1(int x, int y)
-    {
-        switch (x)
-        {
-            case 1:
-            case 10:
-                break;
-        }
-
-        switch (y)
-        {
-            case 1:
-                break;
-        }
-
-        switch (x)
-        {
-            case 1:
-                break;
-            case 1000:
-                break;
-        }
-
-        switch (y)
-        {
-        }
-
-        switch (y) { }
-
-        switch (x)
-        {
-            case :
-            case 1000:
-                break;
-        }
-    }
-}
-";
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(code, expected);
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotRunThirdPartyFixerWithNoFixAll()
         {
-            const string code = @"
-class C
-{
-    public void M1(int x, int y)
-    {
-        switch (x)
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, _code);
+        }
+
+        [Theory]
+        [InlineData(DiagnosticSeverity.Warning)]
+        [InlineData(DiagnosticSeverity.Error)]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task RunThirdPartyFixerWithSeverityOfWarningOrHigher(DiagnosticSeverity severity)
         {
-            case 1:
-            case 10:
-                break;
-            default:
-                break;
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed, severity);
         }
 
-        switch (y)
+        [Theory]
+        [InlineData(DiagnosticSeverity.Hidden)]
+        [InlineData(DiagnosticSeverity.Info)]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotRunThirdPartyFixerWithSeverityLessThanWarning(DiagnosticSeverity severity)
         {
-            case 1:
-                break;
-            case 1000:
-            default:
-                break;
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, _code, severity);
         }
 
-        switch (x)
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotRunThirdPartyFixerIfItDoesNotSupportDocumentScope()
         {
-            case 1:
-                break;
-            case 1000:
-                break;
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer>(_code, _code);
         }
 
-        switch (y)
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        public async Task DoNotApplyFixerIfChangesAreMadeOutsideDocument()
         {
-            default:
-                break;
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code, _code);
         }
 
-        switch (y) { }
-
-        switch (x)
-        {
-            case :
-            case 1000:
-                break;
-        }
-    }
-}
-";
-
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(code, code);
-        }
-
-        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code, string expected)
+        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code, string expected, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
             where TAnalyzer : DiagnosticAnalyzer, new()
             where TCodefix : CodeFixProvider, new()
         {
@@ -738,13 +724,22 @@ class C
             var options = CodeActionOptions.DefaultProvider;
 
             var project = workspace.CurrentSolution.Projects.Single();
+            var analyzer = (DiagnosticAnalyzer)new TAnalyzer();
+            var diagnosticIds = analyzer.SupportedDiagnostics.SelectAsArray(d => d.Id);
+
+            var editorconfigText = "is_global = true";
+            foreach (var diagnosticId in diagnosticIds)
+            {
+                editorconfigText += $"\ndotnet_diagnostic.{diagnosticId}.severity = {severity.ToEditorConfigString()}";
+            }
 
             var map = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>{
-                { LanguageNames.CSharp, ImmutableArray.Create((DiagnosticAnalyzer)new  TAnalyzer()) }
+                { LanguageNames.CSharp, ImmutableArray.Create(analyzer) }
             };
 
             project = project.AddAnalyzerReference(new TestAnalyzerReferenceByLanguage(map));
-
+            project = project.Solution.WithProjectFilePath(project.Id, @$"z:\\{project.FilePath}").GetProject(project.Id);
+            project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath: @"z:\\.editorconfig").Project;
             workspace.TryApplyChanges(project.Solution);
 
             // register this workspace to solution crawler so that analyzer service associate itself with given workspace
