@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
+    [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
     internal sealed class ValidateBreakableRangeHandler : AbstractStatelessRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
     {
         [ImportingConstructor]
@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override string Method => LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName;
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
