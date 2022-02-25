@@ -623,6 +623,126 @@ class C
         }
 
         [Fact]
+        public void TestAttributeCallerInfoSemanticModel()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    [Attr()]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var m0 = semanticModel.GetDeclaredSymbol(root.DescendantNodes().OfType<MethodDeclarationSyntax>().Last());
+            var attrs = m0.GetAttributes();
+            Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value);
+
+            var operation = semanticModel.GetOperation(attrSyntax);
+            // note: this operation tree should contain a constant string "M0" instead of null.
+            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
+            VerifyOperationTree(comp, operation, @"
+IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
+  Children(1):
+      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Speculative()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    [Attr(""a"")]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            // note: this operation tree should contain a constant string "M0" instead of null.
+            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
+            VerifyOperationTree(comp, speculativeOperation, @"
+IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
+  Children(1):
+      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+");
+        }
+
+        [Fact]
+        public void NotNullIfNotNullDefinitionUsesCallerMemberName()
+        {
+            var definitionSource = @"
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute([CallerMemberName] string paramName = """") { }
+    }
+}
+
+public class C
+{
+    [return: NotNullIfNotNull]
+    public static string? M(string? M)
+    {
+        return M;
+    }
+}
+";
+
+            var usageSource = @"
+class Program
+{
+    void M0()
+    {
+        C.M(""a"").ToString();
+    }
+}";
+            CreateCompilation(new[] { definitionSource, usageSource }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+
+            var definitionComp = CreateCompilation(definitionSource, options: WithNullableEnable());
+
+            CreateCompilation(usageSource, references: new[] { definitionComp.ToMetadataReference() }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+
+            CreateCompilation(usageSource, references: new[] { definitionComp.EmitToImageReference() }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+        }
+
+        [Fact]
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument()
         {

@@ -121,14 +121,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             beforeAttributePartBound?.Invoke(node);
-            var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics, (this as ContextualAttributeBinder)?.AttributedMember);
+            var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, (this as ContextualAttributeBinder)?.AttributedMember, diagnostics);
             afterAttributePartBound?.Invoke(node);
             return (GetAttribute(boundAttribute, diagnostics), boundAttribute);
         }
 
-        internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics, Symbol? attributedMember = null)
+        internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributedMember, BindingDiagnosticBag diagnostics)
         {
-            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, diagnostics, attributedMember);
+            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, attributedMember, diagnostics);
         }
 
         private Binder SkipSemanticModelBinder()
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private BoundAttribute BindAttributeCore(AttributeSyntax node, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics, Symbol? attributedMember)
+        private BoundAttribute BindAttributeCore(AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributedMember, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.SkipSemanticModelBinder() == this.GetRequiredBinder(node).SkipSemanticModelBinder());
 
