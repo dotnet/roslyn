@@ -17,9 +17,7 @@ stages:
   displayName: VS insertion
   jobs:
   - deployment: insertion
-    pool:
-      name: AzurePipelines-EO
-      vmImage: AzurePipelinesWindows2022compliant
+    pool: VSEngSS-MicroBuild2022-1ES
     environment: No-Approval
     strategy:
       runOnce:
