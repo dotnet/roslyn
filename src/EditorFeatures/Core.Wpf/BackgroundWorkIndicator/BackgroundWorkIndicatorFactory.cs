@@ -51,16 +51,16 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
 
             // If we have an outstanding context in flight, cancel it and create a new one to show the user.
-            _currentContext?.CancelAndDismiss();
+            _currentContext?.CancelAndDispose();
 
             // Create the indicator in its default/empty state.
-            var context = (IUIThreadOperationContext)new BackgroundWorkIndicatorContext(
+            _currentContext = new BackgroundWorkIndicatorContext(
                 this, textView, applicableToSpan, description,
                 cancelOnEdit, cancelOnFocusLost);
 
             // Then add a single scope representing the how the UI should look initially.
-            context.AddScope(allowCancellation: true, description);
-            return context;
+            _currentContext.AddScope(allowCancellation: true, description);
+            return _currentContext;
         }
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
