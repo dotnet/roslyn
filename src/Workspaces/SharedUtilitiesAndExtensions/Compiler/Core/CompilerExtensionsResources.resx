@@ -281,6 +281,7 @@
   </data>
   <data name="camelCase" xml:space="preserve">
     <value>camelCase</value>
+    <comment>used to show how the code will be cased, words 'camel' and 'case' can be translated but their casing should be preserved if possible</comment>
   </data>
   <data name="Events" xml:space="preserve">
     <value>Events</value>
@@ -290,6 +291,7 @@
   </data>
   <data name="IPascalCase" xml:space="preserve">
     <value>IPascalCase</value>
+    <comment>{locked:I} used to show how the code will be cased, words 'pascal' and 'case' can be translated but their casing should be preserved if possible</comment>
   </data>
   <data name="Local_Constants" xml:space="preserve">
     <value>Local Constants</value>
@@ -332,14 +334,17 @@
   </data>
   <data name="s_camelCase" xml:space="preserve">
     <value>s_camelCase</value>
+    <comment>used to show how the code will be cased, words 'camel' and 'case' can be translated but their casing and the leading 's_' should be preserved if possible</comment>
   </data>
   <data name="TPascalCase" xml:space="preserve">
     <value>TPascalCase</value>
+    <comment>{locked:T} used to show how the code will be cased, words 'pascal' and 'case' can be translated but their casing should be preserved if possible</comment>
   </data>
   <data name="Type_Parameters" xml:space="preserve">
     <value>Type Parameters</value>
   </data>
   <data name="_camelCase" xml:space="preserve">
     <value>_camelCase</value>
+    <comment>used to show how the code will be cased, words 'camel' and 'case' can be translated but their casing and the leading '_' should be preserved if possible</comment>
   </data>
 </root>

@@ -65,7 +65,7 @@
       <trans-unit id="IPascalCase">
         <source>IPascalCase</source>
         <target state="new">IPascalCase</target>
-        <note />
+        <note>{locked:I} used to show how the code will be cased, words 'pascal' and 'case' can be translated but their casing should be preserved if possible</note>
       </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
@@ -280,7 +280,7 @@
       <trans-unit id="TPascalCase">
         <source>TPascalCase</source>
         <target state="new">TPascalCase</target>
-        <note />
+        <note>{locked:T} used to show how the code will be cased, words 'pascal' and 'case' can be translated but their casing should be preserved if possible</note>
       </trans-unit>
       <trans-unit id="The_first_word_0_must_begin_with_a_lower_case_character">
         <source>The first word, '{0}', must begin with a lower case character</source>
@@ -330,17 +330,17 @@
       <trans-unit id="_camelCase">
         <source>_camelCase</source>
         <target state="new">_camelCase</target>
-        <note />
+        <note>used to show how the code will be cased, words 'camel' and 'case' can be translated but their casing and the leading '_' should be preserved if possible</note>
       </trans-unit>
       <trans-unit id="camelCase">
         <source>camelCase</source>
         <target state="new">camelCase</target>
-        <note />
+        <note>used to show how the code will be cased, words 'camel' and 'case' can be translated but their casing should be preserved if possible</note>
       </trans-unit>
       <trans-unit id="s_camelCase">
         <source>s_camelCase</source>
         <target state="new">s_camelCase</target>
-        <note />
+        <note>used to show how the code will be cased, words 'camel' and 'case' can be translated but their casing and the leading 's_' should be preserved if possible</note>
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>
