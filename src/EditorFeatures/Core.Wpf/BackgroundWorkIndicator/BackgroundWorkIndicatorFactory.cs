@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(WpfBackgroundWorkIndicatorFactory))]
-    internal partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory, IKeyProcessorProvider
+    internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory, IKeyProcessorProvider
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IToolTipPresenterFactory _toolTipPresenterFactory;
@@ -65,26 +65,17 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
 
         public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
         {
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
             return wpfTextView.Properties.GetOrCreateSingletonProperty(
-                () => new BackgroundWorkIndicatorKeyProcessor(_threadingContext));
+                () => new BackgroundWorkIndicatorKeyProcessor(this));
         }
 
-        private class BackgroundWorkIndicatorKeyProcessor : KeyProcessor
+        private void OnContextDisposed(BackgroundWorkIndicatorContext context)
         {
-            private readonly IThreadingContext _threadingContext;
-            private readonly HashSet<BackgroundWorkIndicatorContext> _registeredContexts = new();
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
 
-            public BackgroundWorkIndicatorKeyProcessor(IThreadingContext threadingContext)
-            {
-                _threadingContext = threadingContext;
-            }
-
-            public void RegisterContext(BackgroundWorkIndicatorContext context)
-            {
-                Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-                _registeredContexts.Add(context);
-
-            }
+            if (_currentContext == context)
+                _currentContext = null;
         }
     }
 }

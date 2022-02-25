@@ -16,7 +16,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     /// features to create nested work with descriptions/progress that will update the all-up indicator tool-tip
     /// shown to the user.
     /// </summary>
-    private class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
+    private sealed class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
     {
         private readonly BackgroundWorkIndicatorContext _context;
 

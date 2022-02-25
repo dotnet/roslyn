@@ -22,7 +22,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     /// <summary>
     /// Implementation of an <see cref="IUIThreadOperationContext"/> for the background work indicator.
     /// </summary>
-    private partial class BackgroundWorkIndicatorContext : IUIThreadOperationContext
+    private sealed class BackgroundWorkIndicatorContext : IUIThreadOperationContext
     {
         /// <summary>
         /// What sort of UI update request we've enqueued to <see cref="_uiUpdateQueue"/>.
@@ -177,6 +177,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
                 // Finally, dismiss the actual tool-tip.
                 _toolTipPresenter.Dismiss();
+
+                // Let our factory know that we were disposed so it can let go of us as well.
+                _factory.OnContextDisposed(this);
             }
 
             async ValueTask UpdateUIAsync()
