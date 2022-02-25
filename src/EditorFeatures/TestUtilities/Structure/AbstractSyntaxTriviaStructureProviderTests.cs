@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
             var outliner = CreateProvider();
             using var actualRegions = TemporaryArray<BlockSpan>.Empty;
-            var options = BlockStructureOptions.From(document.Project);
+            var options = GetOptions();
             outliner.CollectBlockSpans(trivia, ref actualRegions.AsRef(), options, CancellationToken.None);
 
             // TODO: Determine why we get null outlining spans.

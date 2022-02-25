@@ -47,12 +47,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
-        {
-            _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
         public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
         {
             _inProc.AddProjectReference(fromProjectName.Name, toProjectName.Name);

@@ -4,14 +4,14 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -1132,8 +1132,6 @@ class Program {
 }");
         }
 
-
-
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
 #if NETCOREAPP
         [InlineData(TargetFramework.Net60)]
@@ -1144,7 +1142,7 @@ class Program {
         [InlineData(TargetFramework.Mscorlib461)]
         [InlineData(TargetFramework.Mscorlib40)]
         [Theory]
-        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest(TargetFramework framework)
+        public void InterpolatedStringWithCurlyBracesAndFormatSpecifier(TargetFramework framework)
         {
             var text =
 @"using System;
@@ -1240,6 +1238,218 @@ class App{
    IL_0043:  ret
 }");
             }
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void RawInterpolatedStringWithCurlyBracesAndFormatSpecifier(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    var str = $$""""""Before {{{12:X}}} After"""""";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = TestOptions.RegularNext;
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            //string.Format was fixed in dotnet core 3
+            var expectedOutput =
+#if NETCOREAPP3_0_OR_GREATER
+                "Before {C} After"
+#else
+                "Before {X} After"
+#endif
+                ;
+
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            switch (framework)
+            {
+                case TargetFramework.Net60:
+                    checkNet60IL(verifier);
+                    break;
+                default:
+                    checkNet50IL(verifier);
+                    break;
+            }
+
+            static void checkNet50IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       27 (0x1b)
+   .maxstack  2
+   .locals init (string V_0) //str
+   IL_0000:  nop
+   IL_0001:  ldstr      ""Before {{{0:X}}} After""
+   IL_0006:  ldc.i4.s   12
+   IL_0008:  box        ""int""
+   IL_000d:  call       ""string string.Format(string, object)""
+   IL_0012:  stloc.0
+   IL_0013:  ldloc.0
+   IL_0014:  call       ""void System.Console.WriteLine(string)""
+   IL_0019:  nop
+   IL_001a:  ret
+}");
+            }
+
+            static void checkNet60IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       68 (0x44)
+   .maxstack  3
+   .locals init (string V_0, //str
+                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+   IL_0000:  nop
+   IL_0001:  ldloca.s   V_1
+   IL_0003:  ldc.i4.s   15
+   IL_0005:  ldc.i4.1
+   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+   IL_000b:  ldloca.s   V_1
+   IL_000d:  ldstr      ""Before {""
+   IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0017:  nop
+   IL_0018:  ldloca.s   V_1
+   IL_001a:  ldc.i4.s   12
+   IL_001c:  ldstr      ""X""
+   IL_0021:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)""
+   IL_0026:  nop
+   IL_0027:  ldloca.s   V_1
+   IL_0029:  ldstr      ""} After""
+   IL_002e:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0033:  nop
+   IL_0034:  ldloca.s   V_1
+   IL_0036:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+   IL_003b:  stloc.0
+   IL_003c:  ldloc.0
+   IL_003d:  call       ""void System.Console.WriteLine(string)""
+   IL_0042:  nop
+   IL_0043:  ret
+}");
+            }
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void InterpolatedStringWithCurlyBracesAndAllStringValues(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    string a = ""a"";
+    var str = $""Before {{{a}}} After"";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp10,
+                documentationMode: DocumentationMode.Parse,
+                kind: SourceCodeKind.Regular
+            );
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            var expectedOutput = "Before {a} After";
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            verifier.VerifyIL("App.Main", @"{
+    // Code size       32 (0x20)
+    .maxstack  3
+    .locals init (string V_0, //a
+                string V_1) //str
+    IL_0000:  nop
+    IL_0001:  ldstr      ""a""
+    IL_0006:  stloc.0
+    IL_0007:  ldstr      ""Before {""
+    IL_000c:  ldloc.0
+    IL_000d:  ldstr      ""} After""
+    IL_0012:  call       ""string string.Concat(string, string, string)""
+    IL_0017:  stloc.1
+    IL_0018:  ldloc.1
+    IL_0019:  call       ""void System.Console.WriteLine(string)""
+    IL_001e:  nop
+    IL_001f:  ret
+}");
+        }
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void RawInterpolatedStringWithCurlyBracesAndAllStringValues(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    string a = ""a"";
+    var str = $$""""""Before {{{a}}} After"""""";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = TestOptions.RegularNext;
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            var expectedOutput = "Before {a} After";
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            verifier.VerifyIL("App.Main", @"{
+    // Code size       32 (0x20)
+    .maxstack  3
+    .locals init (string V_0, //a
+                string V_1) //str
+    IL_0000:  nop
+    IL_0001:  ldstr      ""a""
+    IL_0006:  stloc.0
+    IL_0007:  ldstr      ""Before {""
+    IL_000c:  ldloc.0
+    IL_000d:  ldstr      ""} After""
+    IL_0012:  call       ""string string.Concat(string, string, string)""
+    IL_0017:  stloc.1
+    IL_0018:  ldloc.1
+    IL_0019:  call       ""void System.Console.WriteLine(string)""
+    IL_001e:  nop
+    IL_001f:  ret
+}");
         }
 
         [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]

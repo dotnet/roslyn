@@ -310,15 +310,16 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="document">The document to organize.</param>
         /// <param name="cancellationToken">The cancellation token that the operation will observe.</param>
         /// <returns>The document with organized imports. If the language does not support organizing imports, or if no changes were made, this method returns <paramref name="document"/>.</returns>
-        public static Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
+        public static async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
         {
             var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
             if (organizeImportsService is null)
             {
-                return Task.FromResult(document);
+                return document;
             }
 
-            return organizeImportsService.OrganizeImportsAsync(document, cancellationToken);
+            var options = await OrganizeImportsOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

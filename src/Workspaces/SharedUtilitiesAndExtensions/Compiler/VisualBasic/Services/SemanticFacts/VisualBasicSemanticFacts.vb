@@ -19,6 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New()
         End Sub
 
+        Public ReadOnly Property SyntaxFacts As ISyntaxFacts Implements ISemanticFacts.SyntaxFacts
+            Get
+                Return VisualBasicSyntaxFacts.Instance
+            End Get
+        End Property
+
         Public ReadOnly Property SupportsImplicitInterfaceImplementation As Boolean Implements ISemanticFacts.SupportsImplicitInterfaceImplementation
             Get
                 Return False

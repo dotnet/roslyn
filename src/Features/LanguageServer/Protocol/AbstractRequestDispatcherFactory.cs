@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Creates a new request dispatcher every time to ensure handlers are not shared
         /// and cleaned up appropriately on server restart.
         /// </summary>
-        public virtual RequestDispatcher CreateRequestDispatcher(ImmutableArray<string> supportedLanguages, WellKnownLspServerKinds serverKind)
+        public virtual RequestDispatcher CreateRequestDispatcher(WellKnownLspServerKinds serverKind)
         {
-            return new RequestDispatcher(_requestHandlerProviders, supportedLanguages, serverKind);
+            return new RequestDispatcher(_requestHandlerProviders, serverKind);
         }
     }
 }

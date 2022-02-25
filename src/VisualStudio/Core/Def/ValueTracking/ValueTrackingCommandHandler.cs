@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -90,101 +90,65 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    var selectedSymbol = await GetSelectedSymbolAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
-                    if (selectedSymbol is null)
+                    var service = document.Project.Solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
+                    var items = await service.TrackValueSourceAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
+                    if (items.Length == 0)
                     {
-                        // TODO: Show error dialog
                         return;
                     }
 
-                    var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-                    var location = Location.Create(syntaxTree, textSpan);
-
-                    await ShowToolWindowAsync(args.TextView, selectedSymbol, location, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                    await ShowToolWindowAsync(args.TextView, document, items, cancellationToken).ConfigureAwait(false);
                 });
 
             return true;
         }
 
-        private static async Task<ISymbol?> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
+        private async Task ShowToolWindowAsync(ITextView textView, Document document, ImmutableArray<ValueTrackedItem> items, CancellationToken cancellationToken)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedNode = root.FindNode(textSpan);
-            if (selectedNode is null)
-            {
-                return null;
-            }
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedSymbol =
-                semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol
-                ?? semanticModel.GetDeclaredSymbol(selectedNode, cancellationToken);
-
-            if (selectedSymbol is null)
-            {
-                return null;
-            }
-
-            return selectedSymbol switch
-            {
-                ILocalSymbol
-                or IPropertySymbol { SetMethod: not null }
-                or IFieldSymbol { IsReadOnly: false }
-                or IEventSymbol
-                or IParameterSymbol
-                => selectedSymbol,
-
-                _ => null
-            };
-        }
-
-        private async Task ShowToolWindowAsync(ITextView textView, ISymbol selectedSymbol, Location location, Solution solution, CancellationToken cancellationToken)
-        {
-            var item = await ValueTrackedItem.TryCreateAsync(solution, location, selectedSymbol, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (item is null)
-            {
-                return;
-            }
-
             var toolWindow = await GetOrCreateToolWindowAsync(textView, cancellationToken).ConfigureAwait(false);
             if (toolWindow?.ViewModel is null)
             {
                 return;
             }
 
-            var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
+            var solution = document.Project.Solution;
+            var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
+            var rootItemMap = items.GroupBy(i => i.Parent, resultSelector: (key, items) => (parent: key, children: items));
 
-            var childItems = await valueTrackingService.TrackValueSourceAsync(solution, item, cancellationToken).ConfigureAwait(false);
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var rootItems);
 
-            var childViewModels = await childItems.SelectAsArrayAsync((item, cancellationToken) =>
-                ValueTrackedTreeItemViewModel.CreateAsync(solution, item, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
+            foreach (var (parent, children) in rootItemMap)
+            {
+                if (parent is null)
+                {
+                    foreach (var child in children)
+                    {
+                        var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
+                        rootItems.Add(root);
+                    }
+                }
+                else
+                {
+                    using var _1 = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var childItems);
+                    foreach (var child in children)
+                    {
+                        var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
+                        childItems.Add(childViewModel);
+                    }
 
-            RoslynDebug.AssertNotNull(location.SourceTree);
-            var document = solution.GetRequiredDocument(location.SourceTree);
-            var options = _globalOptions.GetClassificationOptions(document.Project.Language);
-
-            var sourceText = await location.SourceTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, location.SourceSpan, options, cancellationToken).ConfigureAwait(false);
-            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
-
-            var root = new TreeItemViewModel(
-                location.SourceSpan,
-                sourceText,
-                document.Id,
-                document.FilePath ?? document.Name,
-                selectedSymbol.GetGlyph(),
-                classificationResult.ClassifiedSpans,
-                toolWindow.ViewModel,
-                _glyphService,
-                _threadingContext,
-                solution.Workspace,
-                childViewModels);
+                    var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, parent, childItems.ToImmutable(), toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
+                    rootItems.Add(root);
+                }
+            }
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             toolWindow.ViewModel.Roots.Clear();
-            toolWindow.ViewModel.Roots.Add(root);
+            foreach (var root in rootItems)
+            {
+                toolWindow.ViewModel.Roots.Add(root);
+            }
 
             await ShowToolWindowAsync(cancellationToken).ConfigureAwait(true);
         }

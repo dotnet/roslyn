@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : AbstractRequestHandlerProvider, IRequestHandler<RequestType, ResponseType>
     {
-        public abstract string Method { get; }
-
         public abstract bool MutatesSolutionState { get; }
         public abstract bool RequiresLSPSolution { get; }
 
