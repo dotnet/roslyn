@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             INamedTypeSymbol? containingType,
             IDictionary<string, ISymbol>? parameterToExistingFieldMap)
         {
-            if (containingType != null && containingType.TypeKind == TypeKind.Struct)
+            if (containingType?.TypeKind == TypeKind.Struct)
             {
                 // Special case.  If we're generating a struct constructor, then we'll need
                 // to initialize all fields in the struct, not just the ones we're creating.
@@ -350,8 +350,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Call accessors directly if C# overriding VB
                 if (document.Project.Language == LanguageNames.CSharp
-                    && await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false) is { } definition
-                    && definition.Language == LanguageNames.VisualBasic)
+                    && await SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken).ConfigureAwait(false) is { Language: LanguageNames.VisualBasic })
                 {
                     var getName = overriddenProperty.GetMethod?.Name;
                     var setName = overriddenProperty.SetMethod?.Name;

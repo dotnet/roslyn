@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Text.Json;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Features.Intents
 {
@@ -22,7 +24,13 @@ namespace Microsoft.CodeAnalysis.Features.Intents
         {
             if (_serializedIntentData != null)
             {
-                return JsonSerializer.Deserialize<T>(_serializedIntentData, _serializerOptions);
+                try
+                {
+                    return JsonSerializer.Deserialize<T>(_serializedIntentData, _serializerOptions);
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+                {
+                }
             }
 
             return null;

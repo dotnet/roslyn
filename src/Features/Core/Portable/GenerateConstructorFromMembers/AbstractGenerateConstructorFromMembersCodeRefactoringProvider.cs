@@ -37,6 +37,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     /// </summary>
     internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider, IIntentProvider
     {
+        public record GenerateConstructorIntentData(Accessibility? Accessibility);
+
         private const string AddNullChecksId = nameof(AddNullChecksId);
 
         private readonly IPickMembersService? _pickMembersService_forTesting;
@@ -128,8 +130,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 }
             }
         }
-
-        public record GenerateConstructorIntentData(Accessibility? Accessibility);
 
         private async Task ComputeRefactoringsAsync(
             Document document,
