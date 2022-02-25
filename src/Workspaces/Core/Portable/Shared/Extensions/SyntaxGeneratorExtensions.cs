@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode CreateNewArgumentNullException(SyntaxGenerator factory, Compilation compilation, IParameterSymbol parameter)
         {
-            var type = compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName);
+            var type = compilation.GetTypeByMetadataName(typeof(ArgumentNullException)!.FullName);
             Contract.ThrowIfNull(type);
             return factory.ObjectCreationExpression(type,
                 factory.NameOfExpression(
