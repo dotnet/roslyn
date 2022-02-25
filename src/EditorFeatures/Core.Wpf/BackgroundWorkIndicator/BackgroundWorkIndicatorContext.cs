@@ -105,7 +105,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             _cancelOnFocusLost = cancelOnFocusLost;
 
             _uiUpdateQueue = new AsyncBatchingWorkQueue<UIUpdateRequest>(
-                DelayTimeSpan.Short,
+                DelayTimeSpan.Medium,
                 UpdateUIAsync,
                 EqualityComparer<UIUpdateRequest>.Default,
                 factory._listener,
