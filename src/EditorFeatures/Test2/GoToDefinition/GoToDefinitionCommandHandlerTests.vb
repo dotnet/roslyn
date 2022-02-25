@@ -66,13 +66,13 @@ class C
                 Dim mockDocumentNavigationService =
                     DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
-                GoToDefinitionCommandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
+                GoToDefinitionCommandHandler.ExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
                 Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
                 Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
-                GoToDefinitionCommandHandler.TryExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
+                GoToDefinitionCommandHandler.ExecuteCommand(view.TextSnapshot, baseDocument.CursorPosition.Value, TestCommandExecutionContext.Create())
                 Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
                 Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
             End Using
@@ -104,7 +104,7 @@ class C
                 Dim goToDefService = New CSharpGoToDefinitionService(threadingContext, presenter)
 
                 Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
-                GoToDefinitionCommandHandler.TryExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
+                GoToDefinitionCommandHandler.ExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
 
                 Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
 

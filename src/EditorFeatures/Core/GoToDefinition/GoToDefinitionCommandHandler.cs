@@ -57,8 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (service != null && !subjectBuffer.IsInLspEditorContext())
             {
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
-                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))
+                if (caretPos.HasValue)
                 {
+                    ExecuteCommand(document, caretPos.Value, service, context);
                     return true;
                 }
             }
@@ -67,13 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         }
 
         // Internal for testing purposes only.
-        internal static bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
-            => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
+        internal static void ExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
+            => ExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
 
-        internal static bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
-            => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
+        internal static void ExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
+            => ExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
 
-        internal static bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        internal static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
         {
             string errorMessage = null;
 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 if (goToDefinitionService != null &&
                     goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
                 {
-                    return true;
+                    return;
                 }
 
                 errorMessage = FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
@@ -98,8 +99,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
-
-            return true;
         }
     }
 }
