@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
-internal partial class InlineCompletionsHandler
+internal partial class XmlSnippetParser
 {
-    private class ParsedXmlSnippet
+    internal class ParsedXmlSnippet
     {
         public ImmutableArray<SnippetPart> Parts { get; }
         public string DefaultText { get; }
@@ -33,11 +33,11 @@ internal partial class InlineCompletionsHandler
         }
     }
 
-    private abstract record SnippetPart(string DefaultText);
+    internal abstract record SnippetPart(string DefaultText);
 
-    private record SnippetFieldPart(string FieldName, string DefaultText, int? EditIndex) : SnippetPart(DefaultText);
+    internal record SnippetFieldPart(string FieldName, string DefaultText, int? EditIndex) : SnippetPart(DefaultText);
 
-    private record SnippetFunctionPart(string FieldName, string DefaultText, int? EditIndex, string FunctionName, string? FunctionParam)
+    internal record SnippetFunctionPart(string FieldName, string DefaultText, int? EditIndex, string FunctionName, string? FunctionParam)
         : SnippetFieldPart(FieldName, DefaultText, EditIndex)
     {
         public async Task<SnippetFunctionPart> WithSnippetFunctionResultAsync(Document documentWithSnippet, TextSpan fieldSpan, CancellationToken cancellationToken)
@@ -81,7 +81,7 @@ internal partial class InlineCompletionsHandler
     /// To indicate cursor location we put in a multi-line comment so that we can
     /// find it after formatting.
     /// </summary>
-    private record SnippetCursorPart() : SnippetPart("/*$0*/");
+    internal record SnippetCursorPart() : SnippetPart("/*$0*/");
 
-    private record SnippetStringPart(string Text) : SnippetPart(Text);
+    internal record SnippetStringPart(string Text) : SnippetPart(Text);
 }
