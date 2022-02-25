@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             bool succeeded;
             using (var backgroundIndicator = indicatorFactory.Create(
-                args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, new Span(position, 0)),
+                args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
                 EditorFeaturesResources.Navigating_to_definition))
             {
-                await Task.Delay(10000).ConfigureAwait(false);
+                await Task.Delay(5000).ConfigureAwait(false);
                 succeeded = await GoToDefinitionAsync(
                     document, position, service, backgroundIndicator.UserCancellationToken).ConfigureAwait(false);
             }

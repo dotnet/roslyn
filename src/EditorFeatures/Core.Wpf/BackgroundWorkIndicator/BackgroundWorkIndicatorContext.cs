@@ -50,8 +50,6 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         private readonly IToolTipPresenter _toolTipPresenter;
         private readonly ITrackingSpan _trackingSpan;
         private readonly string _firstDescription;
-        private readonly bool _cancelOnEdit;
-        private readonly bool _cancelOnFocusLost;
 
         /// <summary>
         /// Work queue used to batch up UI update and Dispose requests.  A value of <see langword="true"/> means
@@ -101,21 +99,19 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             _trackingSpan = applicableToSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
 
             _firstDescription = firstDescription;
-            _cancelOnEdit = cancelOnEdit;
-            _cancelOnFocusLost = cancelOnFocusLost;
 
             _uiUpdateQueue = new AsyncBatchingWorkQueue<UIUpdateRequest>(
                 DelayTimeSpan.Medium,
                 UpdateUIAsync,
                 EqualityComparer<UIUpdateRequest>.Default,
                 factory._listener,
-                _cancellationTokenSource.Token);
+                this.ThreadingContext.DisposalToken);
 
             if (cancelOnEdit)
                 _subjectBuffer.Changed += OnTextBufferChanged;
 
-            if (cancelOnFocusLost)
-                textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
+            //if (cancelOnFocusLost)
+            //    textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
         }
 
         public void Dispose()
@@ -169,11 +165,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 _dismissed = true;
 
                 // Unhook any event handlers we've setup.
-                if (_cancelOnEdit)
-                    _subjectBuffer.Changed -= OnTextBufferChanged;
-
-                if (_cancelOnFocusLost)
-                    _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
+                _subjectBuffer.Changed -= OnTextBufferChanged;
+                _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
 
                 // Finally, dismiss the actual tool-tip.
                 _toolTipPresenter.Dismiss();
@@ -196,7 +189,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
                 // Todo: build a richer tool-tip that makes use of things like the progress reported, and perhaps has a
                 // close button.
-                _toolTipPresenter.StartOrUpdate(_trackingSpan, new[] { data.description });
+                _toolTipPresenter.StartOrUpdate(
+                    _trackingSpan, new[] { string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description) });
             }
         }
 
