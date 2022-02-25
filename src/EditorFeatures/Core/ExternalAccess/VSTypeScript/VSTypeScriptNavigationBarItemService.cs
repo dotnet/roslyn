@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             var workspace = document.Project.Solution.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            navigationService.TryNavigateToPosition(workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken);
+            await navigationService.TryNavigateToPositionAsync(
+                workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
 
             return true;
         }

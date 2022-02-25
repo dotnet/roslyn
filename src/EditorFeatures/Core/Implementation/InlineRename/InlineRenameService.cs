@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
             var renameInfo = editorRenameService.GetRenameInfoAsync(document, textSpan.Start, cancellationToken).WaitAndGetResult(cancellationToken);
 
-            var readOnlyOrCannotNavigateToSpanSessionInfo = IsReadOnlyOrCannotNavigateToSpan(renameInfo, document, cancellationToken);
+            var readOnlyOrCannotNavigateToSpanSessionInfo = IsReadOnlyOrCannotNavigateToSpan(_threadingContext, renameInfo, document, cancellationToken);
             if (readOnlyOrCannotNavigateToSpanSessionInfo != null)
             {
                 return readOnlyOrCannotNavigateToSpanSessionInfo;
@@ -111,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return new InlineRenameSessionInfo(ActiveSession);
 
-            static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
+            static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(
+                IThreadingContext threadingContext, IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
                 if (renameInfo is IInlineRenameInfo inlineRenameInfo && inlineRenameInfo.DefinitionLocations != default)
                 {
@@ -134,7 +135,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             }
                         }
 
-                        if (!navigationService.CanNavigateToSpan(workspace, document.Id, documentSpan.SourceSpan, cancellationToken))
+                        var canNavigate = threadingContext.JoinableTaskFactory.Run(() =>
+                            navigationService.CanNavigateToSpanAsync(workspace, document.Id, documentSpan.SourceSpan, cancellationToken));
+                        if (!canNavigate)
                         {
                             return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to);
                         }
