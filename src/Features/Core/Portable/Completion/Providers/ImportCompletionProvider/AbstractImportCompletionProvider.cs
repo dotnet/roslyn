@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext syntaxContext, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
+        protected abstract Task WarmUpCacheAsync(Document document);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
         protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
@@ -47,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
+                // fire and forget
+                _ = Task.Run(() => WarmUpCacheAsync(document));
                 return;
             }
 
