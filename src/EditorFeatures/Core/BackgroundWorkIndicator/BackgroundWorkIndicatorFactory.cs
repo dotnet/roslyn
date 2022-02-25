@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
         }
 
-        public IUIThreadOperationContext Create(
+        IUIThreadOperationContext IBackgroundWorkIndicatorFactory.Create(
             ITextView textView,
             SnapshotSpan applicableToSpan,
             string description,

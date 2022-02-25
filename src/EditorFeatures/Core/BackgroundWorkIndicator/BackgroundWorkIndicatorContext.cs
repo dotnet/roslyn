@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
                 }
             }
 
-            public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
+            IUIThreadOperationScope IUIThreadOperationContext.AddScope(bool allowCancellation, string description)
             {
                 var scope = new BackgroundWorkIndicatorScope(this, allowCancellation, description);
                 lock (this.Gate)
@@ -254,8 +254,8 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
                 }
             }
 
-            public bool AllowCancellation => ReadData().allowCancellation;
-            public string Description => ReadData().description;
+            bool IUIThreadOperationContext.AllowCancellation => ReadData().allowCancellation;
+            string IUIThreadOperationContext.Description => ReadData().description;
         }
     }
 }

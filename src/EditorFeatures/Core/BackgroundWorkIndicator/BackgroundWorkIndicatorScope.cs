@@ -18,26 +18,32 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
         /// </summary>
         private class BackgroundWorkIndicatorScope : IUIThreadOperationScope, IProgress<ProgressInfo>
         {
-            private readonly BackgroundWorkIndicatorContext _indicator;
+            private readonly BackgroundWorkIndicatorContext _context;
+
+            // Mutable state of this scope.  Can be mutated by a client, at which point we'll ask our owning context to
+            // update the tooltip accordingly.
 
             private bool _allowCancellation;
             private string _description;
             private ProgressInfo _progressInfo;
 
-            public IUIThreadOperationContext Context => _indicator;
+            public IUIThreadOperationContext Context => _context;
             public IProgress<ProgressInfo> Progress => this;
 
             public BackgroundWorkIndicatorScope(
                 BackgroundWorkIndicatorContext indicator, bool allowCancellation, string description)
             {
-                _indicator = indicator;
+                _context = indicator;
                 _allowCancellation = allowCancellation;
                 _description = description;
             }
 
+            /// <summary>
+            /// Retrieves a threadsafe snapshot of our data for our owning context to use to build the tooltip ui.
+            /// </summary>
             public (bool allowCancellation, string description, ProgressInfo progressInfo) ReadData_MustBeCalledUnderLock()
             {
-                Contract.ThrowIfFalse(Monitor.IsEntered(_indicator.Gate));
+                Contract.ThrowIfFalse(Monitor.IsEntered(_context.Gate));
                 return (_allowCancellation, _description, _progressInfo);
             }
 
@@ -45,24 +51,24 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             /// On disposal, just remove ourselves from our parent context.  It will update the UI accordingly.
             /// </summary>
             void IDisposable.Dispose()
-                => _indicator.RemoveScope(this);
+                => _context.RemoveScope(this);
 
             bool IUIThreadOperationScope.AllowCancellation
             {
                 get
                 {
-                    lock (_indicator.Gate)
+                    lock (_context.Gate)
                         return _allowCancellation;
                 }
                 set
                 {
-                    lock (_indicator.Gate)
+                    lock (_context.Gate)
                     {
                         _allowCancellation = value;
                     }
 
                     // We changed.  Enqueue work to make sure the UI reflects this.
-                    _indicator.EnqueueUIUpdate();
+                    _context.EnqueueUIUpdate();
                 }
             }
 
@@ -70,30 +76,30 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             {
                 get
                 {
-                    lock (_indicator.Gate)
+                    lock (_context.Gate)
                         return _description;
                 }
                 set
                 {
-                    lock (_indicator.Gate)
+                    lock (_context.Gate)
                     {
                         _description = value;
                     }
 
                     // We changed.  Enqueue work to make sure the UI reflects this.
-                    _indicator.EnqueueUIUpdate();
+                    _context.EnqueueUIUpdate();
                 }
             }
 
             void IProgress<ProgressInfo>.Report(ProgressInfo value)
             {
-                lock (_indicator.Gate)
+                lock (_context.Gate)
                 {
                     _progressInfo = value;
                 }
 
                 // We changed.  Enqueue work to make sure the UI reflects this.
-                _indicator.EnqueueUIUpdate();
+                _context.EnqueueUIUpdate();
             }
         }
     }
