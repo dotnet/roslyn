@@ -92,9 +92,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static IImportCompletionCacheService<CacheEntry, object> GetCacheService(Workspace workspace)
             => workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, object>>();
 
-        private static async Task<CacheEntry?> GetCacheEntryAsync(
+        private static async Task<CacheEntry> GetUpToDateCacheEntryAsync(
             Project project,
-            bool loadOnly,
             IImportCompletionCacheService<CacheEntry, object> cacheService,
             CancellationToken cancellationToken)
         {
@@ -118,12 +117,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         continue;
                     }
 
-                    var info = await TopLevelSyntaxTreeIndex.GetIndexAsync(document, loadOnly, cancellationToken).ConfigureAwait(false);
-                    if (info == null)
-                    {
-                        return null;
-                    }
-
+                    var info = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
                     if (info.ContainsExtensionMethod)
                     {
                         builder.AddItem(info);

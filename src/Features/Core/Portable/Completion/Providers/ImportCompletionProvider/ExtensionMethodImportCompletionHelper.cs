@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// <remarks>It runs out-of-proc if it's enabled</remarks>
     internal static partial class ExtensionMethodImportCompletionHelper
     {
-        private static readonly object s_gate = new();
-        private static Task s_indexingTask = Task.CompletedTask;
-
         public static async Task WarmUpCacheAsync(Document document, CancellationToken cancellationToken)
         {
             var project = document.Project;
@@ -107,25 +104,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var items = ConvertSymbolsToCompletionItems(compilation, extentsionMethodSymbols, targetTypes, cancellationToken);
-
-            // If we don't have all the indices available already, queue a backgrounds task to create them.
-            if (isPartialResult)
-            {
-                lock (s_gate)
-                {
-                    // We use a very simple approach to build the cache in the background:
-                    // queue a new task only if the previous task is completed. This is to avoid
-                    // queuing calculation for the same set of references repeatedly while
-                    // index is being constructed, which might take some time.
-                    if (s_indexingTask.IsCompleted)
-                    {
-                        // When building cache in the background, make sure we always use latest snapshot with full semantic
-                        var id = document.Id;
-                        var workspace = document.Project.Solution.Workspace;
-                        s_indexingTask = Task.Run(() => symbolComputer.PopulateIndicesAsync(workspace.CurrentSolution.GetDocument(id)?.Project, CancellationToken.None), CancellationToken.None);
-                    }
-                }
-            }
 
             var createItemsTicks = Environment.TickCount - ticks;
 
