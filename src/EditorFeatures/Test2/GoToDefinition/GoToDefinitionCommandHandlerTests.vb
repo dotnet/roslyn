@@ -104,8 +104,7 @@ class C
                 Dim goToDefService = New CSharpGoToDefinitionService(threadingContext, presenter)
 
                 Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
-                Dim handler = New GoToDefinitionCommandHandler()
-                handler.GetTestAccessor().ExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
+                GoToDefinitionCommandHandler.TestAccessor.ExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
 
                 Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
 
