@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,11 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
 {
-    [Export(typeof(IBackgroundWorkIndicatorFactory))]
     [Export(typeof(IKeyProcessorProvider))]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(nameof(WpfBackgroundWorkIndicatorFactory))]
+    [ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory), ServiceLayer.Editor), System.Composition.Shared]
     internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory, IKeyProcessorProvider
     {
         private readonly IThreadingContext _threadingContext;
