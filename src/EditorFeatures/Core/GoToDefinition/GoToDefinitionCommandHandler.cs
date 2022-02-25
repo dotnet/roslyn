@@ -29,15 +29,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         ICommandHandler<GoToDefinitionCommandArgs>
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IUIThreadOperationExecutor _executor;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GoToDefinitionCommandHandler(
             IThreadingContext threadingContext,
+            IUIThreadOperationExecutor executor,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
+            _executor = executor;
             _listener = listenerProvider.GetListener(FeatureAttribute.GoToBase);
         }
 
@@ -84,9 +87,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         private async Task ExecuteCommandAsync(
             GoToDefinitionCommandArgs args, Document document, IGoToDefinitionService service, SnapshotPoint position)
         {
-            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-
             bool succeeded;
+
+            if (service is IAsyncGoToDefinitionService asyncService)
+            {
+                var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+                return await asyncService.TryGoToDefinitionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                succeeded = await ExecuteCommandLegacyAsync();
+            }
+
             using (var backgroundIndicator = indicatorFactory.Create(
                 args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
                 EditorFeaturesResources.Navigating_to_definition))
@@ -107,21 +119,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
         }
 
+        private async Task<bool> ExecuteCommandLegacyAsync()
+        {
+            using var context = _executor.BeginExecute(EditorFeaturesResources.Navigating_to_definition, )
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return service.TryGoToDefinition(document, position, cancellationToken);
+
+        }
+
         private async Task<bool> GoToDefinitionAsync(
             Document document,
             int position,
             IGoToDefinitionService service,
             CancellationToken cancellationToken)
         {
-            if (service is IAsyncGoToDefinitionService asyncService)
-            {
-                return await asyncService.TryGoToDefinitionAsync(document, position, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                return service.TryGoToDefinition(document, position, cancellationToken);
-            }
         }
 
         public TestAccessor GetTestAccessor()

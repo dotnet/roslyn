@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -60,6 +61,11 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// Navigates to the given virtual position in the specified document, opening it if necessary.
         /// </summary>
         Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Navigates to the given virtual position in the specified document, opening it if necessary.
+        /// </summary>
+        Task<INavigationLocation?> TryGetPositionLocationAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
     }
 
     internal static class IDocumentNavigationServiceExtensions
