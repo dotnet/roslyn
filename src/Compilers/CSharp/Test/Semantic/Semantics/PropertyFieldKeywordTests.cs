@@ -42,6 +42,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
+        /// <summary>
+        /// Represents the state of "field" identifier for speculative semantic model tests.
+        /// </summary>
+        public enum FieldBindingTestState
+        {
+            /// <summary>
+            /// The field identifier isn't a backing field or a local.
+            /// </summary>
+            /// <remarks>
+            /// If the original property is not semi-auto property. We don't
+            /// bind field identifier as a backing field.
+            /// </remarks>
+            None,
+
+            /// <summary>
+            /// The field identifier is bound as a backing field.
+            /// </summary>
+            /// <remarks>
+            /// This only happens if the original property is a semi-auto property.
+            /// </remarks>
+            BecomesBackingField,
+
+            /// <summary>
+            /// The field identifier is bound as a local.
+            /// </summary>
+            BecomesLocal,
+        }
+
         private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected)
         {
             if (!ExecutionConditionUtil.IsDesktop)
@@ -1515,7 +1543,6 @@ class C
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            // PROTOTYPE(semi-auto-props): Should this return a null or non-null?
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
@@ -1543,9 +1570,8 @@ class C
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
-            // PROTOTYPE(semi-auto-props): Should `GetFieldsToEmit` return empty? Currently it looks like it mutates the original symbol in a bad way.
-            Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -1712,17 +1738,17 @@ class C
         }
 
         [Theory]
-        [InlineData("get => 0; set => field = value;", false)]
-        [InlineData("set => field = value; get => 0;", false)]
-        [InlineData("get { return 0; } set { field = value; }", false)]
-        [InlineData("set { field = value; } get { return 0; }", false)]
-        [InlineData("get => 0; set { field = value; }", false)]
-        [InlineData("set { field = value; } get => 0;", false)]
-        [InlineData("get { return 0; } set => field = value;", false)]
-        [InlineData("set => field = value; get { return 0; }", false)]
-        [InlineData("get { double field = 0; return field; } set => field = value;", true)]
-        [InlineData("set => field = value; get { double field = 0; return field; }", true)]
-        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindOriginalFirst(string accessors, bool isLocal)
+        [InlineData("get => 0; set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { double field = 0; return field; } set => field = value;", FieldBindingTestState.BecomesLocal)]
+        [InlineData("set => field = value; get { double field = 0; return field; }", FieldBindingTestState.BecomesLocal)]
+        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindOriginalFirst(string accessors, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1749,32 +1775,37 @@ class C
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            if (isLocal)
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
+                Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
                 Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             }
-            else
+            else if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             }
+            else
+            {
+                Assert.False(true, "Unexpected state.");
+            }
         }
 
         [Theory]
-        [InlineData("get => 0; set => field = value;", false)]
-        [InlineData("set => field = value; get => 0;", false)]
-        [InlineData("get { return 0; } set { field = value; }", false)]
-        [InlineData("set { field = value; } get { return 0; }", false)]
-        [InlineData("get => 0; set { field = value; }", false)]
-        [InlineData("set { field = value; } get => 0;", false)]
-        [InlineData("get { return 0; } set => field = value;", false)]
-        [InlineData("set => field = value; get { return 0; }", false)]
-        [InlineData("get { int field = 0; return field; } set => field = value;", true)]
-        [InlineData("set => field = value; get { int field = 0; return field; }", true)]
-        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindSpeculatedFirst(string accessors, bool isLocalAfterSpeculating)
+        [InlineData("get => 0; set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { int field = 0; return field; } set => field = value;", FieldBindingTestState.BecomesLocal)]
+        [InlineData("set => field = value; get { int field = 0; return field; }", FieldBindingTestState.BecomesLocal)]
+        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindSpeculatedFirst(string accessors, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1798,9 +1829,18 @@ class C
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+            else
+            {
+                Assert.Equal(FieldBindingTestState.BecomesBackingField, bindingState);
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            if (isLocalAfterSpeculating)
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal("System.Int32 field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
@@ -1809,22 +1849,22 @@ class C
             else
             {
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
         }
 
         [Theory]
-        [InlineData("get => 0; get => field;", 19, false, false)]
-        [InlineData("get => field; get => 0;", 23, true, false)]
-        [InlineData("get { return 0; } get => field;", 27, false, false)]
-        [InlineData("get => field; get { return 0; }", 23, true, false)]
-        [InlineData("get => 0; get { return field; }", 19, false, false)]
-        [InlineData("get { return field; } get => 0;", 31, true, false)]
-        [InlineData("get { return 0; } get { return field; }", 27, false, false)]
-        [InlineData("get { return field; } get { return 0; }", 31, true, false)]
-        [InlineData("get { double field = 0; return field; } get { return field; }", 49, false, true)]
-        [InlineData("get { return field; } get { double field = 0; return field; }", 31, true, true)]
-        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindOriginalFirst(string accessors, int diagnosticColumn, bool fieldAccessorFirst, bool isLocal)
+        [InlineData("get => 0; get => field;", 19, FieldBindingTestState.None)]
+        [InlineData("get => field; get => 0;", 23, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get => field;", 27, FieldBindingTestState.None)]
+        [InlineData("get => field; get { return 0; }", 23, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; get { return field; }", 19, FieldBindingTestState.None)]
+        [InlineData("get { return field; } get => 0;", 31, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get { return field; }", 27, FieldBindingTestState.None)]
+        [InlineData("get { return field; } get { return 0; }", 31, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { double field = 0; return field; } get { return field; }", 49, FieldBindingTestState.BecomesLocal)]
+        [InlineData("get { return field; } get { double field = 0; return field; }", 31, FieldBindingTestState.BecomesBackingField)]
+        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindOriginalFirst(string accessors, int diagnosticColumn, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1851,7 +1891,7 @@ class C
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
 
             var fieldsToEmit = comp.GetTypeByMetadataName("C").GetFieldsToEmit();
-            if (fieldAccessorFirst)
+            if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldsToEmit.Single().ToTestDisplayString());
             }
@@ -1863,27 +1903,24 @@ class C
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            if (fieldAccessorFirst)
+            if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
             }
+            else if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
+            }
             else
             {
-                // PROTOTYPE(semi-auto-props): Is this correct behavior?
-                if (isLocal)
-                {
-                    Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
-                    Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
-                }
-                else
-                {
-                    Assert.Null(fieldKeywordSymbolInfo.Symbol);
-                }
+                Assert.Equal(FieldBindingTestState.None, bindingState);
+                Assert.Null(fieldKeywordSymbolInfo.Symbol);
             }
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
 
-            if (fieldAccessorFirst)
+            if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             }
@@ -1894,17 +1931,17 @@ class C
         }
 
         [Theory]
-        [InlineData("get => 0; get => field;", false)]
-        [InlineData("get => field; get => 0;", false)]
-        [InlineData("get { return 0; } get => field;", false)]
-        [InlineData("get => field; get { return 0; }", false)]
-        [InlineData("get => 0; get { return field; }", false)]
-        [InlineData("get { return field; } get => 0;", false)]
-        [InlineData("get { return 0; } get { return field; }", false)]
-        [InlineData("get { return field; } get { return 0; }", false)]
-        [InlineData("get { return field; } get { int field = 0; return field; }", false)]
-        [InlineData("get { int field = 0; return field; } get { return field; }", true)]
-        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindSpeculatedFirst(string accessors, bool isLocalAfterSpeculating)
+        [InlineData("get => 0; get => field;", FieldBindingTestState.None)]
+        [InlineData("get => field; get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get => field;", FieldBindingTestState.None)]
+        [InlineData("get => field; get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; get { return field; }", FieldBindingTestState.None)]
+        [InlineData("get { return field; } get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get { return field; }", FieldBindingTestState.None)]
+        [InlineData("get { return field; } get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { int field = 0; return field; } get { return field; }", FieldBindingTestState.BecomesLocal)]
+        [InlineData("get { return field; } get { int field = 0; return field; }", FieldBindingTestState.BecomesBackingField)]
+        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindSpeculatedFirst(string accessors, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1928,34 +1965,39 @@ class C
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
-            if (isLocalAfterSpeculating)
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
                 Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
-            else
+            else if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+            else
+            {
+                Assert.Equal(FieldBindingTestState.None, bindingState);
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+                Assert.Null(fieldKeywordSymbolInfo.Symbol);
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
-
         }
 
         [Theory]
-        [InlineData("get => 0; get => 1;", 19, 0, false)]
-        [InlineData("get => 0; get => 1;", 19, 1, false)]
-        [InlineData("get { return 0; } get => 1;", 27, 0, false)]
-        [InlineData("get { return 0; } get => 1;", 27, 1, false)]
-        [InlineData("get => 0; get { return 1; }", 19, 0, false)]
-        [InlineData("get => 0; get { return 1; }", 19, 1, false)]
-        [InlineData("get { return 0; } get { return 1; }", 27, 0, false)]
-        [InlineData("get { return 0; } get { return 1; }", 27, 1, false)]
-        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 0, true)]
-        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 1, false)]
-        // PROTOTYPE(semi-auto-props): field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
-        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindOriginalFirst(string accessors, int diagnosticColumn, int numericLiteralToSpeculate, bool speculatingProducesLocal)
+        [InlineData("get => 0; get => 1;", 19, 0, FieldBindingTestState.None)]
+        [InlineData("get => 0; get => 1;", 19, 1, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get => 1;", 27, 0, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get => 1;", 27, 1, FieldBindingTestState.None)]
+        [InlineData("get => 0; get { return 1; }", 19, 0, FieldBindingTestState.None)]
+        [InlineData("get => 0; get { return 1; }", 19, 1, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get { return 1; }", 27, 0, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get { return 1; }", 27, 1, FieldBindingTestState.None)]
+        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 0, FieldBindingTestState.BecomesLocal)]
+        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 1, FieldBindingTestState.None)]
+        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindOriginalFirst(string accessors, int diagnosticColumn, int numericLiteralToSpeculate, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1986,13 +2028,14 @@ class C
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            if (speculatingProducesLocal)
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
                 Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
             }
             else
             {
+                Assert.Equal(FieldBindingTestState.None, bindingState);
                 Assert.Null(fieldKeywordSymbolInfo.Symbol);
             }
 
@@ -2001,18 +2044,17 @@ class C
         }
 
         [Theory]
-        [InlineData("get => 0; get => 1;", 0, false)]
-        [InlineData("get => 0; get => 1;", 1, false)]
-        [InlineData("get { return 0; } get => 1;", 0, false)]
-        [InlineData("get { return 0; } get => 1;", 1, false)]
-        [InlineData("get => 0; get { return 1; }", 0, false)]
-        [InlineData("get => 0; get { return 1; }", 1, false)]
-        [InlineData("get { return 0; } get { return 1; }", 0, false)]
-        [InlineData("get { return 0; } get { return 1; }", 1, false)]
-        [InlineData("get { int field = 0; return field; } get { return 1; }", 0, true)]
-        [InlineData("get { int field = 0; return field; } get { return 1; }", 1, false)]
-        // PROTOTYPE(semi-auto-props): field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
-        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindSpeculatedFirst(string accessors, int numericLiteralToSpeculate, bool isLocalAfterSpeculating)
+        [InlineData("get => 0; get => 1;", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get => 0; get => 1;", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get => 1;", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get => 1;", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get => 0; get { return 1; }", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get => 0; get { return 1; }", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get { return 1; }", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get { return 1; }", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get { int field = 0; return field; } get { return 1; }", 0, FieldBindingTestState.BecomesLocal, 1)]
+        [InlineData("get { int field = 0; return field; } get { return 1; }", 1, FieldBindingTestState.None, 1)]
+        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindSpeculatedFirst(string accessors, int numericLiteralToSpeculate, FieldBindingTestState bindingState, int numberOfAccessorBinding)
         {
             var comp = CreateCompilation($@"
 class C
@@ -2036,21 +2078,21 @@ class C
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
-            if (isLocalAfterSpeculating)
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
                 Assert.Equal("System.Int32 field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
-                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
             else
             {
-                // PROTOTYPE(semi-auto-props) : It looks like the property symbol was mutated in a bad way.
-                Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-                Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+                Assert.Equal(FieldBindingTestState.None, bindingState);
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+                Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
             }
+
+            Assert.Equal(numberOfAccessorBinding, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -2133,10 +2175,9 @@ public class C
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
-            // PROTOTYPE(semi-auto-props): field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
-            Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }

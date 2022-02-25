@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedBackingFieldSymbol CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
+        private SynthesizedBackingFieldSymbol? CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
         {
             Debug.Assert(!IsIndexer);
             if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel)
@@ -214,10 +214,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, backingField, _lazyBackingFieldSymbolSentinel);
             }
 
-            return (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
+            return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
         }
 
-        internal SynthesizedBackingFieldSymbol CreateBackingFieldForFieldKeyword() => CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
+        internal SynthesizedBackingFieldSymbol? CreateBackingFieldForFieldKeyword(bool isSemanticModelBinder)
+        {
+            // field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
+            var shouldBindField = !isSemanticModelBinder || FieldKeywordBackingField is not null;
+            if (!shouldBindField)
+            {
+                return null;
+            }
+
+            return CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
+        }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
         {
