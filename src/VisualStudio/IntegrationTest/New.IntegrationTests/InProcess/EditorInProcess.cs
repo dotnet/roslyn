@@ -45,6 +45,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
+        public async Task<string> GetDirtyIndicatorAsync(CancellationToken cancellationToken)
+        {
+            var version = await TestServices.Shell.GetVersionAsync(cancellationToken);
+            if (version < Version.Parse("17.2.32224.407"))
+                return "*";
+
+            return " ⬤";
+        }
+
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
