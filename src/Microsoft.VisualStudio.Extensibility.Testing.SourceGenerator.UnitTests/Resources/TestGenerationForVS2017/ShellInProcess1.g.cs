@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
     using System.ComponentModel.Design;
+    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio;
@@ -41,10 +42,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var result = new PREPARECOMMANDRESULT[1];
             ErrorHandler.ThrowOnFailure(commandWindow.PrepareCommand(command, out var commandGroup, out var commandId, out var cmdArg, result));
 
-            if (cmdArg != IntPtr.Zero)
-            {
-                throw new NotSupportedException("Unable to create a disposable wrapper for command arguments (VARIANT).");
-            }
+            Marshal.FreeCoTaskMem(cmdArg);
 
             return new CommandID(commandGroup, (int)commandId);
         }
