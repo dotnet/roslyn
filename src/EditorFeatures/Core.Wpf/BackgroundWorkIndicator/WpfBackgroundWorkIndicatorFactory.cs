@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -15,12 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
 {
-    [Export(typeof(IKeyProcessorProvider))]
-    [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(nameof(WpfBackgroundWorkIndicatorFactory))]
-    [ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory), ServiceLayer.Editor), System.Composition.Shared]
-    internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory, IKeyProcessorProvider
+    [Export(typeof(WpfBackgroundWorkIndicatorFactory))]
+    [ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory), ServiceLayer.Editor), Shared]
+    internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IToolTipPresenterFactory _toolTipPresenterFactory;
@@ -62,13 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             return _currentContext;
         }
 
-        public KeyProcessor GetAssociatedProcessor(IWpfTextView wpfTextView)
-        {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-            return wpfTextView.Properties.GetOrCreateSingletonProperty(
-                () => new BackgroundWorkIndicatorKeyProcessor(this));
-        }
-
         private void OnContextDisposed(BackgroundWorkIndicatorContext context)
         {
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
@@ -76,5 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             if (_currentContext == context)
                 _currentContext = null;
         }
+
+        public void OnEscapeKeyPressed()
+            => _currentContext?.CancelAndDispose();
     }
 }
