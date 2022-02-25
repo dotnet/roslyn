@@ -100,5 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
             => throw new NotSupportedException();
+
+        public Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
     }
 }

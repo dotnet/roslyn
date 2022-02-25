@@ -4,9 +4,11 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -74,50 +76,51 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // We're showing our own UI, ensure the editor doesn't show anything itself.
             context.OperationContext.TakeOwnership();
 
-            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-            using var backgroundIndicator = indicatorFactory.Create(textView, new SnapshotSpan(subjectBuffer.CurrentSnapshot, new Span(caretPos.Value, 0))
-
             var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(document, caretPos.Value, service, context).CompletesAsyncOperation(token);
+            ExecuteCommandAsync(args, document, service, caretPos.Value).CompletesAsyncOperation(token);
             return true;
         }
 
-        private void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        private async Task ExecuteCommandAsync(
+            GoToDefinitionCommandArgs args, Document document, IGoToDefinitionService service, SnapshotPoint position)
         {
-            context.OperationContext.TakeOwnership();
+            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
 
-            ExecuteCommandAsync(document, caretPosition, goToDefinitionService, context).CompletesAsyncOperation(token);
-        }
-
-        private async Task<string?> ExecuteCommandAsync(
-            Document document,
-            int caretPosition,
-            IGoToDefinitionService goToDefinitionService)
-        {
-            // 
-
-            string? errorMessage = null;
-
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
+            bool succeeded;
+            using (var backgroundIndicator = indicatorFactory.Create(
+                args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, new Span(position, 0)),
+                EditorFeaturesResources.Navigating_to_definition))
             {
-                if (goToDefinitionService != null &&
-                    goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
-                {
-                    return;
-                }
-
-                errorMessage = FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
+                await Task.Delay(10000).ConfigureAwait(false);
+                succeeded = await GoToDefinitionAsync(
+                    document, position, service, backgroundIndicator.UserCancellationToken).ConfigureAwait(false);
             }
 
-            if (errorMessage != null)
+            if (!succeeded)
             {
-                // We are about to show a modal UI dialog so we should take over the command execution
-                // wait context. That means the command system won't attempt to show its own wait dialog 
-                // and also will take it into consideration when measuring command handling duration.
-                context.OperationContext.TakeOwnership();
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
+                notificationService.SendNotification(
+                    FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
+            }
+        }
+
+        private async Task<bool> GoToDefinitionAsync(
+            Document document,
+            int position,
+            IGoToDefinitionService service,
+            CancellationToken cancellationToken)
+        {
+            if (service is IAsyncGoToDefinitionService asyncService)
+            {
+                return await asyncService.TryGoToDefinitionAsync(document, position, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                return service.TryGoToDefinition(document, position, cancellationToken);
             }
         }
 
@@ -133,8 +136,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 _handler = handler;
             }
 
-            public Task ExecuteCommandAsync(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
-                => _handler.ExecuteCommandAsync(document, caretPosition, goToDefinitionService, context);
+            public Task ExecuteCommandAsync(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService)
+                => _handler.GoToDefinitionAsync(document, caretPosition, goToDefinitionService, CancellationToken.None);
         }
     }
 }

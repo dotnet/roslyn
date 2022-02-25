@@ -203,6 +203,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
+        public async Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+        {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            return TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, cancellationToken);
+        }
+
         public bool TryNavigateToPosition(
             Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
