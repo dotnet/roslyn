@@ -92,7 +92,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             var service = workspace.Services.GetService<IDocumentNavigationService>();
             return _threadingContext.JoinableTaskFactory.Run(() =>
                 service.TryNavigateToPositionAsync(workspace, documentId, position, virtualSpace, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
-
         }
     }
 }
