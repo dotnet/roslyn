@@ -48,11 +48,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
 
-            MetadataReference metadataReference = null;
-            string assemblyLocation = null;
+            var metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
+            var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
+
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly)
+            if (isReferenceAssembly &&
+                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
             {
                 try
                 {
@@ -62,12 +64,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
                 }
-            }
-
-            if (assemblyLocation == null)
-            {
-                metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
             }
 
             // Decompile

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -26,14 +25,31 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    internal static class SemanticClassificationUtilities
+    internal static class ClassificationUtilities
     {
+        public static TagSpan<IClassificationTag> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, ClassifiedSpan classifiedSpan)
+        {
+            return new TagSpan<IClassificationTag>(
+                classifiedSpan.TextSpan.ToSnapshotSpan(snapshot),
+                new ClassificationTag(typeMap.GetClassificationType(classifiedSpan.ClassificationType)));
+        }
+
+        public static List<ITagSpan<IClassificationTag>> Convert(IClassificationTypeMap typeMap, ITextSnapshot snapshot, ArrayBuilder<ClassifiedSpan> classifiedSpans)
+        {
+            var result = new List<ITagSpan<IClassificationTag>>(capacity: classifiedSpans.Count);
+            foreach (var span in classifiedSpans)
+                result.Add(Convert(typeMap, snapshot, span));
+
+            return result;
+        }
+
         public static async Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context,
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
             ClassificationTypeMap typeMap,
             ClassificationOptions options,
+            ClassificationType type,
             CancellationToken cancellationToken)
         {
             var document = spanToTag.Document;
@@ -51,10 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // as we do not have to wait on skeletons to be built.
 
             document = document.WithFrozenPartialSemantics(cancellationToken);
-            spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(
-                    context, spanToTag, classificationService, typeMap, options, cancellationToken).ConfigureAwait(false);
+                    context, document, spanToTag.SnapshotSpan, classificationService, typeMap, options, type, cancellationToken).ConfigureAwait(false);
             if (classified)
             {
                 return;
@@ -63,15 +78,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // We weren't able to use our specialized codepaths for semantic classifying. 
             // Fall back to classifying the full span that was asked for.
             await ClassifySpansAsync(
-                context, spanToTag, classificationService, typeMap, options, cancellationToken).ConfigureAwait(false);
+                context, document, spanToTag.SnapshotSpan, classificationService, typeMap, options, type, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryClassifyContainingMemberSpanAsync(
             TaggerContext<IClassificationTag> context,
-            DocumentSnapshotSpan spanToTag,
+            Document document,
+            SnapshotSpan snapshotSpan,
             IClassificationService classificationService,
             ClassificationTypeMap typeMap,
             ClassificationOptions options,
+            ClassificationType type,
             CancellationToken cancellationToken)
         {
             var range = context.TextChangeRange;
@@ -82,11 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             // there was top level edit, check whether that edit updated top level element
-            var document = spanToTag.Document;
             if (!document.SupportsSyntaxTree)
-            {
                 return false;
-            }
 
             var lastSemanticVersion = (VersionStamp?)context.State;
             if (lastSemanticVersion != null)
@@ -99,13 +113,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            var service = document.GetLanguageService<ISyntaxFactsService>();
+            var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // perf optimization. Check whether all edits since the last update has happened within
             // a member. If it did, it will find the member that contains the changes and only refresh
             // that member.  If possible, try to get a speculative binder to make things even cheaper.
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var changedSpan = new TextSpan(range.Value.Span.Start, range.Value.NewLength);
             var member = service.GetContainingMemberDeclaration(root, changedSpan.Start);
@@ -122,55 +136,73 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return false;
             }
 
-            var subSpan = subTextSpan.Contains(changedSpan) ? subTextSpan.ToSpan() : member.FullSpan.ToSpan();
-
-            var subSpanToTag = new DocumentSnapshotSpan(spanToTag.Document,
-                new SnapshotSpan(spanToTag.SnapshotSpan.Snapshot, subSpan));
+            var subSpanToTag = new SnapshotSpan(
+                snapshotSpan.Snapshot,
+                subTextSpan.Contains(changedSpan) ? subTextSpan.ToSpan() : member.FullSpan.ToSpan());
 
             // re-classify only the member we're inside.
             await ClassifySpansAsync(
-                context, subSpanToTag, classificationService, typeMap, options, cancellationToken).ConfigureAwait(false);
+                context, document, subSpanToTag, classificationService, typeMap, options, type, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
         private static async Task ClassifySpansAsync(
             TaggerContext<IClassificationTag> context,
-            DocumentSnapshotSpan spanToTag,
+            Document document,
+            SnapshotSpan snapshotSpan,
             IClassificationService classificationService,
             ClassificationTypeMap typeMap,
             ClassificationOptions options,
+            ClassificationType type,
             CancellationToken cancellationToken)
         {
             try
             {
-                var document = spanToTag.Document;
-                var snapshotSpan = spanToTag.SnapshotSpan;
-                var snapshot = snapshotSpan.Snapshot;
-
                 using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
                 {
                     using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
-                    await classificationService.AddSemanticClassificationsAsync(
-                        document,
-                        snapshotSpan.Span.ToTextSpan(),
-                        options,
-                        classifiedSpans,
-                        cancellationToken).ConfigureAwait(false);
+                    await AddClassificationsAsync(
+                        classificationService, options, document, snapshotSpan, classifiedSpans, type, cancellationToken).ConfigureAwait(false);
 
                     foreach (var span in classifiedSpans)
-                        context.AddTag(ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, span));
+                        context.AddTag(Convert(typeMap, snapshotSpan.Snapshot, span));
 
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
                     // Let the context know that this was the span we actually tried to tag.
-                    context.SetSpansTagged(SpecializedCollections.SingletonEnumerable(spanToTag));
+                    context.SetSpansTagged(ImmutableArray.Create(snapshotSpan));
                     context.State = version;
                 }
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private static async Task AddClassificationsAsync(
+            IClassificationService classificationService,
+            ClassificationOptions options,
+            Document document,
+            SnapshotSpan snapshotSpan,
+            ArrayBuilder<ClassifiedSpan> classifiedSpans,
+            ClassificationType type,
+            CancellationToken cancellationToken)
+        {
+            if (type == ClassificationType.Semantic)
+            {
+                await classificationService.AddSemanticClassificationsAsync(
+                   document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+            else if (type == ClassificationType.EmbeddedLanguage)
+            {
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(
+                   document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(type);
             }
         }
     }

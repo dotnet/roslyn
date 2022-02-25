@@ -67,16 +67,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             _logger?.Log(FeaturesResources.Navigating_to_symbol_0_from_1, symbol, assemblyName);
 
-            // If this is a reference assembly then we won't have the right information available, so bail out
-            // TODO: find the implementation assembly for the reference assembly, and keep going: https://github.com/dotnet/roslyn/issues/55834
-            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
-                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly)
-            {
-                _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
-                return null;
-            }
-
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // The purpose of the logging is to help library authors, so we don't log things like this where something
@@ -84,6 +74,17 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // the user or a library author can control, so no log message.
             if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
                 return null;
+
+            // If this is a reference assembly then we won't have the right information available, so try to find
+            // a better DLL, or bail out
+            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
+                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
+            if (isReferenceAssembly &&
+                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(dllPath, out dllPath))
+            {
+                _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
+                return null;
+            }
 
             _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 

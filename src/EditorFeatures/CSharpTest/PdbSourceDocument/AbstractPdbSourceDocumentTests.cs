@@ -247,7 +247,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 .AddReferences(project.MetadataReferences);
 
             IEnumerable<EmbeddedText>? embeddedTexts;
-            if (sourceLocation == Location.OnDisk)
+            if (buildReferenceAssembly)
+            {
+                embeddedTexts = null;
+            }
+            else if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
                 File.WriteAllText(sourceCodePath, source.ToString(), source.Encoding);
