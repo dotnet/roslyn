@@ -93,16 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             }
         }
 
-        public TestAccessor GetTestAccessor()
-            => new(this);
-
-        public struct TestAccessor
+        public static class TestAccessor
         {
-            public TestAccessor(GoToDefinitionCommandHandler _)
-            {
-            }
-
-            public void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+            public static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
                 => GoToDefinitionCommandHandler.ExecuteCommand(document, caretPosition, goToDefinitionService, context);
         }
     }
