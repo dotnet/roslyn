@@ -213,7 +213,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             return scope;
         }
 
-        private void RemoveScope(BackgroundWorkIndicatorScope scope)
+        public void RemoveScope(BackgroundWorkIndicatorScope scope)
         {
             lock (this.Gate)
             {
