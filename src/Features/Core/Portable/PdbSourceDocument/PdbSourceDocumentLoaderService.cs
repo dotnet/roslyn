@@ -39,13 +39,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _logger = logger;
         }
 
-        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useEasedTimeout, CancellationToken cancellationToken)
+        public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
         {
             // First we try getting "local" files, either from embedded source or a local file on disk
             // and if they don't work we call the debugger to download a file from SourceLink info
             return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding, telemetry) ??
                 TryGetOriginalFile(sourceDocument, encoding, telemetry) ??
-                await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, useEasedTimeout, cancellationToken).ConfigureAwait(false);
+                await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, useExtendedTimeout, cancellationToken).ConfigureAwait(false);
         }
 
         private SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // We might have already navigated to this file before, so it might exist, but
             // we still need to re-validate the checksum and make sure its not the wrong file
             if (File.Exists(filePath) &&
-                LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false, shouldCauseTimeoutEase: false) is { } existing)
+                LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false, fromRemoteLocation: false) is { } existing)
             {
                 telemetry.SetSourceFileSource("embedded");
                 _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     }
                 }
 
-                var result = LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false, shouldCauseTimeoutEase: false);
+                var result = LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false, fromRemoteLocation: false);
                 if (result is not null)
                 {
                     telemetry.SetSourceFileSource("embedded");
@@ -126,12 +126,12 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useEasedTimeout, CancellationToken cancellationToken)
+        private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
         {
             if (sourceDocument.SourceLinkUrl is null || _sourceLinkService.Value is null)
                 return null;
 
-            var timeout = useEasedTimeout ? EasedSourceLinkTimeout : SourceLinkTimeout;
+            var timeout = useExtendedTimeout ? EasedSourceLinkTimeout : SourceLinkTimeout;
 
             // This should ideally be the repo-relative path to the file, and come from SourceLink: https://github.com/dotnet/sourcelink/pull/699
             var relativePath = Path.GetFileName(sourceDocument.FilePath);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 if (sourceFile is not null)
                 {
                     // TODO: Don't ignore the checksum here: https://github.com/dotnet/roslyn/issues/55834
-                    var result = LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, "SourceLink", ignoreChecksum: true, shouldCauseTimeoutEase: true);
+                    var result = LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, "SourceLink", ignoreChecksum: true, fromRemoteLocation: true);
                     if (result is not null)
                     {
                         telemetry.SetSourceFileSource("sourcelink");
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         {
             if (File.Exists(sourceDocument.FilePath))
             {
-                var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false, shouldCauseTimeoutEase: false);
+                var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false, fromRemoteLocation: false);
                 if (result is not null)
                 {
                     telemetry.SetSourceFileSource("ondisk");
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, string sourceDescription, bool ignoreChecksum, bool shouldCauseTimeoutEase)
+        private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, string sourceDescription, bool ignoreChecksum, bool fromRemoteLocation)
         {
             return IOUtilities.PerformIO(() =>
             {
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 {
                     var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
                     var textLoader = TextLoader.From(textAndVersion);
-                    return new SourceFileInfo(filePath, sourceDescription, textLoader, shouldCauseTimeoutEase);
+                    return new SourceFileInfo(filePath, sourceDescription, textLoader, fromRemoteLocation);
                 }
 
                 return null;

@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
             // we can't provide any results, so there is no point adding a project to the workspace etc.
-            var useEasedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
+            var useExtendedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
             var encoding = defaultEncoding ?? Encoding.UTF8;
-            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useEasedTimeout, cancellationToken)).ToArray();
+            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useExtendedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
             if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
                 // If we successfully got something from SourceLink for this project then its nice to wait a bit longer
                 // if the user performs subsequent navigation
-                if (info.ShouldCauseTimeoutEase)
+                if (info.FromRemoteLocation)
                 {
                     _sourceLinkEnabledProjects.Add(project.Id);
                 }
