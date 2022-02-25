@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -15,6 +15,10 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
 {
     [Export(typeof(IBackgroundWorkIndicatorFactory)), Shared]
+    [Export(typeof(IKeyProcessorProvider))]
+    [TextViewRole(PredefinedTextViewRoles.Interactive)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(nameof(InlineHintsKeyProcessorProvider))]
     internal partial class BackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory
     {
         private readonly IThreadingContext _threadingContext;
