@@ -30,13 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             _snippetProvider = snippetProvider;
         }
 
-        public async Task<TextSpan> GetInvocationSpanAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.LeftToken.Span;
-        }
-
         public ISnippetProvider GetSnippetProvider(SnippetData data)
         {
             foreach (var provider in _snippetProvider)

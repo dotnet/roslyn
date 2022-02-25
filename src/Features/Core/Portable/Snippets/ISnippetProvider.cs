@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// Gets the Snippet from the corresponding snippet provider.
-        Task<Snippet> GetSnippetAsync(Document document, TextSpan span, int tokenSpanStart, int tokenSpanEnd, CancellationToken cancellationToken);
+        Task<Snippet> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// Gets the text that is displayed by the Completion item.
         string GetSnippetText();

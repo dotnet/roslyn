@@ -22,14 +22,16 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
         /// Gets the localized string that is displayed in the Completion list
         protected abstract string GetSnippetDisplayName();
-        /// Generates the new snippet's TextChange that is being inserted into the document
-        protected abstract Task<TextChange> GenerateSnippetTextChangeAsync(Document document, TextSpan span, int tokenSpanStart, int tokenSpanEnd, CancellationToken cancellationToken);
+        /// Generates the new snippet's TextChange's that are being inserted into the document
+        protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
+
+        protected abstract Task<ImmutableArray<TextChange>> GenerateImportTextChangesAsync(Document document, int position, CancellationToken token);
         /// Method for each snippet to locate the SyntaxNode they want to annotate for the final cursor
-        protected abstract Task<SyntaxNode> AnnotateRootForCursorAsync(Document document, TextSpan span, SyntaxAnnotation cursorAnnotation, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> AnnotateRootForCursorAsync(Document document, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
         /// Method for each snippet to locate the inserted SyntaxNode to reformat
-        protected abstract Task<SyntaxNode> AnnotateRootForReformattingAsync(Document document, TextSpan span, SyntaxAnnotation reformatAnnotation, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> AnnotateRootForReformattingAsync(Document document, SyntaxAnnotation reformatAnnotation, int position, CancellationToken cancellationToken);
         protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
-        protected abstract Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines if the location is valid for a snippet,
@@ -54,68 +56,51 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         /// <summary>
         /// Handles all the work to generate the Snippet.
-        /// Reformats the document with the snippet TextChange and
-        /// annotates appropriately for the cursor to get the
-        /// target cursor position.
+        /// Reformats the document with the snippet TextChange and annotates 
+        /// appropriately for the cursor to get the target cursor position.
         /// </summary>
-        public async Task<Snippet> GetSnippetAsync(Document document, TextSpan span, int tokenSpanStart, int tokenSpanEnd, CancellationToken cancellationToken)
+        public async Task<Snippet> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var textChange = await GenerateSnippetTextChangeAsync(document, span, tokenSpanStart, tokenSpanEnd, cancellationToken).ConfigureAwait(false);
-            var snippetDocument = await GetDocumentWithSnippetAsync(document, span, textChange, tokenSpanStart, tokenSpanEnd, cancellationToken).ConfigureAwait(false);
-            var reformattedDocument = await ReformatDocumentAsync(snippetDocument, span, cancellationToken).ConfigureAwait(false);
+            var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
+            var annotatedRootForCursor = await AnnotateRootForCursorAsync(snippetDocument, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
+            snippetDocument = snippetDocument.WithSyntaxRoot(annotatedRootForCursor);
+            var importTextChanges = await GenerateImportTextChangesAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
+            var updatedDocument = await GetDocumentWithSnippetImportsAsync(snippetDocument, importTextChanges, cancellationToken).ConfigureAwait(false);
+
+            var reformattedDocument = await ReformatDocumentAsync(updatedDocument, position, cancellationToken).ConfigureAwait(false);
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var changesArray = changes.ToImmutableArray();
-            var newText = await reformattedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var change = Completion.Utilities.Collapse(newText, changesArray);
-            var annotatedRootForCursor = await AnnotateRootForCursorAsync(reformattedDocument, span, _cursorAnnotation, cancellationToken).ConfigureAwait(false);
-            reformattedDocument = reformattedDocument.WithSyntaxRoot(annotatedRootForCursor);
+            //var annotatedRootForCursor = await AnnotateRootForCursorAsync(reformattedDocument, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
+            //reformattedDocument = reformattedDocument.WithSyntaxRoot(annotatedRootForCursor);
             var caretTarget = annotatedRootForCursor.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             return new Snippet(
-                snippetType: GetSnippetDisplayName(),
-                textChange: change,
+                displayText: GetSnippetDisplayName(),
+                textChanges: changes.ToImmutableArray(),
                 cursorPosition: GetTargetCaretPosition(caretTarget),
-                renameLocations: await GetRenameLocationsAsync(reformattedDocument, span, cancellationToken).ConfigureAwait(false));
+                renameLocations: await GetRenameLocationsAsync(reformattedDocument, position, cancellationToken).ConfigureAwait(false));
         }
 
-        private static async Task<Document> GetDocumentWithSnippetAsync(Document document, TextSpan span, TextChange snippet, int tokenSpanStart, int tokenSpanEnd, CancellationToken cancellationToken)
+        private static async Task<Document> GetDocumentWithSnippetAsync(Document document, ImmutableArray<TextChange> snippets, CancellationToken cancellationToken)
         {
             var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            Document? snippetContainingDocument;
+            originalText = originalText.WithChanges(snippets);
+            var snippetDocument = document.WithText(originalText);
 
-            // Need to special case if the span is empty because otherwise it takes out preceding
-            // characters when we just want to remove any characters to invoke the completion.
-            // Example invoking when span is empty:
-            // public void Method()
-            // {
-            //     $$             <------ invoking by typing Ctrl-Space
-            // }
-            // Example invoking when span is not empty:
-            // public void Method()
-            // {
-            //     Wr$$           <----- invoking by typing out the completion 
-            // }
-            if (span.IsEmpty)
-            {
-                originalText = originalText.WithChanges(snippet);
-                snippetContainingDocument = document.WithText(originalText);
-            }
-            else
-            {
-                var textChange = new TextChange(TextSpan.FromBounds(tokenSpanStart, tokenSpanEnd), string.Empty);
-                originalText = originalText.WithChanges(textChange);
-                var document1 = document.WithText(originalText);
-                var textWithoutInvocation = await document1.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                textWithoutInvocation = textWithoutInvocation.WithChanges(snippet);
-                snippetContainingDocument = document1.WithText(textWithoutInvocation);
-            }
-
-            return snippetContainingDocument;
+            return snippetDocument;
         }
 
-        private async Task<Document> ReformatDocumentAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private static async Task<Document> GetDocumentWithSnippetImportsAsync(Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
         {
-            var annotatedSnippetRoot = await AnnotateRootForReformattingAsync(document, span, _reformatAnnotation, cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            text = text.WithChanges(textChanges);
+            var importsDocument = document.WithText(text);
+            return importsDocument;
+        }
+
+        private async Task<Document> ReformatDocumentAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var annotatedSnippetRoot = await AnnotateRootForReformattingAsync(document, _reformatAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return await Formatter.FormatAsync(document, _reformatAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }

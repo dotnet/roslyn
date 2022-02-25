@@ -21,8 +21,5 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Gets the corresponding provider from the snippet data. 
         /// Called upon by the AbstractSnippetCompletionProvider
         ISnippetProvider GetSnippetProvider(SnippetData data);
-
-        /// Gets the span from the SyntaxContext's token
-        Task<TextSpan> GetInvocationSpanAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }

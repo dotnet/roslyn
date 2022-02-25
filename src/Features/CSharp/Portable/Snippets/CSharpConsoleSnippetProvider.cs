@@ -8,14 +8,17 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -98,11 +101,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return FeaturesResources.Write_to_the_Console;
         }
 
-        protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, TextSpan span, int tokenSpanStart, int tokenSpanEnd, CancellationToken cancellationToken)
+        protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var arrayBuilder = ArrayBuilder<TextChange>.GetInstance();
+            var snippetTextChange = await GenerateSnippetAsync(document, position, cancellationToken).ConfigureAwait(false);
+            arrayBuilder.AddRange(snippetTextChange);
+
+            return arrayBuilder.ToImmutableArray();
+        }
+
+        protected override async Task<ImmutableArray<TextChange>> GenerateImportTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var builder);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var contextLocation = await GetConsoleExpressionStatementAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var systemImport = GenerateSystemImportDeclaration(generator);
+            builder.Add(systemImport);
+
+            if (addImportsService.HasExistingImport(compilation, root, contextLocation, systemImport, generator))
+            {
+                return ImmutableArray.Create<TextChange>();
+            }
+
+            var newRoot = addImportsService.AddImports(compilation, root, contextLocation, builder.AsEnumerable(),
+                generator, options, allowInHiddenRegions: false, cancellationToken);
+            var updatedDocument = document.WithSyntaxRoot(newRoot);
+            var textChanges = await updatedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            return textChanges.AsImmutable();
+        }
+
+        private static SyntaxNode GenerateSystemImportDeclaration(SyntaxGenerator generator)
+        {
+            // We add Simplifier.Annotation so that the import can be removed if it turns out to be unnecessary.
+            // This can happen for a number of reasons (we replace the type with var, inbuilt type, alias, etc.)
+            return generator
+                .NamespaceImportDeclaration(generator.IdentifierName("System"))
+                .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)
+                .NormalizeWhitespace();
+        }
+
+        private static async Task<TextChange> GenerateSnippetAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
+            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var declaration = GetAsyncSupportingDeclaration(token);
             var isAsync = generator.GetModifiers(declaration).IsAsync;
             SyntaxNode? invocation;
@@ -112,8 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
                     generator.IdentifierName("Out")), generator.IdentifierName("WriteLineAsync")))))
                 : generator.ExpressionStatement(generator.InvocationExpression(generator.MemberAccessExpression(
                     generator.IdentifierName("Console"), generator.IdentifierName("WriteLine"))));
-            var textChange = new TextChange(span, invocation.NormalizeWhitespace().ToFullString());
-            return textChange;
+            return new TextChange(TextSpan.FromBounds(position, position), invocation.NormalizeWhitespace().ToFullString());
         }
 
         private static SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
@@ -132,11 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return caretTarget.GetLocation().SourceSpan.End - 1;
         }
 
-        protected override async Task<SyntaxNode> AnnotateRootForReformattingAsync(Document document, TextSpan span,
-            SyntaxAnnotation reformatAnnotation, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> AnnotateRootForReformattingAsync(Document document,
+            SyntaxAnnotation reformatAnnotation, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var closestNode = root.FindNode(span);
+            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
             var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
             if (snippetExpressionNode is null)
             {
@@ -147,12 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override async Task<SyntaxNode> AnnotateRootForCursorAsync(Document document, TextSpan span,
-            SyntaxAnnotation cursorAnnotation, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> AnnotateRootForCursorAsync(Document document,
+            SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var closestNode = root.FindNode(span);
-            var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
+            var snippetExpressionNode = await GetConsoleExpressionStatementAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (snippetExpressionNode is null)
             {
                 return root;
@@ -164,7 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return root.ReplaceNode(argumentListNode, annotedSnippet);
         }
 
-        protected override Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode?> GetConsoleExpressionStatementAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
+            return closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
+        }
+
+        protected override Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray<TextSpan>.Empty);
         }

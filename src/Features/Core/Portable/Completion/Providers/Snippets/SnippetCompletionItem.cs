@@ -12,12 +12,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         public static CompletionItem Create(
             string displayText,
             string displayTextSuffix,
-            TextSpan span,
+            int position,
             Glyph glyph)
         {
             var props = ImmutableDictionary<string, string>.Empty
-                .Add("TokenSpanStart", span.Start.ToString())
-                .Add("TokenSpanEnd", span.End.ToString());
+                .Add("Position", position.ToString());
 
             return CommonCompletionItem.Create(
                 displayText: displayText,
@@ -28,20 +27,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 rules: CompletionItemRules.Default);
         }
 
-        public static int GetTokenSpanStart(CompletionItem item)
+        public static int GetInvocationPosition(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("TokenSpanStart", out var text)
-                && int.TryParse(text, out var number))
-            {
-                return number;
-            }
-
-            return 0;
-        }
-
-        public static int GetTokenSpanEnd(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("TokenSpanEnd", out var text)
+            if (item.Properties.TryGetValue("Position", out var text)
                 && int.TryParse(text, out var number))
             {
                 return number;

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Snippets
     internal readonly struct Snippet
     {
         /// The type of snippet, equivalent to what gets displayed in the Completion list
-        public readonly string SnippetType;
+        public readonly string DisplayText;
 
-        /// The TextChange that gets created for the Snippet
-        public readonly TextChange TextChange;
+        /// The TextChange's associated with introducing a snippet into a document
+        public readonly ImmutableArray<TextChange> TextChanges;
 
         /// The position that the cursor should end up on
         public readonly int CursorPosition;
@@ -26,18 +26,18 @@ namespace Microsoft.CodeAnalysis.Snippets
         public readonly ImmutableArray<TextSpan> RenameLocations;
 
         public Snippet(
-            string snippetType,
-            TextChange textChange,
+            string displayText,
+            ImmutableArray<TextChange> textChanges,
             int cursorPosition,
             ImmutableArray<TextSpan> renameLocations)
         {
-            if (textChange.NewText is null)
+            if (textChanges.IsEmpty)
             {
-                throw new ArgumentException($"{ textChange.NewText } must be non-null");
+                throw new ArgumentException($"{ textChanges.Length } must not be empty");
             }
 
-            SnippetType = snippetType;
-            TextChange = textChange;
+            DisplayText = displayText;
+            TextChanges = textChanges;
             CursorPosition = cursorPosition;
             RenameLocations = renameLocations;
         }
