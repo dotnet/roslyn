@@ -2,20 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
@@ -33,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private static (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document?, IGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
@@ -57,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // This can be removed once typescript implements LSP support for goto def.
             if (service != null && !subjectBuffer.IsInLspEditorContext())
             {
+                Contract.ThrowIfNull(document);
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue)
                 {
@@ -68,15 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return false;
         }
 
-        private static void ExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
-            => ExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
-
-        private static void ExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
-            => ExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
-
-        private static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        private static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService? goToDefinitionService, CommandExecutionContext context)
         {
-            string errorMessage = null;
+            string? errorMessage = null;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
@@ -96,17 +88,21 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
                 var workspace = document.Project.Solution.Workspace;
-                var notificationService = workspace.Services.GetService<INotificationService>();
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
         }
 
-        public static class TestAccessor
-        {
-            public static void ExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
-                => GoToDefinitionCommandHandler.ExecuteCommand(snapshot, caretPosition, context);
+        public TestAccessor GetTestAccessor()
+            => new(this);
 
-            public static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        public struct TestAccessor
+        {
+            public TestAccessor(GoToDefinitionCommandHandler _)
+            {
+            }
+
+            public void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
                 => GoToDefinitionCommandHandler.ExecuteCommand(document, caretPosition, goToDefinitionService, context);
         }
     }
