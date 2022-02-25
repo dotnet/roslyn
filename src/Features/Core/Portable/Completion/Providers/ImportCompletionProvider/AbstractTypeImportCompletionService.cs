@@ -51,200 +51,196 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         {
             var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(currentProject, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
-            if (isPartialResult)
-            {
-                // We use a very simple approach to build the cache in the background:
-                // queue a new task only if the previous task is completed, regardless of what
-                // that task is doing.
-                lock (s_gate)
-                {
-                    if (s_cachingTask.IsCompleted)
-                    {
-                        // When building cache in the background, make sure we always use latest snapshot with full semantic
-                        var projectId = currentProject.Id;
-                        var workspace = currentProject.Solution.Workspace;
-                        s_cachingTask = Task.Run(() => WarmUpCacheAsync(workspace.CurrentSolution.GetProject(projectId), CancellationToken.None), CancellationToken.None);
-                    }
-                }
-            }
-
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
 
-            ImmutableArray<CompletionItem> GetItemsFromCacheResult(GetCacheResult cacheResult)
-            {
-                return cacheResult.Entry.GetItemsForContext(
-                         Language,
-                         GenericTypeSuffix,
-                         currentCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(cacheResult.Assembly),
-                         syntaxContext.IsAttributeNameContext,
-                         IsCaseSensitive,
-                         options.HideAdvancedMembers);
-            }
+            ImmutableArray<CompletionItem> GetItemsFromCacheResult(CacheEntry cacheEntry)
+                => cacheEntry.GetItemsForContext(
+                    currentCompilation,
+                    Language,
+                    GenericTypeSuffix,
+                    syntaxContext.IsAttributeNameContext,
+                    IsCaseSensitive,
+                    options.HideAdvancedMembers);
         }
 
-        private async Task<(ImmutableArray<GetCacheResult> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<(ImmutableArray<CacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
         {
             var isPartialResult = false;
-            var _ = ArrayBuilder<GetCacheResult>.GetInstance(out var builder);
-
-            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(currentCompilation));
-
-            var cacheResult = await GetCacheForProjectAsync(currentProject, forceCacheCreation: true, editorBrowsableInfo, cancellationToken).ConfigureAwait(false);
-
-            // We always force create a cache for current project.
-            Contract.ThrowIfFalse(cacheResult.HasValue);
-            builder.Add(cacheResult.Value);
+            using var _1 = ArrayBuilder<CacheEntry>.GetInstance(out var resultBuilder);
+            using var _2 = ArrayBuilder<Project>.GetInstance(out var projectsBuilder);
+            using var _3 = PooledHashSet<ProjectId>.GetInstance(out var nonGlobalAliasedProjectReferencesSet);
 
             var solution = currentProject.Solution;
             var graph = solution.GetProjectDependencyGraph();
-            var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).SelectAsArray(id => solution.GetRequiredProject(id));
+            var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
 
-            foreach (var referencedProject in referencedProjects.Where(p => p.SupportsCompilation))
+            projectsBuilder.Add(currentProject);
+            projectsBuilder.AddRange(referencedProjects);
+            nonGlobalAliasedProjectReferencesSet.AddRange(currentProject.ProjectReferences.Where(pr => !HasGlobalAlias(pr.Aliases)).Select(pr => pr.ProjectId));
+
+            var workspace = currentProject.Solution.Workspace;
+            foreach (var project in projectsBuilder)
             {
-                var compilation = await referencedProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var assembly = SymbolFinder.FindSimilarSymbols(compilation.Assembly, currentCompilation, cancellationToken).SingleOrDefault();
-                var metadataReference = assembly != null ? currentCompilation.GetMetadataReference(assembly) : null;
+                var projectId = project.Id;
+                if (nonGlobalAliasedProjectReferencesSet.Contains(projectId))
+                    continue;
 
-                if (HasGlobalAlias(metadataReference))
+                if (CacheService.ProjectItemsCache.TryGetValue(projectId, out var cacheEntry))
                 {
-                    cacheResult = await GetCacheForProjectAsync(
-                        referencedProject,
-                        forceCacheCreation,
-                        editorBrowsableInfo: null,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (cacheResult.HasValue)
-                    {
-                        builder.Add(cacheResult.Value);
-                    }
-                    else
-                    {
-                        isPartialResult = true;
-                    }
+                    resultBuilder.Add(cacheEntry);
+                    GetUpToDateCacheForProjectInBackground(projectId);
+                }
+                else if (!forceCacheCreation)
+                {
+                    isPartialResult = true;
+                    GetUpToDateCacheForProjectInBackground(projectId);
+                }
+                else
+                {
+                    var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                    resultBuilder.Add(upToDateCacheEntry);
                 }
             }
 
+            var originCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(originCompilation));
             foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
             {
-                if (HasGlobalAlias(peReference) &&
-                    currentCompilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly &&
-                    TryGetCacheForPEReference(solution, assembly, editorBrowsableInfo, peReference, forceCacheCreation, cancellationToken, out cacheResult))
+                // Can't cache items for reference with null key. We don't want risk potential perf regression by 
+                // making those items repeatedly, so simply not returning anything from this assembly, until 
+                // we have a better understanding on this scenario.
+                var key = GetPEReferenceCacheKey(peReference);
+                if (key is null || !HasGlobalAlias(peReference.Properties.Aliases))
+                    continue;
+
+                if (CacheService.PEItemsCache.TryGetValue(key, out var cacheEntry))
                 {
-                    if (cacheResult.HasValue)
-                    {
-                        builder.Add(cacheResult.Value);
-                    }
-                    else
-                    {
-                        isPartialResult = true;
-                    }
+                    resultBuilder.Add(cacheEntry);
+                    GetUpToDateCacheForPEReferenceInBackground(currentProject.Id, peReference);
+                }
+                else if (!forceCacheCreation)
+                {
+                    isPartialResult = true;
+                    GetUpToDateCacheForPEReferenceInBackground(currentProject.Id, peReference);
+                }
+                else if (TryGetUpToDateCacheForPEReference(originCompilation, solution, editorBrowsableInfo.Value, peReference, cancellationToken, out var upToDateCacheEntry))
+                {
+                    resultBuilder.Add(upToDateCacheEntry);
                 }
             }
 
-            return (builder.ToImmutable(), isPartialResult);
+            return (resultBuilder.ToImmutable(), isPartialResult);
 
-            static bool HasGlobalAlias(MetadataReference? metadataReference)
-                => metadataReference != null && (metadataReference.Properties.Aliases.IsEmpty || metadataReference.Properties.Aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias));
+            void GetUpToDateCacheForProjectInBackground(ProjectId projectId)
+            {
+                lock (s_gate)
+                {
+                    s_cachingTask = s_cachingTask.ContinueWith(async _ =>
+                    {
+                        var project = workspace.CurrentSolution.GetProject(projectId);
+                        if (project != null)
+                            await GetUpToDateCacheForProjectAsync(project, CancellationToken.None).ConfigureAwait(false);
+                    }, TaskScheduler.Default);
+                }
+            }
+
+            void GetUpToDateCacheForPEReferenceInBackground(ProjectId originProjectId, PortableExecutableReference peReference)
+            {
+                lock (s_gate)
+                {
+                    s_cachingTask = s_cachingTask.ContinueWith(async _ =>
+                    {
+                        var solution = workspace.CurrentSolution;
+                        var originProject = solution.GetProject(originProjectId);
+                        if (originProject != null)
+                        {
+                            var originCompilation = await originProject.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
+                            TryGetUpToDateCacheForPEReference(originCompilation, solution, new EditorBrowsableInfo(originCompilation), peReference, CancellationToken.None, out var _);
+                        }
+                    }, TaskScheduler.Default);
+                }
+            }
         }
+
+        private static bool HasGlobalAlias(ImmutableArray<string> aliases)
+            => aliases.IsEmpty || aliases.Any(alias => alias == MetadataReferenceProperties.GlobalAlias);
+
+        private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
+            => peReference.FilePath ?? peReference.Display;
 
         /// <summary>
         /// Get appropriate completion items for all the visible top level types from given project. 
         /// This method is intended to be used for getting types from source only, so the project must support compilation. 
-        /// For getting types from PE, use <see cref="TryGetCacheForPEReference"/>.
+        /// For getting types from PE, use <see cref="TryGetUpToDateCacheForPEReference"/>.
         /// </summary>
-        private async Task<GetCacheResult?> GetCacheForProjectAsync(
-            Project project,
-            bool forceCacheCreation,
-            Lazy<EditorBrowsableInfo>? editorBrowsableInfo,
-            CancellationToken cancellationToken)
+        private async Task<CacheEntry> GetUpToDateCacheForProjectAsync(
+          Project project,
+          CancellationToken cancellationToken)
         {
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
             // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            return GetCacheWorker(
+            return CreateCacheWorker(
                 project.Id,
                 compilation.Assembly,
                 checksum,
-                forceCacheCreation,
                 CacheService.ProjectItemsCache,
-                editorBrowsableInfo ?? new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(compilation)),
+                new EditorBrowsableInfo(compilation),
                 cancellationToken);
         }
 
         /// <summary>
         /// Get appropriate completion items for all the visible top level types from given PE reference.
         /// </summary>
-        private bool TryGetCacheForPEReference(
+        private bool TryGetUpToDateCacheForPEReference(
+            Compilation originCompilation,
             Solution solution,
-            IAssemblySymbol assemblySymbol,
-            Lazy<EditorBrowsableInfo> editorBrowsableInfo,
+            EditorBrowsableInfo editorBrowsableInfo,
             PortableExecutableReference peReference,
-            bool forceCacheCreation,
             CancellationToken cancellationToken,
-            out GetCacheResult? result)
+            out CacheEntry cacheEntry)
         {
-            var key = peReference.FilePath ?? peReference.Display;
-            if (key == null)
+            if (originCompilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assemblySymbol)
             {
-                // Can't cache items for reference with null key. We don't want risk potential perf regression by 
-                // making those items repeatedly, so simply not returning anything from this assembly, until 
-                // we have a better understanding on this scenario.
-                // TODO: Add telemetry
-                result = null;
+                cacheEntry = default;
                 return false;
             }
-
-            var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
-            result = GetCacheWorker(
-                key,
-                assemblySymbol,
-                checksum,
-                forceCacheCreation,
-                CacheService.PEItemsCache,
-                editorBrowsableInfo,
-                cancellationToken);
-            return true;
+            else
+            {
+                cacheEntry = CreateCacheWorker(
+                    GetPEReferenceCacheKey(peReference)!,
+                    assemblySymbol,
+                    checksum: SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken),
+                    CacheService.PEItemsCache,
+                    editorBrowsableInfo,
+                    cancellationToken);
+                return true;
+            }
         }
 
-        // Returns null if cache miss and forceCacheCreation == false
-        //
-        // PERF:
-        // Based on profiling results, initializing EditorBrowsableInfo upfront for each referenced
-        // project every time a completion is triggered is expensive. Making them lazy would
-        // eliminate this overhead when we have a cache hit while keeping it easy to share 
-        // between original projects and PE references when trying to get completion items.
-        private GetCacheResult? GetCacheWorker<TKey>(
+        private CacheEntry CreateCacheWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,
             Checksum checksum,
-            bool forceCacheCreation,
             IDictionary<TKey, CacheEntry> cache,
-            Lazy<EditorBrowsableInfo> editorBrowsableInfo,
+            EditorBrowsableInfo editorBrowsableInfo,
             CancellationToken cancellationToken)
             where TKey : notnull
         {
             // Cache hit
             if (cache.TryGetValue(key, out var cacheEntry) && cacheEntry.Checksum == checksum)
             {
-                return new GetCacheResult(cacheEntry, assembly);
+                return cacheEntry;
             }
 
-            // Cache miss, create all items only when asked.
-            if (forceCacheCreation)
-            {
-                using var builder = new CacheEntry.Builder(checksum, Language, GenericTypeSuffix, editorBrowsableInfo.Value);
-                GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
-                cacheEntry = builder.ToReferenceCacheEntry();
-                cache[key] = cacheEntry;
+            using var builder = new CacheEntry.Builder(SymbolKey.Create(assembly, cancellationToken), checksum, Language, GenericTypeSuffix, editorBrowsableInfo);
+            GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
+            cacheEntry = builder.ToReferenceCacheEntry();
+            cache[key] = cacheEntry;
 
-                return new GetCacheResult(cacheEntry, assembly);
-            }
-
-            return null;
+            return cacheEntry;
         }
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
@@ -342,18 +338,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 var newContainsPublicGenericOverload = type.DeclaredAccessibility >= Accessibility.Public || ContainsPublicGenericOverload;
 
                 return new TypeOverloadInfo(NonGenericOverload, newBestGenericOverload, newContainsPublicGenericOverload);
-            }
-        }
-
-        private readonly struct GetCacheResult
-        {
-            public CacheEntry Entry { get; }
-            public IAssemblySymbol Assembly { get; }
-
-            public GetCacheResult(CacheEntry entry, IAssemblySymbol assembly)
-            {
-                Entry = entry;
-                Assembly = assembly;
             }
         }
 

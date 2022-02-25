@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
     {
         private readonly struct CacheEntry
         {
+            public SymbolKey AssemblySymbolKey { get; }
+
             public string Language { get; }
 
             public Checksum Checksum { get; }
@@ -31,11 +33,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             private int PublicItemCount { get; }
 
             private CacheEntry(
+                SymbolKey assemblySymbolKey,
                 Checksum checksum,
                 string language,
                 ImmutableArray<TypeImportCompletionItemInfo> items,
                 int publicItemCount)
             {
+                AssemblySymbolKey = assemblySymbolKey;
                 Checksum = checksum;
                 Language = language;
 
@@ -44,14 +48,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             }
 
             public ImmutableArray<CompletionItem> GetItemsForContext(
+                Compilation originCompilation,
                 string language,
                 string genericTypeSuffix,
-                bool isInternalsVisible,
                 bool isAttributeContext,
                 bool isCaseSensitive,
                 bool hideAdvancedMembers)
             {
+                if (AssemblySymbolKey.Resolve(originCompilation).Symbol is not IAssemblySymbol assemblySymbol)
+                    return ImmutableArray<CompletionItem>.Empty;
+
                 var isSameLanguage = Language == language;
+                var isInternalsVisible = originCompilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
                 using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
 
                 // PERF: try set the capacity upfront to avoid allocation from Resize
@@ -122,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             public class Builder : IDisposable
             {
+                private readonly SymbolKey _assemblySymbolKey;
                 private readonly string _language;
                 private readonly string _genericTypeSuffix;
                 private readonly Checksum _checksum;
@@ -131,8 +140,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
                 private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
-                public Builder(Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo)
+                public Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo)
                 {
+                    _assemblySymbolKey = assemblySymbolKey;
                     _checksum = checksum;
                     _language = language;
                     _genericTypeSuffix = genericTypeSuffix;
@@ -144,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 public CacheEntry ToReferenceCacheEntry()
                 {
                     return new CacheEntry(
+                        _assemblySymbolKey,
                         _checksum,
                         _language,
                         _itemsBuilder.ToImmutable(),
