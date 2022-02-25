@@ -179,6 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                 scope,
                 documents)
 
+            Assert.Equal(callers.Count, expectedCallers.Length)
             For Each expected In expectedCallers
                 Assert.Contains(expected, callers)
             Next
@@ -192,6 +193,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
                 scope,
                 documents)
 
+            Assert.Equal(callers.Count, expectedCallers.Length)
             For Each expected In expectedCallers
                 Assert.Contains(expected, callers)
             Next
