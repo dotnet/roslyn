@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         {
             // Spans.First() is safe here as we filtered out any items with no spans above in ConvertItems.
             var navigationSpan = item.GetCurrentItemSpan(textVersion, item.Spans.First());
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var workspace = document.Project.Solution.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
