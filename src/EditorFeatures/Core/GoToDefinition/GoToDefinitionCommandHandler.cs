@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -67,14 +68,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return false;
         }
 
-        // Internal for testing purposes only.
-        internal static void ExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
+        private static void ExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
             => ExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
 
-        internal static void ExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
+        private static void ExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
             => ExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
 
-        internal static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        private static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
         {
             string errorMessage = null;
 
@@ -99,6 +99,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
+        }
+
+        public static class TestAccessor
+        {
+            public static void ExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
+                => GoToDefinitionCommandHandler.ExecuteCommand(snapshot, caretPosition, context);
+
+            public static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+                => GoToDefinitionCommandHandler.ExecuteCommand(document, caretPosition, goToDefinitionService, context);
         }
     }
 }
