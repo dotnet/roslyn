@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToDefinition)]
-    [Export(typeof(GoToDefinitionCommandHandler))]
     internal class GoToDefinitionCommandHandler :
         ICommandHandler<GoToDefinitionCommandArgs>
     {
@@ -76,63 +75,61 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (!caretPos.HasValue)
                 return false;
 
-            // We're showing our own UI, ensure the editor doesn't show anything itself.
-            context.OperationContext.TakeOwnership();
-
-            var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-            ExecuteCommandAsync(args, document, service, caretPos.Value).CompletesAsyncOperation(token);
-            return true;
-        }
-
-        private async Task ExecuteCommandAsync(
-            GoToDefinitionCommandArgs args, Document document, IGoToDefinitionService service, SnapshotPoint position)
-        {
-            bool succeeded;
-
             if (service is IAsyncGoToDefinitionService asyncService)
             {
-                var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-                return await asyncService.TryGoToDefinitionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                // We're showing our own UI, ensure the editor doesn't show anything itself.
+                context.OperationContext.TakeOwnership();
+                var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
+                ExecuteModernCommandAsync(args, document, asyncService, caretPos.Value).CompletesAsyncOperation(token);
             }
             else
             {
-                succeeded = await ExecuteCommandLegacyAsync();
+                bool succeeded;
+                using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
+                {
+                    succeeded = service.TryGoToDefinition(document, caretPos.Value, context.OperationContext.UserCancellationToken);
+                }
+
+                if (!succeeded)
+                    ReportFailure(document);
             }
 
+            return true;
+        }
+
+        private static void ReportFailure(Document document)
+        {
+            var notificationService = document.Project.Solution.Workspace.Services.GetRequiredService<INotificationService>();
+            notificationService.SendNotification(
+                FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
+        }
+
+        private async Task ExecuteModernCommandAsync(
+            GoToDefinitionCommandArgs args, Document document, IAsyncGoToDefinitionService service, SnapshotPoint position)
+        {
+            bool succeeded;
+
+            var indicatorFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using (var backgroundIndicator = indicatorFactory.Create(
                 args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
                 EditorFeaturesResources.Navigating_to_definition))
             {
                 await Task.Delay(5000).ConfigureAwait(false);
-                succeeded = await GoToDefinitionAsync(
-                    document, position, service, backgroundIndicator.UserCancellationToken).ConfigureAwait(false);
+
+                // determine the location first.
+                var cancellationToken = backgroundIndicator.UserCancellationToken;
+                var location = await service.GetDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+                // we're about to navigate.  so disable navigation cancellation in our indicator so we don't self-cancel.
+                backgroundIndicator.CancelOnNavigation = false;
+                succeeded = location != null && await location.TryNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
             if (!succeeded)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
-
-                var workspace = document.Project.Solution.Workspace;
-                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                notificationService.SendNotification(
-                    FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
+                ReportFailure(document);
             }
-        }
-
-        private async Task<bool> ExecuteCommandLegacyAsync()
-        {
-            using var context = _executor.BeginExecute(EditorFeaturesResources.Navigating_to_definition, )
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return service.TryGoToDefinition(document, position, cancellationToken);
-
-        }
-
-        private async Task<bool> GoToDefinitionAsync(
-            Document document,
-            int position,
-            IGoToDefinitionService service,
-            CancellationToken cancellationToken)
-        {
         }
 
         public TestAccessor GetTestAccessor()
@@ -147,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 _handler = handler;
             }
 
-            public Task ExecuteCommandAsync(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService)
-                => _handler.GoToDefinitionAsync(document, caretPosition, goToDefinitionService, CancellationToken.None);
+            //public Task ExecuteModernCommandAsync(Document document, int caretPosition, IAsyncGoToDefinitionService service)
+            //    => _handler.ExecuteModernCommandAsync(document, caretPosition, service, CancellationToken.None);
         }
     }
 }

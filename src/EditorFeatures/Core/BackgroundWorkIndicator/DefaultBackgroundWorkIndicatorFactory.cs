@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -28,10 +30,46 @@ internal class DefaultBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorF
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
     }
 
-    public IUIThreadOperationContext Create(
+    public IBackgroundWorkIndicatorContext Create(
         ITextView textView, SnapshotSpan applicableToSpan, string description, bool cancelOnEdit = true, bool cancelOnFocusLost = true)
     {
-        return _uiThreadOperationExecutor.BeginExecute(
-            description, description, allowCancellation: true, showProgress: true);
+        return new DefaultBackgroundWorkIndicatorContext(_uiThreadOperationExecutor.BeginExecute(
+            description, description, allowCancellation: true, showProgress: true));
+    }
+
+    private class DefaultBackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
+    {
+        private readonly IUIThreadOperationContext _context;
+
+        public DefaultBackgroundWorkIndicatorContext(IUIThreadOperationContext context)
+        {
+            _context = context;
+        }
+
+        public bool CancelOnNavigation { get; set; }
+
+        public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
+            => _context.AddScope(allowCancellation, description);
+
+        public void TakeOwnership()
+            => _context.TakeOwnership();
+
+        public CancellationToken UserCancellationToken
+            => _context.UserCancellationToken;
+
+        public bool AllowCancellation
+            => _context.AllowCancellation;
+
+        public string Description
+            => _context.Description;
+
+        public IEnumerable<IUIThreadOperationScope> Scopes
+            => _context.Scopes;
+
+        public PropertyCollection Properties
+            => _context.Properties;
+
+        public void Dispose()
+            => _context.Dispose();
     }
 }

@@ -248,7 +248,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private bool TryNavigateToLocation(
+        private async Task<INavigationLocation?> TryGetNavigationLocationAsync(
             Workspace workspace,
             DocumentId documentId,
             Func<Document, TextSpan> getTextSpanForMapping,
@@ -257,12 +257,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
-            if (!IsForeground())
-            {
-                throw new InvalidOperationException(ServicesVSResources.Navigation_must_be_performed_on_the_foreground_thread);
-            }
 
             var solution = workspace.CurrentSolution;
 

@@ -60,11 +60,6 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <summary>
         /// Navigates to the given virtual position in the specified document, opening it if necessary.
         /// </summary>
-        Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Navigates to the given virtual position in the specified document, opening it if necessary.
-        /// </summary>
         Task<INavigationLocation?> TryGetPositionLocationAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
     }
 

@@ -37,5 +37,8 @@ namespace Microsoft.CodeAnalysis.Navigation
 
         public Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
             => SpecializedTasks.False;
+
+        public Task<INavigationLocation?> TryGetPositionLocationAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+            => SpecializedTasks.Null<INavigationLocation>();
     }
 }

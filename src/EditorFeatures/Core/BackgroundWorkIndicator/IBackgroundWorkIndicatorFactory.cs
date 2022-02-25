@@ -30,7 +30,7 @@ internal interface IBackgroundWorkIndicatorFactory : IWorkspaceService
     /// Default cancellation behavior can also be specified through <paramref name="cancelOnEdit"/> and <paramref
     /// name="cancelOnFocusLost"/>.
     /// </remarks>
-    IUIThreadOperationContext Create(
+    IBackgroundWorkIndicatorContext Create(
         ITextView textView, SnapshotSpan applicableToSpan,
         string description, bool cancelOnEdit = true, bool cancelOnFocusLost = true);
 }
