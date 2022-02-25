@@ -17,6 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
     /// unobtrusive fashion unlike the Threaded-Wait-Dialog.  Features can use this to indicate to users that work
     /// is happening in the background while not blocking the user from continuing to work with their code.
     /// </summary>
+    /// <remarks>
+    /// Only one background work indicator can be active at a time.  Any attempt to make a new indicator will cancel any
+    /// existing outstanding item.
+    /// </remarks>
     internal interface IBackgroundWorkIndicatorFactory : IWorkspaceService
     {
         /// <summary>

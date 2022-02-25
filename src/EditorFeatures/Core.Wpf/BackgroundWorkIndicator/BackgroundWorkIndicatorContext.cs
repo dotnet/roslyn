@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
 {
-    internal partial class BackgroundWorkIndicatorFactory
+    internal partial class WpfBackgroundWorkIndicatorFactory
     {
         /// <summary>
         /// Implementation of an <see cref="IUIThreadOperationContext"/> for the background work indicator.
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             /// </summary>
             public readonly object Gate = new();
 
-            private readonly BackgroundWorkIndicatorFactory _factory;
+            private readonly WpfBackgroundWorkIndicatorFactory _factory;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
             private readonly IToolTipPresenter _toolTipPresenter;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             public IEnumerable<IUIThreadOperationScope> Scopes => _scopes;
 
             public BackgroundWorkIndicatorContext(
-                BackgroundWorkIndicatorFactory factory,
+                WpfBackgroundWorkIndicatorFactory factory,
                 ITextView textView,
                 SnapshotSpan applicableToSpan,
                 string firstDescription,
