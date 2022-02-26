@@ -1118,7 +1118,7 @@ class A {";
             string? previousResultId = null,
             bool useProgress = false)
         {
-            await WaitForDiagnosticsAsync(testLspServer.TestWorkspace);
+            await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
             {
@@ -1181,7 +1181,7 @@ class A {";
             ImmutableArray<(string resultId, Uri uri)>? previousResults = null,
             bool useProgress = false)
         {
-            await WaitForDiagnosticsAsync(testLspServer.TestWorkspace);
+            await testLspServer.WaitForDiagnosticsAsync();
 
             if (useVSDiagnostics)
             {
@@ -1243,15 +1243,6 @@ class A {";
             }
         }
 
-        private static async Task WaitForDiagnosticsAsync(TestWorkspace workspace)
-        {
-            var listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
-
-            await listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-            await listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
-            await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
-        }
-
         private static VSInternalDocumentDiagnosticsParams CreateDocumentDiagnosticParams(
             Uri uri,
             string? previousResultId = null,
@@ -1282,14 +1273,14 @@ class A {";
         private async Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, DiagnosticMode mode, bool useVSDiagnostics, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             var testLspServer = await CreateTestLspServerAsync(markup, useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities(), serverKind);
-            InitializeDiagnostics(scope, testLspServer.TestWorkspace, mode);
+            InitializeDiagnostics(scope, testLspServer, mode);
             return testLspServer;
         }
 
         private async Task<TestLspServer> CreateTestWorkspaceFromXmlAsync(string xmlMarkup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
         {
             var testLspServer = await CreateXmlTestLspServerAsync(xmlMarkup, clientCapabilities: useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities());
-            InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
+            InitializeDiagnostics(scope, testLspServer, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
             return testLspServer;
         }
 
@@ -1299,28 +1290,16 @@ class A {";
         private async Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, string[] sourceGeneratedMarkups, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
         {
             var testLspServer = await CreateTestLspServerAsync(markups, sourceGeneratedMarkups, useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities());
-            InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
+            InitializeDiagnostics(scope, testLspServer, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
             return testLspServer;
         }
 
-        private static void InitializeDiagnostics(BackgroundAnalysisScope scope, TestWorkspace workspace, DiagnosticMode diagnosticMode)
+        private static void InitializeDiagnostics(BackgroundAnalysisScope scope, TestLspServer testLspServer, DiagnosticMode diagnosticMode)
         {
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
-                workspace.Options
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope)
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript, scope)
-                    .WithChangedOption(InternalDiagnosticsOptions.NormalDiagnosticMode, diagnosticMode)));
-
             var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 InternalLanguageNames.TypeScript, ImmutableArray.Create<DiagnosticAnalyzer>(new MockTypescriptDiagnosticAnalyzer())));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
-            var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            registrationService.Register(workspace);
-
-            var diagnosticService = (DiagnosticService)workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
-            diagnosticService.Register(new TestHostDiagnosticUpdateSource(workspace));
+            testLspServer.InitializeDiagnostics(scope, diagnosticMode, analyzerReference);
         }
 
         protected override TestComposition Composition => base.Composition.AddParts(typeof(MockTypescriptDiagnosticAnalyzer));
