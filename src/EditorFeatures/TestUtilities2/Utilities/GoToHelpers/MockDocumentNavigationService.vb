@@ -40,33 +40,33 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Return If(_canNavigateToSpan, SpecializedTasks.True, SpecializedTasks.False)
         End Function
 
-        Public Function TryNavigateToLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToLineAndOffsetAsync
+        Public Function GetNavigableLocationForLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForLineAndOffsetAsync
             _triedNavigationToLineAndOffset = True
             _documentId = documentId
             _options = options
             _line = lineNumber
             _offset = offset
 
-            Return If(_canNavigateToLineAndOffset, SpecializedTasks.True, SpecializedTasks.False)
+            Return Task.FromResult(Of INavigableDocumentLocation)(New CallbackNavigableDocumentLocation(Function() _canNavigateToLineAndOffset))
         End Function
 
-        Public Function TryNavigateToPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToPositionAsync
+        Public Function GetNavigableLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForPositionAsync
             _triedNavigationToPosition = True
             _documentId = documentId
             _options = options
             _position = position
             _positionVirtualSpace = virtualSpace
 
-            Return If(_canNavigateToPosition, SpecializedTasks.True, SpecializedTasks.False)
+            Return Task.FromResult(Of INavigableDocumentLocation)(New CallbackNavigableDocumentLocation(Function() _canNavigateToPosition))
         End Function
 
-        Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
+        Public Function GetNavigableLocationForSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForSpanAsync
             _triedNavigationToSpan = True
             _documentId = documentId
             _options = options
             _span = textSpan
 
-            Return If(_canNavigateToSpan, SpecializedTasks.True, SpecializedTasks.False)
+            Return Task.FromResult(Of INavigableDocumentLocation)(New CallbackNavigableDocumentLocation(Function() _canNavigateToSpan))
         End Function
     End Class
 End Namespace

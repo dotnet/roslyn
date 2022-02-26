@@ -40,11 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 
             public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken) => SpecializedTasks.True;
 
-            public Task<bool> TryNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken) => SpecializedTasks.True;
+            public Task<INavigableDocumentLocation?> GetNavigableLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+                => Task.FromResult<INavigableDocumentLocation?>(new CallbackNavigableDocumentLocation(() => true));
 
-            public Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken) => SpecializedTasks.True;
+            public Task<INavigableDocumentLocation?> GetNavigableLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+                => Task.FromResult<INavigableDocumentLocation?>(new CallbackNavigableDocumentLocation(() => true));
 
-            public Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken) => SpecializedTasks.True;
+            public Task<INavigableDocumentLocation?> GetNavigableLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+                => Task.FromResult<INavigableDocumentLocation?>(new CallbackNavigableDocumentLocation(() => true));
         }
     }
 }
