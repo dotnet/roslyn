@@ -5,22 +5,23 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Classification.SyntaxClassification
+namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    [ExportLanguageServiceFactory(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxClassificationServiceFactory : ILanguageServiceFactory
+    [ExportLanguageServiceFactory(typeof(IEmbeddedLanguageClassificationService), LanguageNames.CSharp), Shared]
+    internal class CSharpEmbeddedLanguageClassificationServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxClassificationServiceFactory()
+        public CSharpEmbeddedLanguageClassificationServiceFactory()
         {
         }
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpSyntaxClassificationService(languageServices);
+            => new EmbeddedLanguageClassificationService(languageServices.GetRequiredService<IEmbeddedLanguagesProvider>());
     }
 }

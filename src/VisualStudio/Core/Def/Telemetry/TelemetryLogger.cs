@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 
@@ -20,8 +22,15 @@ namespace Microsoft.CodeAnalysis.Telemetry
         {
             private readonly TelemetrySession _session;
 
-            public Implementation(TelemetrySession session)
-                => _session = session;
+            public Implementation(TelemetrySession session, IGlobalOptionService globalOptions)
+            {
+                _session = session;
+
+                // Only log "delta" property for block end events if feature flag is enabled.
+                LogDelta = globalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+            }
+
+            protected override bool LogDelta { get; }
 
             public override bool IsEnabled(FunctionId functionId)
                 => _session.IsOptedIn;
@@ -66,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private static readonly ConcurrentDictionary<FunctionId, string> s_eventMap = new();
         private static readonly ConcurrentDictionary<(FunctionId id, string name), string> s_propertyMap = new();
 
+        protected abstract bool LogDelta { get; }
+
         internal static string GetEventName(FunctionId id)
              => s_eventMap.GetOrAdd(id, id => EventPrefix + GetTelemetryName(id, separator: '/'));
 
@@ -75,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Telemetry
         private static string GetTelemetryName(FunctionId id, char separator)
             => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
 
-        public static TelemetryLogger Create(TelemetrySession session)
-            => new Implementation(session);
+        public static TelemetryLogger Create(TelemetrySession session, IGlobalOptionService globalOptions)
+            => new Implementation(session, globalOptions);
 
         public abstract bool IsEnabled(FunctionId functionId);
         protected abstract void PostEvent(TelemetryEvent telemetryEvent);
@@ -132,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             Contract.ThrowIfFalse(_pendingScopes.TryRemove(blockId, out var scope));
 
             var endEvent = GetEndEvent(scope);
-            SetProperties(endEvent, functionId, logMessage);
+            SetProperties(endEvent, functionId, logMessage, LogDelta ? delta : null);
 
             var result = cancellationToken.IsCancellationRequested ? TelemetryResult.UserCancel : TelemetryResult.Success;
 
@@ -157,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
                                     _ => LogType.Trace
                                 };
 
-        private static void SetProperties(TelemetryEvent telemetryEvent, FunctionId functionId, LogMessage logMessage)
+        private static void SetProperties(TelemetryEvent telemetryEvent, FunctionId functionId, LogMessage logMessage, int? delta = null)
         {
             if (logMessage is KeyValueLogMessage kvLogMessage)
             {
@@ -171,6 +182,12 @@ namespace Microsoft.CodeAnalysis.Telemetry
                     var propertyName = GetPropertyName(functionId, "Message");
                     telemetryEvent.Properties.Add(propertyName, message);
                 }
+            }
+
+            if (delta.HasValue)
+            {
+                var propertyName = GetPropertyName(functionId, "Delta");
+                telemetryEvent.Properties.Add(propertyName, delta.Value);
             }
         }
 

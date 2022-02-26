@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         private static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, string language, bool isBlocking)
             => new(
                 SearchOptions: globalOptions.GetSymbolSearchOptions(language),
+                ImplementTypeOptions: globalOptions.GetImplementTypeOptions(language),
                 HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language),
                 IsBlocking: isBlocking);
 
