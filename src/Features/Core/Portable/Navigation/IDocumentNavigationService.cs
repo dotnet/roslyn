@@ -20,13 +20,11 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <summary>
         /// Determines whether it is possible to navigate to the given line/offset in the specified document.
         /// </summary>
-        /// <remarks>Only legal to call on the UI thread.</remarks>
         Task<bool> CanNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines whether it is possible to navigate to the given virtual position in the specified document.
         /// </summary>
-        /// <remarks>Only legal to call on the UI thread.</remarks>
         Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
 
         /// <summary>
@@ -37,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <summary>
         /// Navigates to the given line/offset in the specified document, opening it if necessary.
         /// </summary>
-        /// <remarks>Only legal to call on the UI thread.</remarks>
         Task<bool> TryNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken);
 
         /// <summary>
