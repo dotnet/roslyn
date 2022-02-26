@@ -60,49 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             }
 
             return false;
-            /*var token = context.LeftToken;
-            var isDirectlyInUndesirableLocation = token.GetAncestors<SyntaxNode>()
-                .Any(node => node.IsKind(SyntaxKind.ParameterList) ||
-                             node.IsKind(SyntaxKind.SimpleLambdaExpression) ||
-                             node.IsKind(SyntaxKind.ArgumentList) ||
-                             node.IsKind(SyntaxKind.RecordDeclaration) ||
-                             node.IsKind(SyntaxKind.ObjectCreationExpression) ||
-                             node.IsKind(SyntaxKind.SwitchExpression));
-
-            if (isDirectlyInUndesirableLocation)
-            {
-                return false;
-            }
-
-            var isExpressionInVariable = token.GetAncestors<SyntaxNode>()
-                .Any(node => node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) || node.IsKind(SyntaxKind.AnonymousMethodExpression));
-            var isInVariableDeclaration = token.GetAncestors<SyntaxNode>().Any(node => node.IsKind(SyntaxKind.VariableDeclaration));
-
-            if (isInVariableDeclaration && !isExpressionInVariable)
-            {
-                return false;
-            }
-
-            var isInsideMethod = token.GetAncestors<SyntaxNode>()
-               .Any(node => node.IsKind(SyntaxKind.MethodDeclaration) ||
-                            node.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                            node.IsKind(SyntaxKind.LocalFunctionStatement) ||
-                            node.IsKind(SyntaxKind.AnonymousMethodExpression) ||
-                            node.IsKind(SyntaxKind.ParenthesizedLambdaExpression));
-
-            var isInNamespace = token.GetAncestors<SyntaxNode>()
-                .Any(node => node.IsKind(SyntaxKind.NamespaceDeclaration) ||
-                             node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration));
-
-            if (isInNamespace && !isInsideMethod)
-            {
-                return false;
-            }
-
-            if (!isInsideMethod && !context.IsGlobalStatementContext)
-            {
-                return false;
-            }*/
         }
 
         protected override string GetSnippetDisplayName()
