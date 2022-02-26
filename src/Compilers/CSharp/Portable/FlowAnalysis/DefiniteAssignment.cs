@@ -82,6 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly PooledHashSet<Symbol> _writtenVariables = PooledHashSet<Symbol>.GetInstance();
 
         /// <summary>
+        /// Struct fields that are implicitly initialized, due to being used before being written, or not being written at an exit point.
+        /// </summary>
+        private PooledHashSet<FieldSymbol>? _implicitlyInitializedFields;
+
+        private PooledHashSet<FieldSymbol> NonNullImplicitlyInitializedFields => _implicitlyInitializedFields ??= PooledHashSet<FieldSymbol>.GetInstance();
+
+        /// <summary>
         /// Map from variables that had their addresses taken, to the location of the first corresponding
         /// address-of expression.
         /// </summary>
@@ -230,6 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variableSlot.Free();
             _usedVariables.Free();
             _readParameters?.Free();
+            _implicitlyInitializedFields?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -430,15 +438,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {
+                                bool isSuppressed = compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors);
                                 Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
                                 if (associatedPropertyOrEvent?.Kind == SymbolKind.Property)
                                 {
-                                    Diagnostics.Add(ErrorCode.ERR_UnassignedThisAutoProperty, location, associatedPropertyOrEvent);
+                                    Diagnostics.Add(
+                                        isSuppressed ? ErrorCode.WRN_UnassignedThisAutoProperty : ErrorCode.ERR_UnassignedThisAutoProperty, location, isSuppressed, associatedPropertyOrEvent);
                                 }
                                 else
                                 {
-                                    Diagnostics.Add(ErrorCode.ERR_UnassignedThis, location, field);
+                                    Diagnostics.Add(
+                                        isSuppressed ? ErrorCode.WRN_UnassignedThis : ErrorCode.ERR_UnassignedThis, location, isSuppressed, field);
                                 }
+
+                                this.NonNullImplicitlyInitializedFields.Add(field);
                             }
                         }
                         reported = true;
@@ -453,6 +466,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        private static ErrorCode GetEquivalentWarning(ErrorCode error) => error switch
+        {
+#pragma warning disable format
+                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
+                    _ => error, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
+#pragma warning restore format
+        };
+
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
         /// </summary>
@@ -461,12 +490,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol member,
             BoundNode node,
             DiagnosticBag diagnostics,
-            bool requireOutParamsAssigned = true)
+            out ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt,
+            bool requireOutParamsAssigned)
         {
             Debug.Assert(diagnostics != null);
 
             // Run the strongest version of analysis
-            DiagnosticBag strictDiagnostics = analyze(strictAnalysis: true);
+            (DiagnosticBag strictDiagnostics, implicitlyInitializedFieldsOpt) = analyze(strictAnalysis: true);
             if (strictDiagnostics.IsEmptyWithoutResolution)
             {
                 // If it reports nothing, there is nothing to report and we are done.
@@ -476,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
             // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
-            DiagnosticBag compatDiagnostics = analyze(strictAnalysis: false);
+            (DiagnosticBag compatDiagnostics, implicitlyInitializedFieldsOpt) = analyze(strictAnalysis: false);
 
             // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
             // So we just report the compat ones including that error.
@@ -510,20 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Otherwise downgrade the error to a warning.
                 ErrorCode oldCode = (ErrorCode)diagnostic.Code;
-                ErrorCode newCode = oldCode switch
-                {
-#pragma warning disable format
-                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
-                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
-                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
-                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
-                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
-                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
-                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
-                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
-                    _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
-#pragma warning restore format
-                };
+                ErrorCode newCode = GetEquivalentWarning(oldCode);
 
                 // We don't know any other way this can happen, but if it does we recover gracefully in production.
                 Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
@@ -535,9 +552,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             strictDiagnostics.Free();
             return;
 
-            DiagnosticBag analyze(bool strictAnalysis)
+            (DiagnosticBag, ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt) analyze(bool strictAnalysis)
             {
                 DiagnosticBag result = DiagnosticBag.GetInstance();
+                ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt = default;
                 var walker = new DefiniteAssignmentPass(
                     compilation,
                     member,
@@ -550,6 +568,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool badRegion = false;
                     walker.Analyze(ref badRegion, result);
+                    if (walker._implicitlyInitializedFields is { } implicitlyInitializedFields)
+                    {
+                        Debug.Assert(walker._requireOutParamsAssigned);
+                        var builder = ImmutableArray.CreateBuilder<FieldSymbol>(implicitlyInitializedFields.Count);
+                        // ensure the fields to initialize are ordered deterministically
+                        foreach (var peerMember in member.ContainingType.GetMembers())
+                        {
+                            if (peerMember is FieldSymbol field && implicitlyInitializedFields.Contains(field))
+                            {
+                                builder.Add(field);
+                            }
+                        }
+                        implicitlyInitializedFieldsOpt = builder.MoveToImmutable();
+                    }
+
                     Debug.Assert(!badRegion);
                 }
                 catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
@@ -561,9 +594,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     walker.Free();
                 }
 
-                return result;
+                return (result, implicitlyInitializedFieldsOpt);
             }
         }
+#nullable disable
 
         private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
         {
@@ -1105,6 +1139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // or fixed statement because there's a special error code for not initializing those.
 
                 ErrorCode errorCode;
+                bool isSuppressed = false;
                 string symbolName = symbol.Name;
 
                 if (symbol.Kind == SymbolKind.Field)
@@ -1113,12 +1148,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var associatedSymbol = fieldSymbol.AssociatedSymbol;
                     if (associatedSymbol?.Kind == SymbolKind.Property)
                     {
-                        errorCode = ErrorCode.ERR_UseDefViolationProperty;
+                        (errorCode, isSuppressed) = adjustErrorForStructFields(ErrorCode.ERR_UseDefViolationProperty, symbol, slot);
                         symbolName = associatedSymbol.Name;
                     }
                     else
                     {
-                        errorCode = ErrorCode.ERR_UseDefViolationField;
+                        (errorCode, isSuppressed) = adjustErrorForStructFields(ErrorCode.ERR_UseDefViolationField, symbol, slot);
                     }
                 }
                 else if (symbol.Kind == SymbolKind.Parameter &&
@@ -1126,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (((ParameterSymbol)symbol).IsThis)
                     {
-                        errorCode = ErrorCode.ERR_UseDefViolationThis;
+                        (errorCode, isSuppressed) = adjustErrorForStructThis(ErrorCode.ERR_UseDefViolationThis, symbol, slot);
                     }
                     else
                     {
@@ -1137,11 +1172,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     errorCode = ErrorCode.ERR_UseDefViolation;
                 }
-                Diagnostics.Add(errorCode, new SourceLocation(node), symbolName);
+                Diagnostics.Add(errorCode, new SourceLocation(node), isSuppressed, symbolName);
             }
 
             // mark the variable's slot so that we don't complain about the variable again
             _alreadyReported[slot] = true;
+
+            bool doesNotNeedImplicitFieldInitialization()
+                => !_requireOutParamsAssigned
+                || CurrentSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct }
+                || !compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors);
+
+            (ErrorCode, bool isSuppressed) adjustErrorForStructThis(ErrorCode error, Symbol thisParameter, int thisSlot)
+            {
+                if (doesNotNeedImplicitFieldInitialization())
+                {
+                    return (error, isSuppressed: false);
+                }
+
+                foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(thisParameter.ContainingType))
+                {
+                    if (_emptyStructTypeCache.IsEmptyStructType(field.Type))
+                        continue;
+
+                    if (field is TupleErrorFieldSymbol)
+                        continue;
+
+                    int slot = VariableSlot(field, thisSlot);
+                    if (slot == -1 || !State.IsAssigned(slot))
+                    {
+                        NonNullImplicitlyInitializedFields.Add(field);
+                    }
+                }
+
+                return (GetEquivalentWarning(error), isSuppressed: true);
+            }
+
+            (ErrorCode, bool isSuppressed) adjustErrorForStructFields(ErrorCode error, Symbol possibleStructField, int fieldSlot)
+            {
+                if (doesNotNeedImplicitFieldInitialization())
+                {
+                    return (error, isSuppressed: false);
+                }
+                var thisSlot = GetOrCreateSlot(possibleStructField, createIfMissing: false);
+                var localSlot = fieldSlot;
+                while (localSlot != -1 && RootSlot(localSlot) is int root && root != thisSlot)
+                {
+                    localSlot = root;
+                }
+
+                // the field was contained in 'this' by some level of nesting.
+                // we now have a slot for the field directly contained in 'this'.
+                // PROTOTYPE(sda): should we handle nested fields here? seems like an optimization.
+                if (localSlot != -1)
+                {
+                    var fieldToInitialize = (FieldSymbol)variableBySlot[localSlot].Symbol;
+                    NonNullImplicitlyInitializedFields.Add(fieldToInitialize);
+                    return (GetEquivalentWarning(error), isSuppressed: true);
+                }
+
+                return (error, isSuppressed: false);
+            }
         }
 
         protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)

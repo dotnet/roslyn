@@ -1402,6 +1402,11 @@
         <target state="translated">directiva global de uso</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitInitializationInStructConstructors">
+        <source>implicit initialization in struct constructors</source>
+        <target state="new">implicit initialization in struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">creación de objetos con tipo de destino</target>

@@ -6691,6 +6691,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureLineSpanDirective" xml:space="preserve">
     <value>line span directive</value>
   </data>
+  <data name="IDS_FeatureImplicitInitializationInStructConstructors" xml:space="preserve">
+    <value>implicit initialization in struct constructors</value>
+  </data>
   <data name="ERR_LineSpanDirectiveInvalidValue" xml:space="preserve">
     <value>The #line directive value is missing or out of range</value>
   </data>
