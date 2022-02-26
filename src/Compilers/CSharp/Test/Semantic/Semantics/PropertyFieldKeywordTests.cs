@@ -1734,7 +1734,15 @@ class C
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+
+            if (comp.IsNullableAnalysisEnabledAlways)
+            {
+                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+            else
+            {
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
         }
 
         [Theory]
