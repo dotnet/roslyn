@@ -1734,6 +1734,13 @@ class C
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
+            // REMOVE after figuring out why it fails on CI.
+            if (accessorBindingData.NumberOfPerformedAccessorBinding != 0)
+            {
+                Assert.False(true, string.Join("\r\n\r\n", accessorBindingData.StackTraces));
+            }
+
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
