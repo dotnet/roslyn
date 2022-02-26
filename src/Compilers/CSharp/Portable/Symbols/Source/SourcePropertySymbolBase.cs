@@ -5,8 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -27,16 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed class AccessorBindingData
         {
             private int _numberOfPerformedAccessorBinding;
-            private ConcurrentBag<string> _stackTraces;
 
             public int NumberOfPerformedAccessorBinding => _numberOfPerformedAccessorBinding;
-            public IReadOnlyCollection<string> StackTraces => _stackTraces.ToReadOnlyCollection();
 
             internal void NoteBinding()
             {
                 Interlocked.Increment(ref _numberOfPerformedAccessorBinding);
-                Interlocked.CompareExchange(ref _stackTraces, new ConcurrentBag<string>(), null);
-                _stackTraces.Add(Environment.StackTrace);
             }
         }
 
