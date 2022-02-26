@@ -2205,7 +2205,15 @@ public class C
             Assert.Equal("System.Int32 C.<P1>k__BackingField", info.Symbol.GetSymbol().ToTestDisplayString());
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             comp.VerifyDiagnostics();
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+
+            if (comp.IsNullableAnalysisEnabledAlways)
+            {
+                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+            else
+            {
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
         }
     }
 }
