@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineRename;
@@ -64,15 +65,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
+            return _threadingContext.JoinableTaskFactory.Run(() => StartInlineSessionAsync(document, textSpan, cancellationToken));
+        }
+
+        private async Task<InlineRenameSessionInfo> StartInlineSessionAsync(
+            Document document,
+            TextSpan textSpan,
+            CancellationToken cancellationToken)
+        {
             if (_activeRenameSession != null)
             {
                 throw new InvalidOperationException(EditorFeaturesResources.An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one);
             }
 
             var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-            var renameInfo = editorRenameService.GetRenameInfoAsync(document, textSpan.Start, cancellationToken).WaitAndGetResult(cancellationToken);
+            var renameInfo = await editorRenameService.GetRenameInfoAsync(document, textSpan.Start, cancellationToken).ConfigureAwait(false);
 
-            var readOnlyOrCannotNavigateToSpanSessionInfo = IsReadOnlyOrCannotNavigateToSpan(_threadingContext, renameInfo, document, cancellationToken);
+            var readOnlyOrCannotNavigateToSpanSessionInfo = await IsReadOnlyOrCannotNavigateToSpanAsync(
+                renameInfo, document, cancellationToken).ConfigureAwait(false);
             if (readOnlyOrCannotNavigateToSpanSessionInfo != null)
             {
                 return readOnlyOrCannotNavigateToSpanSessionInfo;
@@ -83,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new InlineRenameSessionInfo(renameInfo.LocalizedErrorMessage);
             }
 
-            var snapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var snapshot = text.FindCorrespondingEditorTextSnapshot();
             Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
 
             var options = new SymbolRenameOptions(
@@ -111,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             return new InlineRenameSessionInfo(ActiveSession);
 
-            static InlineRenameSessionInfo? IsReadOnlyOrCannotNavigateToSpan(
-                IThreadingContext threadingContext, IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
+            static async Task<InlineRenameSessionInfo?> IsReadOnlyOrCannotNavigateToSpanAsync(
+                IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
                 if (renameInfo is IInlineRenameInfo inlineRenameInfo && inlineRenameInfo.DefinitionLocations != default)
                 {
@@ -121,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
                     {
-                        var sourceText = documentSpan.Document.GetTextSynchronously(cancellationToken);
+                        var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                         var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
 
                         if (textSnapshot != null)
@@ -135,8 +146,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             }
                         }
 
-                        var canNavigate = threadingContext.JoinableTaskFactory.Run(() =>
-                            navigationService.CanNavigateToSpanAsync(workspace, document.Id, documentSpan.SourceSpan, cancellationToken));
+                        var canNavigate = await navigationService.CanNavigateToSpanAsync(
+                            workspace, document.Id, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
                         if (!canNavigate)
                         {
                             return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to);
