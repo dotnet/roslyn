@@ -194,6 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 if (node.IsRightSideOfDotOrArrowOrColonColon())
                     return;
 
+                if (node.IsVar)
+                    return;
+
                 var symbol = _model.GetSymbolInfo(node, _cancellationToken).GetAnySymbol();
                 if (symbol?.Kind == SymbolKind.NamedType)
                     _conflictNamespaces.AddRange(_importedTypes[(symbol.Name, node.Arity)]);

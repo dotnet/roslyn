@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 }";
 
             var expectedCodeAfterCommit =
-@"class Program
+@"using System;
+
+class Program
 {
     public void Method()
     {
@@ -54,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 }";
 
             var expectedCodeAfterCommit =
-@"class Program
+@"using System;
+
+class Program
 {
     public async Task MethodAsync()
     {
@@ -68,8 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task InsertConsoleSnippetGlobalTest()
         {
             var markupBeforeCommit =
-@"
-$$
+@"$$
 class Program
 {
     public async Task MethodAsync()
@@ -78,7 +81,8 @@ class Program
 }";
 
             var expectedCodeAfterCommit =
-@"
+@"using System;
+
 Console.WriteLine($$);
 class Program
 {
@@ -138,7 +142,9 @@ class Program
 }";
 
             var expectedCodeAfterCommit =
-@"class Program
+@"using System;
+
+class Program
 {
     public Program()
     {
@@ -166,7 +172,9 @@ class Program
 }";
 
             var expectedCodeAfterCommit =
-@"class Program
+@"using System;
+
+class Program
 {
     public void Method()
     {
@@ -184,8 +192,7 @@ class Program
         public async Task InsertConsoleSnippetInAnonymousFunctionTest()
         {
             var markupBeforeCommit =
-@"
-public delegate void Print(int value);
+@"public delegate void Print(int value);
 
 static void Main(string[] args)
 {
@@ -196,7 +203,8 @@ static void Main(string[] args)
 }";
 
             var expectedCodeAfterCommit =
-@"
+@"using System;
+
 public delegate void Print(int value);
 
 static void Main(string[] args)
@@ -222,6 +230,8 @@ Func<int, int, bool> testForEquality = (x, y) =>
 
             var expectedCodeAfterCommit =
 @"
+using System;
+
 Func<int, int, bool> testForEquality = (x, y) =>
 {
     Console.WriteLine($$);

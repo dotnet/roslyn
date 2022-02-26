@@ -50,6 +50,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         private static bool ShouldDisplaySnippet(CSharpSyntaxContext context)
         {
             var token = context.LeftToken;
+            var isInNamespace = token.GetAncestors<SyntaxNode>()
+                .Any(node => node.IsKind(SyntaxKind.NamespaceDeclaration) ||
+                             node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration));
+
+            if (context.IsStatementContext || (context.IsGlobalStatementContext && !isInNamespace))
+            {
+                return true;
+            }
+
+            return false;
+            /*var token = context.LeftToken;
             var isDirectlyInUndesirableLocation = token.GetAncestors<SyntaxNode>()
                 .Any(node => node.IsKind(SyntaxKind.ParameterList) ||
                              node.IsKind(SyntaxKind.SimpleLambdaExpression) ||
@@ -91,9 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             if (!isInsideMethod && !context.IsGlobalStatementContext)
             {
                 return false;
-            }
-
-            return true;
+            }*/
         }
 
         protected override string GetSnippetDisplayName()
@@ -103,46 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var arrayBuilder = ArrayBuilder<TextChange>.GetInstance();
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var arrayBuilder);
             var snippetTextChange = await GenerateSnippetAsync(document, position, cancellationToken).ConfigureAwait(false);
             arrayBuilder.AddRange(snippetTextChange);
-
             return arrayBuilder.ToImmutableArray();
-        }
-
-        protected override async Task<ImmutableArray<TextChange>> GenerateImportTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var builder);
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var contextLocation = await GetConsoleExpressionStatementAsync(document, position, cancellationToken).ConfigureAwait(false);
-            var systemImport = GenerateSystemImportDeclaration(generator);
-            builder.Add(systemImport);
-
-            if (addImportsService.HasExistingImport(compilation, root, contextLocation, systemImport, generator))
-            {
-                return ImmutableArray.Create<TextChange>();
-            }
-
-            var newRoot = addImportsService.AddImports(compilation, root, contextLocation, builder.AsEnumerable(),
-                generator, options, allowInHiddenRegions: false, cancellationToken);
-            var updatedDocument = document.WithSyntaxRoot(newRoot);
-            var textChanges = await updatedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            return textChanges.AsImmutable();
-        }
-
-        private static SyntaxNode GenerateSystemImportDeclaration(SyntaxGenerator generator)
-        {
-            // We add Simplifier.Annotation so that the import can be removed if it turns out to be unnecessary.
-            // This can happen for a number of reasons (we replace the type with var, inbuilt type, alias, etc.)
-            return generator
-                .NamespaceImportDeclaration(generator.IdentifierName("System"))
-                .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation)
-                .NormalizeWhitespace();
         }
 
         private static async Task<TextChange> GenerateSnippetAsync(Document document, int position, CancellationToken cancellationToken)
@@ -175,43 +148,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
 
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
         {
-            return caretTarget.GetLocation().SourceSpan.End - 1;
+            var argumentListNode = caretTarget.DescendantNodes().OfType<ArgumentListSyntax>().First();
+            return argumentListNode.GetLocation().SourceSpan.End - 1;
         }
 
-        protected override async Task<SyntaxNode> AnnotateRootForReformattingAsync(Document document,
-            SyntaxAnnotation reformatAnnotation, int position, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
+            SyntaxAnnotation findSnippetAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
+            var snippetExpressionNode = GetConsoleExpressionStatement(root, position);
             if (snippetExpressionNode is null)
             {
                 return root;
             }
 
-            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(reformatAnnotation);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = compilation.GetBestTypeByMetadataName("System.Console");
+            if (symbol is null)
+            {
+                return root;
+            }
+
+            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(findSnippetAnnotation, cursorAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(symbol), Formatter.Annotation);
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override async Task<SyntaxNode> AnnotateRootForCursorAsync(Document document,
-            SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken)
+        private static SyntaxNode? GetConsoleExpressionStatement(SyntaxNode root, int position)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippetExpressionNode = await GetConsoleExpressionStatementAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (snippetExpressionNode is null)
-            {
-                return root;
-            }
-
-            // Get the argument list to annotate so we can place the cursor in the list
-            var argumentListNode = snippetExpressionNode.DescendantNodes().OfType<ArgumentListSyntax>().First();
-            var annotedSnippet = argumentListNode.WithAdditionalAnnotations(cursorAnnotation);
-            return root.ReplaceNode(argumentListNode, annotedSnippet);
-        }
-
-        private static async Task<SyntaxNode?> GetConsoleExpressionStatementAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
             return closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
         }
