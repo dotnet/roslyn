@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         receiverTypeSymbol,
                         namespaceInScope,
                         inferredTypes,
-                        forceIndexCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                        forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
                         hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
                         cancellationToken).ConfigureAwait(false);
 

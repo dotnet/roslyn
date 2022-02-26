@@ -48,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
-                // fire and forget
+                // Trigger a backgound task to warm up cache and return immediately.
+                // This won't cause multiple cache update to run simultaneously because WarmUpCacheAsync is implemented by AsyncBatchingWorkQueue.
                 _ = Task.Run(() => WarmUpCacheAsync(document));
                 return;
             }

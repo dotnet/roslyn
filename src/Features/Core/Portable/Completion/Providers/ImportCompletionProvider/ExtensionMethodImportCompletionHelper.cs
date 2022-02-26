@@ -39,10 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static Task WarmUpCacheInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
-        {
-            var cacheService = GetCacheService(document.Project.Solution.Workspace);
-            return ExtensionMethodSymbolComputer.PopulateIndicesAsync(document.Project, cacheService, cancellationToken);
-        }
+            => ExtensionMethodSymbolComputer.UpdateCacheAsync(document.Project, cancellationToken);
 
         public static async Task<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
             Document document,
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
             ImmutableArray<ITypeSymbol> targetTypesSymbols,
-            bool forceIndexCreation,
+            bool forceCacheCreation,
             bool hideAdvancedMembers,
             CancellationToken cancellationToken)
         {
@@ -67,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                      project,
                      (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
                          solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
-                         targetTypesSymbolKeyData, forceIndexCreation, hideAdvancedMembers, cancellationToken),
+                         targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                      cancellationToken).ConfigureAwait(false);
 
                 return result.HasValue ? result.Value : null;
@@ -75,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             else
             {
                 return await GetUnimportedExtensionMethodsInCurrentProcessAsync(
-                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceIndexCreation, hideAdvancedMembers, isRemote: false, cancellationToken)
+                    document, position, receiverTypeSymbol, namespaceInScope, targetTypesSymbols, forceCacheCreation, hideAdvancedMembers, isRemote: false, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ITypeSymbol receiverTypeSymbol,
             ISet<string> namespaceInScope,
             ImmutableArray<ITypeSymbol> targetTypes,
-            bool forceIndexCreation,
+            bool forceCacheCreation,
             bool hideAdvancedMembers,
             bool isRemote,
             CancellationToken cancellationToken)
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
             var symbolComputer = await ExtensionMethodSymbolComputer.CreateAsync(
                 document, position, receiverTypeSymbol, namespaceInScope, cancellationToken).ConfigureAwait(false);
-            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceIndexCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+            var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
             var getSymbolsTicks = Environment.TickCount - ticks;
             ticks = Environment.TickCount;

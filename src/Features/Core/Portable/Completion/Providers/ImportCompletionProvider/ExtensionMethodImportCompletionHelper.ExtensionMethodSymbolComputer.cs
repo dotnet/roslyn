@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -34,8 +35,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
             private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes;
 
-            private static readonly object s_gate = new();
-            private static Task s_cachingTask = Task.CompletedTask;
+            private static readonly AsyncBatchingWorkQueue<(Workspace, ProjectId)> _workQueue = new(
+                   TimeSpan.FromSeconds(1),
+                   UpdateCacheAsync,
+                   EqualityComparer<(Workspace, ProjectId)>.Default,
+                   AsynchronousOperationListenerProvider.NullListener,
+                   CancellationToken.None);
 
             public ExtensionMethodSymbolComputer(
                 Document document,
@@ -68,50 +73,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
             }
 
+            private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
+                => peReference.FilePath ?? peReference.Display;
+
             /// <summary>
-            /// Force create all relevant indices
+            /// Force create/update all relevant indices
             /// </summary>
-            public static Task PopulateIndicesAsync(Project? project, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
+            public static async Task UpdateCacheAsync(Project? project, CancellationToken cancellationToken)
             {
-                if (project is null)
-                    return Task.CompletedTask;
-
-                foreach (var relevantProject in GetAllRelevantProjects(project))
-                    GetUpToDateCacheForProjectInBackground(relevantProject, cacheService, cancellationToken);
-
-                foreach (var peReference in GetAllRelevantPeReferences(project))
-                    GetUpToDateSymbolTreeInfoForPeReferencesInBackground(project, peReference, cancellationToken);
-
-                return s_cachingTask;
-
-            }
-
-            private static void GetUpToDateCacheForProjectInBackground(Project project, IImportCompletionCacheService<CacheEntry, object> cacheService, CancellationToken cancellationToken)
-            {
-                var projectId = project.Id;
-                var workspace = project.Solution.Workspace;
-                lock (s_gate)
+                if (project is not null)
                 {
-                    s_cachingTask = s_cachingTask.ContinueWith(async _ =>
-                    {
-                        var project = workspace.CurrentSolution.GetProject(projectId);
-                        if (project != null)
-                            await GetUpToDateCacheEntryAsync(project, cacheService, cancellationToken).ConfigureAwait(false);
-                    }, TaskScheduler.Default);
+                    var cacheService = GetCacheService(project.Solution.Workspace);
+
+                    foreach (var relevantProject in GetAllRelevantProjects(project))
+                        await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
+
+                    foreach (var peReference in GetAllRelevantPeReferences(project))
+                        await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            private static void GetUpToDateSymbolTreeInfoForPeReferencesInBackground(Project project, PortableExecutableReference peReference, CancellationToken cancellationToken)
+            private static async ValueTask UpdateCacheAsync(ImmutableArray<(Workspace, ProjectId)> items, CancellationToken cancellationToken)
             {
-                var workspace = project.Solution.Workspace;
-                lock (s_gate)
+                foreach (var (workspace, projectId) in items)
                 {
-                    s_cachingTask = s_cachingTask.ContinueWith(_
-                        => SymbolTreeInfo.GetInfoForMetadataReferenceAsync(workspace.CurrentSolution, peReference, loadOnly: false, cancellationToken), TaskScheduler.Default);
+                    var project = workspace.CurrentSolution.GetProject(projectId);
+                    await UpdateCacheAsync(project, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceIndexCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
+            public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
             {
                 // Find applicable symbols in parallel
                 using var _1 = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
@@ -120,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
                         peReference,
-                        forceIndexCreation,
+                        forceCacheCreation,
                         cancellationToken).AsTask(), cancellationToken));
                 }
 
@@ -128,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromProjectAsync(
                         project,
-                        forceIndexCreation,
+                        forceCacheCreation,
                         cancellationToken), cancellationToken));
                 }
 
@@ -153,6 +144,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var browsableSymbols = symbols.ToImmutable()
                     .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
 
+                // If we are not force creating/updating the cache, an update task needs to be queued in background.
+                if (!forceCacheCreation)
+                    _workQueue.AddWork((_originatingDocument.Project.Solution.Workspace, _originatingDocument.Project.Id));
+
                 return (browsableSymbols, isPartialResult);
             }
 
@@ -173,19 +168,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 bool forceCacheCreation,
                 CancellationToken cancellationToken)
             {
-                if (_cacheService.ProjectItemsCache.TryGetValue(project.Id, out var cacheEntry))
-                {
-                    // Use cached data if available, even checksum doesn't match. We will update the cache in the background.
-                    GetUpToDateCacheForProjectInBackground(project, _cacheService, CancellationToken.None);
-                }
-                else if (!forceCacheCreation)
-                {
-                    GetUpToDateCacheForProjectInBackground(project, _cacheService, CancellationToken.None);
-                    return null;
-                }
-                else
+                CacheEntry cacheEntry;
+                if (forceCacheCreation)
                 {
                     cacheEntry = await GetUpToDateCacheEntryAsync(project, _cacheService, cancellationToken).ConfigureAwait(false);
+                }
+                else if (!_cacheService.ProjectItemsCache.TryGetValue(project.Id, out cacheEntry))
+                {
+                    // Use cached data if available, even checksum doesn't match. otherwise, returns null indicating cache not ready.
+                    return null;
                 }
 
                 if (!cacheEntry.ContainsExtensionMethod)
@@ -209,30 +200,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             private async ValueTask<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromPeReferenceAsync(
                 PortableExecutableReference peReference,
-                bool forceIndexCreation,
+                bool forceCacheCreation,
                 CancellationToken cancellationToken)
             {
                 SymbolTreeInfo? symbolInfo;
-                var cachedInfoTask = SymbolTreeInfo.TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(peReference, cancellationToken);
-                if (cachedInfoTask?.IsCompleted is true)
+                if (forceCacheCreation)
                 {
-                    // Use cached data if available, even checksum doesn't match. We will update the cache in the background.
-                    symbolInfo = await cachedInfoTask.ConfigureAwait(false);
-                    GetUpToDateSymbolTreeInfoForPeReferencesInBackground(_originatingDocument.Project, peReference, CancellationToken.None);
-                }
-                else if (!forceIndexCreation)
-                {
-                    // No cached data immediately available, queue a task to update the cache in background, and returns null to indicate index not ready
-                    GetUpToDateSymbolTreeInfoForPeReferencesInBackground(_originatingDocument.Project, peReference, CancellationToken.None);
-                    return null;
+                    symbolInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                        _originatingDocument.Project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
-                    symbolInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        _originatingDocument.Project.Solution, peReference, loadOnly: !forceIndexCreation, cancellationToken).ConfigureAwait(false);
+                    var cachedInfoTask = SymbolTreeInfo.TryGetCachedInfoForMetadataReferenceIgnoreChecksumAsync(peReference, cancellationToken);
+                    if (cachedInfoTask.IsCompleted)
+                    {
+                        // Use cached data if available, even checksum doesn't match. We will update the cache in the background.
+                        symbolInfo = await cachedInfoTask.ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // No cached data immediately available, returns null to indicate index not ready
+                        return null;
+                    }
                 }
 
-                if (!(symbolInfo.ContainsExtensionMethod && _originatingSemanticModel.Compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assembly))
+                if (symbolInfo is null ||
+                    !symbolInfo.ContainsExtensionMethod ||
+                    _originatingSemanticModel.Compilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assembly)
                 {
                     return ImmutableArray<IMethodSymbol>.Empty;
                 }
