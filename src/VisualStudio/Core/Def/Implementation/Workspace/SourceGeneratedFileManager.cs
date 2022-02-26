@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public Task<INavigableDocumentLocation?> GetNavigableLocationAsync(SourceGeneratedDocument document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        public Func<bool>? GetNavigationCallback(SourceGeneratedDocument document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             // We will create an file name to represent this generated file; the Visual Studio shell APIs imply you can use a URI,
             // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 File.WriteAllText(temporaryFilePath, "");
             }
 
-            return Task.FromResult<INavigableDocumentLocation?>(new CallbackNavigableDocumentLocation(() =>
+            return () =>
             {
                 Contract.ThrowIfFalse(_threadingContext.HasMainThread);
                 var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 return true;
-            }));
+            };
         }
 
         public bool TryGetGeneratedFileInformation(

@@ -241,9 +241,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             NavigationOptions options,
             CancellationToken cancellationToken)
         {
-            var underlyingLocation = await GetNavigableLocationAsync(
+            var navigateTo = await GetNavigableLocationAsync(
                 workspace, documentId, getTextSpanForMappingAsync, getVsTextSpan, cancellationToken).ConfigureAwait(true);
-            if (underlyingLocation == null)
+            if (navigateTo == null)
                 return null;
 
             return new CallbackNavigableDocumentLocation(() =>
@@ -251,12 +251,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 Contract.ThrowIfFalse(_threadingContext.HasMainThread);
                 using (OpenNewDocumentStateScope(options))
                 {
-                    return underlyingLocation.NavigateTo();
+                    return navigateTo();
                 }
             });
         }
 
-        private async Task<INavigableDocumentLocation?> GetNavigableLocationAsync(
+        private async Task<Func<bool>?> GetNavigableLocationAsync(
             Workspace workspace,
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
@@ -320,7 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 documentId, workspace, getVsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<INavigableDocumentLocation?> GetNavigableLocationInWorkspaceAsync(
+        private async Task<Func<bool>?> GetNavigableLocationInWorkspaceAsync(
             DocumentId documentId,
             Workspace workspace,
             Func<SourceText, VsTextSpan> getVsTextSpan,
@@ -345,11 +345,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return null;
             }
 
-            return new CallbackNavigableDocumentLocation(() =>
-                NavigateTo(textBuffer, vsTextSpan, cancellationToken));
+            return () => NavigateTo(textBuffer, vsTextSpan, cancellationToken);
         }
 
-        private async Task<INavigableDocumentLocation?> GetNavigableLocationForMappedFileAsync(
+        private async Task<Func<bool>?> GetNavigableLocationForMappedFileAsync(
             Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -369,8 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 iEndLine = mappedSpanResult.LinePositionSpan.End.Line
             };
 
-            return new CallbackNavigableDocumentLocation(() =>
-                NavigateTo(textBuffer, vsTextSpan, cancellationToken));
+            return () => NavigateTo(textBuffer, vsTextSpan, cancellationToken);
         }
 
         private static async Task<MappedSpanResult?> GetMappedSpanAsync(
