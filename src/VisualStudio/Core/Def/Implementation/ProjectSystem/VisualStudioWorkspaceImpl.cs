@@ -71,6 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
+        /// <summary>
+        /// The main gate to synchronize updates to this solution.
+        /// </summary>
+        /// <remarks>
+        /// See the Readme.md in this directory for further comments about threading in this area.
+        /// </remarks>
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         /// <summary>

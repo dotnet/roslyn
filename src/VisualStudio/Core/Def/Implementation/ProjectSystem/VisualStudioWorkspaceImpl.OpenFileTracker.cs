@@ -44,6 +44,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <see cref="_justEnumerateTheEntireRunningDocumentTable"/> and <see cref="_taskPending"/>. These are the only mutable fields
             /// in this class that are modified from multiple threads.
             /// </summary>
+            /// <remarks>
+            /// This lock should not be held when calling outside this class to avoid deadlocks; see the Readme.md in this folder for further
+            /// details.
+            /// </remarks>
             private readonly object _gate = new();
             private HashSet<string>? _fileNamesToCheckForOpenDocuments;
 
