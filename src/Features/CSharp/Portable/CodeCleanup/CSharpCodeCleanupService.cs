@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 
                 // Code-block preferences
                 //   csharp_prefer_braces
-                new DiagnosticSet(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements,
+                new DiagnosticSet(CSharpFeaturesResources.Add_required_braces_for_single_line_control_statements,
                     IDEDiagnosticIds.AddBracesDiagnosticId),
 
                 //   csharp_prefer_simple_using_statement

@@ -33,5 +33,26 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             var result = await _service.GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).ConfigureAwait(false);
             return result.SelectAsArray(data => new VSTypeScriptDiagnosticData(data));
         }
+
+        public IDisposable RegisterDiagnosticsUpdatedEventHandler(Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
+            => new EventHandlerWrapper(_service, action);
+
+        private sealed class EventHandlerWrapper : IDisposable
+        {
+            private readonly IDiagnosticService _service;
+            private readonly EventHandler<DiagnosticsUpdatedArgs> _handler;
+
+            internal EventHandlerWrapper(IDiagnosticService service, Action<VSTypeScriptDiagnosticsUpdatedArgsWrapper> action)
+            {
+                _service = service;
+                _handler = (sender, args) => action(new VSTypeScriptDiagnosticsUpdatedArgsWrapper(args));
+                _service.DiagnosticsUpdated += _handler;
+            }
+
+            public void Dispose()
+            {
+                _service.DiagnosticsUpdated -= _handler;
+            }
+        }
     }
 }
