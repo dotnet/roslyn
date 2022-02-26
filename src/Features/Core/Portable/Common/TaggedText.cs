@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="style">The style(s) to apply to the text.</param>
         /// <param name="navigationTarget">The navigation target for the text, or <see langword="null"/> if the text does not have a navigation target.</param>
         /// <param name="navigationHint">The navigation hint for the text, or <see langword="null"/> if the text does not have a navigation hint.</param>
-        internal TaggedText(string tag, string text, TaggedTextStyle style, string navigationTarget, string navigationHint)
+        internal TaggedText(string tag!!, string text!!, TaggedTextStyle style, string navigationTarget, string navigationHint)
         {
-            Tag = tag ?? throw new ArgumentNullException(nameof(tag));
-            Text = text ?? throw new ArgumentNullException(nameof(text));
+            Tag = tag;
+            Text = text;
             Style = style;
             NavigationTarget = navigationTarget;
             NavigationHint = navigationHint;
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayPartKindTags.GetTag(d.Kind),
                     d.ToString(),
                     style,
-                    includeNavigationHints ? GetNavigationTarget(d.Symbol) : null,
-                    includeNavigationHints ? getNavigationHint(d.Symbol) : null));
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? GetNavigationTarget(d.Symbol) : null,
+                    includeNavigationHints && d.Kind != SymbolDisplayPartKind.NamespaceName ? getNavigationHint(d.Symbol) : null));
         }
 
         private static string GetNavigationTarget(ISymbol symbol)
