@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.OrganizeImports
 {
     internal interface IOrganizeImportsService : ILanguageService
     {
-        Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken);
+        Task<Document> OrganizeImportsAsync(Document document, OrganizeImportsOptions options, CancellationToken cancellationToken);
 
         string SortImportsDisplayStringWithAccelerator { get; }
 

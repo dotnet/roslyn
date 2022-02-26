@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -21,9 +22,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
     [DataContract]
     internal readonly record struct CodeActionOptions(
         [property: DataMember(Order = 0)] SymbolSearchOptions SearchOptions,
-        [property: DataMember(Order = 1)] bool HideAdvancedMembers = false,
-        [property: DataMember(Order = 2)] bool IsBlocking = false,
-        [property: DataMember(Order = 3)] int WrappingColumn = CodeActionOptions.DefaultWrappingColumn)
+        [property: DataMember(Order = 1)] ImplementTypeOptions ImplementTypeOptions,
+        [property: DataMember(Order = 2)] bool HideAdvancedMembers = false,
+        [property: DataMember(Order = 3)] bool IsBlocking = false,
+        [property: DataMember(Order = 4)] int WrappingColumn = CodeActionOptions.DefaultWrappingColumn)
     {
         /// <summary>
         /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
@@ -38,7 +40,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const int DefaultWrappingColumn = 120;
 
         public CodeActionOptions()
-            : this(SearchOptions: SymbolSearchOptions.Default)
+            : this(SearchOptions: SymbolSearchOptions.Default,
+                   ImplementTypeOptions: ImplementTypeOptions.Default)
         {
         }
 
