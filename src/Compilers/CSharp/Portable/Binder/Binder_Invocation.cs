@@ -180,12 +180,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression boundExpression = BindMethodGroup(node.Expression, invoked: true, indexed: false, diagnostics: diagnostics);
                 boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
                 string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
-                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-                result = BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
+
+                // If the method group contains more than one method and if any of the
+                // arguments are unbound lambda expressions, then track the number of
+                // methods to avoid binding nested lambda expressions unnecessarily.
+                Binder binder = this;
+                if (boundExpression is BoundMethodGroup { Methods: { Length: int methodGroupLength } } &&
+                    methodGroupLength > 1 &&
+                    node.ArgumentList.Arguments.Any(arg => isLambdaExpression(arg.Expression)))
+                {
+                    binder = new MethodGroupBinder(this, methodGroupLength);
+                }
+                binder.BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                result = binder.BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
             }
 
             analyzedArguments.Free();
             return result;
+
+            static bool isLambdaExpression(SyntaxNode syntax)
+            {
+                // PROTOTYPE: Test all cases.
+                return syntax.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.AnonymousMethodExpression;
+            }
         }
 
         private BoundExpression BindArgListOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, AnalyzedArguments analyzedArguments)
@@ -560,6 +577,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private sealed class MethodGroupBinder : Binder
+        {
+            internal MethodGroupBinder(Binder next, int methodGroupLength) : base(next)
+            {
+                Debug.Assert(methodGroupLength > 0);
+                MethodOverloadCount = methodGroupLength * next.MethodOverloadCount;
+            }
+
+            internal override int MethodOverloadCount { get; }
         }
 
         private BoundExpression BindMethodGroupInvocation(
@@ -975,11 +1003,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (argument)
                         {
                             case UnboundLambda unboundLambda:
-                                // BindForErrorRecovery() will seal the binding cache for the lambda, and
-                                // will bind the lambda without a delegate type if not previously bound.
-                                // Note that we're calling BindForErrorRecovery() if there are any errors in arguments,
-                                // not necessarily an error for this argument. It's not clear if that's intentional but it can
-                                // improve perf at the expense of Intellisense: see LambdaTests.TestLambdaWithError20().
                                 var boundWithErrors = unboundLambda.BindForErrorRecovery();
                                 diagnostics.AddRange(boundWithErrors.Diagnostics);
                                 break;
@@ -1668,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // bind the argument against each applicable parameter
                             var unboundArgument = (UnboundLambda)argument;
-                            if (!unboundArgument.HasBoundForErrorRecovery)
+                            if (MethodOverloadCount < MaxMethodOverloadCount && !unboundArgument.HasBoundForErrorRecovery)
                             {
                                 foreach (var parameterList in parameterListList)
                                 {

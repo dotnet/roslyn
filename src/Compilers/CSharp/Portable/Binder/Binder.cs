@@ -230,6 +230,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal virtual bool IsNestedFunctionBinder => false;
 
+        internal const int MaxMethodOverloadCount = 16;
+
+        /// <summary>
+        /// A rough estimate of the method overload count binding nested lambdas.
+        /// </summary>
+        internal virtual int MethodOverloadCount
+        {
+            get
+            {
+                Debug.Assert(Next is object);
+                return Next.MethodOverloadCount;
+            }
+        }
+
         /// <summary>
         /// The member containing the binding context.  Note that for the purposes of the compiler,
         /// a lambda expression is considered a "member" of its enclosing method, field, or lambda.
