@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private readonly SourcePropertyAccessorSymbol? _getMethod;
         private readonly SourcePropertyAccessorSymbol? _setMethod;
+        private object? _lazyBackingFieldSymbol = _lazyBackingFieldSymbolSentinel;
 #nullable disable
         private readonly TypeSymbol _explicitInterfaceType;
         private ImmutableArray<PropertySymbol> _lazyExplicitInterfaceImplementations;
@@ -84,8 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Represents that <see cref="_lazyBackingFieldSymbol"/> value is unknown.
         /// </summary>
         private static readonly object _lazyBackingFieldSymbolSentinel = new object();
-
-        private object _lazyBackingFieldSymbol = _lazyBackingFieldSymbolSentinel;
 
         // CONSIDER: if the parameters were computed lazily, ParameterCount could be overridden to fall back on the syntax (as in SourceMemberMethodSymbol).
 
@@ -186,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(!IsIndexer);
                 // PROTOTYPE(semi-auto-props): Make sure that TestSemiAutoPropertyWithInitializer (when enabled back) is affected by this.
                 // That is, if we removed "hasInitializer", the test should fail, or any other test should get affected.
-                CreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true);
+                GetOrCreateBackingField(isCreatedForFieldKeyword: hasInitializer && !isAutoProperty, isEarlyConstructed: true);
             }
 
             if (hasGetAccessor)
@@ -199,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedBackingFieldSymbol? CreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
+        private SynthesizedBackingFieldSymbol? GetOrCreateBackingField(bool isCreatedForFieldKeyword, bool isEarlyConstructed)
         {
             Debug.Assert(!IsIndexer);
             if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel)
@@ -217,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
         }
 
-        internal SynthesizedBackingFieldSymbol? CreateBackingFieldForFieldKeyword(bool isSemanticModelBinder)
+        internal SynthesizedBackingFieldSymbol? GetOrCreateBackingFieldForFieldKeyword(bool isSemanticModelBinder)
         {
             // field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
             var shouldBindField = !isSemanticModelBinder || FieldKeywordBackingField is not null;
@@ -226,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            return CreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
+            return GetOrCreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
@@ -791,6 +790,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        /// <summary>
+        /// This is a syntactic check only.
+        /// </summary>
+        internal bool HasAccessorContainingFieldKeyword => _getMethod?.ContainsFieldKeyword == true || _setMethod?.ContainsFieldKeyword == true;
 
         private bool AllowInitializer
         {

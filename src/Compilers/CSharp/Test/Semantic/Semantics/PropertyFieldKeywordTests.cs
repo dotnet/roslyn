@@ -1782,15 +1782,12 @@ class C
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             }
-            else if (bindingState == FieldBindingTestState.BecomesBackingField)
+            else
             {
+                Assert.Equal(FieldBindingTestState.BecomesBackingField, bindingState);
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-            }
-            else
-            {
-                Assert.False(true, "Unexpected state.");
             }
         }
 
@@ -2178,6 +2175,29 @@ public class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
             Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFromSemanticModelBinder()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P1 { get => field; }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var info = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Empty(info.CandidateSymbols);
+            Assert.False(info.IsEmpty);
+            Assert.Equal("System.Int32 C.<P1>k__BackingField", info.Symbol.GetSymbol().ToTestDisplayString());
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }
