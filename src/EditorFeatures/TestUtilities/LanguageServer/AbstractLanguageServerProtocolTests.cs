@@ -45,7 +45,7 @@ namespace Roslyn.Test.Utilities
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
-            .AddParts(typeof(TestSyntaxTreeConfigurationService))
+            .AddParts(typeof(TestWorkspaceConfigurationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
@@ -312,8 +312,8 @@ namespace Roslyn.Test.Utilities
         private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, string languageName, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
-            var syntaxTreeConfigurationService = exportProvider.GetExportedValue<TestSyntaxTreeConfigurationService>();
-            syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace = true;
+            var workspaceConfigurationService = exportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+            workspaceConfigurationService.Options = new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true);
 
             var workspace = languageName switch
             {

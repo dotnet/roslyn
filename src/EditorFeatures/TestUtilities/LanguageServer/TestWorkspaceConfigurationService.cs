@@ -5,26 +5,23 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Roslyn.Test.Utilities
 {
     [Export]
-    [ExportWorkspaceService(typeof(ISyntaxTreeConfigurationService), ServiceLayer.Test)]
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test)]
     [Shared]
     [PartNotDiscoverable]
-    internal sealed class TestSyntaxTreeConfigurationService : ISyntaxTreeConfigurationService
+    internal sealed class TestWorkspaceConfigurationService : IWorkspaceConfigurationService
     {
+        public WorkspaceConfigurationOptions Options { get; set; }
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TestSyntaxTreeConfigurationService()
+        public TestWorkspaceConfigurationService()
         {
         }
-
-        public bool DisableRecoverableTrees { get; set; }
-
-        public bool DisableProjectCacheService { get; set; }
-
-        public bool EnableOpeningSourceGeneratedFilesInWorkspace { get; set; }
     }
 }

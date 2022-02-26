@@ -6,27 +6,34 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Telemetry
+namespace Microsoft.CodeAnalysis.Host
 {
-    [ExportWorkspaceService(typeof(ISyntaxTreeConfigurationService)), Shared]
-    internal sealed class RemoteSyntaxTreeConfigurationService : ISyntaxTreeConfigurationService
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService)), Shared]
+    internal sealed class RemoteWorkspaceConfigurationService : IWorkspaceConfigurationService
     {
-        public bool DisableRecoverableTrees { get; private set; }
-        public bool DisableProjectCacheService { get; private set; }
-        public bool EnableOpeningSourceGeneratedFilesInWorkspace { get; private set; }
+        private WorkspaceConfigurationOptions? _options;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteSyntaxTreeConfigurationService()
+        public RemoteWorkspaceConfigurationService()
         {
         }
 
-        internal void SetOptions(bool disableRecoverableTrees, bool disableProjectCacheService, bool enableOpeningSourceGeneratedFilesInWorkspace)
+        /// <summary>
+        /// Returns default values until the options are initialized.
+        /// </summary>
+        public WorkspaceConfigurationOptions Options
+            => _options ?? WorkspaceConfigurationOptions.RemoteDefault;
+
+        public void InitializeOptions(WorkspaceConfigurationOptions options)
         {
-            DisableRecoverableTrees = disableRecoverableTrees;
-            DisableProjectCacheService = disableProjectCacheService;
-            EnableOpeningSourceGeneratedFilesInWorkspace = enableOpeningSourceGeneratedFilesInWorkspace;
+            // can only be set once:
+            Contract.ThrowIfFalse(_options == null);
+
+            _options = options;
         }
     }
 }
