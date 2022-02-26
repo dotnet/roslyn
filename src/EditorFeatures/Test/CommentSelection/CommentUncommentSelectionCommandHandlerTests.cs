@@ -764,7 +764,7 @@ class A
             var service = new MockCommentSelectionService(supportBlockComments);
 
             var edits = commandHandler.CollectEditsAsync(
-                null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None).GetAwaiter().GetResult();
+                null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, textView.Options, CancellationToken.None).GetAwaiter().GetResult();
 
             AssertEx.SetEqual(expectedChanges, edits.TextChanges);
 

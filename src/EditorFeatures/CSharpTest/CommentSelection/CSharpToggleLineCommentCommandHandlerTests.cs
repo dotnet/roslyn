@@ -56,8 +56,8 @@ class C
 {
     void M()
     {
-        //var[||] i = 1;
-    }
+        //var i = 1;
+    }[||]
 }";
 
             ToggleComment(markup, expected);
@@ -81,8 +81,8 @@ class C
 {
     void M()
     {
-[||]        //var i = 1;
-    }
+        //var i = 1;
+[||]    }
 }";
 
             ToggleComment(markup, expected);
@@ -260,8 +260,8 @@ class C
 {
     void M()
     {
-        //var [||]i = 1; // A comment.
-    }
+        //var i = 1; // A comment.
+    }[||]
 }";
 
             ToggleComment(markup, expected);
@@ -285,8 +285,8 @@ class C
 {
     void M()
     {
-        //var i = 1; // A [||]comment.
-    }
+        //var i = 1; // A comment.
+    }[||]
 }";
 
             ToggleComment(markup, expected);
@@ -584,8 +584,8 @@ class C
 {
     void M()
     {
-        var[||] i = 1;
-    }
+        var i = 1;
+    }[||]
 }";
 
             ToggleComment(markup, expected);
@@ -609,8 +609,8 @@ class C
 {
     void M()
     {
-    [||]    var i = 1;
-    }
+        var i = 1;
+    [||]}
 }";
 
             ToggleComment(markup, expected);
@@ -634,8 +634,8 @@ class C
 {
     void M()
     {
-        var i = 1; // A [||]comment.
-    }
+        var i = 1; // A comment.
+    }[||]
 }";
 
             ToggleComment(markup, expected);
@@ -659,8 +659,8 @@ class C
 {
     void M()
     {
-        //var[||] i = 1;
-    }
+        //var i = 1;
+    }[||]
 }";
 
             ToggleComment(markup, expected);
