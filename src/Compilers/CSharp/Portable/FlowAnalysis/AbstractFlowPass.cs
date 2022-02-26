@@ -1515,24 +1515,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = node.Argument as BoundMethodGroup;
             if (methodGroup != null)
             {
-                if ((object)node.MethodOpt != null && node.MethodOpt.RequiresInstanceReceiver)
+                if (node.MethodOpt is { } methodOpt &&
+                    (methodOpt.RequiresInstanceReceiver || methodOpt.IsExtensionMethod))
                 {
                     EnterRegionIfNeeded(methodGroup);
                     VisitRvalue(methodGroup.ReceiverOpt);
                     LeaveRegionIfNeeded(methodGroup);
                 }
-                else if (node.MethodOpt?.OriginalDefinition is { } orgDef)
+                else if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
                 {
-                    if (orgDef is LocalFunctionSymbol localFunc)
-                    {
-                        VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
-                    }
-                    else if (orgDef is MethodSymbol me && me.IsExtensionMethod)
-                    {
-                        EnterRegionIfNeeded(methodGroup);
-                        VisitRvalue(methodGroup.ReceiverOpt);
-                        LeaveRegionIfNeeded(methodGroup);
-                    }
+                    VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
             }
             else
