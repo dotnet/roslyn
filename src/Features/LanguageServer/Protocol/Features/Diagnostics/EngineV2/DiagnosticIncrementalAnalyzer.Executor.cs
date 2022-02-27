@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Also returns empty diagnostics for suppressed analyzer.
         /// Returns null if the diagnostics need to be computed.
         /// </summary>
-        private static DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
+        private DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
             TextDocument document, StateSet stateSet,
             AnalysisKind kind, VersionStamp version,
             BackgroundAnalysisScope analysisScope, bool isActiveDocument,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
-                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project) ||
+                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
                     !IsAnalyzerEnabledForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
                 {
                     return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        internal static bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
+        internal bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
         {
             if (forceAnalyzerRun)
             {
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            return SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
+            return SolutionCrawlerOptions.GetBackgroundAnalysisScope(GlobalOptions, project.Language) == BackgroundAnalysisScope.FullSolution;
         }
 
         private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

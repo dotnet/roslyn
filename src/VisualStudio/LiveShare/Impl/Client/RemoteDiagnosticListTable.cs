@@ -35,12 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             RemoteLanguageServiceWorkspace workspace,
-            IGlobalOptionService globalOptions,
             IDiagnosticService diagnosticService,
             ITableManagerProvider provider)
             : base(workspace, provider)
         {
-            _source = new LiveTableDataSource(workspace, threadingContext, globalOptions, diagnosticService, IdentifierString);
+            _source = new LiveTableDataSource(workspace, threadingContext, diagnosticService, IdentifierString);
             AddInitialTableSource(workspace.CurrentSolution, _source);
 
             ConnectWorkspaceEvents();

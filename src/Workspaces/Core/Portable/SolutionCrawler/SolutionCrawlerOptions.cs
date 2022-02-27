@@ -13,22 +13,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// Option to turn configure background analysis scope for the current user.
         /// </summary>
         public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-            nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
+            "SolutionCrawlerOptions", "BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 
         /// <summary>
         /// Option to turn configure background analysis scope for the current solution.
         /// </summary>
         public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
-            nameof(SolutionCrawlerOptions), nameof(SolutionBackgroundAnalysisScopeOption), defaultValue: null);
+            "SolutionCrawlerOptions", "SolutionBackgroundAnalysisScopeOption", defaultValue: null);
 
-        /// <summary>
-        /// This option is used by TypeScript and F#.
-        /// </summary>
-        [Obsolete("Currently used by F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
-        internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new(
-            "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
+        public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
+            "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
 
         /// <summary>
         /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.
@@ -41,37 +37,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <para>This value is not affected by the solution-specific configuration set through
         /// <see cref="SolutionBackgroundAnalysisScopeOption"/>.</para>
         /// </summary>
-        public static BackgroundAnalysisScope GetDefaultBackgroundAnalysisScopeFromOptions(OptionSet options, string language)
-        {
-            switch (language)
-            {
-                case LanguageNames.FSharp:
-#pragma warning disable CS0618 // Type or member is obsolete - F# is still on the older ClosedFileDiagnostic option.
-                    var option = options.GetOption(ClosedFileDiagnostic, language);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                    // Note that the default value for this option is 'true' for this language.
-                    if (!option.HasValue || option.Value)
-                    {
-                        return BackgroundAnalysisScope.FullSolution;
-                    }
-
-                    return BackgroundAnalysisScope.OpenFiles;
-
-                default:
-                    return options.GetOption(BackgroundAnalysisScopeOption, language);
-            }
-        }
-
-        /// <summary>
-        /// <para>Gets the effective background analysis scope for the specified project.</para>
-        ///
-        /// <para>Gets the solution-specific analysis scope set through
-        /// <see cref="SolutionBackgroundAnalysisScopeOption"/>, or the default analysis scope if no solution-specific
-        /// scope is set.</para>
-        /// </summary>
-        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(Project project)
-            => GetBackgroundAnalysisScope(project.Solution.Options, project.Language);
+        public static BackgroundAnalysisScope GetDefaultBackgroundAnalysisScopeFromOptions(IGlobalOptionService globalOptions, string language)
+            => globalOptions.GetOption(BackgroundAnalysisScopeOption, language);
 
         /// <summary>
         /// <para>Gets the effective background analysis scope for the current solution.</para>
@@ -80,19 +47,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         /// <see cref="SolutionBackgroundAnalysisScopeOption"/>, or the default analysis scope if no solution-specific
         /// scope is set.</para>
         /// </summary>
-        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet options, string language)
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(IGlobalOptionService globalOptions, string language)
         {
             if (LowMemoryForcedMinimalBackgroundAnalysis)
             {
                 return BackgroundAnalysisScope.Minimal;
             }
 
-            if (options.GetOption(SolutionBackgroundAnalysisScopeOption) is { } scope)
-            {
-                return scope;
-            }
-
-            return GetDefaultBackgroundAnalysisScopeFromOptions(options, language);
+            return globalOptions.GetOption(SolutionBackgroundAnalysisScopeOption) ??
+                   GetDefaultBackgroundAnalysisScopeFromOptions(globalOptions, language);
         }
     }
 }
