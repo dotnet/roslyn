@@ -241,9 +241,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             NavigationOptions options,
             CancellationToken cancellationToken)
         {
-            var navigateTo = await GetNavigableLocationAsync(
+            var callback = await GetNavigationCallbackAsync(
                 workspace, documentId, getTextSpanForMappingAsync, getVsTextSpan, cancellationToken).ConfigureAwait(true);
-            if (navigateTo == null)
+            if (callback == null)
                 return null;
 
             return new NavigableLocation(async cancellationToken =>
@@ -252,12 +252,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 using (OpenNewDocumentStateScope(options))
                 {
                     // Ensure we come back to the UI Thread after navigating so we close the state scope.
-                    return await navigateTo(cancellationToken).ConfigureAwait(true);
+                    return await callback(cancellationToken).ConfigureAwait(true);
                 }
             });
         }
 
-        private async Task<Func<CancellationToken, Task<bool>>?> GetNavigableLocationAsync(
+        private async Task<Func<CancellationToken, Task<bool>>?> GetNavigationCallbackAsync(
             Workspace workspace,
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
@@ -327,8 +327,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Func<SourceText, VsTextSpan> getVsTextSpan,
             CancellationToken cancellationToken)
         {
-            // Have to be on the UI thread to open a document.
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
             var document = OpenDocument(workspace, documentId);
             if (document == null)
             {
