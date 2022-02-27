@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            if (!context.GetIdeOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
+            if (!context.Options.GetIdeOptions().ReportInvalidPlaceholdersInStringDotFormatCalls)
             {
                 return;
             }

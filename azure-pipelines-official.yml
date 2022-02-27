@@ -180,6 +180,8 @@ stages:
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
+      
+    - template: eng\common\templates\steps\generate-sbom.yml
 
     - task: PowerShell@2
       displayName: Publish Assets
