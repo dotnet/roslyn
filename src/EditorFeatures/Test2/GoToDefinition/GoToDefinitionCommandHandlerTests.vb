@@ -18,17 +18,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <[UseExportProvider]>
     Public Class GoToDefinitionCancellationTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCancellation()
+        Public Async Function TestCancellation() As Task
             ' Run without cancelling.
-            Dim updates = Cancel(Integer.MaxValue, False)
+            Dim updates = Await CancelAsync(Integer.MaxValue, False)
             Assert.InRange(updates, 0, Integer.MaxValue)
             Dim i As Integer = 0
             While i < updates
-                Dim n = Cancel(i, True)
+                Dim n = Await CancelAsync(i, True)
                 Assert.Equal(n, i + 1)
                 i += 1
             End While
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestInLinkedFiles()
@@ -65,7 +65,7 @@ class C
                 Dim mockDocumentNavigationService =
                     DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
-                Dim handler = New GoToDefinitionCommandHandler()
+                Dim handler = New GoToDefinitionCommandHandler(workspace.GetService(Of IThreadingContext))
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
                 Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
@@ -78,7 +78,7 @@ class C
             End Using
         End Sub
 
-        Private Shared Function Cancel(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Integer
+        Private Shared Async Function CancelAsync(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Task(Of Integer)
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -104,7 +104,9 @@ class C
                 Dim goToDefService = New CSharpGoToDefinitionService(threadingContext, presenter)
 
                 Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
-                GoToDefinitionCommandHandler.TestAccessor.ExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
+                Dim handler = New GoToDefinitionCommandHandler(workspace.GetService(Of IThreadingContext))
+                Await handler.GetTestAccessor().ExecuteCommandAsync(
+                    document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
 
                 Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
 
