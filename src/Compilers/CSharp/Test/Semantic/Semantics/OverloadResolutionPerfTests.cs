@@ -816,7 +816,7 @@ class Program
             var data = new LambdaBindingData();
             comp.TestOnlyCompilationData = data;
             var diagnostics = comp.GetDiagnostics();
-            Assert.Equal((84, 126), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
+            Assert.Equal((104, 154), (data.LambdaBindingCount, data.UnboundLambdaStateCount));
             diagnostics.Verify();
         }
 

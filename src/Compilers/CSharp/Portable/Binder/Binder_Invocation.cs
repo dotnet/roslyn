@@ -180,29 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression boundExpression = BindMethodGroup(node.Expression, invoked: true, indexed: false, diagnostics: diagnostics);
                 boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
                 string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
-
-                // If the method group contains more than one method and if any of the
-                // arguments are unbound lambda expressions, then track the number of
-                // methods to avoid binding nested lambda expressions unnecessarily.
-                Binder binder = this;
-                if (boundExpression is BoundMethodGroup { Methods: { Length: int methodGroupLength } } &&
-                    methodGroupLength > 1 &&
-                    node.ArgumentList.Arguments.Any(arg => isLambdaExpression(arg.Expression)))
-                {
-                    binder = new MethodGroupBinder(this, methodGroupLength);
-                }
-                binder.BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-                result = binder.BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
+                BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                result = BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
             }
 
             analyzedArguments.Free();
             return result;
-
-            static bool isLambdaExpression(SyntaxNode syntax)
-            {
-                // PROTOTYPE: Test all cases.
-                return syntax.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.AnonymousMethodExpression;
-            }
         }
 
         private BoundExpression BindArgListOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, AnalyzedArguments analyzedArguments)
@@ -577,17 +560,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
-        }
-
-        private sealed class MethodGroupBinder : Binder
-        {
-            internal MethodGroupBinder(Binder next, int methodGroupLength) : base(next)
-            {
-                Debug.Assert(methodGroupLength > 0);
-                MethodOverloadCount = methodGroupLength * next.MethodOverloadCount;
-            }
-
-            internal override int MethodOverloadCount { get; }
         }
 
         private BoundExpression BindMethodGroupInvocation(
@@ -1676,6 +1648,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        private const int MaxLambdaExpressionDepthForErrorRecovery = 2;
+
+        private static int NestedLambdaExpressionDepth(SyntaxNode syntax)
+        {
+            int n = 0;
+            while (syntax is { })
+            {
+                if (syntax.Kind() is SyntaxKind.SimpleLambdaExpression or SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.AnonymousMethodExpression)
+                {
+                    n++;
+                }
+                syntax = syntax.Parent;
+            }
+            return n;
+        }
+
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
         {
             var discardedDiagnostics = DiagnosticBag.GetInstance();
@@ -1691,7 +1679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // bind the argument against each applicable parameter
                             var unboundArgument = (UnboundLambda)argument;
-                            if (MethodOverloadCount < MaxMethodOverloadCount && !unboundArgument.HasBoundForErrorRecovery)
+                            if (NestedLambdaExpressionDepth(unboundArgument.Syntax) <= MaxLambdaExpressionDepthForErrorRecovery &&
+                                !unboundArgument.HasBoundForErrorRecovery)
                             {
                                 foreach (var parameterList in parameterListList)
                                 {

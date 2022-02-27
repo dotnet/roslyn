@@ -153,10 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE: Seems like an odd name for the property if the
-        // default value (when there are no overloads) is 1.
-        internal override int MethodOverloadCount => 1;
-
         internal override bool AreNullableAnnotationsGloballyEnabled()
         {
             return GetGlobalAnnotationState();
