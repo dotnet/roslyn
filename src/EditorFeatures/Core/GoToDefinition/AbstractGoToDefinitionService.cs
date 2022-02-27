@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
             => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-        private static Task<INavigableDocumentLocation?> GetNavigableLocationAsync(
+        private static Task<INavigableLocation?> GetNavigableLocationAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-            return service.GetNavigableLocationForPositionAsync(
+            return service.GetLocationForPositionAsync(
                 workspace, document.Id, position, virtualSpace: 0,
                 new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken);
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
             => throw new NotImplementedException("Use FindDefinitionLocationAsync instead.");
 
-        public async Task<INavigableDocumentLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
             var targetPositionOfControlFlow = await symbolService.GetTargetIfControlFlowAsync(
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<INavigableDocumentLocation?> GetAlternativeLocationIfAlreadyOnDefinitionAsync(
+        private async Task<INavigableLocation?> GetAlternativeLocationIfAlreadyOnDefinitionAsync(
             Document document, int position, ISymbol symbol, CancellationToken cancellationToken)
         {
             var project = document.Project;
@@ -133,9 +133,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = builder.ToImmutable();
 
-            return new NavigableDocumentLocation(cancellationToken =>
-                _streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext, solution.Workspace, title, definitions, cancellationToken));
+            return await _streamingPresenter.GetNavigableLocationAsync(
+                _threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> IsThirdPartyNavigationAllowedAsync(
