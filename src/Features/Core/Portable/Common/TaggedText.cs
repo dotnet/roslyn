@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis
         /// <param name="style">The style(s) to apply to the text.</param>
         /// <param name="navigationTarget">The navigation target for the text, or <see langword="null"/> if the text does not have a navigation target.</param>
         /// <param name="navigationHint">The navigation hint for the text, or <see langword="null"/> if the text does not have a navigation hint.</param>
-        internal TaggedText(string tag!!, string text!!, TaggedTextStyle style, string navigationTarget, string navigationHint)
+        internal TaggedText(string tag, string text, TaggedTextStyle style, string navigationTarget, string navigationHint)
         {
-            Tag = tag;
-            Text = text;
+            Tag = tag ?? throw new ArgumentNullException(nameof(tag));
+            Text = text ?? throw new ArgumentNullException(nameof(text));
             Style = style;
             NavigationTarget = navigationTarget;
             NavigationHint = navigationHint;
