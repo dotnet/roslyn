@@ -285,8 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return _sourceGeneratedFileManager.Value.GetNavigationCallback(
                     generatedDocument,
-                    await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false),
-                    cancellationToken);
+                    await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
             }
 
             // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
@@ -327,21 +326,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Func<SourceText, VsTextSpan> getVsTextSpan,
             CancellationToken cancellationToken)
         {
-            var document = OpenDocument(workspace, documentId);
-            if (document == null)
+            // Always open the document again, even if the document is already open in the 
+            // workspace. If a document is already open in a preview tab and it is opened again 
+            // in a permanent tab, this allows the document to transition to the new state.
+            if (workspace.CanOpenDocuments)
             {
-                return null;
+                // OpenDocument can only be called from teh UI thread.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                workspace.OpenDocument(documentId);
             }
 
-            // Keep this on the UI thread since we're about to do span mapping.
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(true);
+            if (!workspace.IsDocumentOpen(documentId))
+                return null;
+
+            var document = workspace.CurrentSolution.GetDocument(documentId);
+            if (document == null)
+                return null;
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textBuffer = text.Container.GetTextBuffer();
 
             var vsTextSpan = getVsTextSpan(text);
-            if (IsSecondaryBuffer(workspace, documentId) &&
-                !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
+            if (IsSecondaryBuffer(workspace, documentId))
             {
-                return null;
+                var mapped = await vsTextSpan.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
+                    _threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
+                if (mapped == null)
+                    return null;
+
+                vsTextSpan = mapped.Value;
             }
 
             return cancellationToken => NavigateToTextBufferAsync(textBuffer, vsTextSpan, cancellationToken);
@@ -410,24 +423,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
             => TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
 
-        private static Document? OpenDocument(Workspace workspace, DocumentId documentId)
-        {
-            // Always open the document again, even if the document is already open in the 
-            // workspace. If a document is already open in a preview tab and it is opened again 
-            // in a permanent tab, this allows the document to transition to the new state.
-            if (workspace.CanOpenDocuments)
-            {
-                workspace.OpenDocument(documentId);
-            }
-
-            if (!workspace.IsDocumentOpen(documentId))
-            {
-                return null;
-            }
-
-            return workspace.CurrentSolution.GetDocument(documentId);
-        }
-
         public async Task<bool> NavigateToTextBufferAsync(
             ITextBuffer textBuffer, VsTextSpan vsTextSpan, CancellationToken cancellationToken)
         {
@@ -468,19 +463,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
-            if (containedDocument == null)
-            {
-                return false;
-            }
-
-            return true;
+            return containedDocument != null;
         }
 
         private async Task<bool> CanMapFromSecondaryBufferToPrimaryBufferAsync(
             Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer, CancellationToken cancellationToken)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out _);
+            var mapped = await spanInSecondaryBuffer.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
+                _threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
+            return mapped != null;
         }
 
         private static IDisposable OpenNewDocumentStateScope(NavigationOptions options)
