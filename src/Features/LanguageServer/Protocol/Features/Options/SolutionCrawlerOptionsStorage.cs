@@ -7,20 +7,20 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    internal static class SolutionCrawlerOptions
+    internal static class SolutionCrawlerOptionsStorage
     {
         /// <summary>
         /// Option to turn configure background analysis scope for the current user.
         /// </summary>
         public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
-            "SolutionCrawlerOptions", "BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default,
+            "SolutionCrawlerOptionsStorage", "BackgroundAnalysisScopeOption", defaultValue: BackgroundAnalysisScope.Default,
             storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
 
         /// <summary>
         /// Option to turn configure background analysis scope for the current solution.
         /// </summary>
         public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
-            "SolutionCrawlerOptions", "SolutionBackgroundAnalysisScopeOption", defaultValue: null);
+            "SolutionCrawlerOptionsStorage", "SolutionBackgroundAnalysisScopeOption", defaultValue: null);
 
         public static readonly PerLanguageOption2<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
             "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
@@ -32,22 +32,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static bool LowMemoryForcedMinimalBackgroundAnalysis = false;
 
         /// <summary>
-        /// <para>Gets the background analysis scope configured through Tools → Options...</para>
-        ///
-        /// <para>This value is not affected by the solution-specific configuration set through
-        /// <see cref="SolutionBackgroundAnalysisScopeOption"/>.</para>
-        /// </summary>
-        public static BackgroundAnalysisScope GetDefaultBackgroundAnalysisScopeFromOptions(IGlobalOptionService globalOptions, string language)
-            => globalOptions.GetOption(BackgroundAnalysisScopeOption, language);
-
-        /// <summary>
         /// <para>Gets the effective background analysis scope for the current solution.</para>
         ///
         /// <para>Gets the solution-specific analysis scope set through
         /// <see cref="SolutionBackgroundAnalysisScopeOption"/>, or the default analysis scope if no solution-specific
         /// scope is set.</para>
         /// </summary>
-        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(IGlobalOptionService globalOptions, string language)
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(this IGlobalOptionService globalOptions, string language)
         {
             if (LowMemoryForcedMinimalBackgroundAnalysis)
             {
@@ -55,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
 
             return globalOptions.GetOption(SolutionBackgroundAnalysisScopeOption) ??
-                   GetDefaultBackgroundAnalysisScopeFromOptions(globalOptions, language);
+                   globalOptions.GetOption(BackgroundAnalysisScopeOption, language);
         }
     }
 }

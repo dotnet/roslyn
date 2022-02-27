@@ -43,14 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _lazyRoslynPackage = await RoslynPackage.GetOrLoadAsync(_threadingContext, _serviceProvider, cancellationToken).ConfigureAwait(true);
             Assumes.Present(_lazyRoslynPackage);
 
-            _optionService.RefreshOption(new OptionKey(SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption), _lazyRoslynPackage.AnalysisScope);
+            _optionService.RefreshOption(new OptionKey(SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption), _lazyRoslynPackage.AnalysisScope);
             _lazyRoslynPackage.AnalysisScopeChanged += OnAnalysisScopeChanged;
         }
 
         private void OnAnalysisScopeChanged(object? sender, EventArgs e)
         {
             Assumes.Present(_lazyRoslynPackage);
-            _optionService.RefreshOption(new OptionKey(SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption), _lazyRoslynPackage.AnalysisScope);
+            _optionService.RefreshOption(new OptionKey(SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption), _lazyRoslynPackage.AnalysisScope);
         }
 
         public bool TryFetch(OptionKey optionKey, out object? value)
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // This option is refreshed via the constructor to avoid UI dependencies when retrieving option values. If
             // we happen to reach this point before the value is available, try to obtain it without blocking, and
             // otherwise fall back to the default.
-            if (optionKey.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption)
+            if (optionKey.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption)
             {
                 if (_lazyRoslynPackage is not null)
                 {
@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 }
                 else
                 {
-                    value = SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption.DefaultValue;
+                    value = SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption.DefaultValue;
                     return true;
                 }
             }
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public bool TryPersist(OptionKey optionKey, object? value)
         {
-            if (!Equals(optionKey.Option, SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption))
+            if (!Equals(optionKey.Option, SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption))
                 return false;
 
             if (_lazyRoslynPackage is not null)

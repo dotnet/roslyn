@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            return SolutionCrawlerOptions.GetBackgroundAnalysisScope(GlobalOptions, project.Language) == BackgroundAnalysisScope.FullSolution;
+            return GlobalOptions.GetBackgroundAnalysisScope(project.Language) == BackgroundAnalysisScope.FullSolution;
         }
 
         private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

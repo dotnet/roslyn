@@ -201,8 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Local functions
             static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Solution solution, IGlobalOptionService globalOptions)
             {
-                var csharpAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(globalOptions, LanguageNames.CSharp);
-                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(globalOptions, LanguageNames.VisualBasic);
+                var csharpAnalysisScope = globalOptions.GetOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+                var visualBasicAnalysisScope = globalOptions.GetOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic);
 
                 var containsCSharpProject = solution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
                 var containsVisualBasicProject = solution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);
@@ -304,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var project = GetProject(hierarchy);
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
-            var analysisScope = project != null ? SolutionCrawlerOptions.GetBackgroundAnalysisScope(_globalOptions, project.Language) : SolutionCrawlerOptions.BackgroundAnalysisScopeOption.DefaultValue;
+            var analysisScope = project != null ? _globalOptions.GetBackgroundAnalysisScope(project.Language) : SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption.DefaultValue;
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;

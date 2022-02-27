@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
         public void SetBackgroundAnalysisScope(bool openFilesOnly)
         {
             _globalOptions.SetGlobalOption(
-                new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.FSharp),
+                new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.FSharp),
                 openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
         }
     }

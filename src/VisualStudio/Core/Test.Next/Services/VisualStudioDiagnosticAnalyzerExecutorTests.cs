@@ -242,8 +242,8 @@ End Class";
                 TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
                 TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.FullSolution);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), BackgroundAnalysisScope.FullSolution);
 
             return workspace;
         }

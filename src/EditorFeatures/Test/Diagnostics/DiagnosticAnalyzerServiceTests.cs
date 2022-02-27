@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new Analyzer()));
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
             var document = GetDocumentFromIncompleteProject(workspace);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer()));
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(new DisabledByDefaultAnalyzer()));
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
@@ -463,7 +463,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
                 new LeakDocumentAnalyzer(), new LeakProjectAnalyzer()));
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
 
             workspace.TryApplyChanges(solution.WithAnalyzerReferences(new[] { analyzerReference }));
 
@@ -558,7 +558,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             var workspace = CreateWorkspace();
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution);
 
             var projectId = ProjectId.CreateNewId();
             var solution = workspace.CurrentSolution;
@@ -621,7 +621,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
             using var workspace = CreateWorkspace();
 
             var globalOptions = GetGlobalOptions(workspace);
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
             var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), "CSharpProject", "CSharpProject", LanguageNames.CSharp);
             var project = workspace.AddProject(projectInfo);
@@ -744,7 +744,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             using var workspace = TestWorkspace.CreateCSharp("class A {}", composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
@@ -868,7 +868,7 @@ class A
             var syntaxTreeConfigurationService = workspace.GetService<TestSyntaxTreeConfigurationService>();
             syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace = true;
 
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 

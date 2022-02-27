@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public void SetBackgroundAnalysisScope(bool openFilesOnly)
         {
             _globalOptions.SetGlobalOption(
-                new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript),
+                new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript),
                 openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
 
             _globalOptions.SetGlobalOption(
-                new OptionKey(SolutionCrawlerOptions.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript),
+                new OptionKey(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript),
                 openFilesOnly);
         }
 

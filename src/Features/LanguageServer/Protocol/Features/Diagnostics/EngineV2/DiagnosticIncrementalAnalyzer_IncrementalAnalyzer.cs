@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = _stateManager.GetOrUpdateStateSets(document.Project);
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, cancellationToken).ConfigureAwait(false);
                 var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                var backgroundAnalysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(GlobalOptions, document.Project.Language);
+                var backgroundAnalysisScope = GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language);
 
                 // We split the diagnostic computation for document into following steps:
                 //  1. Try to get cached diagnostics for each analyzer, while computing the set of analyzers that do not have cached diagnostics.
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            var removeDiagnosticsOnDocumentClose = GlobalOptions.GetOption(SolutionCrawlerOptions.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
+            var removeDiagnosticsOnDocumentClose = GlobalOptions.GetOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, document.Project.Language);
 
             if (!removeDiagnosticsOnDocumentClose)
             {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // we retrigger analysis of newly active document.
             // For the remaining analysis scopes, we always analyze all the open files, so switching active
             // documents between two open files doesn't require us to retrigger analysis of the newly active document.
-            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(GlobalOptions, document.Project.Language) != BackgroundAnalysisScope.ActiveFile)
+            if (GlobalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.ActiveFile)
             {
                 return;
             }
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
             // until next build.
-            if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(GlobalOptions, project.Language) != BackgroundAnalysisScope.FullSolution)
+            if (GlobalOptions.GetBackgroundAnalysisScope(project.Language) != BackgroundAnalysisScope.FullSolution)
             {
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
             }

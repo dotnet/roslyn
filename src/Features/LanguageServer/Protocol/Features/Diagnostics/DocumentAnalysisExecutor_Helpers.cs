@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check if user has disabled analyzer execution for this project or via options.
-            if (!project.State.RunAnalyzers || SolutionCrawlerOptions.GetBackgroundAnalysisScope(globalOptions, project.Language) == BackgroundAnalysisScope.None)
+            if (!project.State.RunAnalyzers || globalOptions.GetBackgroundAnalysisScope(project.Language) == BackgroundAnalysisScope.None)
             {
                 return false;
             }

@@ -492,12 +492,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             MakeFirstDocumentActive(workspace.CurrentSolution.Projects.First());
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.GlobalOptions, LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.OpenFiles;
-            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), newAnalysisScope));
 
-            Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.GlobalOptions, LanguageNames.CSharp));
+            Assert.Equal(newAnalysisScope, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
             Assert.Equal(10, worker.DocumentIds.Count);
             Assert.Equal(2, worker.ProjectIds.Count);
@@ -511,12 +511,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.GlobalOptions, LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.FullSolution;
-            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), newAnalysisScope));
+            var worker = await ExecuteOperation(workspace, w => w.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), newAnalysisScope));
 
-            Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.GlobalOptions, LanguageNames.CSharp));
+            Assert.Equal(newAnalysisScope, workspace.GlobalOptions.GetBackgroundAnalysisScope(LanguageNames.CSharp));
             Assert.Equal(10, worker.SyntaxDocumentIds.Count);
             Assert.Equal(10, worker.DocumentIds.Count);
             Assert.Equal(2, worker.ProjectIds.Count);
@@ -1548,7 +1548,7 @@ class C
                 var workspace = new WorkCoordinatorWorkspace(workspaceKind, disablePartialSolutions, incrementalAnalyzer);
 
                 var globalOptions = ((IMefHostExportProvider)workspace.Services.HostServices).GetExportedValue<IGlobalOptionService>();
-                globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
+                globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), analysisScope);
 
                 return workspace;
             }
@@ -1705,7 +1705,7 @@ class C
 
             public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
             {
-                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(_globalOptions, document.Project.Language) != BackgroundAnalysisScope.ActiveFile)
+                if (_globalOptions.GetBackgroundAnalysisScope(document.Project.Language) != BackgroundAnalysisScope.ActiveFile)
                 {
                     return;
                 }
@@ -1755,8 +1755,8 @@ class C
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 return e.Option == TestOption
-                    || e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption
-                    || e.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption;
+                    || e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption
+                    || e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption;
             }
 
             #region unused 

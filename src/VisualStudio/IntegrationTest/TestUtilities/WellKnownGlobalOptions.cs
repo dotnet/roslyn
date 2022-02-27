@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile => InlineRenameSessionOptionsStorage.RenameFile,
                 WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges => InlineRenameSessionOptionsStorage.PreviewChanges,
                 WellKnownGlobalOption.VisualStudioSyntaxTreeConfigurationService_EnableOpeningSourceGeneratedFilesInWorkspace => VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace,
-                WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption => SolutionCrawlerOptions.BackgroundAnalysisScopeOption,
+                WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption => SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
                 _ => throw ExceptionUtilities.Unreachable
             };
 

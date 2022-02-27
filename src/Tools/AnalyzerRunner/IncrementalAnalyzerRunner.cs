@@ -48,8 +48,8 @@ namespace AnalyzerRunner
             var exportProvider = (IMefHostExportProvider)_workspace.Services.HostServices;
 
             var globalOptions = exportProvider.GetExports<IGlobalOptionService>().Single().Value;
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp), _options.AnalysisScope);
-            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), _options.AnalysisScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), _options.AnalysisScope);
+            globalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), _options.AnalysisScope);
 
             var solutionCrawlerRegistrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
             solutionCrawlerRegistrationService.Register(_workspace);
