@@ -4,7 +4,9 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,10 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal class GoToDefinitionCommandHandler :
         ICommandHandler<GoToDefinitionCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public GoToDefinitionCommandHandler()
+        public GoToDefinitionCommandHandler(IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
@@ -58,7 +63,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue)
                 {
-                    ExecuteCommand(document, caretPos.Value, service, context);
+                    _threadingContext.JoinableTaskFactory.Run(() =>
+                        ExecuteCommandAsync(document, caretPos.Value, service, context));
                     return true;
                 }
             }
@@ -66,16 +72,30 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return false;
         }
 
-        private static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService? goToDefinitionService, CommandExecutionContext context)
+        private async Task ExecuteCommandAsync(
+            Document document, int caretPosition, IGoToDefinitionService? goToDefinitionService, CommandExecutionContext context)
         {
             string? errorMessage = null;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
-                if (goToDefinitionService != null &&
-                    goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+                if (goToDefinitionService is IAsyncGoToDefinitionService asyncService)
                 {
-                    return;
+                    var location = await asyncService.FindDefinitionLocationAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
+                    var success = location != null &&
+                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (success)
+                        return;
+                }
+                else
+                {
+                    if (goToDefinitionService != null &&
+                        goToDefinitionService.TryGoToDefinition(document, caretPosition, cancellationToken))
+                    {
+                        return;
+                    }
                 }
 
                 errorMessage = FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
@@ -87,16 +107,27 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
         }
 
-        public static class TestAccessor
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public struct TestAccessor
         {
-            public static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
-                => GoToDefinitionCommandHandler.ExecuteCommand(document, caretPosition, goToDefinitionService, context);
+            private readonly GoToDefinitionCommandHandler _handler;
+
+            public TestAccessor(GoToDefinitionCommandHandler handler)
+            {
+                _handler = handler;
+            }
+
+            public Task ExecuteCommandAsync(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+                => _handler.ExecuteCommandAsync(document, caretPosition, goToDefinitionService, context);
         }
     }
 }
