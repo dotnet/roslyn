@@ -20,19 +20,25 @@ namespace Microsoft.CodeAnalysis.Navigation
         Task<bool> NavigateToAsync(CancellationToken cancelletionToken);
     }
 
-    internal class CallbackNavigableDocumentLocation : INavigableDocumentLocation
+    internal class NavigableDocumentLocation : INavigableDocumentLocation
     {
         private readonly Func<CancellationToken, Task<bool>> _callback;
 
-        public CallbackNavigableDocumentLocation(Func<CancellationToken, Task<bool>> callback)
+        public NavigableDocumentLocation(Func<CancellationToken, Task<bool>> callback)
             => _callback = callback;
-
-        public CallbackNavigableDocumentLocation(Func<bool> callback)
-            : this(_ => callback() ? SpecializedTasks.True : SpecializedTasks.False)
-        {
-        }
 
         public Task<bool> NavigateToAsync(CancellationToken cancellationToken)
             => _callback(cancellationToken);
+
+        public static class TestAccessor
+        {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+            public static Task<INavigableDocumentLocation?> Create(bool value)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+            {
+                return Task.FromResult<INavigableDocumentLocation?>(
+                    new NavigableDocumentLocation(c => value ? SpecializedTasks.True : SpecializedTasks.False));
+            }
+        }
     }
 }

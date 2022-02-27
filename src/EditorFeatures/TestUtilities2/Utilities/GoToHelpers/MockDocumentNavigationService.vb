@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             _line = lineNumber
             _offset = offset
 
-            Return Task.FromResult(Of INavigableDocumentLocation)(New CallbackNavigableDocumentLocation(Function() _canNavigateToLineAndOffset))
+            Return NavigableDocumentLocation.TestAccessor.Create(_canNavigateToLineAndOffset)
         End Function
 
         Public Function GetNavigableLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForPositionAsync
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             _position = position
             _positionVirtualSpace = virtualSpace
 
-            Return Task.FromResult(Of INavigableDocumentLocation)(New CallbackNavigableDocumentLocation(Function() _canNavigateToPosition))
+            Return NavigableDocumentLocation.TestAccessor.Create(_canNavigateToPosition)
         End Function
 
         Public Function GetNavigableLocationForSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForSpanAsync
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             _options = options
             _span = textSpan
 
-            Return Task.FromResult(Of INavigableDocumentLocation)(New CallbackNavigableDocumentLocation(Function() _canNavigateToSpan))
+            Return NavigableDocumentLocation.TestAccessor.Create(_canNavigateToSpan)
         End Function
     End Class
 End Namespace

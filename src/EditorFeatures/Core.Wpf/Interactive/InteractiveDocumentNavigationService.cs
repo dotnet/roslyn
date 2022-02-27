@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return null;
             }
 
-            return new CallbackNavigableDocumentLocation(async cancellationToken =>
+            return new NavigableDocumentLocation(async cancellationToken =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

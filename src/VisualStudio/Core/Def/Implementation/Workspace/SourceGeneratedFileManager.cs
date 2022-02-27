@@ -147,12 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 // We should have the file now, so navigate to the right span
-                if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
-                {
-                    openFile.NavigateToSpan(sourceSpan, cancellationToken);
-                }
-
-                return true;
+                return _openFiles.TryGetValue(temporaryFilePath, out var openFile) &&
+                    await openFile.NavigateToSpanAsync(sourceSpan, cancellationToken).ConfigureAwait(false);
             };
         }
 
@@ -502,10 +498,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameInfoBarElement = infoBarUI;
             }
 
-            public void NavigateToSpan(TextSpan sourceSpan, CancellationToken cancellationToken)
+            public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
-                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
+                return _fileManager._visualStudioDocumentNavigationService.NavigateToTextBufferAsync(
+                    _textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
             }
         }
     }
