@@ -194,21 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        public async Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, cancellationToken);
-        }
-
-        public bool TryNavigateToPosition(
-=======
-        public Task<INavigableDocumentLocation?> GetNavigableLocationForPositionAsync(
->>>>>>> asyncNavigation2
-=======
         public Task<INavigableLocation?> GetLocationForPositionAsync(
->>>>>>> asyncNavigation4
             Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
             return GetNavigableLocationAsync(workspace,
@@ -247,15 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        private async Task<INavigationLocation?> TryGetNavigationLocationAsync(
-=======
-        private async Task<INavigableDocumentLocation?> GetNavigableLocationAsync(
->>>>>>> asyncNavigation2
-=======
         private async Task<INavigableLocation?> GetNavigableLocationAsync(
->>>>>>> asyncNavigation4
             Workspace workspace,
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
@@ -263,17 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             NavigationOptions options,
             CancellationToken cancellationToken)
         {
-<<<<<<< HEAD
-<<<<<<< HEAD
-            // Navigation should not change the context of linked files and Shared Projects.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            documentId = workspace.GetDocumentIdInCurrentContext(documentId);
-
-=======
-            var navigateTo = await GetNavigableLocationAsync(
-=======
             var callback = await GetNavigationCallbackAsync(
->>>>>>> asyncNavigation4
                 workspace, documentId, getTextSpanForMappingAsync, getVsTextSpan, cancellationToken).ConfigureAwait(true);
             if (callback == null)
                 return null;
@@ -288,7 +256,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             });
         }
->>>>>>> asyncNavigation2
 
         private async Task<Func<CancellationToken, Task<bool>>?> GetNavigationCallbackAsync(
             Workspace workspace,

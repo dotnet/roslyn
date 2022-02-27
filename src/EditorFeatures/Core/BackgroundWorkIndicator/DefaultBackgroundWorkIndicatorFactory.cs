@@ -46,7 +46,8 @@ internal class DefaultBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorF
             _context = context;
         }
 
-        public bool CancelOnNavigation { get; set; }
+        public bool CancelOnEdit { get; set; }
+        public bool CancelOnFocusLost { get; set; }
 
         public IUIThreadOperationScope AddScope(bool allowCancellation, string description)
             => _context.AddScope(allowCancellation, description);

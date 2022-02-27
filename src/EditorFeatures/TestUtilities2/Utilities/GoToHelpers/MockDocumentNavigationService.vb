@@ -57,31 +57,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             _position = position
             _positionVirtualSpace = virtualSpace
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-            Return _canNavigateToPosition
-        End Function
 
-        Public Function TryNavigateToPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToPositionAsync
-            Return If(TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, cancellationToken), SpecializedTasks.True, SpecializedTasks.False)
-        End Function
-
-        Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
-            _triedNavigationToSpan = True
-            _documentId = documentId
-            _options = options
-            _span = textSpan
-
-            Return _canNavigateToSpan
-        End Function
-
-        Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
-            Return If(TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken), SpecializedTasks.True, SpecializedTasks.False)
-=======
-            Return NavigableDocumentLocation.TestAccessor.Create(_canNavigateToPosition)
-=======
             Return NavigableLocation.TestAccessor.Create(_canNavigateToPosition)
->>>>>>> asyncNavigation4
         End Function
 
         Public Function GetLocationForSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForSpanAsync
@@ -90,12 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             _options = options
             _span = textSpan
 
-<<<<<<< HEAD
-            Return NavigableDocumentLocation.TestAccessor.Create(_canNavigateToSpan)
->>>>>>> asyncNavigation2
-=======
             Return NavigableLocation.TestAccessor.Create(_canNavigateToSpan)
->>>>>>> asyncNavigation4
         End Function
     End Class
 End Namespace

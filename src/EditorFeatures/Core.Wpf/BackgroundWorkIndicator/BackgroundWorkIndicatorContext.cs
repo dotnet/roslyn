@@ -22,7 +22,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     /// <summary>
     /// Implementation of an <see cref="IUIThreadOperationContext"/> for the background work indicator.
     /// </summary>
-    private sealed class BackgroundWorkIndicatorContext : IUIThreadOperationContext
+    private sealed class BackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
     {
         /// <summary>
         /// What sort of UI update request we've enqueued to <see cref="_uiUpdateQueue"/>.
@@ -75,6 +75,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         public CancellationToken UserCancellationToken => _cancellationTokenSource.Token;
         public IEnumerable<IUIThreadOperationScope> Scopes => _scopes;
 
+        public bool CancelOnEdit { get; set; }
+        public bool CancelOnFocusLost { get; set; }
+
         public BackgroundWorkIndicatorContext(
             WpfBackgroundWorkIndicatorFactory factory,
             ITextView textView,
@@ -86,6 +89,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             _factory = factory;
             _textView = textView;
             _subjectBuffer = applicableToSpan.Snapshot.TextBuffer;
+
+            CancelOnEdit = cancelOnEdit;
+            CancelOnFocusLost = cancelOnFocusLost;
 
             // Create a tool-tip at the requested position.  Turn off all default behavior for it.  We'll be
             // controlling everything ourselves.
@@ -107,11 +113,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 factory._listener,
                 this.ThreadingContext.DisposalToken);
 
-            if (cancelOnEdit)
-                _subjectBuffer.Changed += OnTextBufferChanged;
-
-            //if (cancelOnFocusLost)
-            //    textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
+            _subjectBuffer.Changed += OnTextBufferChanged;
+            textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
         }
 
         public void Dispose()
@@ -131,10 +134,16 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             => this.Dispose();
 
         private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
-            => CancelAndDispose();
+        {
+            if (CancelOnEdit)
+                CancelAndDispose();
+        }
 
         private void OnTextViewLostAggregateFocus(object? sender, EventArgs e)
-            => CancelAndDispose();
+        {
+            if (CancelOnFocusLost)
+                CancelAndDispose();
+        }
 
         public void CancelAndDispose()
         {

@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
@@ -121,13 +121,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             {
                 await Task.Delay(5000).ConfigureAwait(false);
 
-                // determine the location first.
                 var cancellationToken = backgroundIndicator.UserCancellationToken;
+
+                // determine the location first.
                 var location = await service.FindDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-                // we're about to navigate.  so disable navigation cancellation in our indicator so we don't self-cancel.
-                backgroundIndicator.CancelOnNavigation = false;
-                succeeded = location != null && await location.TryNavigateToAsync(cancellationToken).ConfigureAwait(false);
+                // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
+                // causing ourselves to self-cancel.
+                backgroundIndicator.CancelOnFocusLost = false,
+                succeeded = location != null && await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
             if (!succeeded)
@@ -135,22 +137,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
                 ReportFailure(document);
             }
-        }
-
-        public TestAccessor GetTestAccessor()
-            => new(this);
-
-        public struct TestAccessor
-        {
-            private readonly GoToDefinitionCommandHandler _handler;
-
-            public TestAccessor(GoToDefinitionCommandHandler handler)
-            {
-                _handler = handler;
-            }
-
-            //public Task ExecuteCommandAsync(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
-            //    => _handler.ExecuteModernCommandAsync(document, caretPosition, goToDefinitionService, context);
         }
     }
 }

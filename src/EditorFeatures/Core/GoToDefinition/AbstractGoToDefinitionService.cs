@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         private readonly IThreadingContext _threadingContext;
 
         /// <summary>
-        /// Used to present go to definition results in <see cref="GetDefinitionLocationAsync"/>
+        /// Used to present go to definition results in <see cref="GetNavigableLocationAsync"/>
         /// </summary>
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
