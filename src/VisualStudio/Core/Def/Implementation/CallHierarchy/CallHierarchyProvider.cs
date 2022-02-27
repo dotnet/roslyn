@@ -147,8 +147,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             var options = NavigationOptions.Default with { PreferProvisionalTab = true };
             var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
 
-            await symbolNavigationService.TryNavigateToSymbolAsync(
+            var location = await symbolNavigationService.GetNavigableLocationAsync(
                 resolution.Symbol, project, options, cancellationToken).ConfigureAwait(false);
+            if (location != null)
+                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }

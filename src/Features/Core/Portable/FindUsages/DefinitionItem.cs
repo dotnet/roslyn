@@ -160,23 +160,29 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-#pragma warning disable CS0612 // Type or member is obsolete - TypeScript
         [Obsolete]
         public virtual bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => false;
 
         [Obsolete]
         public virtual bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken) => false;
 
+#pragma warning disable CS0612 // Type or member is obsolete
         public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
             => Task.FromResult(CanNavigateTo(workspace, cancellationToken));
+#pragma warning restore CS0612 // Type or member is obsolete
 
         [Obsolete]
         public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             => Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
 
+        [Obsolete]
         public virtual Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
             => TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
-#pragma warning restore
+
+#pragma warning disable CS0612 // Type or member is obsolete
+        public virtual Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+            => Task.FromResult<INavigableLocation?>(new NavigableLocation(cancellationToken => TryNavigateToAsync(workspace, options, cancellationToken)));
+#pragma warning restore CS0612 // Type or member is obsolete
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,

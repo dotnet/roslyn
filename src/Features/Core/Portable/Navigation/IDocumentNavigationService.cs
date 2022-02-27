@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// </summary>
         Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
 
-        Task<INavigableDocumentLocation?> GetNavigableLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken);
-        Task<INavigableDocumentLocation?> GetNavigableLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken);
-        Task<INavigableDocumentLocation?> GetNavigableLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
+        Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken);
+        Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken);
+        Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
     }
 
     internal static class IDocumentNavigationServiceExtensions
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// </summary>
         public static async Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
-            var location = await service.GetNavigableLocationForSpanAsync(
+            var location = await service.GetLocationForSpanAsync(
                 workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken).ConfigureAwait(false);
             return location != null &&
                 await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// </summary>
         public static async Task<bool> TryNavigateToLineAndOffsetAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
         {
-            var location = await service.GetNavigableLocationForLineAndOffsetAsync(
+            var location = await service.GetLocationForLineAndOffsetAsync(
                 workspace, documentId, lineNumber, offset, options, cancellationToken).ConfigureAwait(false);
             return location != null &&
                 await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// </summary>
         public static async Task<bool> TryNavigateToPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
-            var location = await service.GetNavigableLocationForPositionAsync(
+            var location = await service.GetLocationForPositionAsync(
                 workspace, documentId, position, virtualSpace, options, cancellationToken).ConfigureAwait(false);
             return location != null &&
                 await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);

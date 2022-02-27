@@ -68,19 +68,25 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             try
             {
                 var definition = await GetDefinitionAsync(StackFrameSymbolPart.ContainingType, cancellationToken).ConfigureAwait(false);
-                if (definition is null)
-                {
-                    return;
-                }
-
-                var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (canNavigate)
-                {
-                    await definition.TryNavigateToAsync(_workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
-                }
+                await NavigateToDefinitionAsync(definition, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {
+            }
+        }
+
+        private async Task NavigateToDefinitionAsync(DefinitionItem? definition, CancellationToken cancellationToken)
+        {
+            if (definition is null)
+                return;
+
+            var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
+            if (canNavigate)
+            {
+                var location = await definition.GetNavigableLocationAsync(
+                    _workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
+                if (location != null)
+                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -95,16 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             try
             {
                 var definition = await GetDefinitionAsync(StackFrameSymbolPart.Method, cancellationToken).ConfigureAwait(false);
-                if (definition is null)
-                {
-                    return;
-                }
-
-                var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
-                if (canNavigate)
-                {
-                    await definition.TryNavigateToAsync(_workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
-                }
+                await NavigateToDefinitionAsync(definition, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {

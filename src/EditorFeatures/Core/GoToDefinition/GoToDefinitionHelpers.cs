@@ -104,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         public static bool TryGoToDefinition(
             ISymbol symbol,
             Solution solution,
@@ -136,6 +137,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         }
 
         public static async Task<INavigationLocation?> TryGetNavigationLocationAsync(
+=======
+        public static async Task<INavigableLocation> GetDefinitionLocationAsync(
+>>>>>>> asyncNavigation4
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -149,6 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             return await streamingPresenter.TryGetNavigationLocationAsync(
                 threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
 =======
@@ -156,6 +161,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 streamingPresenter.TryNavigateToOrPresentItemsAsync(
                     threadingContext, solution.Workspace, title, definitions, cancellationToken));
 >>>>>>> asyncNavigation3
+=======
+            return await streamingPresenter.GetNavigableLocationAsync(
+                threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
+>>>>>>> asyncNavigation4
         }
 
         public static async Task<IEnumerable<INavigableItem>?> GetDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)

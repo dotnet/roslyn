@@ -70,21 +70,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return If(CanNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function GetNavigableLocationForLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForLineAndOffsetAsync
+            Public Function GetLocationForLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForLineAndOffsetAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedLineNumber = lineNumber
                 Me.ProvidedOffset = offset
                 Me.ProvidedOptions = options
 
-                Return NavigableDocumentLocation.TestAccessor.Create(TryNavigateToLineAndOffsetReturnValue)
+                Return NavigableLocation.TestAccessor.Create(TryNavigateToLineAndOffsetReturnValue)
             End Function
 
-            Public Function GetNavigableLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForPositionAsync
+            Public Function GetLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForPositionAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedPosition = position
                 Me.ProvidedVirtualSpace = virtualSpace
                 Me.ProvidedOptions = options
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 Return TryNavigateToPositionReturnValue
             End Function
@@ -105,15 +106,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return If(TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpans, cancellationToken), SpecializedTasks.True, SpecializedTasks.False)
 =======
                 Return NavigableDocumentLocation.TestAccessor.Create(TryNavigateToPositionReturnValue)
+=======
+                Return NavigableLocation.TestAccessor.Create(TryNavigateToPositionReturnValue)
+>>>>>>> asyncNavigation4
             End Function
 
-            Public Function GetNavigableLocationForSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableDocumentLocation) Implements IDocumentNavigationService.GetNavigableLocationForSpanAsync
+            Public Function GetLocationForSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForSpanAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedTextSpan = textSpan
                 Me.ProvidedOptions = options
 
+<<<<<<< HEAD
                 Return NavigableDocumentLocation.TestAccessor.Create(TryNavigateToSpanReturnValue)
 >>>>>>> asyncNavigation2
+=======
+                Return NavigableLocation.TestAccessor.Create(TryNavigateToSpanReturnValue)
+>>>>>>> asyncNavigation4
             End Function
         End Class
     End Class
