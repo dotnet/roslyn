@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Navigation
         public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
-        public Task<INavigableDocumentLocation?> GetNavigableLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<INavigableDocumentLocation>();
+        public Task<INavigableLocation?> GetNavigableLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+            => SpecializedTasks.Null<INavigableLocation>();
 
-        public Task<INavigableDocumentLocation?> GetNavigableLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<INavigableDocumentLocation>();
+        public Task<INavigableLocation?> GetNavigableLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+            => SpecializedTasks.Null<INavigableLocation>();
 
-        public Task<INavigableDocumentLocation?> GetNavigableLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<INavigableDocumentLocation>();
+        public Task<INavigableLocation?> GetNavigableLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+            => SpecializedTasks.Null<INavigableLocation>();
     }
 }

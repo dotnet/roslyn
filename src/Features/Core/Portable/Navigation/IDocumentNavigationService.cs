@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// </summary>
         Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
 
-        Task<INavigableDocumentLocation?> GetNavigableLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken);
-        Task<INavigableDocumentLocation?> GetNavigableLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken);
-        Task<INavigableDocumentLocation?> GetNavigableLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
+        Task<INavigableLocation?> GetNavigableLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken);
+        Task<INavigableLocation?> GetNavigableLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken);
+        Task<INavigableLocation?> GetNavigableLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken);
     }
 
     internal static class IDocumentNavigationServiceExtensions
