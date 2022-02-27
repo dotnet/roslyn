@@ -55,7 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToSymbolAsync(
+            ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
             {
@@ -76,7 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options, cancellationToken);
+                    return await navigationService.TryNavigateToSpanAsync(
+                        editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -96,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return false;
                 }
 
-                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
                 if (navInfo == null)
                 {
@@ -113,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            return ThreadingContext.JoinableTaskFactory.Run(() => TryNavigateToMetadataAsync(project, symbol, options, cancellationToken));
+            return await TryNavigateToMetadataAsync(project, symbol, options, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, NavigationOptions options, CancellationToken cancellationToken)
@@ -156,12 +158,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;
                 var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                return navigationService.TryNavigateToSpan(
+                return await navigationService.TryNavigateToSpanAsync(
                     editorWorkspace,
                     openedDocument.Id,
                     result.IdentifierLocation.SourceSpan,
                     options with { PreferProvisionalTab = true },
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
             }
 
             return true;
