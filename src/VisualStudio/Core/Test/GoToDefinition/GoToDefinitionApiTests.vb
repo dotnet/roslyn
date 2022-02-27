@@ -42,13 +42,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
                 Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() Exit Sub)
 
-                WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinitionAsync)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
-                Dim success = Await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+                WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.GetDefinitionLocationAsync)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
+                Dim location = Await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                     symbolInfo.Symbol, document.Project.Solution,
                     threadingContext,
                     presenter,
                     thirdPartyNavigationAllowed:=True,
                     cancellationToken:=CancellationToken.None)
+                Dim success = location IsNot Nothing AndAlso
+                    Await location.NavigateToAsync(CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using
