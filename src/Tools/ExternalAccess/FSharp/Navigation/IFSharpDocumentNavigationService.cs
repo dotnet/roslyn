@@ -35,11 +35,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         /// <inheritdoc cref="IDocumentNavigationService.CanNavigateToPositionAsync"/>
         bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
 
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToSpanAsync"/>
+        /// <inheritdoc cref="IDocumentNavigationService.GetNavigableLocationForSpanAsync"/>
         bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToLineAndOffsetAsync"/>
+        /// <inheritdoc cref="IDocumentNavigationService.GetNavigableLocationForLineAndOffsetAsync"/>
         bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken);
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToPositionAsync"/>
+        /// <inheritdoc cref="IDocumentNavigationService.GetNavigableLocationForPositionAsync"/>
         bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken);
     }
 }

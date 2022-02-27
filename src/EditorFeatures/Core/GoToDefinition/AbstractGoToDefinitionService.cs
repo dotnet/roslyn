@@ -38,36 +38,30 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
             => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-<<<<<<< HEAD
-        private static Task<INavigationLocation?> TryNavigateToSpanAsync(Document document, int position, CancellationToken cancellationToken)
-=======
-        private bool TryNavigateToSpan(Document document, int position, CancellationToken cancellationToken)
->>>>>>> asyncNavigation2
+        private static Task<INavigableDocumentLocation?> GetNavigableLocationAsync(
+            Document document, int position, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-            var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true);
-<<<<<<< HEAD
-            return service.TryGetPositionLocationAsync(workspace, document.Id, position, virtualSpace: 0, options, cancellationToken);
-=======
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                service.TryNavigateToPositionAsync(workspace, document.Id, position, virtualSpace: 0, options, cancellationToken));
->>>>>>> asyncNavigation2
+            return service.GetNavigableLocationForPositionAsync(
+                workspace, document.Id, position, virtualSpace: 0,
+                new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken);
         }
 
-        bool IGoToDefinitionService.TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
-            => throw new NotSupportedException("Use TryGoToDefinitionAsync instead");
+        public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
+            => throw new NotImplementedException("Use FindDefinitionLocationAsync instead.");
 
-        public async Task<INavigationLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<INavigableDocumentLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
             var targetPositionOfControlFlow = await symbolService.GetTargetIfControlFlowAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
             if (targetPositionOfControlFlow is not null)
             {
-                return await TryNavigateToSpanAsync(document, targetPositionOfControlFlow.Value, cancellationToken).ConfigureAwait(false);
+                return await GetNavigableLocationAsync(
+                    document, targetPositionOfControlFlow.Value, cancellationToken).ConfigureAwait(false);
             }
 
             // Try to compute the referenced symbol and attempt to go to definition for the symbol.
@@ -78,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             // if the symbol only has a single source location, and we're already on it,
             // try to see if there's a better symbol we could navigate to.
-            var remappedLocation = await TryGoToAlternativeLocationIfAlreadyOnDefinitionAsync(
+            var remappedLocation = await GetAlternativeLocationIfAlreadyOnDefinitionAsync(
                 document, position, symbol, cancellationToken).ConfigureAwait(false);
             if (remappedLocation != null)
                 return remappedLocation;
@@ -86,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
                 symbol, position, document, cancellationToken).ConfigureAwait(false);
 
-            return await GoToDefinitionHelpers.TryGetNavigationLocationAsync(
+            return await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                 symbol,
                 document.Project.Solution,
                 _threadingContext,
@@ -95,9 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<INavigationLocation?> TryGoToAlternativeLocationIfAlreadyOnDefinitionAsync(
-            Document document, int position,
-            ISymbol symbol, CancellationToken cancellationToken)
+        private async Task<INavigableDocumentLocation?> GetAlternativeLocationIfAlreadyOnDefinitionAsync(
+            Document document, int position, ISymbol symbol, CancellationToken cancellationToken)
         {
             var project = document.Project;
             var solution = project.Solution;
@@ -127,19 +120,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var title = string.Format(EditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitions);
+            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var builder);
             foreach (var impl in interfaceImpls)
             {
-                // Use ConfigureAwait(true) here.  Not for a correctness requirements, but because we're
-                // already blocking the UI thread by being in a JTF.Run call.  So we might as well try to
-                // continue to use the blocking UI thread to do as much work as possible instead of making
-                // it wait for threadpool threads to be available to process the work.
-                definitions.AddRange(await GoToDefinitionHelpers.GetDefinitionsAsync(
-                    impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(true));
+                builder.AddRange(await GoToDefinitionHelpers.GetDefinitionsAsync(
+                    impl, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false));
             }
 
-            return await _streamingPresenter.TryGetNavigationLocationAsync(
-                _threadingContext, solution.Workspace, title, definitions.ToImmutable(), cancellationToken).ConfigureAwait(true);
+            var definitions = builder.ToImmutable();
+
+            return new NavigableDocumentLocation(cancellationToken =>
+                _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    _threadingContext, solution.Workspace, title, definitions, cancellationToken));
         }
 
         private static async Task<bool> IsThirdPartyNavigationAllowedAsync(

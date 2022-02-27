@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return definitions.ToImmutable();
         }
 
+<<<<<<< HEAD
         public static bool TryGoToDefinition(
             ISymbol symbol,
             Solution solution,
@@ -118,6 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 #nullable enable
 
         public static async Task<bool> TryGoToDefinitionAsync(
+=======
+        public static async Task<INavigableDocumentLocation> GetDefinitionLocationAsync(
+>>>>>>> asyncNavigation3
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -144,8 +148,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
+<<<<<<< HEAD
             return await streamingPresenter.TryGetNavigationLocationAsync(
                 threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
+=======
+            return new NavigableDocumentLocation(cancellationToken =>
+                streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
+>>>>>>> asyncNavigation3
         }
 
         public static async Task<IEnumerable<INavigableItem>?> GetDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)

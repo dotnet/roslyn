@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
@@ -91,7 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 }
 
                 if (!succeeded)
+                {
+                    // Dismiss any context dialog that is up before showing our own notification.
+                    context.OperationContext.TakeOwnership();
                     ReportFailure(document);
+                }
             }
 
             return true;
@@ -118,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
                 // determine the location first.
                 var cancellationToken = backgroundIndicator.UserCancellationToken;
-                var location = await service.GetDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var location = await service.FindDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
 
                 // we're about to navigate.  so disable navigation cancellation in our indicator so we don't self-cancel.
                 backgroundIndicator.CancelOnNavigation = false;
@@ -144,8 +149,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 _handler = handler;
             }
 
-            //public Task ExecuteModernCommandAsync(Document document, int caretPosition, IAsyncGoToDefinitionService service)
-            //    => _handler.ExecuteModernCommandAsync(document, caretPosition, service, CancellationToken.None);
+            //public Task ExecuteCommandAsync(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+            //    => _handler.ExecuteModernCommandAsync(document, caretPosition, goToDefinitionService, context);
         }
     }
 }
