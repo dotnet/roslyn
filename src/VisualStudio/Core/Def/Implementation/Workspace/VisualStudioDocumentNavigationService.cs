@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<INavigableLocation?> GetNavigableLocationForSpanAsync(
+        public Task<INavigableLocation?> GetLocationForSpanAsync(
             Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             return GetNavigableLocationAsync(workspace,
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public Task<INavigableLocation?> GetNavigableLocationForLineAndOffsetAsync(
+        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(
             Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
         {
             return GetNavigableLocationAsync(workspace,
@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public Task<INavigableLocation?> GetNavigableLocationForPositionAsync(
+        public Task<INavigableLocation?> GetLocationForPositionAsync(
             Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
             return GetNavigableLocationAsync(workspace,
