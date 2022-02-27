@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -17,7 +13,7 @@ namespace Microsoft.CodeAnalysis
         public static Task<bool> CanNavigateToAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             var workspace = documentSpan.Document.Project.Solution.Workspace;
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
+            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
             return service.CanNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
         }
 
@@ -25,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
-            var service = workspace.Services.GetService<IDocumentNavigationService>();
+            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
             return (workspace, service);
         }
 
@@ -33,6 +29,12 @@ namespace Microsoft.CodeAnalysis
         {
             var (workspace, service) = GetNavigationParts(documentSpan);
             return service.TryNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
+        }
+
+        public static Task<INavigableLocation?> GetNavigableLocationAsync(this DocumentSpan documentSpan, NavigationOptions options, CancellationToken cancellationToken)
+        {
+            var (workspace, service) = GetNavigationParts(documentSpan);
+            return service.GetLocationForSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, allowInvalidSpan: false, cancellationToken);
         }
 
         public static async Task<bool> IsHiddenAsync(
