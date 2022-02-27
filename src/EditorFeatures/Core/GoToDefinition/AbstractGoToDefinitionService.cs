@@ -38,14 +38,23 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
             => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
+<<<<<<< HEAD
         private static Task<INavigationLocation?> TryNavigateToSpanAsync(Document document, int position, CancellationToken cancellationToken)
+=======
+        private bool TryNavigateToSpan(Document document, int position, CancellationToken cancellationToken)
+>>>>>>> asyncNavigation2
         {
             var solution = document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
             var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true);
+<<<<<<< HEAD
             return service.TryGetPositionLocationAsync(workspace, document.Id, position, virtualSpace: 0, options, cancellationToken);
+=======
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                service.TryNavigateToPositionAsync(workspace, document.Id, position, virtualSpace: 0, options, cancellationToken));
+>>>>>>> asyncNavigation2
         }
 
         bool IGoToDefinitionService.TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)

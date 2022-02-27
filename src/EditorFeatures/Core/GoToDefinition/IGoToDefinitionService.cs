@@ -27,6 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor
 
     internal interface IAsyncGoToDefinitionService : IGoToDefinitionService
     {
-        Task<INavigationLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<INavigableDocumentLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }
