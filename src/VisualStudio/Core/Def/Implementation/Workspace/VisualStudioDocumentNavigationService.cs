@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<INavigableDocumentLocation?> GetNavigableLocationForSpanAsync(
+        public Task<INavigableLocation?> GetLocationForSpanAsync(
             Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             return GetNavigableLocationAsync(workspace,
@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public Task<INavigableDocumentLocation?> GetNavigableLocationForLineAndOffsetAsync(
+        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(
             Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
         {
             return GetNavigableLocationAsync(workspace,
@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public Task<INavigableDocumentLocation?> GetNavigableLocationForPositionAsync(
+        public Task<INavigableLocation?> GetLocationForPositionAsync(
             Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
             return GetNavigableLocationAsync(workspace,
@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private async Task<INavigableDocumentLocation?> GetNavigableLocationAsync(
+        private async Task<INavigableLocation?> GetNavigableLocationAsync(
             Workspace workspace,
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (navigateTo == null)
                 return null;
 
-            return new NavigableDocumentLocation(async cancellationToken =>
+            return new NavigableLocation(async cancellationToken =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 using (OpenNewDocumentStateScope(options))

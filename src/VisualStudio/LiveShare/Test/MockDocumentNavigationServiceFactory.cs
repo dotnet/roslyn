@@ -39,14 +39,14 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 
             public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken) => SpecializedTasks.True;
 
-            public Task<INavigableDocumentLocation?> GetNavigableLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
-                => NavigableDocumentLocation.TestAccessor.Create(true);
+            public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+                => NavigableLocation.TestAccessor.Create(true);
 
-            public Task<INavigableDocumentLocation?> GetNavigableLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
-                => NavigableDocumentLocation.TestAccessor.Create(true);
+            public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+                => NavigableLocation.TestAccessor.Create(true);
 
-            public Task<INavigableDocumentLocation?> GetNavigableLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
-                => NavigableDocumentLocation.TestAccessor.Create(true);
+            public Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+                => NavigableLocation.TestAccessor.Create(true);
         }
     }
 }
