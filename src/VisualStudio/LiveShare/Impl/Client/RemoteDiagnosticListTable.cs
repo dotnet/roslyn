@@ -45,6 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             ConnectWorkspaceEvents();
         }
 
+        public IGlobalOptionService GlobalOptions
+            => _source.GlobalOptions;
+
         public void UpdateWorkspaceDiagnosticsPresent(bool diagnosticsPresent)
             => _workspaceDiagnosticsPresent = diagnosticsPresent;
 

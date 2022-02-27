@@ -10,10 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Internal.Log
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     /// <summary>
     /// A logger that publishes events to a log file.

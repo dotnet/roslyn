@@ -288,7 +288,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // since we might have up to date results for analyzers from compiler but not for 
                     // workspace analyzers.
                     var compilationWithReducedAnalyzers = (analyzersToRun.Length == 0) ? null :
-                        await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, analyzersToRun, compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                        await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
+                            project,
+                            analyzersToRun,
+                            compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
+                            GlobalOptions.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException),
+                            cancellationToken).ConfigureAwait(false);
 
                     var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                     return MergeExistingDiagnostics(version, existing, result);

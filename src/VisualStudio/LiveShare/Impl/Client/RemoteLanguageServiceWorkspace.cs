@@ -51,7 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private readonly IThreadingContext _threadingContext;
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
         private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
-        private readonly IGlobalOptionService _globalOptions;
 
         private const string ExternalProjectName = "ExternalDocuments";
 
@@ -90,7 +89,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
-            _globalOptions = globalOptions;
 
             _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, diagnosticService, tableManagerProvider);
 
@@ -103,6 +101,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
             _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
+
+        private IGlobalOptionService GlobalOptions
+            => _remoteDiagnosticListTable.GlobalOptions;
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
@@ -526,7 +527,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         private void StartSolutionCrawler()
         {
-            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            if (GlobalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
             {
                 DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
             }

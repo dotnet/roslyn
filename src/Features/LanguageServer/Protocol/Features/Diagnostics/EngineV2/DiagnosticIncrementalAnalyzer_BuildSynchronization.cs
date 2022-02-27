@@ -12,7 +12,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -30,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
-            var options = Workspace.Options;
-
-            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, options, buildDiagnostics, cancellationToken))
+            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, buildDiagnostics, cancellationToken))
             {
                 DebugVerifyDiagnosticLocations(buildDiagnostics);
 
@@ -193,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static string LogSynchronizeWithBuild(OptionSet options, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
+        private static string LogSynchronizeWithBuild(ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
             using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
             var sb = pooledObject.Object;
