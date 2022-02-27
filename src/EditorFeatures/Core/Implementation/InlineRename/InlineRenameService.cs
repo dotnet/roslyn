@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var renameInfo = await editorRenameService.GetRenameInfoAsync(document, textSpan.Start, cancellationToken).ConfigureAwait(false);
 
             var readOnlyOrCannotNavigateToSpanSessionInfo = await IsReadOnlyOrCannotNavigateToSpanAsync(
-                renameInfo, document, cancellationToken).ConfigureAwait(false);
+                _threadingContext, renameInfo, document, cancellationToken).ConfigureAwait(false);
             if (readOnlyOrCannotNavigateToSpanSessionInfo != null)
             {
                 return readOnlyOrCannotNavigateToSpanSessionInfo;
@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var previewChanges = GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.PreviewChanges);
 
+            // The session currently has UI thread affinity.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             ActiveSession = new InlineRenameSession(
                 _threadingContext,
                 this,
@@ -123,13 +125,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             return new InlineRenameSessionInfo(ActiveSession);
 
             static async Task<InlineRenameSessionInfo?> IsReadOnlyOrCannotNavigateToSpanAsync(
-                IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
+                IThreadingContext threadingContext, IInlineRenameInfo renameInfo, Document document, CancellationToken cancellationToken)
             {
                 if (renameInfo is IInlineRenameInfo inlineRenameInfo && inlineRenameInfo.DefinitionLocations != default)
                 {
                     var workspace = document.Project.Solution.Workspace;
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
+                    using var _ = PooledObjects.ArrayBuilder<(ITextBuffer, SnapshotSpan)>.GetInstance(out var buffersAndSpans);
                     foreach (var documentSpan in inlineRenameInfo.DefinitionLocations)
                     {
                         var sourceText = await documentSpan.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -139,11 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         {
                             var buffer = textSnapshot.TextBuffer;
                             var originalSpan = documentSpan.SourceSpan.ToSnapshotSpan(textSnapshot).TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-
-                            if (buffer.IsReadOnly(originalSpan))
-                            {
-                                return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file);
-                            }
+                            buffersAndSpans.Add((buffer, originalSpan));
                         }
 
                         var canNavigate = await navigationService.CanNavigateToSpanAsync(
@@ -151,6 +149,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         if (!canNavigate)
                         {
                             return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to);
+                        }
+                    }
+
+                    await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    foreach (var (buffer, originalSpan) in buffersAndSpans)
+                    {
+                        if (buffer.IsReadOnly(originalSpan))
+                        {
+                            return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file);
                         }
                     }
                 }

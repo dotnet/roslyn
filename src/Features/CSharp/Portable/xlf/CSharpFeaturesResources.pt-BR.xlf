@@ -17,9 +17,9 @@
         <target state="translated">Adicionar usings ausentes</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_remove_braces_for_single_line_control_statements">
-        <source>Add/remove braces for single-line control statements</source>
-        <target state="translated">Adicionar/remover as chaves das instruções de controle de linha única</target>
+      <trans-unit id="Add_required_braces_for_single_line_control_statements">
+        <source>Add required braces for single-line control statements</source>
+        <target state="new">Add required braces for single-line control statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
