@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             var document = documentSpan.Document;
             if (document.SupportsSyntaxTree)
             {
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 return tree.IsHiddenPosition(documentSpan.SourceSpan.Start, cancellationToken);
             }
 
