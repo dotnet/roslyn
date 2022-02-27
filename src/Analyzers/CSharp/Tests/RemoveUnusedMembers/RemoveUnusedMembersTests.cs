@@ -2654,6 +2654,19 @@ public class MyClass
             await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
         }
 
+        [Fact, WorkItem(54972, "https://github.com/dotnet/roslyn/issues/54972")]
+        public async Task FieldIsNotRead_NameOfIsUsed()
+        {
+            var code = @"
+public class C
+{
+    private string {|IDE0052:_field|};
+    public void M() => _field = nameof(C);
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         [WorkItem(54972, "https://github.com/dotnet/roslyn/issues/54972")]
         public async Task RangesIsUsed()
