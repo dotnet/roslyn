@@ -69,8 +69,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return null;
             }
 
-            return new CallbackNavigableDocumentLocation(() =>
+            return new CallbackNavigableDocumentLocation(async cancellationToken =>
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 textView.Selection.Select(surfaceBufferSpan.Start, surfaceBufferSpan.End);
                 textView.ViewScroller.EnsureSpanVisible(surfaceBufferSpan.SnapshotSpan, EnsureSpanVisibleOptions.AlwaysCenter);
 

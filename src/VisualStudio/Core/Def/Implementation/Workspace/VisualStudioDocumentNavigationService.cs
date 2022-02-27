@@ -246,9 +246,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (navigateTo == null)
                 return null;
 
-            return new CallbackNavigableDocumentLocation(() =>
+            return new CallbackNavigableDocumentLocation(async cancellationToken =>
             {
-                Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 using (OpenNewDocumentStateScope(options))
                 {
                     return navigateTo();

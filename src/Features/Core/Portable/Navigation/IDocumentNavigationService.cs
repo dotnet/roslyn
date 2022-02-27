@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Navigation
         {
             var location = await service.GetNavigableLocationForSpanAsync(
                 workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken).ConfigureAwait(false);
-            return location != null && location.NavigateTo();
+            return location != null &&
+                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -66,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Navigation
         {
             var location = await service.GetNavigableLocationForLineAndOffsetAsync(
                 workspace, documentId, lineNumber, offset, options, cancellationToken).ConfigureAwait(false);
-            return location != null && location.NavigateTo();
+            return location != null &&
+                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -76,7 +78,8 @@ namespace Microsoft.CodeAnalysis.Navigation
         {
             var location = await service.GetNavigableLocationForPositionAsync(
                 workspace, documentId, position, virtualSpace, options, cancellationToken).ConfigureAwait(false);
-            return location != null && location.NavigateTo();
+            return location != null &&
+                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }
