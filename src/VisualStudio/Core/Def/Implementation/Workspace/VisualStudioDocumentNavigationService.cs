@@ -331,6 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // in a permanent tab, this allows the document to transition to the new state.
             if (workspace.CanOpenDocuments)
             {
+                // OpenDocument can only be called from teh UI thread.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 workspace.OpenDocument(documentId);
             }
