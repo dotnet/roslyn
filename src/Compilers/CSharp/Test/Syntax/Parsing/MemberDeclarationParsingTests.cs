@@ -7337,5 +7337,59 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
             }
             EOF();
         }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_AtEOF()
+        {
+            UsingNode(@"record R<T> where T : delegate", options: TestOptions.Regular,
+                // (1,23): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // record R<T> where T : delegate
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(1, 23),
+                // (1,31): error CS1514: { expected
+                // record R<T> where T : delegate
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 31),
+                // (1,31): error CS1513: } expected
+                // record R<T> where T : delegate
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 31)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
