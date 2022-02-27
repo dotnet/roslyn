@@ -285,8 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return _sourceGeneratedFileManager.Value.GetNavigationCallback(
                     generatedDocument,
-                    await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false),
-                    cancellationToken);
+                    await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
             }
 
             // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
@@ -327,6 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Func<SourceText, VsTextSpan> getVsTextSpan,
             CancellationToken cancellationToken)
         {
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             var document = OpenDocument(workspace, documentId);
             if (document == null)
             {
