@@ -186,7 +186,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     void AnalyzeOperationNone(OperationAnalysisContext context)
                     {
                         if (context.Operation.Kind == OperationKind.None &&
-                            context.Operation.Parent != null)
+                            context.Operation.Parent != null &&
+                            context.Operation.Parent.Kind != OperationKind.NameOf)
                         {
                             hasUnsupportedOperation = true;
                         }
