@@ -69,19 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // [trivia] [whitespace] [token] case
             if (trivia2.IsKind(SyntaxKind.None))
             {
-                var insertNewLine = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null;
-
                 if (IsMultilineComment(trivia1))
                 {
+                    var insertNewLine = this.FormattingRules.GetAdjustNewLinesOperation(this.Token1, this.Token2) != null;
                     return LineColumnRule.PreserveLinesWithGivenIndentation(lines: insertNewLine ? 1 : 0);
                 }
 
-                if (insertNewLine)
-                {
-                    return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
-                }
-
-                if (existingWhitespaceBetween.Lines > 0 && existingWhitespaceBetween.Spaces != this.Spaces)
+                if (existingWhitespaceBetween.Spaces != this.Spaces)
                 {
                     return LineColumnRule.PreserveWithGivenSpaces(spaces: this.Spaces);
                 }

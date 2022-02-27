@@ -1368,9 +1368,9 @@ class C
 {
         int
 #if true
-        y,
+            y,
 #endif
-        z;
+            z;
 
         int a = 1;
 }");
@@ -1395,7 +1395,7 @@ class C
 #if true
 
 #endif
-        z;
+            z;
 
         int a = 1;
 }");
@@ -1418,9 +1418,9 @@ class C
 {
         int y,
 #if true
-        z
+            z
 #endif
-        ;
+            ;
 
         int a = 1;
 }");

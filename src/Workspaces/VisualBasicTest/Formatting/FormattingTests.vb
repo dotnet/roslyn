@@ -478,7 +478,7 @@ Imports System.
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function AnchorQueryStatement() As Task
+        Public Async Function AnchorQueryStatement1() As Task
             Dim code = <Code>Class C
     Sub Method()
         Dim a =                              From q In
@@ -491,9 +491,57 @@ End Class</Code>
             Dim expected = <Code>Class C
     Sub Method()
         Dim a = From q In
+                                                {1, 3, 5}
+                Where q > 10
+                Select q
+    End Sub
+End Class</Code>
+
+            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function AnchorQueryStatement2() As Task
+            Dim code = <Code>Class C
+    Sub Method()
+      Dim a =   From q In
                    {1, 3, 5}
                 Where q > 10
                 Select q
+    End Sub
+End Class</Code>
+
+            Dim expected = <Code>Class C
+    Sub Method()
+        Dim a = From q In
+                     {1, 3, 5}
+                Where q > 10
+                Select q
+    End Sub
+End Class</Code>
+
+            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Async Function AnchorQueryStatement3() As Task
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim a =
+                                             From q In
+                                                {1, 3, 5}
+                                             Where q > 10
+                                             Select q
+    End Sub
+End Class</Code>
+
+            Dim expected = <Code>Class C
+    Sub Method()
+        Dim a =
+                                             From q In
+                                                {1, 3, 5}
+                                             Where q > 10
+                                             Select q
     End Sub
 End Class</Code>
 
