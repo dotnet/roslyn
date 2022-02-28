@@ -961,7 +961,7 @@ class D
 
 #Region "CSharp TupleTests"
         Private ReadOnly tuple2 As XCData =
-            <![CDATA[
+        <![CDATA[
 namespace System
 {
     // struct with two values
