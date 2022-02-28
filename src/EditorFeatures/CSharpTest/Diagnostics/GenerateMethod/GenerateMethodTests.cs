@@ -6,14 +6,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -873,7 +871,7 @@ class C
         Goo(null);
     }
 
-    private void Goo(object p)
+    private void Goo(object value)
     {
         throw new NotImplementedException();
     }
@@ -4838,7 +4836,7 @@ class Program
         Bar(() => x);
     }
 
-    private static void Bar<T>(Func<List<T>> p)
+    private static void Bar<T>(Func<List<T>> value)
     {
         throw new NotImplementedException();
     }
@@ -5225,7 +5223,7 @@ class C
         M(new { x = 1 });
     }
 
-    private void M(object p)
+    private void M(object value)
     {
         throw new NotImplementedException();
     }
@@ -5685,7 +5683,7 @@ class Program
         Main(args.Goo());
     }
 
-    private static void Main(object p)
+    private static void Main(object value)
     {
         throw new NotImplementedException();
     }
@@ -5717,7 +5715,7 @@ class Program
         Baz(() => { return true; });
     }
 
-    private void Baz(Func<bool> p)
+    private void Baz(Func<bool> value)
     {
         throw new NotImplementedException();
     }
@@ -5884,7 +5882,7 @@ class C
        new C().TestMethod((a,b) => c.Add)
     }
 
-    private void TestMethod(Func<object, object, object> p)
+    private void TestMethod(Func<object, object, object> value)
     {
         throw new NotImplementedException();
     }
@@ -7729,7 +7727,7 @@ class Class
         (int, string) d = NewMethod((1, ""hello""));
     }
 
-    private (int, string) NewMethod((int, string) p)
+    private (int, string) NewMethod((int, string) value)
     {
         throw new NotImplementedException();
     }
@@ -7756,7 +7754,7 @@ class Class
         (int a, string b) d = NewMethod((c: 1, d: ""hello""));
     }
 
-    private (int a, string b) NewMethod((int c, string d) p)
+    private (int a, string b) NewMethod((int c, string d) value)
     {
         throw new NotImplementedException();
     }
@@ -7783,7 +7781,7 @@ class Class
         (int a, string) d = NewMethod((c: 1, ""hello""));
     }
 
-    private (int a, string) NewMethod((int c, string) p)
+    private (int a, string) NewMethod((int c, string) value)
     {
         throw new NotImplementedException();
     }
