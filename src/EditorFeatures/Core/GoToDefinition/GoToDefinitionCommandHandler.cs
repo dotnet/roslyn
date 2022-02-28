@@ -81,7 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 // We're showing our own UI, ensure the editor doesn't show anything itself.
                 context.OperationContext.TakeOwnership();
                 var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-                ExecuteModernCommandAsync(args, document, asyncService, caretPos.Value).CompletesAsyncOperation(token);
+                ExecuteModernCommandAsync(args, document, asyncService, caretPos.Value)
+                    .ReportNonFatalErrorAsync()
+                    .CompletesAsyncOperation(token);
             }
             else
             {
@@ -125,6 +127,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
                 // determine the location first.
                 var location = await service.FindDefinitionLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+
+                // make sure that if our background indicator got canceled, that we do not still perform the navigation.
+                if (backgroundIndicator.UserCancellationToken.IsCancellationRequested)
+                    return;
 
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
                 // causing ourselves to self-cancel.

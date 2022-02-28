@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
@@ -114,6 +115,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 factory._listener,
                 this.ThreadingContext.DisposalToken);
 
+            _toolTipPresenter.Dismissed += OnToolTipPresenterDismissed;
             _subjectBuffer.Changed += OnTextBufferChanged;
             textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
         }
@@ -145,6 +147,9 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             if (CancelOnFocusLost)
                 CancelAndDispose();
         }
+
+        private void OnToolTipPresenterDismissed(object sender, EventArgs e)
+            => CancelAndDispose();
 
         public void CancelAndDispose()
         {
@@ -205,6 +210,10 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 _dismissed = true;
 
                 // Unhook any event handlers we've setup.
+                //
+                // note we have to disconnect from dismissal notifications so our own dismiss below doesn't cause us to
+                // re-enter and cancel ourselves.
+                _toolTipPresenter.Dismissed -= OnToolTipPresenterDismissed;
                 _subjectBuffer.Changed -= OnTextBufferChanged;
                 _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
 

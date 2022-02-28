@@ -66,8 +66,5 @@ namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator
             if (_currentContext == context)
                 _currentContext = null;
         }
-
-        public void OnEscapeKeyPressed()
-            => _currentContext?.CancelAndDispose();
     }
 }
