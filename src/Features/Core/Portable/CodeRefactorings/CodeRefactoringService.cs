@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
             = new(r => new ProjectCodeRefactoringProvider(r));
+        private ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?>.Empty;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, providerMetadata, extensionManager, options, _fixAllProviderMap, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -132,7 +133,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             using (addOperationScope(providerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
-                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, options, cancellationToken);
+                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
+                                    extensionManager, options, _fixAllProviderMap, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -150,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
             CodeActionOptions options,
+            ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> fixAllProviderMap,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -183,11 +186,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
                 await task.ConfigureAwait(false);
 
-                var result = actions.Count > 0
-                    ? new CodeRefactoring(provider, actions.ToImmutable())
-                    : null;
-
-                return result;
+                if (actions.Count > 0)
+                {
+                    var fixAllProviderInfo = extensionManager.PerformFunction(
+                        provider, () => ImmutableInterlocked.GetOrAdd(ref fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
+                    return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo);
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (OperationCanceledException)
             {

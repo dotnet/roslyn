@@ -440,6 +440,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="new">Constructors not allowed</target>
         <note />
       </trans-unit>
+      <trans-unit id="Containing_Member">
+        <source>Containing Member</source>
+        <target state="new">Containing Member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_Type">
+        <source>Containing Type</source>
+        <target state="new">Containing Type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Convertir en LINQ</target>
@@ -2448,6 +2458,11 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Modification non applicable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection">
+        <source>Selection</source>
+        <target state="new">Selection</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">

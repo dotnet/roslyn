@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -27,10 +25,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// </remarks>
         public ImmutableArray<(CodeAction action, TextSpan? applicableToSpan)> CodeActions { get; }
 
-        public CodeRefactoring(CodeRefactoringProvider provider, ImmutableArray<(CodeAction, TextSpan?)> actions)
+        public FixAllProviderInfo? FixAllProviderInfo { get; }
+
+        public CodeRefactoring(
+            CodeRefactoringProvider provider,
+            ImmutableArray<(CodeAction, TextSpan?)> actions,
+            FixAllProviderInfo? fixAllProviderInfo)
         {
             Provider = provider;
             CodeActions = actions.NullToEmpty();
+            FixAllProviderInfo = fixAllProviderInfo;
 
             if (CodeActions.IsEmpty)
             {

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogState(FixAllState, IsInternalCodeFixProvider(FixAllState.CodeFixProvider));
 
-            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllCodeFixGetFixesService>();
 
             var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
             if (progressTracker != null)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogState(FixAllState, IsInternalCodeFixProvider(FixAllState.CodeFixProvider));
 
-            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
+            var service = FixAllState.Project.Solution.Workspace.Services.GetService<IFixAllCodeFixGetFixesService>();
 
             var fixAllContext = new FixAllContext(FixAllState, progressTracker, cancellationToken);
             if (progressTracker != null)

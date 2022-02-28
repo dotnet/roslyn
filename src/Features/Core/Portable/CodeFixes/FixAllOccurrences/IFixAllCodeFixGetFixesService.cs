@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal interface IFixAllGetFixesService : IWorkspaceService
+    internal interface IFixAllCodeFixGetFixesService : IWorkspaceService
     {
         /// <summary>
         /// Computes the fix all occurrences code fix, brings up the preview changes dialog for the fix and

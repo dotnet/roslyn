@@ -440,6 +440,16 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="new">Constructors not allowed</target>
         <note />
       </trans-unit>
+      <trans-unit id="Containing_Member">
+        <source>Containing Member</source>
+        <target state="new">Containing Member</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Containing_Type">
+        <source>Containing Type</source>
+        <target state="new">Containing Type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
         <target state="translated">Convertir a LINQ</target>
@@ -2448,6 +2458,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edición superficial</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection">
+        <source>Selection</source>
+        <target state="new">Selection</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
