@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                if (subpattern.Member is BoundPropertySubpatternMember member)
+                                if (subpattern.Member is BoundPropertySubpatternMember { HasErrors: false } member)
                                 {
                                     LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, subpattern.Pattern);
                                 }
