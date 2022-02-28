@@ -494,6 +494,13 @@ namespace Microsoft.CodeAnalysis
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
+        internal async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
+        {
+            var optionService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var documentOptions = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return documentOptions.AsAnalyzerConfigOptions(optionService, Project.Language);
+        }
+
         private void InitializeCachedOptions(OptionSet solutionOptions)
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
