@@ -2986,8 +2986,8 @@ class C
     int Method()
     {
         var q = from c in Get(1 +
-                            2 +
-                            3)
+                                2 +
+                                3)
                 from b in Get(1 +
                             2 +
                             3)

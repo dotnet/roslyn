@@ -184,7 +184,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
 
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
-            TryNavigateToLocationOrStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
+            await TryNavigateToLocationOrStartRenameSessionAsync(
+                workspace, oldSolution, updatedSolution, cancellationToken).ConfigureAwait(false);
             return applied;
         }
 
@@ -288,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return applied;
         }
 
-        private void TryNavigateToLocationOrStartRenameSession(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+        private async Task TryNavigateToLocationOrStartRenameSessionAsync(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
             foreach (var documentId in changedDocuments)
@@ -299,14 +300,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     continue;
                 }
 
-                var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind)
                                              .FirstOrNull();
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    navigationService.TryNavigateToPosition(workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken);
+                    await navigationService.TryNavigateToPositionAsync(
+                        workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -323,30 +325,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     var pathToRenameToken = new SyntaxPath(renameTokenOpt.Value);
                     var latestDocument = workspace.CurrentSolution.GetDocument(documentId);
-                    var latestRoot = latestDocument?.GetSyntaxRootSynchronously(cancellationToken);
-                    if (pathToRenameToken.TryResolve(latestRoot, out var resolvedRenameToken) &&
-                        resolvedRenameToken.IsToken)
+                    if (latestDocument != null)
                     {
-                        var editorWorkspace = workspace;
-                        var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                        if (navigationService.TryNavigateToSpan(editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken))
+                        var latestRoot = await latestDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        if (pathToRenameToken.TryResolve(latestRoot, out var resolvedRenameToken) &&
+                            resolvedRenameToken.IsToken)
                         {
-                            var openDocument = workspace.CurrentSolution.GetRequiredDocument(documentId);
-                            var openRoot = openDocument.GetSyntaxRootSynchronously(cancellationToken);
-
-                            // NOTE: We need to resolve the syntax path again in case VB line commit kicked in
-                            // due to the navigation.
-
-                            // TODO(DustinCa): We still have a potential problem here with VB line commit,
-                            // because it can insert tokens and all sorts of other business, which could
-                            // wind up with us not being able to resolve the token.
-                            if (pathToRenameToken.TryResolve(openRoot, out resolvedRenameToken) &&
-                                resolvedRenameToken.IsToken)
+                            var editorWorkspace = workspace;
+                            var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
+                            if (await navigationService.TryNavigateToSpanAsync(
+                                    editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false))
                             {
-                                var snapshot = openDocument.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
-                                if (snapshot != null)
+                                var openDocument = workspace.CurrentSolution.GetRequiredDocument(documentId);
+                                var openRoot = await openDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                                // NOTE: We need to resolve the syntax path again in case VB line commit kicked in
+                                // due to the navigation.
+
+                                // TODO(DustinCa): We still have a potential problem here with VB line commit,
+                                // because it can insert tokens and all sorts of other business, which could
+                                // wind up with us not being able to resolve the token.
+                                if (pathToRenameToken.TryResolve(openRoot, out resolvedRenameToken) &&
+                                    resolvedRenameToken.IsToken)
                                 {
-                                    _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, cancellationToken);
+                                    var text = await openDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                                    var snapshot = text.FindCorrespondingEditorTextSnapshot();
+                                    if (snapshot != null)
+                                    {
+                                        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                                        _renameService.StartInlineSession(openDocument, resolvedRenameToken.AsToken().Span, cancellationToken);
+                                    }
                                 }
                             }
                         }

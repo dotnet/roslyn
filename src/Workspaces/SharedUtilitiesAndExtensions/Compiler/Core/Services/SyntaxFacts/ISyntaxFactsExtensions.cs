@@ -747,6 +747,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region expressions
 
+        public static bool IsArrayCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ArrayCreationExpression;
+
         public static bool IsAwaitExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.AwaitExpression;
 
@@ -755,6 +758,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public static bool IsConditionalAccessExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node?.RawKind == syntaxFacts.SyntaxKinds.ConditionalAccessExpression;
+
+        public static bool IsImplicitArrayCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+            => node?.RawKind == syntaxFacts.SyntaxKinds.ImplicitArrayCreationExpression;
 
         public static bool IsImplicitObjectCreationExpression(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
             => node != null && node.RawKind == syntaxFacts.SyntaxKinds.ImplicitObjectCreationExpression;

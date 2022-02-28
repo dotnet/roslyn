@@ -60,14 +60,14 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         return diagnostics;
     }
 
-    protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocuments(context);
+        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, cancellationToken);
     }
 
-    protected override ImmutableArray<PreviousResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
+    protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {
-        return diagnosticsParams.PreviousResultIds.Select(id => new PreviousResult(id.Value, new TextDocumentIdentifier { Uri = id.Uri })
+        return diagnosticsParams.PreviousResultIds.Select(id => new PreviousPullResult(id.Value, new TextDocumentIdentifier { Uri = id.Uri })
         {
             PreviousResultId = id.Value,
             TextDocument = new TextDocumentIdentifier

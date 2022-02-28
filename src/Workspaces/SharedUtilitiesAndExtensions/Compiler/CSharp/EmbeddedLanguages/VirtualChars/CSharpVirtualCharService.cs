@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
             if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
-                return TryConvertRawStringToVirtualChars(token);
+                return TryConvertRawStringToVirtualChars(token, skipDelimiterQuotes: true);
 
             if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
             {
@@ -64,9 +65,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
                 if (parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
                 {
-                    return interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken
-                       ? TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true)
-                       : TryConvertStringToVirtualChars(token, "", "", escapeBraces: true);
+                    return interpolatedString.StringStartToken.Kind() switch
+                    {
+                        SyntaxKind.InterpolatedStringStartToken
+                            => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
+                        SyntaxKind.InterpolatedVerbatimStringStartToken
+                            => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
+                        SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                            => TryConvertRawStringToVirtualChars(token, skipDelimiterQuotes: false),
+                        _ => default,
+                    };
                 }
             }
 
@@ -89,25 +97,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private static VirtualCharSequence TryConvertRawStringToVirtualChars(SyntaxToken token)
+        private static VirtualCharSequence TryConvertRawStringToVirtualChars(
+            SyntaxToken token, bool skipDelimiterQuotes)
         {
             var tokenText = token.Text;
             var offset = token.SpanStart;
 
-            Contract.ThrowIfFalse(tokenText[0] == '"');
-            Contract.ThrowIfFalse(tokenText[^1] == '"');
-
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
 
-            while (tokenText[startIndexInclusive] == '"')
+            if (skipDelimiterQuotes)
             {
-                // All quotes should be paired at the end
-                Contract.ThrowIfFalse(tokenText[endIndexExclusive - 1] == '"');
-                startIndexInclusive++;
-                endIndexExclusive--;
+                Contract.ThrowIfFalse(tokenText[0] == '"');
+                Contract.ThrowIfFalse(tokenText[^1] == '"');
+
+                while (tokenText[startIndexInclusive] == '"')
+                {
+                    // All quotes should be paired at the end
+                    Contract.ThrowIfFalse(tokenText[endIndexExclusive - 1] == '"');
+                    startIndexInclusive++;
+                    endIndexExclusive--;
+                }
             }
 
             for (var index = startIndexInclusive; index < endIndexExclusive;)
@@ -175,14 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<(char ch, TextSpan span)> charResults)
         {
             // Second pass.  Convert those characters to Runes.
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var runeResults);
+            var runeResults = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
             ConvertCharactersToRunes(charResults, runeResults);
 
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
         }
 
-        private static void ConvertCharactersToRunes(ArrayBuilder<(char ch, TextSpan span)> charResults, ArrayBuilder<VirtualChar> runeResults)
+        private static void ConvertCharactersToRunes(ArrayBuilder<(char ch, TextSpan span)> charResults, ImmutableSegmentedList<VirtualChar>.Builder runeResults)
         {
             for (var i = 0; i < charResults.Count;)
             {

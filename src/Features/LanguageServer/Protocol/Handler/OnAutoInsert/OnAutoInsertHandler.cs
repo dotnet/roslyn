@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices)
         {
             _csharpBraceCompletionServices = csharpBraceCompletionServices.ToImmutableArray();
-            _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
+            _visualBasicBraceCompletionServices = visualBasicBraceCompletionServices.ToImmutableArray();
         }
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;

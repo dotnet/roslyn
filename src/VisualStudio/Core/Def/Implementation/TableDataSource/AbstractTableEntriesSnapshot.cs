@@ -4,8 +4,11 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -28,8 +31,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly ImmutableArray<TItem> _items;
         private ImmutableArray<ITrackingPoint> _trackingPoints;
 
-        protected AbstractTableEntriesSnapshot(int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
+        protected AbstractTableEntriesSnapshot(IThreadingContext threadingContext, int version, ImmutableArray<TItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
         {
+            ThreadingContext = threadingContext;
             _version = version;
             _items = items;
             _trackingPoints = trackingPoints;
@@ -53,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return _items.Length;
             }
         }
+
+        protected IThreadingContext ThreadingContext { get; }
 
         public int IndexOf(int index, ITableEntriesSnapshot newerSnapshot)
         {
@@ -152,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, NavigationOptions options, CancellationToken cancellationToken)
+        protected bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, NavigationOptions options, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -160,35 +166,52 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
+            return this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                navigationService.TryNavigateToLineAndOffsetAsync(workspace, documentId, position.Line, position.Character, options, cancellationToken));
         }
 
         protected bool TryNavigateToItem(int index, NavigationOptions options, CancellationToken cancellationToken)
         {
             var item = GetItem(index);
-            if (item is not { DocumentId: { } documentId })
-            {
+            if (item is null)
                 return false;
-            }
 
             var workspace = item.Workspace;
             var solution = workspace.CurrentSolution;
-            var document = solution.GetDocument(documentId);
-            if (document == null)
+            var documentId = item.DocumentId;
+            if (documentId is null)
             {
-                return false;
+                if (item is { ProjectId: { } projectId }
+                    && solution.GetProject(projectId) is { } project)
+                {
+                    // We couldn't find a document ID when the item was created, so it may be a source generator
+                    // output.
+                    var documents = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentsAsync(cancellationToken).AsTask());
+                    var projectDirectory = Path.GetDirectoryName(project.FilePath);
+                    documentId = documents.FirstOrDefault(document => Path.Combine(projectDirectory, document.FilePath) == item.GetOriginalFilePath())?.Id;
+                    if (documentId is null)
+                        return false;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             LinePosition position;
-            LinePosition trackingLinePosition;
-
-            if (workspace.IsDocumentOpen(documentId) &&
-                (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
+            var document = solution.GetDocument(documentId);
+            if (document is not null
+                && workspace.IsDocumentOpen(documentId)
+                && GetTrackingLineColumn(document, index) is { } trackingLinePosition
+                && trackingLinePosition != LinePosition.Zero)
             {
+                // For normal documents already open, try to map the diagnostic location to its current position in a
+                // potentially-edited document.
                 position = trackingLinePosition;
             }
             else
             {
+                // Otherwise navigate to the original reported location.
                 position = item.GetOriginalPosition();
             }
 

@@ -51,11 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var service = document.GetRequiredLanguageService<IImplementInterfaceService>();
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var options = ImplementTypeOptions.From(document.Project);
 
             var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()
                                       .Where(_interfaceName)
-                                      .Select(n => service.GetCodeActions(document, options, model, n, cancellationToken))
+                                      .Select(n => service.GetCodeActions(document, context.Options.ImplementTypeOptions, model, n, cancellationToken))
                                       .FirstOrDefault(a => !a.IsEmpty);
 
             if (actions.IsDefaultOrEmpty)

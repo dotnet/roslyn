@@ -135,8 +135,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var context = new TaggerContext<IClassificationTag>(document, snapshot);
                     var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
-                    ThreadingContext.JoinableTaskFactory.Run(
-                        () => SemanticClassificationUtilities.ProduceTagsAsync(context, new DocumentSnapshotSpan(document, spanToTag), classificationService, _owner._typeMap, options, cancellationToken));
+                    ThreadingContext.JoinableTaskFactory.Run(async () =>
+                    {
+                        var snapshotSpan = new DocumentSnapshotSpan(document, spanToTag);
+
+                        // When copying/pasting, ensure we have classifications fully computed for the requested spans
+                        // for both semantic classifications and embedded lang classifications.
+                        await ProduceTagsAsync(context, snapshotSpan, classificationService, options, ClassificationType.Semantic, cancellationToken).ConfigureAwait(false);
+                        await ProduceTagsAsync(context, snapshotSpan, classificationService, options, ClassificationType.EmbeddedLanguage, cancellationToken).ConfigureAwait(false);
+                    });
 
                     cachedTaggedSpan = spanToTag;
                     cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, context.tagSpans);
@@ -151,6 +158,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return cachedTags == null
                     ? Array.Empty<ITagSpan<IClassificationTag>>()
                     : cachedTags.GetIntersectingTagSpans(spans);
+            }
+
+            private Task ProduceTagsAsync(
+                TaggerContext<IClassificationTag> context, DocumentSnapshotSpan snapshotSpan,
+                IClassificationService classificationService, ClassificationOptions options, ClassificationType type, CancellationToken cancellationToken)
+            {
+                return ClassificationUtilities.ProduceTagsAsync(
+                    context, snapshotSpan, classificationService, _owner._typeMap, options, type, cancellationToken);
             }
 
             private void GetCachedInfo(out SnapshotSpan? cachedTaggedSpan, out TagSpanIntervalTree<IClassificationTag>? cachedTags)

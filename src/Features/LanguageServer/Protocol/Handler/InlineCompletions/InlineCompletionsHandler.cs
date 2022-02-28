@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +20,7 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions.XmlSnippetParser;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
@@ -42,15 +41,18 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InlineCompletionsHandler()
-    {
-    }
+    private readonly XmlSnippetParser _xmlSnippetParser;
 
     public override bool MutatesSolutionState => false;
 
     public override bool RequiresLSPSolution => true;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser)
+    {
+        _xmlSnippetParser = xmlSnippetParser;
+    }
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
@@ -88,25 +90,9 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         var matchingSnippetInfo = snippetInfo.First(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
 
-        var matchingSnippet = RetrieveSnippetFromXml(matchingSnippetInfo, context);
-        if (matchingSnippet == null)
-        {
-            return null;
-        }
-
-        // We currently only support snippet expansions, the others require selection support which is not applicable here.
-        if (!matchingSnippet.IsExpansionSnippet())
-        {
-            return null;
-        }
-
-        var expansion = new ExpansionTemplate(matchingSnippet);
-
-        // Parse the snippet XML
-        var parsedSnippet = expansion.Parse(context);
+        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(matchingSnippetInfo, context);
         if (parsedSnippet == null)
         {
-            context.TraceError($"Could not parse code from snippet {matchingSnippet.Title}");
             return null;
         }
 
@@ -265,28 +251,5 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         }
 
         return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), caretSpan);
-    }
-
-    private static CodeSnippet? RetrieveSnippetFromXml(SnippetInfo snippetInfo, RequestContext context)
-    {
-        context.TraceInformation($"Reading XML for {snippetInfo.Title} with path {snippetInfo.Path}");
-
-        var path = snippetInfo.Path;
-        if (path == null)
-        {
-            context.TraceInformation($"Missing file path for snippet {snippetInfo.Title}");
-            return null;
-        }
-
-        if (!File.Exists(path))
-        {
-            context.TraceInformation($"Snippet {snippetInfo.Title} has an invalid file path: {snippetInfo.Path}");
-            return null;
-        }
-
-        // Load the xml for the snippet from disk.
-        // Any exceptions thrown here we allow to bubble up and let the queue log it.
-        var snippet = CodeSnippet.ReadSnippetFromFile(snippetInfo.Path, snippetInfo.Title, context);
-        return snippet;
     }
 }

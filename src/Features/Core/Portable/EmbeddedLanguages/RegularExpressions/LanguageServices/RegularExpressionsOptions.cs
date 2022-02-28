@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             new(
                 nameof(RegularExpressionsOptions),
                 nameof(ReportInvalidRegexPatterns),
-                defaultValue: true,
+                IdeAnalyzerOptions.Default.ReportInvalidRegexPatterns,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns"));
 
         public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
