@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         public static readonly Option2<bool> OpenOnFocus = new(
             nameof(StackTraceExplorerOptions),
             nameof(OpenOnFocus),
-            true,
+            false,
             storageLocation: new RoamingProfileStorageLocation("StackTraceExplorer.Options.OpenOnFocus"));
     }
 }
