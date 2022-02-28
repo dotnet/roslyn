@@ -6765,6 +6765,7 @@ namespace NS2
 ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 ' trigger completion with import completion disabled
@@ -6833,6 +6834,7 @@ namespace NS2
 ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 ' trigger completion with import completion enabled
@@ -8247,6 +8249,7 @@ namespace B
     }
 }                              </Document>)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
@@ -8566,6 +8569,8 @@ public class AA
     }
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 Dim expectedText = $"
@@ -8612,6 +8617,7 @@ public class AA
     }
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
@@ -8666,6 +8672,7 @@ public class AA
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
@@ -8715,6 +8722,7 @@ public class AA
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
@@ -8758,6 +8766,7 @@ public class AA
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
@@ -8808,6 +8817,7 @@ namespace Bar1
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
@@ -8858,6 +8868,7 @@ public unsafe class AA
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
                 state.Workspace.GlobalOptions.SetGlobalOption(
                     New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
