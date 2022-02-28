@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -2171,6 +2170,7 @@ public class Class1
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInLocalWithNullableTypeName()
         {
@@ -2187,10 +2187,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInLocalWithQuestionMark()
         {
@@ -2207,10 +2208,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableReferenceInLocal()
         {
@@ -2227,10 +2229,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInParameterWithNullableTypeName()
         {
@@ -2246,10 +2249,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableStructInParameterWithQuestionMark()
         {
@@ -2263,10 +2267,11 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeIsNullableReferenceInParameter()
         {
@@ -2282,7 +2287,126 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "vs");
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfUnmanagedType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<int> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfObject()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<object> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "objects");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfString()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<string> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "strings");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericTParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<T>(IEnumerable<T> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "values");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericTNameParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<TResult>(IEnumerable<TResult> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "results");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Arg>(IEnumerable<Arg> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "args");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameterBeginsWithT()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Type>(IEnumerable<Type> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "types");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
