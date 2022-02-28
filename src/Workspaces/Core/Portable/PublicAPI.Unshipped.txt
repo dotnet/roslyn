@@ -1,5 +1,33 @@
+abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.FixAllAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
+abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.SupportsFixAllForContainingMember.get -> bool
+abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.SupportsFixAllForContainingType.get -> bool
+abstract Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.SupportsFixAllForSelection.get -> bool
+abstract Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
+Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider
+Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider() -> void
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CodeAction.get -> Microsoft.CodeAnalysis.CodeActions.CodeAction
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.CodeRefactoringProvider.get -> Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.FixAllSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan?
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.Scope.get -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext.WithCancellationToken(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.FixAllProvider() -> void
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope.ContainingMember = 4 -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope.Custom = 2147483647 -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope.Document = 0 -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope.Project = 1 -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope.Selection = 3 -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
+Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope.Solution = 2 -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
+override sealed Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
+override sealed Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope>
+static Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, bool supportsFixAllForSelection, bool supportsFixAllForContainingMember, bool supportsFixAllForContainingType) -> Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void
@@ -21,3 +49,5 @@ Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.
 Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.init -> void
 static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Rename.DocumentRenameOptions options, string newDocumentName, System.Collections.Generic.IReadOnlyList<string> newDocumentFolders = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet>
 static Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Rename.SymbolRenameOptions options, string newName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+virtual Microsoft.CodeAnalysis.CodeRefactorings.DocumentBasedFixAllProvider.GetFixAllTitle(Microsoft.CodeAnalysis.CodeRefactorings.FixAllContext fixAllContext) -> string
+virtual Microsoft.CodeAnalysis.CodeRefactorings.FixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeRefactorings.FixAllScope>

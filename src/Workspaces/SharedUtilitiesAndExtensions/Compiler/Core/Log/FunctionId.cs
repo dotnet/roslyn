@@ -539,5 +539,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         NavigateToExternalSources = 531,
 
         StackTraceToolWindow_ShowOnActivated = 540,
+
+        Refactoring_FixAllOccurrencesSession = 550,
+        Refactoring_FixAllOccurrencesContext = 551,
+        Refactoring_FixAllOccurrencesComputation = 552,
+        Refactoring_FixAllOccurrencesPreviewChanges = 553,
     }
 }

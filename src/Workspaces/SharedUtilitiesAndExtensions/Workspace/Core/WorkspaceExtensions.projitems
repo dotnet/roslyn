@@ -10,6 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationPreferences.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\FixAll\FixAllContextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\FixAll\FixAllState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\SyntaxEditorBasedCodeRefactoringProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\ISyntaxContextService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
@@ -90,7 +93,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
