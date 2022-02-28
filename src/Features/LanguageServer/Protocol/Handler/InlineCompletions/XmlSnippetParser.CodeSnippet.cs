@@ -8,15 +8,13 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
-internal partial class InlineCompletionsHandler
+internal partial class XmlSnippetParser
 {
     /// <summary>
     /// Shamelessly copied from the editor
@@ -62,28 +60,14 @@ internal partial class InlineCompletionsHandler
             return _snippetTypes?.Contains(ExpansionSnippetType, StringComparer.OrdinalIgnoreCase) == true;
         }
 
-        public static CodeSnippet? ReadSnippetFromFile(string filePath, string snippetTitle, RequestContext context)
+        public static CodeSnippet ReadSnippetFromFile(string filePath, string snippetTitle)
         {
-            try
-            {
-                context.TraceInformation($"Reading XML from {filePath} for snippet {snippetTitle}");
-                var document = XDocument.Load(filePath);
-                var snippets = ReadSnippets(document);
-                if (snippets == null)
-                {
-                    context.TraceError($"Did not find any code snippets in XML");
-                    return null;
-                }
+            var document = XDocument.Load(filePath);
+            var snippets = ReadSnippets(document);
+            Contract.ThrowIfNull(snippets, $"Did not find any code snippets in {filePath}");
 
-                var matchingSnippet = snippets.Value.Single(s => string.Equals(s.Title, snippetTitle, StringComparison.OrdinalIgnoreCase));
-                return matchingSnippet;
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-            {
-                context.TraceError($"Got exception reading snippet XML from {filePath} for {snippetTitle}");
-                context.TraceException(ex);
-                return null;
-            }
+            var matchingSnippet = snippets.Value.Single(s => string.Equals(s.Title, snippetTitle, StringComparison.OrdinalIgnoreCase));
+            return matchingSnippet;
         }
 
         private static ImmutableArray<XElement>? ReadCodeSnippetElements(XDocument document)
@@ -142,11 +126,8 @@ internal partial class InlineCompletionsHandler
         private readonly string? _code;
         private readonly string _delimiter = "$";
 
-        private readonly CodeSnippet _snippet;
-
         public ExpansionTemplate(CodeSnippet snippet)
         {
-            _snippet = snippet;
             var snippetElement = CodeSnippet.GetElementWithoutNamespace(snippet.CodeSnippetElement, "Snippet");
             var declarationsElement = CodeSnippet.GetElementWithoutNamespace(snippetElement, "Declarations");
             ReadDeclarations(declarationsElement);
@@ -185,21 +166,7 @@ internal partial class InlineCompletionsHandler
             }
         }
 
-        public ParsedXmlSnippet? Parse(RequestContext context)
-        {
-            try
-            {
-                return Parse();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-            {
-                context.TraceInformation($"Got exception parsing snippet code for {_snippet.Title}");
-                context.TraceException(ex);
-                return null;
-            }
-        }
-
-        private ParsedXmlSnippet? Parse()
+        internal ParsedXmlSnippet Parse()
         {
             int iTokenLen;
             var currentCharIndex = 0;
@@ -303,7 +270,9 @@ internal partial class InlineCompletionsHandler
                 snippetParts.Add(new SnippetStringPart(remaining));
             }
 
-            return snippetParts.Any() ? new ParsedXmlSnippet(snippetParts.ToImmutable()) : null;
+            Contract.ThrowIfFalse(snippetParts.Any());
+
+            return new ParsedXmlSnippet(snippetParts.ToImmutable());
         }
 
         private ExpansionField FindField(string fieldName)
