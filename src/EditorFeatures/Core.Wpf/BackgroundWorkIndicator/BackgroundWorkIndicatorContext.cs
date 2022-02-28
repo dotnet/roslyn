@@ -108,7 +108,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             _firstDescription = firstDescription;
 
             _uiUpdateQueue = new AsyncBatchingWorkQueue<UIUpdateRequest>(
-                DelayTimeSpan.Medium,
+                DelayTimeSpan.Short,
                 UpdateUIAsync,
                 EqualityComparer<UIUpdateRequest>.Default,
                 factory._listener,
