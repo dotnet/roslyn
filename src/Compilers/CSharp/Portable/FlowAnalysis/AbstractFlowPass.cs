@@ -1525,6 +1525,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
+                else
+                {
+                    // TODO2
+                    VisitRvalue(node.Argument);
+                }
             }
             else
             {

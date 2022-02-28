@@ -9175,5 +9175,63 @@ class C {
 }");
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
         }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void TestDataFlowsOfIdentifierWithDelegateConversion()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+using System;
+
+internal static class NoExtensionMethods
+{
+    internal static Func<T> AsFunc<T>(this T value) where T : class
+    {
+        return new Func<T>(/*<bind>*/ value /*</bind>*/.Return);
+    }
+
+    private static T Return<T>(this T value)
+    {
+        return value;
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(((object)42).AsFunc()());
+    }
+}
+	");
+            Assert.True(analysis.Succeeded);
+        }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentInReceiverOfExtensionMethodInDelegateCreation()
+        {
+            var comp = CreateCompilation(@"
+using System;
+bool b = true;
+_ = new Func<string>((b ? M(out var i) : i.ToString()).ExtensionMethod);
+
+string M(out int i)
+{
+    throw null;
+}
+
+static class Extension
+{
+    public static string ExtensionMethod(this string s) => throw null;
+}
+	");
+            comp.VerifyDiagnostics(
+                // (3,6): warning CS0219: The variable 'b' is assigned but its value is never used
+                // bool b = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b").WithArguments("b").WithLocation(3, 6),
+                // (4,37): warning CS0168: The variable 'i' is declared but never used
+                // _ = new Func<string>((b ? M(out var i) : i.ToString()).ExtensionMethod);
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(4, 37),
+                // (6,8): warning CS8321: The local function 'M' is declared but never used
+                // string M(out int i)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 8)
+                );
+        }
     }
 }
