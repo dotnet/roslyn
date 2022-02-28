@@ -428,7 +428,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     action = fixAllAction;
 
                     if (willBlockUntilComplete
-                        && action is FixAllSuggestedAction fixAllSuggestedAction
+                        && action is FixAllCodeFixSuggestedAction fixAllSuggestedAction
                         && fixAllSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
                     {
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
@@ -495,7 +495,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return actions;
         }
 
-        private static async Task<FixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
+        private static async Task<FixAllCodeFixSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -503,7 +503,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 foreach (var action in actionSet.Actions)
                 {
-                    if (action is FixAllSuggestedAction fixAllSuggestedAction)
+                    if (action is FixAllCodeFixSuggestedAction fixAllSuggestedAction)
                     {
                         var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixSomeCodeAction;
                         if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)

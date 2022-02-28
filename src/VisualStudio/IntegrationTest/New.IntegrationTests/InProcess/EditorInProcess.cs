@@ -668,7 +668,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     action = fixAllAction;
 
                     if (willBlockUntilComplete
-                        && action is FixAllSuggestedAction fixAllSuggestedAction
+                        && action is FixAllCodeFixSuggestedAction fixAllSuggestedAction
                         && fixAllSuggestedAction.CodeAction is FixSomeCodeAction fixSomeCodeAction)
                     {
                         // Ensure the preview changes dialog will not be shown. Since the operation 'willBlockUntilComplete',
@@ -756,7 +756,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return actions;
         }
 
-        private async Task<FixAllSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
+        private async Task<FixAllCodeFixSuggestedAction?> GetFixAllSuggestedActionAsync(IEnumerable<SuggestedActionSet> actionSets, FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -764,7 +764,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             {
                 foreach (var action in actionSet.Actions)
                 {
-                    if (action is FixAllSuggestedAction fixAllSuggestedAction)
+                    if (action is FixAllCodeFixSuggestedAction fixAllSuggestedAction)
                     {
                         var fixAllCodeAction = fixAllSuggestedAction.CodeAction as FixSomeCodeAction;
                         if (fixAllCodeAction?.FixAllState?.Scope == fixAllScope)
