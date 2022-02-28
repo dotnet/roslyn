@@ -25,7 +25,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
     private sealed class BackgroundWorkIndicatorContext : IBackgroundWorkIndicatorContext
     {
         /// <summary>
-        /// What sort of UI update request we've enqueued to <see cref="_uiUpdateQueue"/>.
+        /// What sort of UI update request we've enqueued to <see cref="_uiUpdateQueue"/>.  This effectively is just a
+        /// boolean, but with clearer names to make it obvious what is going on.
         /// </summary>
         private enum UIUpdateRequest
         {
