@@ -348,9 +348,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // workspace. If a document is already open in a preview tab and it is opened again 
                 // in a permanent tab, this allows the document to transition to the new state.
 
-                // OpenDocument can only be called from teh UI thread.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                workspace.OpenDocument(documentId);
+                if (workspace.CanOpenDocuments)
+                    await OpenDocumentAsync(_threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
 
                 if (!workspace.IsDocumentOpen(documentId))
                     return false;
@@ -379,6 +378,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return await NavigateToTextBufferAsync(
                     textBuffer, vsTextSpan, cancellationToken).ConfigureAwait(false);
             };
+
+            async static Task OpenDocumentAsync(
+                IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                // OpenDocument must be called on the UI thread.
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                workspace.OpenDocument(documentId);
+            }
         }
 
         private async Task<Func<CancellationToken, Task<bool>>?> GetNavigableLocationForMappedFileAsync(
