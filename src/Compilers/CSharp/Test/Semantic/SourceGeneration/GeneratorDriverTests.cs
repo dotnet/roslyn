@@ -2735,7 +2735,7 @@ class C { }
             {
                 ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
             });
-            var generator2 = new LocalPipelineCallbackGenerator(ctx =>
+            var generator2 = new PipelineCallbackGenerator2(ctx =>
             {
                 ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
             });
@@ -2746,23 +2746,6 @@ class C { }
             Assert.All(runResult.Results,
                 result => Assert.Contains(WellKnownGeneratorInputs.AdditionalTexts, result.TrackedSteps.Keys));
             Assert.Equal(2, runResult.Results.Length);
-        }
-
-        // Introduce a local type here since GeneratorDriver validates that each generator is only included once
-        // by checking the type
-        private sealed class LocalPipelineCallbackGenerator : IIncrementalGenerator
-        {
-            private readonly Action<IncrementalGeneratorInitializationContext> _callback;
-
-            public LocalPipelineCallbackGenerator(Action<IncrementalGeneratorInitializationContext> callback)
-            {
-                _callback = callback;
-            }
-
-            public void Initialize(IncrementalGeneratorInitializationContext context)
-            {
-                _callback(context);
-            }
         }
 
         [Fact]
@@ -2845,7 +2828,7 @@ public static readonly string F = ""a""
             driver.GetRunResult();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [Fact]
         [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
         public void Binary_Additional_Files_Do_Not_Throw_When_Compared()
         {
