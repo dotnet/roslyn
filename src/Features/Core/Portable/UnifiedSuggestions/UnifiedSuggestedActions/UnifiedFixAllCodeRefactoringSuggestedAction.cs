@@ -9,25 +9,21 @@ using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 namespace Microsoft.CodeAnalysis.UnifiedSuggestions
 {
     /// <summary>
-    /// Similar to CodeRefactoringSuggestedAction, but in a location that can be used by
+    /// Similar to FixAllCodeRefactoringSuggestedAction, but in a location that can be used by
     /// both local Roslyn and LSP.
     /// </summary>
-    internal class UnifiedCodeRefactoringSuggestedAction : UnifiedSuggestedAction, ICodeRefactoringSuggestedAction
+    internal class UnifiedFixAllCodeRefactoringSuggestedAction : UnifiedSuggestedAction, IFixAllCodeRefactoringSuggestedAction
     {
-        public CodeRefactoringProvider CodeRefactoringProvider { get; }
+        public FixAllState? FixAllState { get; }
 
-        public UnifiedSuggestedActionSet? FixAllFlavors { get; }
-
-        public UnifiedCodeRefactoringSuggestedAction(
+        public UnifiedFixAllCodeRefactoringSuggestedAction(
             Workspace workspace,
             CodeAction codeAction,
             CodeActionPriority codeActionPriority,
-            CodeRefactoringProvider codeRefactoringProvider,
-            UnifiedSuggestedActionSet? fixAllFlavors)
+            FixAllState? fixAllState)
             : base(workspace, codeAction, codeActionPriority)
         {
-            CodeRefactoringProvider = codeRefactoringProvider;
-            FixAllFlavors = fixAllFlavors;
+            FixAllState = fixAllState;
         }
     }
 }
