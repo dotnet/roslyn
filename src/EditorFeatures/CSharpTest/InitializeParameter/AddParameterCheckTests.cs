@@ -29,8 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestSimpleReferenceType()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [InlineData("csharp_style_prefer_parameter_null_checking = true")]
+        [InlineData("")]
+        public async Task TestSimpleReferenceType(string editorConfig)
         {
             await new VerifyCS.Test
             {
@@ -52,7 +54,46 @@ class C
     public C(string s!!)
     {
     }
-}"
+}",
+                EditorConfig = $@"
+[*]
+{editorConfig}
+"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestDoNotPreferParameterNullChecking()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}",
+                EditorConfig = @"
+[*]
+csharp_style_prefer_parameter_null_checking = false
+",
             }.RunAsync();
         }
 

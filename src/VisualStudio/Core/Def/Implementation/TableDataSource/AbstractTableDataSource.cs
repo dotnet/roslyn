@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private ImmutableArray<SubscriptionWithoutLock> _subscriptions;
         protected bool IsStable;
 
-        public AbstractTableDataSource(Workspace workspace)
+        public AbstractTableDataSource(Workspace workspace, IThreadingContext threadingContext)
         {
             _gate = new object();
             _map = new Dictionary<object, TableEntriesFactory<TItem, TData>>();
@@ -43,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
 
             Workspace = workspace;
+            ThreadingContext = threadingContext;
             IsStable = true;
         }
 
@@ -53,6 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public abstract string SourceTypeIdentifier { get; }
 
         public abstract string Identifier { get; }
+
+        protected IThreadingContext ThreadingContext { get; }
 
         public void RefreshAllFactories()
         {
@@ -285,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var source = CreateTableEntriesSource(data);
-            factory = new TableEntriesFactory<TItem, TData>(this, source);
+            factory = new TableEntriesFactory<TItem, TData>(ThreadingContext, this, source);
 
             _map.Add(key, factory);
             newFactory = true;

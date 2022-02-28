@@ -7,12 +7,10 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(), Shared]
-    [ProvidesMethod(VSInternalMethods.WorkspacePullDiagnosticName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspacePullDiagnosticHandler)), Shared]
     internal class WorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
