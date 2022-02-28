@@ -8,25 +8,22 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
     /// <summary>
-    /// Suggested action for fix all occurrences code fix.  Note: this is only used
-    /// as a 'flavor' inside CodeFixSuggestionAction.
+    /// Suggested action for fix all occurrences for a code refactoring.  Note: this is only used
+    /// as a 'flavor' inside CodeRefactoringSuggestionAction.
     /// </summary>
-    internal sealed partial class FixAllSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>, IFixAllSuggestedAction
+    internal sealed class FixAllCodeRefactoringSuggestedAction : SuggestedAction, IFixAllCodeRefactoringSuggestedAction
     {
-        public Diagnostic Diagnostic { get; }
-
         /// <summary>
         /// The original code-action that we are a fix-all for.  i.e. _originalCodeAction
         /// would be something like "use 'var' instead of 'int'", this suggestion action
@@ -37,18 +34,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public FixAllState FixAllState { get; }
 
-        internal FixAllSuggestedAction(
+        internal FixAllCodeRefactoringSuggestedAction(
             IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
             FixAllState fixAllState,
-            Diagnostic originalFixedDiagnostic,
             CodeAction originalCodeAction)
             : base(threadingContext, sourceProvider, workspace, subjectBuffer,
-                   fixAllState.FixAllProvider, new FixAllCodeAction(fixAllState))
+                   fixAllState.FixAllProvider, new FixAllCodeRefactoringCodeAction(fixAllState))
         {
-            Diagnostic = originalFixedDiagnostic;
             OriginalCodeAction = originalCodeAction;
             FixAllState = fixAllState;
         }
@@ -58,12 +53,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // We get the telemetry id for the original code action we are fixing,
             // not the special 'FixAllCodeAction'.  that is the .CodeAction this
             // SuggestedAction is pointing at.
-            telemetryId = OriginalCodeAction.GetType().GetTelemetryId(FixAllState.Scope.GetScopeIdForTelemetry());
+            telemetryId = OriginalCodeAction.GetType().GetTelemetryId(FixAllState.FixAllScope.GetScopeIdForTelemetry());
             return true;
         }
-
-        public string GetDiagnosticID()
-            => Diagnostic.GetTelemetryDiagnosticID();
 
         protected override async Task InnerInvokeAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)

@@ -11,7 +11,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,12 +20,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    [ExportWorkspaceServiceFactory(typeof(IFixAllGetFixesService), ServiceLayer.Host), Shared]
-    internal class FixAllGetFixesService : IFixAllGetFixesService, IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IFixAllCodeRefactoringGetFixesService), ServiceLayer.Host), Shared]
+    internal class FixAllCodeRefactoringGetFixesService : IFixAllCodeRefactoringGetFixesService, IWorkspaceServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FixAllGetFixesService()
+        public FixAllCodeRefactoringGetFixesService()
         {
         }
 
@@ -37,15 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
             {
-                return fixAllContext.Solution;
+                return fixAllContext.Project.Solution;
             }
 
             fixAllContext.CancellationToken.ThrowIfCancellationRequested();
             return await codeAction.GetChangedSolutionInternalAsync(cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-            FixAllContext fixAllContext, bool showPreviewChangesDialog)
+        public async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(FixAllContext fixAllContext)
         {
             var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             return await GetFixAllOperationsAsync(
-                codeAction, showPreviewChangesDialog, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
+                codeAction, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 KeyValueLogMessage.Create(LogType.UserAction, m =>
                 {
                     m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
-                    m[FixAllLogger.FixAllScope] = fixAllContext.State.Scope.ToString();
+                    m[FixAllLogger.FixAllScope] = fixAllContext.State.FixAllScope.ToString();
                 }),
                 fixAllContext.CancellationToken))
             {
@@ -94,8 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
-            CodeAction codeAction, bool showPreviewChangesDialog,
-            FixAllState fixAllState, CancellationToken cancellationToken)
+            CodeAction codeAction,
+            FixAllState fixAllState,
+            CancellationToken cancellationToken)
         {
             // We have computed the fix all occurrences code fix.
             // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
@@ -112,21 +112,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             cancellationToken.ThrowIfCancellationRequested();
             var newSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            if (showPreviewChangesDialog)
+            newSolution = PreviewChanges(
+                fixAllState.Project.Solution,
+                newSolution,
+                FeaturesResources.Fix_all_occurrences,
+                codeAction.Title,
+                fixAllState.Project.Language,
+                workspace,
+                fixAllState.CorrelationId,
+                cancellationToken);
+            if (newSolution == null)
             {
-                newSolution = PreviewChanges(
-                    fixAllState.Project.Solution,
-                    newSolution,
-                    FeaturesResources.Fix_all_occurrences,
-                    codeAction.Title,
-                    fixAllState.Project.Language,
-                    workspace,
-                    fixAllState.CorrelationId,
-                    cancellationToken);
-                if (newSolution == null)
-                {
-                    return ImmutableArray<CodeActionOperation>.Empty;
-                }
+                return ImmutableArray<CodeActionOperation>.Empty;
             }
 
             // Get a code action, with apply changes operation replaced with the newSolution.
@@ -145,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             cancellationToken.ThrowIfCancellationRequested();
             using (Logger.LogBlock(
-                FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges,
+                FunctionId.Refactoring_FixAllOccurrencesPreviewChanges,
                 KeyValueLogMessage.Create(LogType.UserAction, m =>
                 {
                     // only set when correlation id is given
@@ -177,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 var changedSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
-                    "vs.codefix.fixall",
+                    "vs.coderefactoring.fixall",
                     fixAllTopLevelHeader,
                     fixAllPreviewChangesTitle,
                     glyph,

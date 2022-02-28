@@ -43,6 +43,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 _ => 4,
             };
 
+        public static short GetScopeIdForTelemetry(this CodeRefactorings.FixAllScope scope)
+            => scope switch
+            {
+                CodeRefactorings.FixAllScope.Document => 1,
+                CodeRefactorings.FixAllScope.Project => 2,
+                CodeRefactorings.FixAllScope.Solution => 3,
+                CodeRefactorings.FixAllScope.Selection => 4,
+                CodeRefactorings.FixAllScope.ContainingMember => 5,
+                CodeRefactorings.FixAllScope.ContainingType => 6,
+                _ => short.MaxValue,
+            };
+
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {
             // we log diagnostic id as it is if it is from us

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-    internal partial class FixAllSuggestedAction
+    internal partial class FixAllCodeFixSuggestedAction
     {
         private sealed partial class FixAllCodeAction : FixSomeCodeAction
         {

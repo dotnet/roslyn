@@ -235,10 +235,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                             ConvertToSuggestedActionSet(codeFixAction.FixAllFlavors, owner, subjectBuffer)),
                         UnifiedCodeRefactoringSuggestedAction codeRefactoringAction => new CodeRefactoringSuggestedAction(
                             ThreadingContext, owner, codeRefactoringAction.Workspace, subjectBuffer,
-                            codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction),
-                        UnifiedFixAllSuggestedAction fixAllAction => new FixAllSuggestedAction(
+                            codeRefactoringAction.CodeRefactoringProvider, codeRefactoringAction.OriginalCodeAction,
+                            ConvertToSuggestedActionSet(codeRefactoringAction.FixAllFlavors, owner, subjectBuffer)),
+                        UnifiedFixAllSuggestedAction fixAllAction => new FixAllCodeFixSuggestedAction(
                             ThreadingContext, owner, fixAllAction.Workspace, subjectBuffer,
                             fixAllAction.FixAllState, fixAllAction.Diagnostic, fixAllAction.OriginalCodeAction),
+                        UnifiedFixAllCodeRefactoringSuggestedAction fixAllCodeRefactoringAction => new FixAllCodeRefactoringSuggestedAction(
+                            ThreadingContext, owner, fixAllCodeRefactoringAction.Workspace, subjectBuffer,
+                            fixAllCodeRefactoringAction.FixAllState, fixAllCodeRefactoringAction.OriginalCodeAction),
                         UnifiedSuggestedActionWithNestedActions nestedAction => new SuggestedActionWithNestedActions(
                             ThreadingContext, owner, nestedAction.Workspace, subjectBuffer,
                             nestedAction.Provider ?? this, nestedAction.OriginalCodeAction,
