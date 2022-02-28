@@ -75,8 +75,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         public CancellationToken UserCancellationToken => _cancellationTokenSource.Token;
         public IEnumerable<IUIThreadOperationScope> Scopes => _scopes;
 
-        public bool CancelOnEdit { get; set; }
-        public bool CancelOnFocusLost { get; set; }
+        private bool _cancelOnEdit_DoNotAccessDirectly;
+        private bool _cancelOnFocusLost_DoNotAccessDirectly;
 
         public BackgroundWorkIndicatorContext(
             WpfBackgroundWorkIndicatorFactory factory,
@@ -90,8 +90,8 @@ internal partial class WpfBackgroundWorkIndicatorFactory
             _textView = textView;
             _subjectBuffer = applicableToSpan.Snapshot.TextBuffer;
 
-            CancelOnEdit = cancelOnEdit;
-            CancelOnFocusLost = cancelOnFocusLost;
+            _cancelOnEdit_DoNotAccessDirectly = cancelOnEdit;
+            _cancelOnFocusLost_DoNotAccessDirectly = cancelOnFocusLost;
 
             // Create a tool-tip at the requested position.  Turn off all default behavior for it.  We'll be
             // controlling everything ourselves.
@@ -149,6 +149,36 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         {
             _cancellationTokenSource.Cancel();
             this.Dispose();
+        }
+
+        public bool CancelOnEdit
+        {
+            get
+            {
+                lock (Gate)
+                    return _cancelOnEdit_DoNotAccessDirectly;
+            }
+
+            set
+            {
+                lock (Gate)
+                    _cancelOnEdit_DoNotAccessDirectly = value;
+            }
+        }
+
+        public bool CancelOnFocusLost
+        {
+            get
+            {
+                lock (Gate)
+                    return _cancelOnFocusLost_DoNotAccessDirectly;
+            }
+
+            set
+            {
+                lock (Gate)
+                    _cancelOnFocusLost_DoNotAccessDirectly = value;
+            }
         }
 
         private ValueTask UpdateUIAsync(ImmutableArray<UIUpdateRequest> requests, CancellationToken cancellationToken)
