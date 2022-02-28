@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
         /// Method for each snippet to locate the inserted SyntaxNode to reformat
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
-        protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
+        protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
         protected abstract Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public async Task<Snippet> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new Snippet(
                 displayText: GetSnippetDisplayName(),
                 textChanges: changes.ToImmutableArray(),
-                cursorPosition: GetTargetCaretPosition(caretTarget),
+                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
                 renameLocations: await GetRenameLocationsAsync(documentWithImports, position, cancellationToken).ConfigureAwait(false));
         }
 
