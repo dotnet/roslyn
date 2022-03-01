@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,10 +14,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
+    [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
-        public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
-
         public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService)
             : base(serverKind, diagnosticService)
         {
@@ -39,8 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
+        protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {
@@ -49,9 +46,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return ConvertTags(diagnosticData, potentialDuplicate: true);
         }
 
-        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return GetWorkspacePullDocuments(context);
+            return GetWorkspacePullDocumentsAsync(context, cancellationToken);
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return progress.GetValues();
         }
 
-        internal static ImmutableArray<Document> GetWorkspacePullDocuments(RequestContext context)
+        internal static async ValueTask<ImmutableArray<Document>> GetWorkspacePullDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -92,19 +89,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
 
             // Now, prioritize the projects related to the active/visible files.
-            AddDocumentsFromProject(activeDocument?.Project, context.SupportedLanguages, isOpen: true);
+            await AddDocumentsFromProjectAsync(activeDocument?.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
             foreach (var doc in visibleDocuments)
-                AddDocumentsFromProject(doc.Project, context.SupportedLanguages, isOpen: true);
+                await AddDocumentsFromProjectAsync(doc.Project, context.SupportedLanguages, isOpen: true, cancellationToken).ConfigureAwait(false);
 
             // finally, add the remainder of all documents.
             foreach (var project in solution.Projects)
-                AddDocumentsFromProject(project, context.SupportedLanguages, isOpen: false);
+                await AddDocumentsFromProjectAsync(project, context.SupportedLanguages, isOpen: false, cancellationToken).ConfigureAwait(false);
 
             // Ensure that we only process documents once.
             result.RemoveDuplicates();
             return result.ToImmutable();
 
-            void AddDocumentsFromProject(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen)
+            async Task AddDocumentsFromProjectAsync(Project? project, ImmutableArray<string> supportedLanguages, bool isOpen, CancellationToken cancellationToken)
             {
                 if (project == null)
                     return;
@@ -129,8 +126,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 }
 
                 // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
-                // documents from it.
-                foreach (var document in project.Documents)
+                // documents from it. If all features are enabled for source generated documents, make sure they are
+                // included as well.
+                var documents = project.Documents;
+                if (solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                {
+                    documents = documents.Concat(await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false));
+                }
+
+                foreach (var document in documents)
                 {
                     // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
                     // Each handler treats those as separate worlds that they are responsible for.

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.CodeAnalysis.Options;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -20,10 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Exports all the code action handlers together to ensure they
     /// share the same code actions cache state.
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName)]
-    [ProvidesMethod(LSP.Methods.CodeActionResolveName)]
-    [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(CodeActionsHandler), typeof(CodeActionResolveHandler), typeof(RunCodeActionHandler)), Shared]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly ICodeFixService _codeFixService;

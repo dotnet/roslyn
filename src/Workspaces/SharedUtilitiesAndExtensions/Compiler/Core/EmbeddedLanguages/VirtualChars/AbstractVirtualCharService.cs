@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
             var offset = token.SpanStart;
 
             for (var index = startIndexInclusive; index < endIndexExclusive;)
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                         return default;
 
                     result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
-                    index += result.Last().Span.Length;
+                    index += result[^1].Span.Length;
                     continue;
                 }
 
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// <summary>
         /// Returns the number of characters to jump forward (either 1 or 2);
         /// </summary>
-        protected static int ConvertTextAtIndexToRune(string tokenText, int index, ArrayBuilder<VirtualChar> result, int offset)
+        protected static int ConvertTextAtIndexToRune(string tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
         {
             if (Rune.TryCreate(tokenText[index], out var rune))
             {
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         protected static VirtualCharSequence CreateVirtualCharSequence(
             string tokenText, int offset,
             int startIndexInclusive, int endIndexExclusive,
-            ArrayBuilder<VirtualChar> result)
+            ImmutableSegmentedList<VirtualChar>.Builder result)
         {
             // Check if we actually needed to create any special virtual chars.
             // if not, we can avoid the entire array allocation and just wrap

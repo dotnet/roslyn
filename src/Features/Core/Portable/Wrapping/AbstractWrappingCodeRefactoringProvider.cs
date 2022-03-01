@@ -5,7 +5,9 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
@@ -29,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
             _wrappers = wrappers;
         }
 
+        protected abstract SyntaxWrappingOptions GetWrappingOptions(AnalyzerConfigOptions options, CodeActionOptions ideOptions);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
@@ -38,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
             var position = span.Start;
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
+
+            var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = GetWrappingOptions(configOptions, context.Options);
 
             foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
             {
@@ -50,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var computer = await wrapper.TryCreateComputerAsync(
-                        document, position, node, containsSyntaxError, cancellationToken).ConfigureAwait(false);
+                        document, position, node, options, containsSyntaxError, cancellationToken).ConfigureAwait(false);
 
                     if (computer == null)
                         continue;
