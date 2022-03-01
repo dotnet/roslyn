@@ -10,14 +10,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -303,19 +301,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind)
-                                             .FirstOrNull();
+                var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind).FirstOrNull();
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    var location = await navigationService.TryNavigateToPositionAsync(
+                    await navigationService.TryNavigateToPositionAsync(
                         this.ThreadingContext, workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
-                var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind)
-                                         .FirstOrNull();
-
+                var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind).FirstOrNull();
                 if (renameTokenOpt.HasValue)
                 {
                     // It's possible that the workspace's current solution is not the same as
