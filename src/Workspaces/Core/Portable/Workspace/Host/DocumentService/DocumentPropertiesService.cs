@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// so that they can handle the final display.
         /// If null, the diagnostics do not have this special handling.
         /// </summary>
-        public virtual string? DiagnosticsLspClientName => null;
+        /// change back
+        public virtual string? DiagnosticsLspClientName => "RazorCSharp";
     }
 }

@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal interface IRazorLanguageServerFactoryWrapper
     {
-        public IRazorLanguageServerTarget Create(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider);
+        IRazorLanguageServerTarget Create(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider);
     }
 }

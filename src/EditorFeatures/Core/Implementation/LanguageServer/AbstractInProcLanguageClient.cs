@@ -187,7 +187,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
-                logger);
+                logger,
+                clientName: null);
 
             jsonRpc.StartListening();
             return server;
@@ -196,7 +197,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger)
+            ILspLogger logger,
+            string? clientName)
         {
             return new LanguageServerTarget(
                 _requestDispatcherFactory,
@@ -208,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 _listenerProvider,
                 logger,
                 SupportedLanguages,
-                clientName: _diagnosticsClientName,
+                clientName: clientName ?? _diagnosticsClientName,
                 ServerKind);
         }
 

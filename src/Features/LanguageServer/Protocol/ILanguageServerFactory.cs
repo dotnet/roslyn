@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger);
+            ILspLogger logger,
+            string? clientName);
     }
 }

@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspLogger logger)
+            ILspLogger logger,
+            string? clientName)
         {
             var lspMiscellaneousFilesWorkspace = new LspMiscellaneousFilesWorkspace(logger);
 
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 _listenerProvider,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,
-                clientName: null,
+                clientName,
                 WellKnownLspServerKinds.CSharpVisualBasicLspServer);
         }
     }

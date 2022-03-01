@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public IRazorLanguageServerTarget Create(JsonRpc jsonRpc, IRazorCapabilitiesProvider razorCapabilitiesProvider)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider(razorCapabilitiesProvider);
-            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, NoOpLspLogger.Instance);
+            var languageServer = _languageServerFactory.Create(jsonRpc, capabilitiesProvider, NoOpLspLogger.Instance, clientName: ProtocolConstants.RazorCSharp);
 
             return new RazorLanguageServerTargetWrapper(languageServer);
         }
