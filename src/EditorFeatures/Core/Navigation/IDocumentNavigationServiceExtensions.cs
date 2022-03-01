@@ -55,5 +55,13 @@ namespace Microsoft.CodeAnalysis.Navigation
                 workspace, documentId, position, cancellationToken).ConfigureAwait(false);
             return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
         }
+
+        public static async Task<bool> TryNavigateToLineAndOffsetAsync(
+            this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+        {
+            var location = await service.GetLocationForLineAndOffsetAsync(
+                workspace, documentId, lineNumber, offset, options, cancellationToken).ConfigureAwait(false);
+            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
