@@ -672,14 +672,14 @@ class C
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task RunThirdPartyFixer()
         {
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed);
+            await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotRunThirdPartyFixerWithNoFixAll()
         {
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, _code);
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code);
         }
 
         [Theory]
@@ -688,7 +688,7 @@ class C
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task RunThirdPartyFixerWithSeverityOfWarningOrHigher(DiagnosticSeverity severity)
         {
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed, severity);
+            await TestThirdPartyCodeFixerApplied<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(_code, _fixed, severity);
         }
 
         [Theory]
@@ -697,24 +697,38 @@ class C
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotRunThirdPartyFixerWithSeverityLessThanWarning(DiagnosticSeverity severity)
         {
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, _code, severity);
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(_code, severity);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotRunThirdPartyFixerIfItDoesNotSupportDocumentScope()
         {
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer>(_code, _code);
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixDoesNotSupportDocumentScope, CaseTestAnalyzer>(_code);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public async Task DoNotApplyFixerIfChangesAreMadeOutsideDocument()
         {
-            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code, _code);
+            await TestThirdPartyCodeFixerNoChanges<TestThirdPartyCodeFixModifiesSolution, CaseTestAnalyzer>(_code);
         }
 
-        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code, string expected, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
+        private static Task TestThirdPartyCodeFixerNoChanges<TCodefix, TAnalyzer>(string code, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, code, severity);
+        }
+
+        private static Task TestThirdPartyCodeFixerApplied<TCodefix, TAnalyzer>(string code, string expected, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
+            where TAnalyzer : DiagnosticAnalyzer, new()
+            where TCodefix : CodeFixProvider, new()
+        {
+            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, expected, severity);
+        }
+
+        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code = null, string expected = null, DiagnosticSeverity severity = DiagnosticSeverity.Warning)
             where TAnalyzer : DiagnosticAnalyzer, new()
             where TCodefix : CodeFixProvider, new()
         {
