@@ -209,6 +209,17 @@ jobs:
         publishLocation: Container
       condition: succeeded()
 
+- job: Correctness_TodoCheck
+  pool:
+    name: NetCore1ESPool-Public
+    queue: Build.Ubuntu.1804.Amd64.Open
+  timeoutInMinutes: 10
+  steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+    
+    - script: eng/todo-check.ps1
+      displayName: Validate TODO/PROTOTYPE comments are not present
+
 - job: Correctness_Rebuild
   pool:
     name: NetCore1ESPool-Public
