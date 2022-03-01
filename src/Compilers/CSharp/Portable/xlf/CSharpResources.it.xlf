@@ -913,8 +913,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoEnumConstraint">
-        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</source>
-        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</target>
+        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
+        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">

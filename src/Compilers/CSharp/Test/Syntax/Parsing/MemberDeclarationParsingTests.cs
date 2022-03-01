@@ -6903,7 +6903,7 @@ class C
     void M<T>() where T : /*comment*/ enum /*comment*/ { }
 }
 ", options: TestOptions.Regular,
-                // (4,39): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?
+                // (4,39): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
                 //     void M<T>() where T : /*comment*/ enum /*comment*/ { }
                 Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(4, 39)
                 );
@@ -6971,7 +6971,7 @@ class C
             UsingNode(@"
 interface I<T> where T : /*comment*/ enum /*comment*/ { }
 ", options: TestOptions.Regular,
-                // (2,38): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?
+                // (2,38): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
                 // interface I<T> where T : /*comment*/ enum /*comment*/ { }
                 Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(2, 38)
                 );
@@ -7024,7 +7024,7 @@ class C
     delegate void D<T>() where T : /*comment*/ enum /*comment*/;
 }
 ", options: TestOptions.Regular,
-                // (4,48): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?
+                // (4,48): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
                 //     delegate void D<T>() where T : /*comment*/ enum /*comment*/;
                 Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(4, 48)
                 );
@@ -7095,7 +7095,7 @@ class C
     }
 }
 ", options: TestOptions.Regular,
-                // (6,47): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?
+                // (6,47): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
                 //         void local<T>() where T : /*comment*/ enum /*comment*/ { }
                 Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(6, 47)
                 );
