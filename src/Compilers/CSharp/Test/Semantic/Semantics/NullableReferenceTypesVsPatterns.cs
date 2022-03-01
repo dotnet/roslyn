@@ -2785,6 +2785,45 @@ public class Class2
         }
 
         [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
+        public void NestedTypeUsedInPropertyPattern_ExtendedProperty()
+        {
+            var source = @"
+public class Class1
+{
+    public Class1 Next { get; set; }
+
+    public class Inner1
+    {
+    }
+}
+
+public class Class2
+{
+    public bool Test()
+    {
+        Class1 test = null;
+        test switch { { Next.Inner1: """" } => """" };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0161: 'Class2.Test()': not all code paths return a value
+                //     public bool Test()
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Test").WithArguments("Class2.Test()").WithLocation(13, 17),
+                // (16,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         test switch { { Next.Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @"test switch { { Next.Inner1: """" } => """" }").WithLocation(16, 9),
+                // (16,30): error CS0572: 'Inner1': cannot reference a type through an expression; try 'Class1.Inner1' instead
+                //         test switch { { Next.Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "Inner1").WithArguments("Inner1", "Class1.Inner1").WithLocation(16, 30),
+                // (16,30): error CS0154: The property or indexer 'Inner1' cannot be used in this context because it lacks the get accessor
+                //         test switch { { Next.Inner1: "" } => "" };
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Inner1").WithArguments("Inner1").WithLocation(16, 30)
+                );
+        }
+
+        [Fact, WorkItem(59804, "https://github.com/dotnet/roslyn/issues/59804")]
         public void MethodUsedInPropertyPattern()
         {
             var source = @"
