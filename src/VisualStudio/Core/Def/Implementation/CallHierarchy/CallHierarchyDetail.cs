@@ -71,8 +71,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
                 var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
                 // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
-                _threadingContext.JoinableTaskFactory.Run(() =>
-                    navigator.TryNavigateToSpanAsync(_workspace, document.Id, _span, options, CancellationToken.None));
+                _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var location = await navigator.GetLocationForSpanAsync(
+                        _workspace, document.Id, _span, options, CancellationToken.None).ConfigureAwait(false);
+                    if (location != null)
+                        await location.NavigateToAsync(CancellationToken.None).ConfigureAwait(false);
+                });
             }
         }
     }

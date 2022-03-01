@@ -68,8 +68,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return _threadingContext.JoinableTaskFactory.Run(() =>
-                service.TryNavigateToSpanAsync(workspace, documentId, textSpan, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken));
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var location = await service.GetLocationForSpanAsync(
+                    workspace, documentId, textSpan, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
+                return location != null &&
+                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+            });
         }
 
         [Obsolete("Call overload that takes a CancellationToken", error: false)]

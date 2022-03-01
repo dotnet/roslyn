@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -294,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
+            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
 
@@ -305,12 +306,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var workspace = _excerptResult.Document.Project.Solution.Workspace;
                 var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                return documentNavigationService.TryNavigateToSpanAsync(
+                var location = await documentNavigationService.GetLocationForSpanAsync(
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
                     options,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
+                if (location != null)
+                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

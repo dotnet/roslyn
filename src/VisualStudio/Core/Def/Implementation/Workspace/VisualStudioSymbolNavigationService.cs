@@ -166,12 +166,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var editorWorkspace = openedDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                    return await navigationService.TryNavigateToSpanAsync(
+                    var location = await navigationService.GetLocationForSpanAsync(
                         editorWorkspace,
                         openedDocument.Id,
                         result.IdentifierLocation.SourceSpan,
                         options with { PreferProvisionalTab = true },
                         cancellationToken).ConfigureAwait(false);
+                    return location != null &&
+                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return true;

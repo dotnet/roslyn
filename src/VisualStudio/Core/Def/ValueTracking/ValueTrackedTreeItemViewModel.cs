@@ -163,8 +163,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             // While navigating do not activate the tab, which will change focus from the tool window
             var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
-            this.ThreadingContext.JoinableTaskFactory.Run(() => navigationService.TryNavigateToSpanAsync(
-                Workspace, DocumentId, _trackedItem.Span, options, ThreadingContext.DisposalToken));
+            this.ThreadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var location = await navigationService.GetLocationForSpanAsync(
+                    Workspace, DocumentId, _trackedItem.Span, options, ThreadingContext.DisposalToken).ConfigureAwait(false);
+                if (location != null)
+                    await location.NavigateToAsync(ThreadingContext.DisposalToken).ConfigureAwait(false);
+            });
         }
 
         private async Task<ImmutableArray<TreeItemViewModel>> CalculateChildrenAsync(CancellationToken cancellationToken)
