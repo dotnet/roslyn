@@ -8279,31 +8279,12 @@ class C
 class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars is (string)null;
-    static void Main()
-    {
-        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
-        Console.WriteLine(M((string)null));
-        Console.WriteLine(M(""""));
-        Console.WriteLine(M(""str""));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,57): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars is (string)null;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 57));
         }
 
         [Fact]
@@ -8315,31 +8296,12 @@ class C
 {
     const string NullString = null;
     static bool M(ReadOnlySpan<char> chars) => chars is NullString;
-    static void Main()
-    {
-        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
-        Console.WriteLine(M((string)null));
-        Console.WriteLine(M(""""));
-        Console.WriteLine(M(""str""));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,57): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars is NullString;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 57));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -8383,39 +8345,12 @@ class C
 class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
-    static void Main()
-    {
-        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
-        Console.WriteLine(M((string)null));
-        Console.WriteLine(M(""""));
-        Console.WriteLine(M(""str""));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  brfalse.s  IL_0012
-  IL_000e:  ldc.i4.1
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0014
-  IL_0012:  ldc.i4.0
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,63): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.ReadOnlySpan<char>").WithLocation(4, 63));
         }
 
         [Fact]
@@ -8427,39 +8362,12 @@ class C
 {
     const string NullString = null;
     static bool M(ReadOnlySpan<char> chars) => chars switch { NullString => true, _ => false };
-    static void Main()
-    {
-        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
-        Console.WriteLine(M((string)null));
-        Console.WriteLine(M(""""));
-        Console.WriteLine(M(""str""));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  brfalse.s  IL_0012
-  IL_000e:  ldc.i4.1
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0014
-  IL_0012:  ldc.i4.0
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,63): error CS9013: A string 'null' constant is not supported as a pattern for 'ReadOnlySpan<char>'. Use an empty string instead.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { NullString => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.ReadOnlySpan<char>").WithLocation(5, 63));
         }
 
         [Fact]
@@ -9530,33 +9438,15 @@ class C
         {
             var source =
 @"using System;
-using System.Linq;
 class C
 {
     static bool M(Span<char> chars) => chars is (string)null;
-    static void Main()
-    {
-        Console.WriteLine(M(new Span<char>(null)));
-        Console.WriteLine(M("""".ToArray()));
-        Console.WriteLine(M(""str"".ToArray()));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars is (string)null;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.Span<char>").WithLocation(4, 49));
         }
 
         [Fact]
@@ -9564,34 +9454,16 @@ False");
         {
             var source =
 @"using System;
-using System.Linq;
 class C
 {
     const string NullString = null;
     static bool M(Span<char> chars) => chars is NullString;
-    static void Main()
-    {
-        Console.WriteLine(M(new Span<char>(null)));
-        Console.WriteLine(M("""".ToArray()));
-        Console.WriteLine(M(""str"".ToArray()));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       13 (0xd)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,49): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars is NullString;
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.Span<char>").WithLocation(5, 49));
         }
 
         [Fact]
@@ -9632,41 +9504,15 @@ class C
         {
             var source =
 @"using System;
-using System.Linq;
 class C
 {
     static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
-    static void Main()
-    {
-        Console.WriteLine(M(new Span<char>(null)));
-        Console.WriteLine(M("""".ToArray()));
-        Console.WriteLine(M(""str"".ToArray()));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  brfalse.s  IL_0012
-  IL_000e:  ldc.i4.1
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0014
-  IL_0012:  ldc.i4.0
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,55): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "(string)null").WithArguments("System.Span<char>").WithLocation(4, 55));
         }
 
         [Fact]
@@ -9674,42 +9520,16 @@ False");
         {
             var source =
 @"using System;
-using System.Linq;
 class C
 {
     const string NullString = null;
     static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
-    static void Main()
-    {
-        Console.WriteLine(M(new Span<char>(null)));
-        Console.WriteLine(M("""".ToArray()));
-        Console.WriteLine(M(""str"".ToArray()));
-    }
 }";
-            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
-True
-False");
-            verifier.VerifyIL("C.M",
-@"{
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_000c:  brfalse.s  IL_0012
-  IL_000e:  ldc.i4.1
-  IL_000f:  stloc.0
-  IL_0010:  br.s       IL_0014
-  IL_0012:  ldc.i4.0
-  IL_0013:  stloc.0
-  IL_0014:  ldloc.0
-  IL_0015:  ret
-}");
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,55): error CS9013: A string 'null' constant is not supported as a pattern for 'Span<char>'. Use an empty string instead.
+                //     static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
+                Diagnostic(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, "NullString").WithArguments("System.Span<char>").WithLocation(5, 55));
         }
 
         [Fact]

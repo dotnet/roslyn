@@ -363,10 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
             {
-                if (rewrittenExpr.Type.IsSpanOrReadOnlySpanChar())
-                {
-                    return MakeSpanStringTest(rewrittenExpr, ConstantValue.Null);
-                }
+                Debug.Assert(!rewrittenExpr.Type.IsSpanOrReadOnlySpanChar());
 
                 if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
                 {

@@ -1037,6 +1037,11 @@
         <target state="translated">부분 메서드 '{0}'에는 'out' 매개 변수가 있으므로 접근성 한정자가 있어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">포인터 형식에 대해 패턴 일치가 허용되지 않습니다.</target>

@@ -602,6 +602,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     constantValue = expression.ConstantValue;
+                    if (constantValue == ConstantValue.Null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, expression.Syntax.Location, inputType);
+                    }
+
                     return expression;
                 }
 
