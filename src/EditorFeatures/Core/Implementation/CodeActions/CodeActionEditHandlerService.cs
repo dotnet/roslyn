@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -307,10 +308,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    var location = await navigationService.GetLocationForPositionAsync(
-                        workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken).ConfigureAwait(false);
-                    if (location != null)
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    var location = await navigationService.TryNavigateToPositionAsync(
+                        this.ThreadingContext, workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -335,11 +334,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         {
                             var editorWorkspace = workspace;
                             var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                            var location = await navigationService.GetLocationForSpanAsync(
-                                editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false);
 
-                            if (location != null &&
-                                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false))
+                            if (await navigationService.TryNavigateToSpanAsync(
+                                    this.ThreadingContext, editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false))
                             {
                                 var openDocument = workspace.CurrentSolution.GetRequiredDocument(documentId);
                                 var openRoot = await openDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
