@@ -14,5 +14,14 @@
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.22122.3",
     "Microsoft.DotNet.Helix.Sdk": "7.0.0-beta.22122.3"
+  },
+  "workloads": {
+    "macos": {
+      "version": "12.1.301-preview.13.7",
+      "sources": [
+        "https://aka.ms/dotnet6/nuget/index.json",
+        "https://api.nuget.org/v3/index.json"
+      ]
+    }
   }
 }

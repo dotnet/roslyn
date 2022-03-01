@@ -167,6 +167,9 @@ function InitializeDotNetCli {
   Write-PipelineSetVariable -name "DOTNET_MULTILEVEL_LOOKUP" -value "0"
   Write-PipelineSetVariable -name "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" -value "1"
 
+  # Install any dotnet workloads specified in global.json
+  dotnet workload install macos # TODO: Call Install-DotNetWorkloads.ps1
+
   # return value
   _InitializeDotNetCli="$dotnet_root"
 }
