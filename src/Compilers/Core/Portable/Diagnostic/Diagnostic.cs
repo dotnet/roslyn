@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class Diagnostic : IEquatable<Diagnostic?>, IFormattable
     {
+        // PROTOTYPE: is this right?
         internal const string CompilerDiagnosticCategory = "Compiler";
 
         /// <summary>
