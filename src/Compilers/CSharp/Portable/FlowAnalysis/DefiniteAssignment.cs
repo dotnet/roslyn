@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ErrorCode newCode = GetEquivalentWarning(oldCode);
 
                 // We don't know any other way this can happen, but if it does we recover gracefully in production.
-                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
+                Debug.Assert(newCode != oldCode || oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_FeatureInPreview, oldCode.ToString());
 
                 var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
                 diagnostics.Add(newCode, diagnostic.Location, args);
@@ -571,16 +571,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (walker._implicitlyInitializedFields is { } implicitlyInitializedFields)
                     {
                         Debug.Assert(walker._requireOutParamsAssigned);
-                        var builder = ImmutableArray.CreateBuilder<FieldSymbol>(implicitlyInitializedFields.Count);
+                        var builder = ArrayBuilder<FieldSymbol>.GetInstance(implicitlyInitializedFields.Count);
                         // ensure the fields to initialize are ordered deterministically
                         foreach (var peerMember in member.ContainingType.GetMembers())
                         {
-                            if (peerMember is FieldSymbol field && implicitlyInitializedFields.Contains(field))
+                            if (peerMember switch
+                            {
+                                FieldSymbol f => f,
+                                EventSymbol { AssociatedField: FieldSymbol f } => f,
+                                _ => null
+                            } is { } field && implicitlyInitializedFields.Contains(field))
                             {
                                 builder.Add(field);
                             }
                         }
-                        implicitlyInitializedFieldsOpt = builder.MoveToImmutable();
+                        Debug.Assert(builder.Count == implicitlyInitializedFields.Count);
+                        implicitlyInitializedFieldsOpt = builder.ToImmutableAndFree();
+                        if (MessageID.IDS_FeatureImplicitInitializationInStructConstructors.GetFeatureAvailabilityDiagnosticInfo(compilation) is { } diagnosticInfo)
+                        {
+                            Debug.Assert(member.Locations.Length == 1);
+                            result.Add(diagnosticInfo, member.Locations[0]);
+                        }
                     }
 
                     Debug.Assert(!badRegion);
@@ -1180,8 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool doesNotNeedImplicitFieldInitialization()
                 => !_requireOutParamsAssigned
-                || CurrentSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct }
-                || !compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors);
+                || CurrentSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct };
 
             (ErrorCode, bool isSuppressed) adjustErrorForStructThis(ErrorCode error, Symbol thisParameter, int thisSlot)
             {
@@ -1201,8 +1211,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int slot = VariableSlot(field, thisSlot);
                     if (slot == -1 || !State.IsAssigned(slot))
                     {
+                        Debug.Assert((object)field.ContainingType == CurrentSymbol.EnclosingThisSymbol().Type);
                         NonNullImplicitlyInitializedFields.Add(field);
                     }
+                }
+
+                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors))
+                {
+                    return (error, isSuppressed: false);
                 }
 
                 return (GetEquivalentWarning(error), isSuppressed: true);
@@ -1214,10 +1230,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return (error, isSuppressed: false);
                 }
-                var thisSlot = GetOrCreateSlot(possibleStructField, createIfMissing: false);
+
+                var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol(), createIfMissing: false);
                 var localSlot = fieldSlot;
                 while (localSlot != -1 && RootSlot(localSlot) is int root && root != thisSlot)
                 {
+                    if (root == localSlot)
+                    {
+                        // the offending field access is not contained in 'this'.
+                        return (error, isSuppressed: false);
+                    }
                     localSlot = root;
                 }
 
@@ -1227,11 +1249,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (localSlot != -1)
                 {
                     var fieldToInitialize = (FieldSymbol)variableBySlot[localSlot].Symbol;
-                    NonNullImplicitlyInitializedFields.Add(fieldToInitialize);
-                    return (GetEquivalentWarning(error), isSuppressed: true);
+                    // We expect this condition to only be false in error scenarios,
+                    // but the erroneous bound node may be further up in the bound tree,
+                    // and not assert-able from here.
+                    // See `FlowDiagnosticTests.AutoPropInitialization5`.
+                    if ((object)fieldToInitialize.ContainingType == CurrentSymbol.EnclosingThisSymbol()!.Type)
+                    {
+                        NonNullImplicitlyInitializedFields.Add(fieldToInitialize);
+                    }
                 }
 
-                return (error, isSuppressed: false);
+                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors))
+                {
+                    return (error, isSuppressed: false);
+                }
+
+                return (GetEquivalentWarning(error), isSuppressed: true);
             }
         }
 

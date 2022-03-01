@@ -6464,11 +6464,24 @@ class MyClass
       MyStruct aStruct = new MyStruct();
    }
 }";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller
                 //    MyStruct(int initField)   // CS0171
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "MyStruct").WithArguments("MyStruct.i"),
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "MyStruct").WithArguments("MyStruct.i").WithLocation(4, 4),
+                // (4,4): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //    MyStruct(int initField)   // CS0171
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct").WithArguments("implicit initialization in struct constructors").WithLocation(4, 4),
+                // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
+                //       MyStruct aStruct = new MyStruct();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "aStruct").WithArguments("aStruct").WithLocation(15, 16),
+                // (8,15): warning CS0649: Field 'MyStruct.i' is never assigned to, and will always have its default value 0
+                //    public int i;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("MyStruct.i", "0").WithLocation(8, 15)
+                );
+
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyDiagnostics(
                 // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
                 //       MyStruct aStruct = new MyStruct();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "aStruct").WithArguments("aStruct"),
@@ -6476,6 +6489,15 @@ class MyClass
                 //    public int i;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("MyStruct.i", "0")
                 );
+            verifier.VerifyIL("MyStruct..ctor", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int MyStruct.i""
+  IL_0007:  ret
+}");
         }
 
         [Fact]
@@ -6961,14 +6983,34 @@ namespace MyNamespace
 
     }
 }";
-            CreateCompilation(text).
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).
                 VerifyDiagnostics(
-                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+                // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //                 Goo();  // CS0188
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this"),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(17, 17),
+                // (14,13): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             S(int i)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(14, 13),
+                // (8,24): warning CS0649: Field 'MyClass.S.a' is never assigned to, and will always have its default value 0
+                //             public int a;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0").WithLocation(8, 24));
+
+            var verifier = CompileAndVerify(text).
+                VerifyDiagnostics(
                 // (8,24): warning CS0649: Field 'MyNamespace.MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0"));
+            verifier.VerifyIL("MyNamespace.MyClass.S..ctor", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int MyNamespace.MyClass.S.a""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""void MyNamespace.MyClass.S.Goo()""
+  IL_000d:  ret
+}");
         }
 
         [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533"), WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
@@ -6992,11 +7034,20 @@ struct S
         
     }
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         var b1 = F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "F").WithArguments("this"));
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+                //         var b1 = F is Action;
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "F").WithArguments("this").WithLocation(10, 18),
+                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S(int v)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+                // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18));
         }
 
         [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533"), WorkItem(864605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/864605")]
@@ -7020,13 +7071,21 @@ struct S
         
     }
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18),
-                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
+                // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         var b1 = this.F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this"));
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(10, 18),
+                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S(int v)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+
+            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
+                // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //         var b1 = this.F is Action;
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18));
         }
 
         [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533")]
@@ -7051,9 +7110,56 @@ struct S
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Add").WithArguments("this"));
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+                //         /*this.*/ Add(d);
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Add").WithArguments("this").WithLocation(10, 19),
+                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S(dynamic d)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+
+            var verifier = CompileAndVerify(source, new[] { CSharpRef });
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size      105 (0x69)
+  .maxstack  9
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""dynamic S.value""
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_000c:  brtrue.s   IL_004d
+  IL_000e:  ldc.i4     0x102
+  IL_0013:  ldstr      ""Add""
+  IL_0018:  ldnull
+  IL_0019:  ldtoken    ""S""
+  IL_001e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0023:  ldc.i4.2
+  IL_0024:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0029:  dup
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldc.i4.s   9
+  IL_002d:  ldnull
+  IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0033:  stelem.ref
+  IL_0034:  dup
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldnull
+  IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_003d:  stelem.ref
+  IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0052:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
+  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_005c:  ldarg.0
+  IL_005d:  ldarg.1
+  IL_005e:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
+  IL_0063:  newobj     ""System.NotImplementedException..ctor()""
+  IL_0068:  throw
+}");
         }
 
         [Fact, WorkItem(579533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579533")]
@@ -7078,9 +7184,56 @@ struct S
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this"));
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+                //         this.Add(d);
+                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(10, 9),
+                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S(dynamic d)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size      105 (0x69)
+  .maxstack  9
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""dynamic S.value""
+  IL_0007:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_000c:  brtrue.s   IL_004d
+  IL_000e:  ldc.i4     0x100
+  IL_0013:  ldstr      ""Add""
+  IL_0018:  ldnull
+  IL_0019:  ldtoken    ""S""
+  IL_001e:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0023:  ldc.i4.2
+  IL_0024:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0029:  dup
+  IL_002a:  ldc.i4.0
+  IL_002b:  ldc.i4.s   9
+  IL_002d:  ldnull
+  IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0033:  stelem.ref
+  IL_0034:  dup
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldnull
+  IL_0038:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_003d:  stelem.ref
+  IL_003e:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0043:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0048:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_0052:  ldfld      ""<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>>.Target""
+  IL_0057:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>> S.<>o__1.<>p__0""
+  IL_005c:  ldarg.0
+  IL_005d:  ldarg.1
+  IL_005e:  callvirt   ""void <>A{00000004}<System.Runtime.CompilerServices.CallSite, S, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref S, dynamic)""
+  IL_0063:  newobj     ""System.NotImplementedException..ctor()""
+  IL_0068:  throw
+}");
         }
 
         [Fact]
@@ -12781,8 +12934,26 @@ class Test
     }
 }
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_UnassignedThisAutoProperty, Line = 5, Column = 12 } });
+            CreateCompilation(text, parseOptions: TestOptions.Regular10)
+                .VerifyDiagnostics(
+                    // (5,12): error CS0843: Auto-implemented property 'S.AIProp' must be fully assigned before control is returned to the caller.
+                    //     public S(int i) { } //CS0843
+                    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.AIProp").WithLocation(5, 12),
+                    // (5,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public S(int i) { } //CS0843
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12));
+
+            var verifier = CompileAndVerify(text);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  stfld      ""int S.<AIProp>k__BackingField""
+  IL_0007:  ret
+}");
         }
 
         [Fact]

@@ -139,13 +139,19 @@ public struct Struct
     {
     }
 }";
-            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
-                );
-            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-                // (4,12): warning CS8822: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThisAutoProperty, "Program").WithArguments("Program.Property").WithLocation(4, 12)
-                );
+            CreateCompilation(
+                source2,
+                references: new MetadataReference[] { moduleReference },
+                options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel))
+                    .VerifyDiagnostics();
+            CreateCompilation(
+                source2,
+                references: new MetadataReference[] { moduleReference },
+                options: TestOptions.ReleaseDll.WithWarningLevel(5))
+                .VerifyDiagnostics(
+                    // (4,12): warning CS8822: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller.
+                    //     public Program(int dummy)
+                    Diagnostic(ErrorCode.WRN_UnassignedThisAutoProperty, "Program").WithArguments("Program.Property").WithLocation(4, 12));
         }
 
         [Fact]
@@ -258,13 +264,42 @@ public struct Struct
         Field = default;
     }
 }";
-            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel)).VerifyDiagnostics(
-                );
-            CreateCompilation(source2, references: new MetadataReference[] { moduleReference }, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
-                // (6,21): warning CS8826: Use of possibly unassigned field 'Field'
-                //         Struct v2 = Field;
-                Diagnostic(ErrorCode.WRN_UseDefViolationField, "Field").WithArguments("Field").WithLocation(6, 21)
-                );
+            // PROTOTYPE(sda): we shouldn't give an error here.
+            // perhaps we need to give the LangVersion diagnostic later on.
+            CreateCompilation(
+                source2,
+                references: new MetadataReference[] { moduleReference },
+                options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                parseOptions: TestOptions.Regular10)
+                    .VerifyDiagnostics(
+                        // (4,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     Program(int dummy)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(4, 5));
+
+            CreateCompilation(
+                source2,
+                references: new MetadataReference[] { moduleReference },
+                options: TestOptions.ReleaseDll.WithWarningLevel(5),
+                parseOptions: TestOptions.Regular10)
+                    .VerifyDiagnostics(
+                        // (4,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     Program(int dummy)
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(4, 5),
+                        // (6,21): warning CS8884: Use of possibly unassigned field 'Field'
+                        //         Struct v2 = Field;
+                        Diagnostic(ErrorCode.WRN_UseDefViolationField, "Field").WithArguments("Field").WithLocation(6, 21));
+
+            CreateCompilation(
+                source2,
+                references: new MetadataReference[] { moduleReference },
+                options: TestOptions.ReleaseDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel))
+                    .VerifyDiagnostics();
+
+            CreateCompilation(
+                source2,
+                references: new MetadataReference[] { moduleReference },
+                options: TestOptions.ReleaseDll.WithWarningLevel(5))
+                    .VerifyDiagnostics();
         }
 
         [Fact]

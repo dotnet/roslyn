@@ -170,7 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
             DefiniteAssignmentPass.Analyze(compilation, method, block, diagnostics, out implicitlyInitializedFieldsOpt, requireOutParamsAssigned: true);
-            return result;
+            // PROTOTYPE(sda): we probably need separate flags to indicate adding the implicit return versus adding the implicit field initialization
+            return result || !implicitlyInitializedFieldsOpt.IsDefault;
         }
     }
 }

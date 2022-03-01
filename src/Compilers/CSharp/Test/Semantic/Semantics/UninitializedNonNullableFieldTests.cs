@@ -853,11 +853,14 @@ struct S1
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNullableEnable());
+            var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller.
                 //     public S1(string s) // 1
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Prop").WithLocation(5, 12),
+                // (5,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S1(string s) // 1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12),
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
@@ -870,6 +873,58 @@ struct S1
                 // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
                 //     public S1(object obj1, object obj2) : this() // 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
+
+            var verifier = CompileAndVerify(source, options: WithNullableEnable());
+            verifier.VerifyDiagnostics(
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
+                // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public S1(object obj1, object obj2) : this() // 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
+
+            verifier.VerifyIL("S1..ctor(string)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S1.<Prop>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""readonly string S1.Prop.get""
+  IL_000d:  callvirt   ""string object.ToString()""
+  IL_0012:  pop
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(object, object)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S1""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(string, string)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""S1..ctor(string)""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""readonly string S1.Prop.get""
+  IL_000d:  callvirt   ""string object.ToString()""
+  IL_0012:  pop
+  IL_0013:  ret
+}
+");
         }
 
         [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
@@ -969,7 +1024,7 @@ struct S1
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1(string s) // 1, 2
@@ -977,10 +1032,45 @@ struct S1
                 // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller
                 //     public S1(string s) // 1, 2
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.field").WithLocation(13, 12),
+                // (13,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S1(string s) // 1, 2
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(13, 12),
                 // (15,30): error CS0170: Use of possibly unassigned field 'field'
                 //         System.Console.Write(field); // 3
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(15, 30)
                 );
+
+            var verifier = CompileAndVerify(source);
+            verifier.VerifyDiagnostics(
+                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S1(string s) // 1, 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12)
+                );
+
+            verifier.VerifyIL("S1..ctor()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""ok ""
+  IL_0006:  stfld      ""string S1.field""
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(string)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S1.field""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""string S1.field""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  ret
+}
+");
         }
 
         [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
@@ -1680,7 +1770,48 @@ class C5<T, U> where T : A where U : T
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P").WithLocation(6, 14),
                 // (6,14): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 //     internal S(string s)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 14),
+                // (6,14): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(6, 14));
+
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable());
+            verifier.VerifyDiagnostics(
+                // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P").WithLocation(6, 14),
+                // (6,14): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F").WithLocation(6, 14));
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S.F""
+  IL_0007:  ldarg.0
+  IL_0008:  ldnull
+  IL_0009:  stfld      ""string[] S.<P>k__BackingField""
+  IL_000e:  ldarg.1
+  IL_000f:  callvirt   ""int string.Length.get""
+  IL_0014:  ldc.i4.0
+  IL_0015:  ble.s      IL_001f
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.1
+  IL_0019:  stfld      ""string S.F""
+  IL_001e:  ret
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.1
+  IL_0021:  newarr     ""string""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldarg.1
+  IL_0029:  stelem.ref
+  IL_002a:  call       ""void S.P.set""
+  IL_002f:  ret
+}
+");
         }
 
         [Fact]
