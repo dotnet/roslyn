@@ -43,21 +43,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static Task<INavigableLocation?> GetLocationForSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
             => service.GetLocationForSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
 
-        public static Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
-            => service.TryNavigateToSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
-
         public static Task<INavigableLocation?> GetLocationForPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
             => service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace: 0, NavigationOptions.Default, cancellationToken);
-
-        /// <summary>
-        /// Navigates to the given position in the specified document, opening it if necessary.
-        /// </summary>
-        private static async Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
-        {
-            var location = await service.GetLocationForSpanAsync(
-                workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken).ConfigureAwait(false);
-            return location != null &&
-                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
-        }
     }
 }
