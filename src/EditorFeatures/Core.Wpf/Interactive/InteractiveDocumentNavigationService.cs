@@ -37,19 +37,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
-        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             if (workspace is not InteractiveWindowWorkspace interactiveWorkspace)
             {
                 Debug.Fail("InteractiveDocumentNavigationService called with incorrect workspace!");
-                return false;
+                return null;
             }
 
             if (interactiveWorkspace.Window is null)
             {
                 Debug.Fail("We are trying to navigate with a workspace that doesn't have a window!");
-                return false;
+                return null;
             }
 
             var textView = interactiveWorkspace.Window.TextView;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var textSnapshot = document?.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)
             {
-                return false;
+                return null;
             }
 
             var snapshotSpan = new SnapshotSpan(textSnapshot, textSpan.Start, textSpan.Length);
@@ -66,27 +66,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
             if (!textView.TryGetSurfaceBufferSpan(virtualSnapshotSpan, out var surfaceBufferSpan))
             {
-                return false;
+                return null;
             }
 
-            textView.Selection.Select(surfaceBufferSpan.Start, surfaceBufferSpan.End);
-            textView.ViewScroller.EnsureSpanVisible(surfaceBufferSpan.SnapshotSpan, EnsureSpanVisibleOptions.AlwaysCenter);
+            return new NavigableLocation(async cancellationToken =>
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Moving the caret must be the last operation involving surfaceBufferSpan because 
-            // it might update the version number of textView.TextSnapshot (VB does line commit
-            // when the caret leaves a line which might cause pretty listing), which must be 
-            // equal to surfaceBufferSpan.SnapshotSpan.Snapshot's version number.
-            textView.Caret.MoveTo(surfaceBufferSpan.Start);
+                textView.Selection.Select(surfaceBufferSpan.Start, surfaceBufferSpan.End);
+                textView.ViewScroller.EnsureSpanVisible(surfaceBufferSpan.SnapshotSpan, EnsureSpanVisibleOptions.AlwaysCenter);
 
-            textView.VisualElement.Focus();
+                // Moving the caret must be the last operation involving surfaceBufferSpan because 
+                // it might update the version number of textView.TextSnapshot (VB does line commit
+                // when the caret leaves a line which might cause pretty listing), which must be 
+                // equal to surfaceBufferSpan.SnapshotSpan.Snapshot's version number.
+                textView.Caret.MoveTo(surfaceBufferSpan.Start);
 
-            return true;
+                textView.VisualElement.Focus();
+
+                return true;
+            });
         }
 
-        public Task<bool> TryNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
             => throw new NotSupportedException();
 
-        public Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+        public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
             => throw new NotSupportedException();
     }
 }

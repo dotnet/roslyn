@@ -142,9 +142,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public Task<INavigableLocation?> GetLocationForSpanAsync(
+            Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
-            return TryNavigateToLocationAsync(workspace,
+            return GetNavigableLocationAsync(workspace,
                 documentId,
                 _ => Task.FromResult(textSpan),
                 text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
@@ -169,10 +170,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public Task<bool> TryNavigateToLineAndOffsetAsync(
+        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(
             Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
         {
-            return TryNavigateToLocationAsync(workspace,
+            return GetNavigableLocationAsync(workspace,
                 documentId,
                 document => GetTextSpanFromLineAndOffsetAsync(document, lineNumber, offset, cancellationToken),
                 text => GetVsTextSpan(text, lineNumber, offset),
@@ -193,10 +194,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public Task<bool> TryNavigateToPositionAsync(
+        public Task<INavigableLocation?> GetLocationForPositionAsync(
             Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
-            return TryNavigateToLocationAsync(workspace,
+            return GetNavigableLocationAsync(workspace,
                 documentId,
                 document => GetTextSpanFromPositionAsync(document, position, virtualSpace, cancellationToken),
                 text => GetVsTextSpan(text, position, virtualSpace),
@@ -232,7 +233,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private async Task<bool> TryNavigateToLocationAsync(
+        private async Task<INavigableLocation?> GetNavigableLocationAsync(
             Workspace workspace,
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
@@ -240,26 +241,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             NavigationOptions options,
             CancellationToken cancellationToken)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var callback = await GetNavigationCallbackAsync(
+                workspace, documentId, getTextSpanForMappingAsync, getVsTextSpan, cancellationToken).ConfigureAwait(true);
+            if (callback == null)
+                return null;
 
-            // Navigation should not change the context of linked files and Shared Projects.
-            documentId = workspace.GetDocumentIdInCurrentContext(documentId);
-
-            using (OpenNewDocumentStateScope(options))
+            return new NavigableLocation(async cancellationToken =>
             {
-                // Keep this on the UI thread so that the scope disposal stays there.
-                return await TryNavigateToLocationUnderScopeAsync(
-                    workspace, documentId, getTextSpanForMappingAsync, getVsTextSpan, cancellationToken).ConfigureAwait(true);
-            }
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                using (OpenNewDocumentStateScope(options))
+                {
+                    // Ensure we come back to the UI Thread after navigating so we close the state scope.
+                    return await callback(cancellationToken).ConfigureAwait(true);
+                }
+            });
         }
 
-        private async Task<bool> TryNavigateToLocationUnderScopeAsync(
+        private async Task<Func<CancellationToken, Task<bool>>?> GetNavigationCallbackAsync(
             Workspace workspace,
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
             Func<SourceText, VsTextSpan> getVsTextSpan,
             CancellationToken cancellationToken)
         {
+            // Navigation should not change the context of linked files and Shared Projects.
+            documentId = workspace.GetDocumentIdInCurrentContext(documentId);
+
             var solution = workspace.CurrentSolution;
             var document = solution.GetDocument(documentId);
             if (document == null)
@@ -269,20 +276,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     // This is a source generated document shown in Solution Explorer, but is no longer valid since
                     // the configuration and/or platform changed since the last generation completed.
-                    return false;
+                    return null;
                 }
 
                 var generatedDocument = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                if (generatedDocument != null)
-                {
-                    await _sourceGeneratedFileManager.Value.NavigateToSourceGeneratedFileAsync(
-                        generatedDocument,
-                        await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false),
-                        cancellationToken).ConfigureAwait(false);
-                    return true;
-                }
+                if (generatedDocument == null)
+                    return null;
 
-                return false;
+                return _sourceGeneratedFileManager.Value.GetNavigationCallback(
+                    generatedDocument,
+                    await getTextSpanForMappingAsync(generatedDocument).ConfigureAwait(false));
             }
 
             // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
@@ -304,48 +307,70 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         // If the mapped file maps to the same document that was passed in, then re-use the documentId to preserve context.
                         // Otherwise, just pick one of the ids to use for navigation.
                         var documentIdToNavigate = documentIdsForFilePath.Contains(documentId) ? documentId : documentIdsForFilePath.First();
-                        return await NavigateToFileInWorkspaceAsync(
-                            documentIdToNavigate, workspace, getVsTextSpan, cancellationToken).ConfigureAwait(false);
+                        return GetNavigationCallback(documentIdToNavigate, workspace, getVsTextSpan);
                     }
 
-                    return await TryNavigateToMappedFileAsync(
+                    return await GetNavigableLocationForMappedFileAsync(
                         workspace, document, mappedSpan.Value, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            return await NavigateToFileInWorkspaceAsync(
-                documentId, workspace, getVsTextSpan, cancellationToken).ConfigureAwait(false);
+            return GetNavigationCallback(documentId, workspace, getVsTextSpan);
         }
 
-        private async Task<bool> NavigateToFileInWorkspaceAsync(
+        private Func<CancellationToken, Task<bool>>? GetNavigationCallback(
             DocumentId documentId,
             Workspace workspace,
-            Func<SourceText, VsTextSpan> getVsTextSpan,
-            CancellationToken cancellationToken)
+            Func<SourceText, VsTextSpan> getVsTextSpan)
         {
-            // Have to be on the UI thread to open a document.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var document = OpenDocument(workspace, documentId);
-            if (document == null)
+            return async cancellationToken =>
             {
-                return false;
-            }
+                // Always open the document again, even if the document is already open in the 
+                // workspace. If a document is already open in a preview tab and it is opened again 
+                // in a permanent tab, this allows the document to transition to the new state.
 
-            // Keep this on the UI thread since we're about to do span mapping.
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(true);
-            var textBuffer = text.Container.GetTextBuffer();
+                if (workspace.CanOpenDocuments)
+                    await OpenDocumentAsync(_threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
 
-            var vsTextSpan = getVsTextSpan(text);
-            if (IsSecondaryBuffer(workspace, documentId) &&
-                !vsTextSpan.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out vsTextSpan))
+                if (!workspace.IsDocumentOpen(documentId))
+                    return false;
+
+                // Now that we've opened the document reacquire the corresponding Document in the current solution.
+                var document = workspace.CurrentSolution.GetDocument(documentId);
+                if (document == null)
+                    return false;
+
+                // Reacquire the SourceText for it as well.  This will be a practically free as this just wraps
+                // the open text buffer.  So it's ok to do this in the navigation step.
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                // Map the given span to the right location in the buffer.  If we're in a projection scenario, ensure
+                // the span reflects that.
+                var vsTextSpan = getVsTextSpan(text);
+                if (IsSecondaryBuffer(workspace, documentId))
+                {
+                    var mapped = await vsTextSpan.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
+                        _threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
+                    if (mapped == null)
+                        return false;
+
+                    vsTextSpan = mapped.Value;
+                }
+
+                return await NavigateToTextBufferAsync(
+                    text.Container.GetTextBuffer(), vsTextSpan, cancellationToken).ConfigureAwait(false);
+            };
+
+            async static Task OpenDocumentAsync(
+                IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
-                return false;
+                // OpenDocument must be called on the UI thread.
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                workspace.OpenDocument(documentId);
             }
-
-            return NavigateTo(textBuffer, vsTextSpan, cancellationToken);
         }
 
-        private async Task<bool> TryNavigateToMappedFileAsync(
+        private async Task<Func<CancellationToken, Task<bool>>?> GetNavigableLocationForMappedFileAsync(
             Workspace workspace, Document generatedDocument, MappedSpanResult mappedSpanResult, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -354,20 +379,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Pass the original result's project context so that if the mapped file has the same context available, we navigate
             // to the mapped file with a consistent project context.
             vsWorkspace.OpenDocumentFromPath(mappedSpanResult.FilePath, generatedDocument.Project.Id);
-            if (_runningDocumentTable.TryGetBufferFromMoniker(_editorAdaptersFactoryService, mappedSpanResult.FilePath, out var textBuffer))
+            if (!_runningDocumentTable.TryGetBufferFromMoniker(_editorAdaptersFactoryService, mappedSpanResult.FilePath, out var textBuffer))
+                return null;
+
+            var vsTextSpan = new VsTextSpan
             {
-                var vsTextSpan = new VsTextSpan
-                {
-                    iStartIndex = mappedSpanResult.LinePositionSpan.Start.Character,
-                    iStartLine = mappedSpanResult.LinePositionSpan.Start.Line,
-                    iEndIndex = mappedSpanResult.LinePositionSpan.End.Character,
-                    iEndLine = mappedSpanResult.LinePositionSpan.End.Line
-                };
+                iStartIndex = mappedSpanResult.LinePositionSpan.Start.Character,
+                iStartLine = mappedSpanResult.LinePositionSpan.Start.Line,
+                iEndIndex = mappedSpanResult.LinePositionSpan.End.Character,
+                iEndLine = mappedSpanResult.LinePositionSpan.End.Line
+            };
 
-                return NavigateTo(textBuffer, vsTextSpan, cancellationToken);
-            }
-
-            return false;
+            return cancellationToken => NavigateToTextBufferAsync(textBuffer, vsTextSpan, cancellationToken);
         }
 
         private static async Task<MappedSpanResult?> GetMappedSpanAsync(
@@ -410,26 +433,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static TextSpan GetSpanWithinDocumentBounds(TextSpan span, int documentLength)
             => TextSpan.FromBounds(GetPositionWithinDocumentBounds(span.Start, documentLength), GetPositionWithinDocumentBounds(span.End, documentLength));
 
-        private static Document? OpenDocument(Workspace workspace, DocumentId documentId)
+        public async Task<bool> NavigateToTextBufferAsync(
+            ITextBuffer textBuffer, VsTextSpan vsTextSpan, CancellationToken cancellationToken)
         {
-            // Always open the document again, even if the document is already open in the 
-            // workspace. If a document is already open in a preview tab and it is opened again 
-            // in a permanent tab, this allows the document to transition to the new state.
-            if (workspace.CanOpenDocuments)
-            {
-                workspace.OpenDocument(documentId);
-            }
-
-            if (!workspace.IsDocumentOpen(documentId))
-            {
-                return null;
-            }
-
-            return workspace.CurrentSolution.GetDocument(documentId);
-        }
-
-        public bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan, CancellationToken cancellationToken)
-        {
+            Contract.ThrowIfNull(textBuffer);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             using (Logger.LogBlock(FunctionId.NavigationService_VSDocumentNavigationService_NavigateTo, cancellationToken))
             {
                 var vsTextBuffer = _editorAdaptersFactoryService.GetBufferAdapter(textBuffer);
@@ -466,19 +474,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var containedDocument = visualStudioWorkspace.TryGetContainedDocument(documentId);
-            if (containedDocument == null)
-            {
-                return false;
-            }
-
-            return true;
+            return containedDocument != null;
         }
 
         private async Task<bool> CanMapFromSecondaryBufferToPrimaryBufferAsync(
             Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer, CancellationToken cancellationToken)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out _);
+            var mapped = await spanInSecondaryBuffer.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
+                _threadingContext, workspace, documentId, cancellationToken).ConfigureAwait(false);
+            return mapped != null;
         }
 
         private static IDisposable OpenNewDocumentStateScope(NavigationOptions options)
