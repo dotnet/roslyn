@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -24,6 +23,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -418,8 +418,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 if (pane is System.Windows.Controls.UserControl)
                 {
                     var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;
-                    var host = FindDescendants<UIElement>(container).OfType<IWpfTextViewHost>().LastOrDefault();
-                    preview = (host == null) ? null : host.TextView;
+                    var host = container?.FindDescendants<UIElement>().OfType<IWpfTextViewHost>().LastOrDefault();
+                    preview = host?.TextView;
                 }
 
                 if (preview == null)
@@ -435,23 +435,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             activeSession.Collapse();
             return Array.Empty<ClassifiedToken>();
-        }
-
-        private static IEnumerable<T> FindDescendants<T>(DependencyObject? rootObject) where T : DependencyObject
-        {
-            if (rootObject != null)
-            {
-                for (var i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
-                {
-                    var child = VisualTreeHelper.GetChild(rootObject, i);
-
-                    if (child is not null and T)
-                        yield return (T)child;
-
-                    foreach (var descendant in FindDescendants<T>(child))
-                        yield return descendant;
-                }
-            }
         }
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)

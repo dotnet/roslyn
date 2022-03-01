@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -194,7 +195,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 if (pane is UserControl control)
                 {
                     var container = control.FindName("PreviewDockPanel") as DockPanel;
-                    var host = FindDescendants<UIElement>(container).OfType<IWpfTextViewHost>().LastOrDefault();
+                    var host = container.FindDescendants<UIElement>().OfType<IWpfTextViewHost>().LastOrDefault();
                     preview = host?.TextView;
                 }
 
@@ -211,24 +212,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             activeSession.Collapse();
             return Array.Empty<ClassificationSpan>();
-
-            static IEnumerable<T> FindDescendants<T>(DependencyObject? rootObject)
-                where T : DependencyObject
-            {
-                if (rootObject != null)
-                {
-                    for (var i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
-                    {
-                        var child = VisualTreeHelper.GetChild(rootObject, i);
-
-                        if (child is not null and T)
-                            yield return (T)child;
-
-                        foreach (var descendant in FindDescendants<T>(child))
-                            yield return descendant;
-                    }
-                }
-            }
         }
 
         public async Task ActivateAsync(CancellationToken cancellationToken)
