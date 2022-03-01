@@ -59,16 +59,5 @@ namespace Microsoft.CodeAnalysis.Navigation
             return location != null &&
                 await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        /// <summary>
-        /// Navigates to the given line/offset in the specified document, opening it if necessary.
-        /// </summary>
-        public static async Task<bool> TryNavigateToLineAndOffsetAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
-        {
-            var location = await service.GetLocationForLineAndOffsetAsync(
-                workspace, documentId, lineNumber, offset, options, cancellationToken).ConfigureAwait(false);
-            return location != null &&
-                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
-        }
     }
 }

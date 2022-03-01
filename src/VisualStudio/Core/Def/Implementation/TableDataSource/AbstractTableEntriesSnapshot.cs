@@ -162,12 +162,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
-            {
                 return false;
-            }
 
-            return this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                navigationService.TryNavigateToLineAndOffsetAsync(workspace, documentId, position.Line, position.Character, options, cancellationToken));
+            return this.ThreadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var location = await navigationService.GetLocationForLineAndOffsetAsync(
+                    workspace, documentId, position.Line, position.Character, options, cancellationToken).ConfigureAwait(false);
+                return location != null &&
+                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+            });
         }
 
         protected bool TryNavigateToItem(int index, NavigationOptions options, CancellationToken cancellationToken)

@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     }
 
                     return didNavigate;
-                }
+                });
             }
         }
     }
