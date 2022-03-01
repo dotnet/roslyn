@@ -113,13 +113,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             // While navigating do not activate the tab, which will change focus from the tool window
             var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
-            this.ThreadingContext.JoinableTaskFactory.Run(async () =>
-            {
-                var location = await navigationService.GetLocationForLineAndOffsetAsync(
-                    Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(ThreadingContext.DisposalToken).ConfigureAwait(false);
-            });
+            this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                navigationService.TryNavigateToLineAndOffsetAsync(
+                    this.ThreadingContext, Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken));
         }
 
         private ImmutableArray<Inline> CalculateInlines()
