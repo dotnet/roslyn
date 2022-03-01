@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
 
             var formatAnnotatedSnippetDocument = await AddFormatAnnotationAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
-            var documentWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(formatAnnotatedSnippetDocument, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var reformattedDocument = await CodeAction.CleanupDocumentAsync(documentWithImports, cancellationToken).ConfigureAwait(false);
+            //var documentWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(formatAnnotatedSnippetDocument, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
@@ -75,7 +75,27 @@ namespace Microsoft.CodeAnalysis.Snippets
                 displayText: GetSnippetDisplayName(),
                 textChanges: changes.ToImmutableArray(),
                 cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
-                renameLocations: await GetRenameLocationsAsync(documentWithImports, position, cancellationToken).ConfigureAwait(false));
+                renameLocations: await GetRenameLocationsAsync(reformattedDocument, position, cancellationToken).ConfigureAwait(false));
+        }
+
+        private  async Task<Document> CleanupDocumentAsync(
+            Document document, CancellationToken cancellationToken)
+        {
+            if (document.SupportsSyntaxTree)
+            {
+                document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+                    document, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                // format any node with explicit formatter annotation
+                document = await Formatter.FormatAsync(document, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                // format any elastic whitespace
+                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
         }
 
         private static async Task<Document> GetDocumentWithSnippetAsync(Document document, ImmutableArray<TextChange> snippets, CancellationToken cancellationToken)
