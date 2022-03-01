@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private readonly ExcerptResult _excerptResult;
             private readonly SymbolReferenceKinds _symbolReferenceKinds;
             private readonly ImmutableDictionary<string, string> _customColumnsData;
-
+            private readonly IThreadingContext _threadingContext;
             private readonly string _rawProjectName;
             private readonly List<string> _projectFlavors = new();
 
@@ -60,14 +61,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ExcerptResult excerptResult,
                 SourceText lineText,
                 SymbolUsageInfo symbolUsageInfo,
-                ImmutableDictionary<string, string> customColumnsData)
+                ImmutableDictionary<string, string> customColumnsData,
+                IThreadingContext threadingContext)
                 : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult)
             {
                 _spanKind = spanKind;
                 _excerptResult = excerptResult;
                 _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
                 _customColumnsData = customColumnsData;
-
+                _threadingContext = threadingContext;
                 _rawProjectName = rawProjectName;
                 this.AddFlavor(projectFlavor);
             }
@@ -118,13 +120,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 ExcerptResult excerptResult,
                 SourceText lineText,
                 SymbolUsageInfo symbolUsageInfo,
-                ImmutableDictionary<string, string> customColumnsData)
+                ImmutableDictionary<string, string> customColumnsData,
+                IThreadingContext threadingContext)
             {
                 var entry = new DocumentSpanEntry(
                     context, definitionBucket,
                     projectName, projectFlavor, guid,
                     spanKind, mappedSpanResult, excerptResult,
-                    lineText, symbolUsageInfo, customColumnsData);
+                    lineText, symbolUsageInfo, customColumnsData,
+                    threadingContext);
 
                 // Because of things like linked files, we may have a reference up in multiple
                 // different locations that are effectively at the exact same navigation location
@@ -306,14 +310,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var workspace = _excerptResult.Document.Project.Solution.Workspace;
                 var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                var location = await documentNavigationService.GetLocationForSpanAsync(
+                await documentNavigationService.TryNavigateToSpanAsync(
+                    _threadingContext,
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
                     options,
                     cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }
