@@ -69,7 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     End If
                 ElseIf node.ContainsAnnotations OrElse savedSimplifyAllDescendants Then
                     If Not Me._insideSpeculatedNode AndAlso
-                    IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso
                     Me._simplifyAllDescendants Then
                         Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node, False))
                     End If
