@@ -68,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
 
                 var savedSimplifyAllDescendants = _simplifyAllDescendants;
-                _simplifyAllDescendants = _simplifyAllDescendants || node.HasAnnotation(Simplifier.Annotation);
+                _simplifyAllDescendants = _simplifyAllDescendants || node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia: true).Any(s_hasSimplifierAnnotation);
 
                 if (!_insideSpeculatedNode && SpeculationAnalyzer.CanSpeculateOnNode(node))
                 {
-                    if (_simplifyAllDescendants || node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia: true).Any(s_hasSimplifierAnnotation))
+                    if (_simplifyAllDescendants)
                     {
                         _insideSpeculatedNode = true;
                         var rewrittenNode = base.Visit(node);
