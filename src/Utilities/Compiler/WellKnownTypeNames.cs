@@ -128,7 +128,12 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsGenericIReadOnlyCollection1 = "System.Collections.Generic.IReadOnlyCollection`1";
         public const string SystemCollectionsGenericIReadOnlyList1 = "System.Collections.Generic.IReadOnlyList`1";
         public const string SystemCollectionsGenericKeyNotFoundException = "System.Collections.Generic.KeyNotFoundException";
+        public const string SystemCollectionsGenericLinkedList1 = "System.Collections.Generic.LinkedList`1";
         public const string SystemCollectionsGenericList1 = "System.Collections.Generic.List`1";
+        public const string SystemCollectionsGenericPriorityQueue2 = "System.Collections.Generic.PriorityQueue`2";
+        public const string SystemCollectionsGenericQueue1 = "System.Collections.Generic.Queue`1";
+        public const string SystemCollectionsGenericStack1 = "System.Collections.Generic.Stack`1";
+        public const string SystemCollectionsGenericSortedSet1 = "System.Collections.Generic.SortedSet`1";
         public const string SystemCollectionsICollection = "System.Collections.ICollection";
         public const string SystemCollectionsIEnumerable = "System.Collections.IEnumerable";
         public const string SystemCollectionsIEnumerator = "System.Collections.IEnumerator";
