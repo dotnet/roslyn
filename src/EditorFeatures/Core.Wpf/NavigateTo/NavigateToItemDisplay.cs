@@ -119,15 +119,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             // ourselves.
             _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var location = await navigationService.GetLocationForSpanAsync(
+                await navigationService.TryNavigateToSpanAsync(
+                    _threadingContext,
                     workspace,
                     document.Id,
                     _searchResult.NavigableItem.SourceSpan,
                     NavigationOptions.Default,
                     allowInvalidSpan: _searchResult.NavigableItem.IsStale,
                     CancellationToken.None).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(CancellationToken.None).ConfigureAwait(false);
             });
         }
 
