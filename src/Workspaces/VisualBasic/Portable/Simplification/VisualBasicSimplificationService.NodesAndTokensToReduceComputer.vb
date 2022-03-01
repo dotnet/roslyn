@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If Not Me._insideSpeculatedNode AndAlso
                     IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso
                     Me._simplifyAllDescendants Then
-                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node, False))
+                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node))
                     End If
 
                     node = MyBase.Visit(node)
