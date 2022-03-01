@@ -430,7 +430,7 @@ namespace Analyzer.Utilities
             Compilation compilation)
             => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.AdditionalUseResultsMethods, rule, tree, compilation, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default), namePrefix: "M:");
 
-        public static SymbolNamesWithValueOption<Unit> GetNoEnumeratedMethodsOption(
+        public static SymbolNamesWithValueOption<Unit> GetEnumerationMethodsOption(
             this AnalyzerOptions options,
             DiagnosticDescriptor rule,
             SyntaxTree tree,
