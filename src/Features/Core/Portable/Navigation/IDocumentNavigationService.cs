@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <summary>
         /// Navigates to the given position in the specified document, opening it if necessary.
         /// </summary>
-        public static async Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        private static async Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForSpanAsync(
                 workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken).ConfigureAwait(false);
