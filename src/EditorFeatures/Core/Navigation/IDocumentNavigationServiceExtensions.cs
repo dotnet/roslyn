@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis.Navigation
         }
 
         public static async Task<bool> TryNavigateToSpanAsync(
+            this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
+        {
+            var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, options, cancellationToken).ConfigureAwait(false);
+            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+        }
+
+        public static async Task<bool> TryNavigateToSpanAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, cancellationToken).ConfigureAwait(false);
