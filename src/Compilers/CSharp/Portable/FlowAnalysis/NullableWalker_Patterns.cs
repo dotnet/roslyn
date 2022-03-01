@@ -187,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (BoundPropertySubpattern subpattern in rp.Properties)
                             {
-                                if (subpattern.Member is BoundPropertySubpatternMember member
-                                    && member.Symbol.Kind is SymbolKind.Property or SymbolKind.Field)
+                                if (subpattern.Member is BoundPropertySubpatternMember member)
                                 {
                                     LearnFromAnyNullPatterns(getExtendedPropertySlot(member, inputSlot), member.Type, subpattern.Pattern);
                                 }
@@ -222,6 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (inputSlot < 0)
                 {
                     return inputSlot;
+                }
+
+                if (member.Symbol.Kind is not (SymbolKind.Property or SymbolKind.Field))
+                {
+                    return -1;
                 }
 
                 return GetOrCreateSlot(member.Symbol, inputSlot);
