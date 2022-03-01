@@ -113,12 +113,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, CancellationToken cancellationToken)
+        public ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, bool enableOpeningSourceGeneratedFilesInWorkspace, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
                 var service = (RemoteSyntaxTreeConfigurationService)GetWorkspaceServices().GetRequiredService<ISyntaxTreeConfigurationService>();
-                service.SetOptions(disableRecoverableTrees, disableProjectCacheService);
+                service.SetOptions(disableRecoverableTrees, disableProjectCacheService, enableOpeningSourceGeneratedFilesInWorkspace);
 
                 return ValueTaskFactory.CompletedTask;
             }, cancellationToken);

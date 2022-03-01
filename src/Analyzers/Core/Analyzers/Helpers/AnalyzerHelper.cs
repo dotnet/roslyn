@@ -14,46 +14,44 @@ using TOption = Microsoft.CodeAnalysis.Options.IOption;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal readonly record struct IdeAnalyzerOptions(
-        bool FadeOutUnusedImports,
-        bool FadeOutUnreachableCode,
-        bool ReportInvalidPlaceholdersInStringDotFormatCalls,
-        bool ReportInvalidRegexPatterns)
+        bool FadeOutUnusedImports = true,
+        bool FadeOutUnreachableCode = true,
+        bool ReportInvalidPlaceholdersInStringDotFormatCalls = true,
+        bool ReportInvalidRegexPatterns = true)
     {
+        public IdeAnalyzerOptions()
+            : this(FadeOutUnusedImports: true)
+        {
+        }
+
+        public static readonly IdeAnalyzerOptions Default = new();
+
         public static readonly IdeAnalyzerOptions CodeStyleDefault = new(
             FadeOutUnusedImports: false,
             FadeOutUnreachableCode: false,
             ReportInvalidPlaceholdersInStringDotFormatCalls: true,
             ReportInvalidRegexPatterns: true);
+
+#if !CODE_STYLE
+        public static IdeAnalyzerOptions FromProject(Project project)
+            => From(project.Solution.Options, project.Language);
+
+        public static IdeAnalyzerOptions From(OptionSet options, string language)
+            => new(
+                FadeOutUnusedImports: options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnusedImports, language),
+                FadeOutUnreachableCode: options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnreachableCode, language),
+                ReportInvalidPlaceholdersInStringDotFormatCalls: options.GetOption(Microsoft.CodeAnalysis.ValidateFormatString.ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, language),
+                ReportInvalidRegexPatterns: options.GetOption(Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices.RegularExpressionsOptions.ReportInvalidRegexPatterns, language));
+#endif
     }
 
     internal static partial class AnalyzerHelper
     {
-        public static IdeAnalyzerOptions GetIdeOptions(this SyntaxTreeAnalysisContext context)
+        public static IdeAnalyzerOptions GetIdeOptions(this AnalyzerOptions options)
 #if CODE_STYLE
             => IdeAnalyzerOptions.CodeStyleDefault;
 #else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.Tree.Options.Language) : IdeAnalyzerOptions.CodeStyleDefault;
-#endif
-
-        public static IdeAnalyzerOptions GetIdeOptions(this OperationAnalysisContext context)
-#if CODE_STYLE
-            => IdeAnalyzerOptions.CodeStyleDefault;
-#else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.Operation.Language) : IdeAnalyzerOptions.CodeStyleDefault;
-#endif
-
-        public static IdeAnalyzerOptions GetIdeOptions(this SyntaxNodeAnalysisContext context)
-#if CODE_STYLE
-            => IdeAnalyzerOptions.CodeStyleDefault;
-#else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.Node.Language) : IdeAnalyzerOptions.CodeStyleDefault;
-#endif
-
-        public static IdeAnalyzerOptions GetIdeOptions(this SemanticModelAnalysisContext context)
-#if CODE_STYLE
-            => IdeAnalyzerOptions.CodeStyleDefault;
-#else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.SemanticModel.Language) : IdeAnalyzerOptions.CodeStyleDefault;
+            => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CodeStyleDefault;
 #endif
 
         public static T GetOption<T>(this SemanticModelAnalysisContext context, Option2<T> option)

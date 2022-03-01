@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -15,6 +12,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private static (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document?, IGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             return (document, document?.GetLanguageService<IGoToDefinitionService>());
@@ -56,9 +54,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             // This can be removed once typescript implements LSP support for goto def.
             if (service != null && !subjectBuffer.IsInLspEditorContext())
             {
+                Contract.ThrowIfNull(document);
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
-                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))
+                if (caretPos.HasValue)
                 {
+                    ExecuteCommand(document, caretPos.Value, service, context);
                     return true;
                 }
             }
@@ -66,23 +66,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return false;
         }
 
-        // Internal for testing purposes only.
-        internal static bool TryExecuteCommand(ITextSnapshot snapshot, int caretPosition, CommandExecutionContext context)
-            => TryExecuteCommand(snapshot.GetOpenDocumentInCurrentContextWithChanges(), caretPosition, context);
-
-        internal static bool TryExecuteCommand(Document document, int caretPosition, CommandExecutionContext context)
-            => TryExecuteCommand(document, caretPosition, document.GetLanguageService<IGoToDefinitionService>(), context);
-
-        internal static bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+        private static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService? goToDefinitionService, CommandExecutionContext context)
         {
-            string errorMessage = null;
+            string? errorMessage = null;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
                 if (goToDefinitionService != null &&
                     goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
                 {
-                    return true;
+                    return;
                 }
 
                 errorMessage = FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
@@ -95,11 +88,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
                 var workspace = document.Project.Solution.Workspace;
-                var notificationService = workspace.Services.GetService<INotificationService>();
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
+        }
 
-            return true;
+        public static class TestAccessor
+        {
+            public static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
+                => GoToDefinitionCommandHandler.ExecuteCommand(document, caretPosition, goToDefinitionService, context);
         }
     }
 }

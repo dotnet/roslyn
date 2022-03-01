@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis
         /// <item>
         /// <description>
         /// Manipulation of strong name keys: strong name keys are read "on demand" by the compiler
-        /// and both normal compilation and this key can have non-determinstic output if they are 
+        /// and both normal compilation and this key can have non-deterministic output if they are 
         /// manipulated at the correct point in program execution. That is an existing limitation
         /// of compilation that is tracked by https://github.com/dotnet/roslyn/issues/57940
         /// </description>

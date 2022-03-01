@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
             _workspace = workspace;
             _asyncListener = asyncListener;
-            _displayFactory = new NavigateToItemDisplayFactory();
+            _displayFactory = new NavigateToItemDisplayFactory(threadingContext);
             _threadingContext = threadingContext;
         }
 

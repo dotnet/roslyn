@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// we no longer reference the <see cref="IInlineRenameService"/>
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentRenameName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(RenameHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentRenameName)]
     internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public RenameHandler()
         {
         }
-
-        public override string Method => LSP.Methods.TextDocumentRenameName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

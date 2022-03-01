@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -26,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits AbstractCommandHandlerTestState
 
         Private Const timeoutMs = 60000
-        Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
 
@@ -451,8 +451,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim service = CompletionService.GetService(document)
             Dim roslynItem = GetSelectedItem()
             Dim options = CompletionOptions.Default
-            Dim displayOptions = SymbolDescriptionOptions.From(document.Project)
-            Return Await service.GetDescriptionAsync(document, roslynItem, options, displayOptions)
+            Return Await service.GetDescriptionAsync(document, roslynItem, options, SymbolDescriptionOptions.Default)
         End Function
 
         Public Sub AssertCompletionItemExpander(isAvailable As Boolean, isSelected As Boolean)
@@ -503,7 +502,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem
-            Return If(item IsNot Nothing, DirectCast(item.Properties(RoslynItem), CompletionItem), Nothing)
+            If (item Is Nothing) Then
+                Return Nothing
+            End If
+
+            Dim roslynItemData As CompletionItemData = Nothing
+            If (CompletionItemData.TryGetData(item, roslynItemData) = False) Then
+                Return Nothing
+            End If
+            Return roslynItemData.RoslynItem
         End Function
 
         Public Sub RaiseFiltersChanged(args As ImmutableArray(Of Data.CompletionFilterWithState))

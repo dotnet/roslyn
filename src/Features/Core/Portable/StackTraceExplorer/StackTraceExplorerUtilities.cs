@@ -5,7 +5,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
                     if (method is not null)
                     {
-                        return await GetDefinitionAsync(method).ConfigureAwait(false);
+                        return GetDefinition(method);
                     }
                 }
                 else
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
                 if (method is not null)
                 {
-                    return await GetDefinitionAsync(method).ConfigureAwait(false);
+                    return GetDefinition(method);
                 }
             }
 
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             // Local Functions
             //
 
-            Task<DefinitionItem> GetDefinitionAsync(IMethodSymbol method)
+            DefinitionItem GetDefinition(IMethodSymbol method)
             {
                 ISymbol symbol = method;
                 if (symbolPart == StackFrameSymbolPart.ContainingType)
@@ -97,7 +99,10 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     symbol = method.ContainingType;
                 }
 
-                return symbol.ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken);
+                return symbol.ToNonClassifiedDefinitionItem(
+                    solution,
+                    FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true },
+                    includeHiddenLocations: true);
             }
         }
 

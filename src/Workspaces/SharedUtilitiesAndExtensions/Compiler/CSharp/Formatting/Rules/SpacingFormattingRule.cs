@@ -248,6 +248,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
 
+                // [Attribute1]$${EOF}
+                if (currentToken.IsKind(SyntaxKind.EndOfFileToken))
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+
                 // [Attribute]$$ int Prop { ... }
                 return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
