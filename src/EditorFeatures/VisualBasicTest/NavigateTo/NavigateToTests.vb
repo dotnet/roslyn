@@ -804,7 +804,7 @@ End Class", Async Function(w)
         <Theory>
         <CombinatorialData>
         Public Async Function TestDescriptionItemsFilePath(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="goo\Test1.vb">
@@ -834,7 +834,7 @@ End Class
         <Theory>
         <CombinatorialData>
         Public Async Function DoNotIncludeTrivialPartialContainer(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test1.vb">
@@ -852,7 +852,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -867,7 +867,7 @@ End Class
         <Theory>
         <CombinatorialData>
         Public Async Function DoNotIncludeTrivialPartialContainerWithMultipleNestedTypes(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test1.vb">
@@ -887,7 +887,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -902,7 +902,7 @@ End Class
         <Theory>
         <CombinatorialData>
         Public Async Function DoNotIncludeWhenAllAreTrivialPartialContainer(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test1.vb">
@@ -920,7 +920,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -932,7 +932,7 @@ End Class
         <Theory>
         <CombinatorialData>
         Public Async Function DoIncludeNonTrivialPartialContainer(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test1.vb">
@@ -950,7 +950,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -966,7 +966,7 @@ End Class
         <Theory>
         <CombinatorialData>
         Public Async Function DoIncludeNonTrivialPartialContainerWithNestedType(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test1.vb">
@@ -986,7 +986,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1002,7 +1002,7 @@ End Class
         <Theory>
         <CombinatorialData>
         Public Async Function DoIncludePartialWithNoContents(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test1.vb">
@@ -1012,7 +1012,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
@@ -1027,7 +1027,7 @@ End Class
         <Theory>
         <CombinatorialData>
         Public Async Function DoIncludeNonPartialOnlyContainingNestedTypes(testHost As TestHost, composition As Composition) As Task
-            Using workspace = CreateWorkspace(
+            Using workspace = MyBase.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document FilePath="Test1.vb">
@@ -1039,7 +1039,7 @@ End Class
                     </Project>
                 </Workspace>, testHost, DefaultComposition)
 
-                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService(Of IThreadingContext)())
+                _provider = CreateProvider(workspace)
                 _aggregator = New NavigateToTestAggregator(_provider)
 
                 VerifyNavigateToResultItems(
