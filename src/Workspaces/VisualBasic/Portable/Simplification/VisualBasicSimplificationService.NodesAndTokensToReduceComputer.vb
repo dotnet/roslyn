@@ -69,8 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     End If
                 ElseIf node.ContainsAnnotations OrElse savedSimplifyAllDescendants Then
                     If Not Me._insideSpeculatedNode AndAlso
-                    IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso
-                    Me._simplifyAllDescendants Then
+                       Me._simplifyAllDescendants Then
                         Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node))
                     End If
 
@@ -79,11 +78,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Me._simplifyAllDescendants = savedSimplifyAllDescendants
                 Return node
-            End Function
-
-            Private Shared Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
-                Return node IsNot Nothing AndAlso node.Kind() = SyntaxKind.VariableDeclarator AndAlso
-                    node.Parent IsNot Nothing AndAlso node.Parent.Kind() = SyntaxKind.FieldDeclaration
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
