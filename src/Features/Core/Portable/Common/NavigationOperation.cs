@@ -37,8 +37,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
                 var threadingService = workspace.Services.GetService<IWorkspaceThreadingServiceProvider>();
 
-                threadingService.Service.Run(
-                    () => navigationService.TryNavigateToPositionAsync(workspace, _documentId, _position, cancellationToken));
+                threadingService.Service.Run(async () =>
+                {
+                    var location = await navigationService.GetLocationForPositionAsync(
+                        workspace, _documentId, _position, cancellationToken).ConfigureAwait(false);
+                    return location != null &&
+                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                });
             }
         }
     }

@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             var workspace = document.Project.Solution.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            await navigationService.TryNavigateToPositionAsync(
+            var location = await navigationService.GetLocationForPositionAsync(
                 workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
-
-            return true;
+            return location != null &&
+                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public bool ShowItemGrayedIfNear(NavigationBarItem item)

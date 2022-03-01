@@ -307,8 +307,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 if (navigationTokenOpt.HasValue)
                 {
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-                    await navigationService.TryNavigateToPositionAsync(
+                    var location = await navigationService.GetLocationForPositionAsync(
                         workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken).ConfigureAwait(false);
+                    if (location != null)
+                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
                     return;
                 }
 

@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
             => service.TryNavigateToSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
 
-        public static Task<bool> TryNavigateToPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
-            => service.TryNavigateToPositionAsync(workspace, documentId, position, virtualSpace: 0, NavigationOptions.Default, cancellationToken);
+        public static Task<INavigableLocation?> GetLocationForPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
+            => service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace: 0, NavigationOptions.Default, cancellationToken);
 
         /// <summary>
         /// Navigates to the given position in the specified document, opening it if necessary.
@@ -67,17 +67,6 @@ namespace Microsoft.CodeAnalysis.Navigation
         {
             var location = await service.GetLocationForLineAndOffsetAsync(
                 workspace, documentId, lineNumber, offset, options, cancellationToken).ConfigureAwait(false);
-            return location != null &&
-                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Navigates to the given virtual position in the specified document, opening it if necessary.
-        /// </summary>
-        public static async Task<bool> TryNavigateToPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
-        {
-            var location = await service.GetLocationForPositionAsync(
-                workspace, documentId, position, virtualSpace, options, cancellationToken).ConfigureAwait(false);
             return location != null &&
                 await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
