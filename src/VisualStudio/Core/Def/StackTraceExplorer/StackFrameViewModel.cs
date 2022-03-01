@@ -135,15 +135,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
                     var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
                     if (navigationService is null)
-                    {
                         return;
-                    }
 
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    var location = await navigationService.GetLocationForLineAndOffsetAsync(
-                        _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
-                    if (location != null)
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    var location = await navigationService.TryNavigateToLineAndOffsetAsync(
+                        _threadingContext, _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
