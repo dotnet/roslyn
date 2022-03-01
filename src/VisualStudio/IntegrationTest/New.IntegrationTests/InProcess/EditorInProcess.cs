@@ -98,6 +98,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return line.GetText();
         }
 
+        public async Task<string> GetSelectedTextAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
+            var subjectBuffer = view.GetBufferContainingCaret();
+            Contract.ThrowIfNull(subjectBuffer);
+
+            var selectedSpan = view.Selection.SelectedSpans[0];
+            return subjectBuffer.CurrentSnapshot.GetText(selectedSpan);
+        }
+
         public async Task<string> GetLineTextBeforeCaretAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

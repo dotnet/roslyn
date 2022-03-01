@@ -59,6 +59,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return forcedUpdateResult.AllEntries.Cast<ITableEntryHandle2>().ToImmutableArray();
         }
 
+        public async Task NavigateToAsync(ITableEntryHandle2 referenceInGeneratedFile, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            referenceInGeneratedFile.NavigateTo(isPreview, shouldActivate);
+
+            // Navigation operations handled by Roslyn are tracked by FeatureAttribute.FindReferences
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.FindReferences }, cancellationToken);
+
+            // Navigation operations handled by the editor are tracked within its own JoinableTaskFactory instance
+            await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
+        }
+
         private async Task<IWpfTableControl2> GetFindReferencesWindowAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

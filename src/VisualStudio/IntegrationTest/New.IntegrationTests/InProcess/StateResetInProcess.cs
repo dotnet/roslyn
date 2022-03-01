@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -24,6 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
             ResetOption2(globalOptions, FeatureOnOffOptions.NavigateToDecompiledSources);
+            ResetOption2(globalOptions, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
             ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
 
