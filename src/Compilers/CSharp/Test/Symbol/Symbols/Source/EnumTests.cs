@@ -265,7 +265,7 @@ ValueC = 257 // Out of underlying range
                 // (2,2): error CS1513: } expected
                 // {
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ""),
-                // (3,12): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (3,12): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 //     public Red
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Red"),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected

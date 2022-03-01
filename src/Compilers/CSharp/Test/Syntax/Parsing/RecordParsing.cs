@@ -2672,7 +2672,7 @@ class C(int X, int Y)
             verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular8,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 1),
                 // (1,16): error CS1514: { expected
@@ -2849,7 +2849,7 @@ class C(int X, int Y)
             verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular8,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 1),
                 // (1,15): error CS1514: { expected
@@ -3690,7 +3690,7 @@ class C(int X, int Y)
             verifyParsedAsRecord();
 
             UsingTree(text, options: TestOptions.Regular8,
-                // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,5): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // ref record struct S;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
                 // (1,20): error CS1514: { expected

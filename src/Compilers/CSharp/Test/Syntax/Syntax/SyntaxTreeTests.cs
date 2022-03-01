@@ -800,7 +800,7 @@ namespace ns {}
             var test = "d using ns1;";
 
             UsingTree(test, TestOptions.Regular,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // d using ns1;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1)
                 );
@@ -827,7 +827,7 @@ namespace ns {}
             var test = "d global using ns1;";
 
             UsingTree(test, TestOptions.RegularPreview,
-                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // d global using ns1;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1)
                 );
@@ -855,7 +855,7 @@ namespace ns {}
             var test = "using ns1; p using ns2;";
 
             UsingTree(test, TestOptions.Regular,
-                // (1,12): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,12): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // using ns1; p using ns2;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 12)
                 );
@@ -891,7 +891,7 @@ namespace ns {}
             var test = "global using ns1; p global using ns2;";
 
             UsingTree(test, TestOptions.RegularPreview,
-                // (1,19): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (1,19): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // global using ns1; p global using ns2;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 19)
                 );

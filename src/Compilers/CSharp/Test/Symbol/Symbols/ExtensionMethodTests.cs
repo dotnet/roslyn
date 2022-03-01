@@ -459,7 +459,7 @@ namespace N
 ";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (4,17): error CS0116: A namespace does not directly contain members such as fields or methods
+                // (4,17): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Goo"),
                 // (4,17): error CS1106: Extension methods must be defined in a non-generic static class
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "Goo"));

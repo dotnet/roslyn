@@ -1216,10 +1216,10 @@ data struct S2(int X, int Y);";
                 // (3,14): error CS8805: Program using top-level statements must be an executable.
                 // data class C2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int X, int Y);").WithLocation(3, 14),
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // data class C1 { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(2, 1),
-                // (3,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (3,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // data class C2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(3, 1),
                 // (3,14): error CS1514: { expected
@@ -1246,10 +1246,10 @@ data struct S2(int X, int Y);";
                 // (3,22): error CS0165: Use of unassigned local variable 'Y'
                 // data class C2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int Y").WithArguments("Y").WithLocation(3, 22),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // data struct S1 { }
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(4, 1),
-                // (5,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,1): error CS0116: A namespace or a top-level entry point cannot directly contain members such as fields or properties
                 // data struct S2(int X, int Y);
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "data").WithLocation(5, 1),
                 // (5,15): error CS1514: { expected

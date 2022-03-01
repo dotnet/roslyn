@@ -4146,8 +4146,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceUnexpected">
-        <source>A namespace cannot directly contain members such as fields, methods or statements</source>
-        <target state="translated">네임스페이스는 필드, 메서드 또는 문과 같은 멤버를 직접 포함할 수 없습니다.</target>
+        <source>A namespace or a top-level entry point cannot directly contain members such as fields or properties</source>
+        <target state="needs-review-translation">네임스페이스는 필드, 메서드 또는 문과 같은 멤버를 직접 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMember">
