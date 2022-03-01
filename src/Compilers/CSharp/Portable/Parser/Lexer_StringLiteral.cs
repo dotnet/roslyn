@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             /// <summary>
             /// Returns <see langword="true"/> if the quote was an end delimiter and lexing of the contents of the
-            /// interpolated string literal should stop.  If it was an end delimeter it will not be consumed.  If it is
+            /// interpolated string literal should stop.  If it was an end delimiter it will not be consumed.  If it is
             /// content and should not terminate the string then it will be consumed by this method.
             /// </summary>
             private bool IsEndDelimiterOtherwiseConsume(InterpolatedStringKind kind, int startingQuoteCount)

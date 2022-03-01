@@ -2067,7 +2067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     overriddenType,
                     overriddenAnnotations,
                     // We don't consider '!!' when deciding whether 'overridden' is compatible with 'override'
-                    isNullChecked: false);
+                    applyParameterNullCheck: false);
                 if (isBadAssignment(valueState, overridingType, overridingAnnotations))
                 {
                     return false;
@@ -2527,9 +2527,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isNullChecked)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool applyParameterNullCheck)
         {
-            if (isNullChecked)
+            if (applyParameterNullCheck)
             {
                 return TypeWithState.Create(parameterType.Type, NullableFlowState.NotNull);
             }
@@ -7570,10 +7570,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameterSymbol, bool topLevel, Location location)
             {
-                ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
-                    unboundLambda.ParameterName(parameterSymbol.Ordinal),
-                    unboundLambda.MessageID.Localize(),
-                    delegateType);
+                // For anonymous functions with implicit parameters, no need to report this since the parameters can't be referenced
+                if (unboundLambda.HasSignature)
+                {
+                    ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
+                        unboundLambda.ParameterName(parameterSymbol.Ordinal),
+                        unboundLambda.MessageID.Localize(),
+                        delegateType);
+                }
             }
         }
 

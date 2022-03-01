@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1298,7 +1299,8 @@ static class B
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1392,7 +1394,8 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1409,6 +1412,49 @@ namespace N
             var symbolInfo = model.GetSymbolInfo(expr);
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void Discard()
+        {
+            var source =
+@"class Program
+{
+    static void F() { }
+    static void F(object o) { }
+    static void Main()
+    {
+        _ = Main;
+        _ = F;
+        _ = () => { };
+        _ = x => x;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = Main;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(7, 9),
+                // (8,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = F;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(8, 9),
+                // (9,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = () => { };
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(9, 9),
+                // (10,9): error CS8183: Cannot infer the type of implicitly-typed discard.
+                //         _ = x => x;
+                Diagnostic(ErrorCode.ERR_DiscardTypeInferenceFailed, "_").WithLocation(10, 9)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(55923, "https://github.com/dotnet/roslyn/issues/55923")]
@@ -1767,7 +1813,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "System.Action<System.Int32>, System.Action");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1983,7 +2030,7 @@ class Program
     }
     static Delegate F1<T>()
     {
-        return (T t, ref int p) => { };
+        return (T t, ref int i) => { };
     }
     static Delegate F2<T>()
     {
@@ -2797,6 +2844,39 @@ class Program
         }
 
         [Fact]
+        public void SystemDelegate_Missing()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public class String { }
+    public class Type { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct IntPtr { }
+}";
+            var sourceB =
+@"class Program
+{
+    static void F(ref object o) { }
+    static void Main()
+    {
+        var d1 = F;
+        var d2 = (ref int i) => i;
+    }
+}";
+            var comp = CreateEmptyCompilation(new[] { sourceA, sourceB });
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.MulticastDelegate' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.MulticastDelegate").WithLocation(1, 1));
+        }
+
+        [Fact]
         public void SystemMulticastDelegate_Missing()
         {
             var sourceA =
@@ -3261,9 +3341,9 @@ interface IRouteBuilder
 }
 static class AppBuilderExtensions
 {
-    public static IAppBuilder Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+    public static IAppBuilder Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
     {
-        Console.WriteLine(""AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)"");
+        Console.WriteLine(""AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)"");
         return app;
     }
 }
@@ -3275,20 +3355,20 @@ static class RouteBuilderExtensions
         return routes;
     }
 }
-struct PathSring
+struct PathString
 {
-    public PathSring(string? path)
+    public PathString(string? path)
     {
         Path = path;
     }
     public string? Path { get; }
-    public static implicit operator PathSring(string? s) => new PathSring(s);
-    public static implicit operator string?(PathSring path) => path.Path;
+    public static implicit operator PathString(string? s) => new PathString(s);
+    public static implicit operator string?(PathString path) => path.Path;
 }";
 
             var expectedOutput =
-@"AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
-AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+@"AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
+AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
 ";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
@@ -5064,7 +5144,7 @@ class Program
         }
 
         [Fact]
-        public void ConditionalOperator_01()
+        public void NullCoalescingOperator_01()
         {
             var source =
 @"class Program
@@ -5876,6 +5956,307 @@ class Program
                 // (11,16): error CS0411: The type arguments for method 'Program.F2<T>(T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Report(F2(() => 1.0, (D2<int> d) => { }));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F2").WithArguments("Program.F2<T>(T, in T)").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(() => string.Empty, () => new object()));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(() => string.Empty, () => new object()));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Func`1[System.Object]
+");
+        }
+
+        [Fact]
+        public void TypeInference_Variance_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((string s) => { }, (object o) => { }));
+        Report(F(string () => default, object () => default));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16),
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16),
+                // (8,18): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(8, 18),
+                // (8,40): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(8, 40));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,37): error CS1661: Cannot convert lambda expression to type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(object o) => { }").WithArguments("lambda expression", "System.Action<string>").WithLocation(7, 37),
+                // (7,45): error CS1678: Parameter 1 is declared as type 'object' but should be 'string'
+                //         Report(F((string s) => { }, (object o) => { }));
+                Diagnostic(ErrorCode.ERR_BadParamType, "o").WithArguments("1", "", "object", "", "string").WithLocation(7, 45),
+                // (8,18): error CS8934: Cannot convert lambda expression to type 'Func<object>' because the return type does not match the delegate return type
+                //         Report(F(string () => default, object () => default));
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturnType, "string () => default").WithArguments("lambda expression", "System.Func<object>").WithLocation(8, 18));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(T t) { }
+    static T F2<T>() => default;
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+        Report(F(F2<string>, F2<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(9, 16),
+                // (10,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F2<string>, F2<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16));
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput:
+@"System.Action`1[System.String]
+System.Func`1[System.Object]
+");
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((out string s) => { s = default; }, (out object o) => { o = default; }));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_05()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(out T t) { t = default; }
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+
+            // Compile and execute after fixing https://github.com/dotnet/roslyn/issues/55909.
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((ref string x) => { }, (ref object y) => { }));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((out string s) => { s = default; }, (out object o) => { o = default; });
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16));
+        }
+
+        [Fact]
+        public void TypeInference_Variance_07()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(ref T t) { }
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_08()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F((ref int i, string s) => { }, (ref int i, object o) => { }));
+        Report(F(string (ref int i) => default, object (ref int i) => default));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((ref int i, string s) => { }, (ref int i, object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16),
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16),
+                // (8,18): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "string").WithArguments("lambda return type", "10.0").WithLocation(8, 18),
+                // (8,49): error CS8773: Feature 'lambda return type' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "object").WithArguments("lambda return type", "10.0").WithLocation(8, 49));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F((ref int i, string s) => { }, (ref int i, object o) => { }));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(7, 16),
+                // (8,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(string (ref int i) => default, object (ref int i) => default));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(8, 16));
+        }
+
+        [Fact]
+        [WorkItem(55909, "https://github.com/dotnet/roslyn/issues/55909")]
+        public void TypeInference_Variance_09()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F1<T>(ref int i, T t) { }
+    static T F2<T>(ref int i) => default;
+    static T F<T>(T x, T y) => y;
+    static void Main()
+    {
+        Report(F(F1<string>, F1<object>));
+        Report(F(F2<string>, F2<object>));
+    }
+    static void Report(object obj) => Console.WriteLine(obj.GetType());
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(9, 16),
+                // (10,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F2<string>, F2<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16));
+
+            // Compile and execute after fixing https://github.com/dotnet/roslyn/issues/55909.
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F1<string>, F1<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(9, 16),
+                // (10,16): error CS0411: The type arguments for method 'Program.F<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Report(F(F2<string>, F2<object>));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T, T)").WithLocation(10, 16));
         }
 
         [Fact]
@@ -7392,6 +7773,47 @@ class Program
         }
 
         [Fact]
+        public void ImplicitlyTypedVariables_15()
+        {
+            var source =
+@"class Program
+{
+    static string F1() => string.Empty;
+    static void F2(object o) { }
+    static void M(bool b)
+    {
+        var d1 = b ? () => string.Empty : () => string.Empty;
+        var d2 = b ? F1 : () => string.Empty;
+        var d3 = b ? (object o) => { } : F2;
+        var d4 = b ? F2 : F2;
+    }
+}";
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'lambda expression' and 'lambda expression'
+                //         var d1 = b ? () => string.Empty : () => string.Empty;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? () => string.Empty : () => string.Empty").WithArguments("lambda expression", "lambda expression").WithLocation(7, 18),
+                // (8,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'lambda expression'
+                //         var d2 = b ? F1 : () => string.Empty;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? F1 : () => string.Empty").WithArguments("method group", "lambda expression").WithLocation(8, 18),
+                // (9,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'lambda expression' and 'method group'
+                //         var d3 = b ? (object o) => { } : F2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? (object o) => { } : F2").WithArguments("lambda expression", "method group").WithLocation(9, 18),
+                // (10,18): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'method group'
+                //         var d4 = b ? F2 : F2;
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? F2 : F2").WithArguments("method group", "method group").WithLocation(10, 18)
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
         public void ImplicitlyTypedVariables_UseSiteErrors()
         {
             var source =
@@ -7908,7 +8330,8 @@ static class E
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{
   // Code size       20 (0x14)
@@ -8487,12 +8910,13 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 24 }
             CompileAndVerify(comp, expectedOutput:
 @"0
 System.Object
 <>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
-");
+", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -9735,6 +10159,257 @@ class Program
                 // (8,14): error CS8858: The receiver type '<anonymous delegate>' is not a valid record type and is not a struct type.
                 //         d2 = d2 with { };
                 Diagnostic(ErrorCode.ERR_CannotClone, "d2").WithArguments("<anonymous delegate>").WithLocation(8, 14));
+        }
+
+        [Fact]
+        public void Extension_GetAwaiter_01()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        Type type;
+        type = await Main;
+        Console.WriteLine(type);
+        type = await ((ref int x) => x);
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class Awaiter : INotifyCompletion
+{
+    private Delegate _d;
+    public Awaiter(Delegate d) { _d = d; }
+    public void OnCompleted(Action a) { }
+    public Type GetResult() => _d.GetType();
+    public bool IsCompleted => true;
+}
+static class Extensions
+{
+    public static Awaiter GetAwaiter(this Delegate d) => new Awaiter(d);
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS4001: Cannot await 'method group'
+                //         type = await Main;
+                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await Main").WithArguments("method group").WithLocation(9, 16),
+                // (11,16): error CS4001: Cannot await 'lambda expression'
+                //         type = await ((ref int x) => x);
+                Diagnostic(ErrorCode.ERR_BadAwaitArgIntrinsic, "await ((ref int x) => x)").WithArguments("lambda expression").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void Extension_GetAwaiter_02()
+        {
+            var source =
+@"using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+class Program
+{
+    static async Task Main()
+    {
+        Type type;
+        type = await (Delegate)Main;
+        Console.WriteLine(type);
+        type = await (Delegate)((ref int x) => x);
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+class Awaiter : INotifyCompletion
+{
+    private Delegate _d;
+    public Awaiter(Delegate d) { _d = d; }
+    public void OnCompleted(Action a) { }
+    public Type GetResult() => _d.GetType();
+    public bool IsCompleted => true;
+}
+static class Extensions
+{
+    public static Awaiter GetAwaiter(this Delegate d) => new Awaiter(d);
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Func`1[System.Threading.Tasks.Task]
+<>F{00000001}`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Extension_GetEnumerator_01()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class Program
+{
+    static void Main()
+    {
+        foreach(var d in Main) Report(d);
+        foreach(var d in (ref int x) => x) Report(d);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static IEnumerator<Delegate> GetEnumerator(this Delegate d)
+    {
+        yield return d;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,26): error CS0446: Foreach cannot operate on a 'method group'. Did you intend to invoke the 'method group'?
+                //         foreach(var d in Main) Report(d);
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "Main").WithArguments("method group").WithLocation(7, 26),
+                // (8,26): error CS0446: Foreach cannot operate on a 'lambda expression'. Did you intend to invoke the 'lambda expression'?
+                //         foreach(var d in (ref int x) => x) Report(d);
+                Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "(ref int x) => x").WithArguments("lambda expression").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void Extension_GetEnumerator_02()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+class Program
+{
+    static void Main()
+    {
+        foreach (var d in (Delegate)Main) Report(d);
+        foreach (var d in (Delegate)((ref int x) => x)) Report(d);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static IEnumerator<Delegate> GetEnumerator(this Delegate d)
+    {
+        yield return d;
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Action
+<>F{00000001}`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void Extension_Deconstruct_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Type type;
+        string name;
+        (type, name) = Main;
+        Console.WriteLine(type);
+        (type, name) = (ref int x) => x;
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static void Deconstruct(this Delegate d, out Type type, out string name)
+    {
+        type = d.GetType();
+        name = d.Method.Name;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (type, name) = Main;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "Main").WithLocation(8, 24),
+                // (10,24): error CS8131: Deconstruct assignment requires an expression with a type on the right-hand-side.
+                //         (type, name) = (ref int x) => x;
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(ref int x) => x").WithLocation(10, 24));
+        }
+
+        [Fact]
+        public void Extension_Deconstruct_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Type type;
+        string name;
+        (type, name) = (Delegate)Main;
+        Console.WriteLine(type);
+        (type, name) = (Delegate)((ref int x) => x);
+        Console.WriteLine(type);
+    }
+    static void Report(Delegate d) => Console.WriteLine(d.GetType());
+}
+static class Extensions
+{
+    public static void Deconstruct(this Delegate d, out Type type, out string name)
+    {
+        type = d.GetType();
+        name = d.Method.Name;
+    }
+}";
+            CompileAndVerify(source, expectedOutput:
+@"System.Action
+<>F{00000001}`2[System.Int32,System.Int32]
+");
+        }
+
+        [Fact]
+        public void IOperation()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        Delegate d = (int x) => x.ToString();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            var operation = (IVariableDeclaratorOperation)model.GetOperation(syntax)!;
+
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IVariableDeclaratorOperation (Symbol: System.Delegate d) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'd = (int x) ... .ToString()')
+  Initializer:
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= (int x) = ... .ToString()')
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Delegate, IsImplicit) (Syntax: '(int x) => x.ToString()')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+        Operand:
+          IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32, System.String>, IsImplicit) (Syntax: '(int x) => x.ToString()')
+            Target:
+              IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null) (Syntax: '(int x) => x.ToString()')
+                IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x.ToString()')
+                    ReturnedValue:
+                      IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
+                        Instance Receiver:
+                          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                        Arguments(0)
+",
+            actualText);
+
+            var value = ((IConversionOperation)operation.Initializer!.Value).Operand;
+            Assert.Equal("System.Func<System.Int32, System.String>", value.Type.ToTestDisplayString());
         }
 
         [Fact]

@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim options = ImplementTypeOptions.From(document.Project)
+            Dim options = _globalOptions.GetImplementTypeOptions(document.Project.Language)
             Dim newDocument = TryGetNewDocument(document, options, identifier, cancellationToken)
 
             If newDocument Is Nothing Then

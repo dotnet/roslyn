@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion
               TypeImportCompletion: options.GetOption(TypeImportCompletionFeatureFlag),
               ProvideDateAndTimeCompletions: options.GetOption(ProvideDateAndTimeCompletions, language),
               ProvideRegexCompletions: options.GetOption(ProvideRegexCompletions, language),
-              ForceExpandedCompletionIndexCreation: options.GetOption(ForceExpandedCompletionIndexCreation),
-              BlockOnExpandedCompletion: options.GetOption(BlockOnExpandedCompletion));
+              ForceExpandedCompletionIndexCreation: options.GetOption(ForceExpandedCompletionIndexCreation));
 
         // feature flags
 
@@ -80,12 +79,6 @@ namespace Microsoft.CodeAnalysis.Completion
         // Test-only option
         public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
             = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
-
-        // Test-only option
-        // Set this to true to have a deterministic behavior for expand items. Otherwise, expand items might not
-        // be included in the completion list if the calculation is slow.
-        public static readonly Option2<bool> BlockOnExpandedCompletion
-            = new(nameof(CompletionOptions), nameof(BlockOnExpandedCompletion), defaultValue: false);
 
         // Embedded languages:
 

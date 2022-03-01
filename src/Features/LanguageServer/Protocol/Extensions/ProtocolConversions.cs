@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
+        private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -147,6 +148,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 throw new ArgumentNullException(nameof(filePath));
 
             return new Uri(filePath, UriKind.Absolute);
+        }
+
+        public static Uri GetUriFromPartialFilePath(string? filePath)
+        {
+            if (filePath is null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            return new Uri(SourceGeneratedDocumentBaseUri, filePath);
         }
 
         public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
@@ -649,18 +658,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
-            LSP.FormattingOptions options,
+            LSP.FormattingOptions? options,
             Document document,
             CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            // LSP doesn't currently support indent size as an option. However, except in special
-            // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-            var updatedOptions = documentOptions
-                .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
-                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
-                .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
-            return updatedOptions;
+
+            if (options != null)
+            {
+                // LSP doesn't currently support indent size as an option. However, except in special
+                // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
+                documentOptions = documentOptions
+                    .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
+                    .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
+                    .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
+            }
+
+            return documentOptions;
         }
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)

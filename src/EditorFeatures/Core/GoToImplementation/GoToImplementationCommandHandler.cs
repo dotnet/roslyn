@@ -8,12 +8,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
-    internal class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>
+    internal sealed class GoToImplementationCommandHandler : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,11 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
             : base(threadingContext,
                    streamingPresenter,
                    uiThreadOperationExecutor,
-                   listenerProvider.GetListener(FeatureAttribute.GoToImplementation))
+                   listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
+                   globalOptions)
         {
         }
 
@@ -45,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         protected override string ScopeDescription => EditorFeaturesResources.Locating_implementations;
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
-        protected override Task FindActionAsync(Document document, int caretPosition, IFindUsagesContext context, CancellationToken cancellationToken)
+        protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
             => document.GetRequiredLanguageService<IFindUsagesService>()
-                       .FindImplementationsAsync(document, caretPosition, context, cancellationToken);
+                       .FindImplementationsAsync(context, document, caretPosition, cancellationToken);
     }
 }

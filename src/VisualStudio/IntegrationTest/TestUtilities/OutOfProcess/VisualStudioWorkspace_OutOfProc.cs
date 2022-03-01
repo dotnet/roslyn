@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -98,21 +99,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
         {
-            SetOption(
-                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Name,
-                feature: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Feature,
-                value: value);
+            SetGlobalOption(
+                WellKnownGlobalOption.VisualStudioSyntaxTreeConfigurationService_EnableOpeningSourceGeneratedFilesInWorkspace,
+                language: null,
+                value);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
-
-        public object? GetGlobalOption(WellKnownGlobalOption option, string? language)
-            => _inProc.GetGlobalOption(option, language);
 
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
             => _inProc.SetGlobalOption(option, language, value);
-
-        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }

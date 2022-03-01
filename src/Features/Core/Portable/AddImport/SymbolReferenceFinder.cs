@@ -62,12 +62,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _symbolSearchService = symbolSearchService;
                 _options = options;
                 _packageSources = packageSources;
-
-                if (options.SearchReferenceAssemblies || packageSources.Length > 0)
-                {
-                    Contract.ThrowIfNull(symbolSearchService);
-                }
-
                 _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                 _namespacesInScope = GetNamespacesInScope(cancellationToken);

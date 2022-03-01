@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             var existingTags = context.GetExistingContainingTags(new SnapshotPoint(snapshot, position));
             if (!existingTags.IsEmpty())
             {
-                context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
+                context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
                 return;
             }
 

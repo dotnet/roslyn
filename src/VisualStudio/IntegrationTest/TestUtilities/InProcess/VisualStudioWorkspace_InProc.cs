@@ -90,13 +90,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             SetOption(optionKey, result);
         }
 
-        public object? GetGlobalOption(WellKnownGlobalOption option, string? language)
-        {
-            object? result = null;
-            InvokeOnUIThread(_ => result = _globalOptions.GetOption(option.GetKey(language)));
-            return result;
-        }
-
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
             => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(option.GetKey(language), value));
 
@@ -231,23 +224,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 GetWaitingService().EnableActiveTokenTracking(true);
             });
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => InvokeOnUIThread(cancellationToken =>
             {
                 var option = GetOption(optionName, feature);
 
                 var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
-                var optionKey = string.IsNullOrWhiteSpace(language)
-                    ? new OptionKey(option)
-                    : new OptionKey(option, language);
-
-                SetOption(optionKey, value);
+                SetOption(new OptionKey(option, language), value);
             });
-
-        public string? GetWorkingFolder()
-        {
-            var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
-            return service.TryGetStorageLocation(SolutionKey.ToSolutionKey(_visualStudioWorkspace.CurrentSolution));
-        }
     }
 }

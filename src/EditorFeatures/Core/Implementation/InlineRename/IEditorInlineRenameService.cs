@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// and TextSpan in the original solution, and specify their new span and possible conflict
         /// resolution.
         /// </summary>
-        Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken);
+        Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken);
     }
 
     internal interface IInlineRenameInfo
@@ -176,9 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor
         bool HasOverloads { get; }
 
         /// <summary>
-        /// Whether the Rename Overloads option should be forced to true. Used if rename is invoked from within a nameof expression.
+        /// True if overloads must be renamed (the user is not given a choice). Used if rename is invoked from within a nameof expression.
         /// </summary>
-        bool ForceRenameOverloads { get; }
+        bool MustRenameOverloads { get; }
 
         /// <summary>
         /// The short name of the symbol being renamed, for use in displaying information to the user.
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// multiple times.  For example, this can be called one time for the initial set of
         /// locations to rename, as well as any time the rename options are changed by the user.
         /// </summary>
-        Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken);
+        Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called before the rename is applied to the specified documents in the workspace.  Return 

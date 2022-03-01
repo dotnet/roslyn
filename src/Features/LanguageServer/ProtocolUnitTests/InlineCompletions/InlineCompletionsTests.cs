@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -20,7 +16,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 {
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(TestSnippetInfoService));
+    protected override TestComposition Composition => base.Composition
+        .AddParts(typeof(TestSnippetInfoService));
 
     [Fact]
     public async Task TestSimpleSnippet()
@@ -63,7 +60,7 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public async Task TestSnippetUsesDocumentOptions()
+    public async Task TestSnippetUsesOptionsFromRequest()
     {
         var markup =
 @"class A
@@ -79,7 +76,7 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
    $0
   }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet, indentationSize: 1);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, options: new LSP.FormattingOptions { TabSize = 1, InsertSpaces = true });
     }
 
     [Fact]
@@ -226,18 +223,54 @@ class A
         await VerifyMarkupAndExpected(markup, expectedSnippet);
     }
 
-    private async Task VerifyMarkupAndExpected(string markup, string expected, int indentationSize = 4)
+    [Fact]
+    public async Task TestSnippetCached()
+    {
+        var markup =
+@"class A
+{
+    void M()
+    {
+        if{|tab:|}
+    }
+}";
+        var expectedSnippet =
+@"if (${1:true})
+        {
+            $0
+        }";
+
+        using var testLspServer = await CreateTestLspServerAsync(markup);
+        var locationTyped = testLspServer.GetLocations("tab").Single();
+
+        var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
+
+        // Verify we haven't parsed snippets until asked.
+        var snippetParser = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<XmlSnippetParser>();
+        Assert.Equal(0, snippetParser.GetTestAccessor().GetCachedSnippetsCount());
+
+        // Verify that the first time we ask for a snippet it gets parsed and added to the cache.
+        var result = await GetInlineCompletionsAsync(testLspServer, locationTyped, new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
+        Assert.Equal(expectedSnippet, result.Items.Single().Text);
+        Assert.Equal(1, snippetParser.GetTestAccessor().GetCachedSnippetsCount());
+        var firstSnippet = snippetParser.GetTestAccessor().GetCachedSnippet("if");
+
+        // Verify that the next time we ask for the same snippet we do not parse again.
+        result = await GetInlineCompletionsAsync(testLspServer, locationTyped, new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
+        Assert.Equal(expectedSnippet, result.Items.Single().Text);
+        Assert.Equal(1, snippetParser.GetTestAccessor().GetCachedSnippetsCount());
+        var secondSnippet = snippetParser.GetTestAccessor().GetCachedSnippet("if");
+        Assert.Same(firstSnippet, secondSnippet);
+    }
+
+    private async Task VerifyMarkupAndExpected(string markup, string expected, LSP.FormattingOptions? options = null)
     {
         using var testLspServer = await CreateTestLspServerAsync(markup);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
-        var newSolution = document.Project.Solution.WithOptions(testLspServer.TestWorkspace.Options
-            .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, indentationSize));
-        testLspServer.TestWorkspace.TryApplyChanges(newSolution);
-        await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
 
-        var result = await GetInlineCompletionsAsync(testLspServer, locationTyped);
+        var result = await GetInlineCompletionsAsync(testLspServer, locationTyped, options ?? new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
 
         AssertEx.NotNull(result);
         Assert.Single(result.Items);
@@ -250,7 +283,8 @@ class A
 
     private static async Task<LSP.VSInternalInlineCompletionList> GetInlineCompletionsAsync(
             TestLspServer testLspServer,
-            LSP.Location locationTyped)
+            LSP.Location locationTyped,
+            LSP.FormattingOptions options)
     {
         var request = new LSP.VSInternalInlineCompletionRequest
         {
@@ -260,11 +294,12 @@ class A
                 TriggerKind = LSP.VSInternalInlineCompletionTriggerKind.Explicit
             },
             Position = locationTyped.Range.Start,
-            TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri)
+            TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri),
+            Options = options
         };
 
-        var response = await testLspServer.ExecuteRequestAsync<LSP.VSInternalInlineCompletionRequest, LSP.VSInternalInlineCompletionList>(LSP.VSInternalMethods.TextDocumentInlineCompletionName,
-            request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        var response = await testLspServer.ExecuteRequestAsync<LSP.VSInternalInlineCompletionRequest, LSP.VSInternalInlineCompletionList>(
+            LSP.VSInternalMethods.TextDocumentInlineCompletionName, request, CancellationToken.None);
         Contract.ThrowIfNull(response);
         return response;
     }

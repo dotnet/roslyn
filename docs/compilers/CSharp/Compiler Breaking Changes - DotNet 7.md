@@ -1,6 +1,6 @@
 ## This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
-1. In Visual Studio 17.1, the contextual keyword `var` cannot be used as an explicit lambda return type.
+1. <a name="1"></a>In Visual Studio 17.1, the contextual keyword `var` cannot be used as an explicit lambda return type.
 
     ```csharp
     using System;
@@ -13,7 +13,7 @@
     class var { }
     ```
 
-2. In Visual Studio 17.1, indexers that take an interpolated string handler and require the receiver as an input for the constructor cannot be used in an object initializer.
+2. <a name="2"></a>In Visual Studio 17.1, indexers that take an interpolated string handler and require the receiver as an input for the constructor cannot be used in an object initializer.
 
     ```cs
     using System.Runtime.CompilerServices;
@@ -35,7 +35,7 @@
     }
     ```
 
-3. In Visual Studio 17.1, `ref`/`ref readonly`/`in`/`out` are not allowed to be used on return/parameters of a method attributed with `UnmanagedCallersOnly`.  
+3. <a name="3"></a>In Visual Studio 17.1, `ref`/`ref readonly`/`in`/`out` are not allowed to be used on return/parameters of a method attributed with `UnmanagedCallersOnly`.  
 https://github.com/dotnet/roslyn/issues/57025
 
     ```cs
@@ -56,7 +56,7 @@ https://github.com/dotnet/roslyn/issues/57025
     static void M5(out int o) => throw null; // error CS8977: Cannot use 'ref', 'in', or 'out' in a method attributed with 'UnmanagedCallersOnly'.
     ```
 
-4. Beginning with C# 11.0, `Length` and `Count` properties on countable and indexable types
+4. <a name="4"></a>Beginning with C# 11.0, `Length` and `Count` properties on countable and indexable types
 are assumed to be non-negative for purpose of subsumption and exhaustiveness analysis of patterns and switches.
 Those types can be used with implicit Index indexer and list patterns.
 
@@ -67,8 +67,8 @@ Those types can be used with implicit Index indexer and list patterns.
     }
     ```
 
-5. Starting with Visual Studio 17.1, format specifiers in interpolated strings can not contain curly braces (either `{` or `}`). In previous versions `{{` was interpreted as an escaped `{` and `}}` was interpreted as an escaped `}` char in the format specifier. Now the first `}` char in a format specifier ends the interpolation, and any `{` char is an error.
-https://github.com/dotnet/roslyn/issues/5775
+5.  <a name="5"></a>Starting with Visual Studio 17.1, format specifiers in interpolated strings can not contain curly braces (either `{` or `}`). In previous versions `{{` was interpreted as an escaped `{` and `}}` was interpreted as an escaped `}` char in the format specifier. Now the first `}` char in a format specifier ends the interpolation, and any `{` char is an error.
+https://github.com/dotnet/roslyn/issues/57750
 
     ```csharp
     using System;
@@ -76,4 +76,25 @@ https://github.com/dotnet/roslyn/issues/5775
     Console.WriteLine($"{{{12:X}}}");
 
     //prints now: "{C}" - not "{X}}"
+    ```
+
+6. <a name="6"></a><a name="roslyn-58581"></a>In Visual Studio 17.1, `struct` type declarations with field initializers must include an explicitly declared constructor. Additionally, all fields must be definitely assigned in `struct` instance constructors that do not have a `: this()` initializer so any previously unassigned fields must be assigned from the added constructor or from field initializers. See [csharplang#5552](https://github.com/dotnet/csharplang/issues/5552), [roslyn#58581](https://github.com/dotnet/roslyn/pull/58581).
+
+    For instance, the following results in an error in 17.1:
+    ```csharp
+    struct S
+    {
+        int X = 1; // error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+        int Y;
+    }
+    ```
+
+    The error could be resolved by adding a constructor and assigning the other field.
+    ```csharp
+    struct S
+    {
+        int X = 1;
+        int Y;
+        public S() { Y = 0; } // ok
+    }
     ```

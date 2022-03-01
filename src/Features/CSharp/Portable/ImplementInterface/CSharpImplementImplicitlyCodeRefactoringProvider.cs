@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _)
+        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _1, ISymbol _2)
             => generator.WithAccessibility(WithoutExplicitImpl(decl), Accessibility.Public);
 
         private static SyntaxNode WithoutExplicitImpl(SyntaxNode decl)

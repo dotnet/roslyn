@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
@@ -26,15 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// This context supports showing reference items, and will display appropriate messages
         /// about no-references being found for a definition at the end of the search.
         /// </summary>
-        private class WithReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
+        private sealed class WithReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
         {
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
                 ImmutableArray<ITableColumnDefinition> customColumns,
+                IGlobalOptionService globalOptions,
                 bool includeContainingTypeAndMemberColumns,
                 bool includeKindColumn)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 

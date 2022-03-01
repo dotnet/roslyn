@@ -37,9 +37,9 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
-using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
@@ -123,6 +123,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
             view.Caret.MoveTo(point);
+        }
+
+        public async Task SetMultiSelectionAsync(ImmutableArray<TextSpan> positions, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+
+            var subjectBuffer = view.GetBufferContainingCaret();
+            Assumes.Present(subjectBuffer);
+
+            view.SetMultiSelection(positions.Select(p => new SnapshotSpan(subjectBuffer.CurrentSnapshot, p.Start, p.Length)));
         }
 
         public async Task SelectTextInCurrentDocumentAsync(string text, CancellationToken cancellationToken)
@@ -265,9 +277,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
             {
-                var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
-                ErrorHandler.ThrowOnFailure(dispatcher.Exec(typeof(VSConstants.VSStd2KCmdID).GUID, (uint)VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
-
+                await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
                 if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
                 {
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
@@ -277,6 +287,42 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         private static bool IsDebuggerTextView(ITextView textView)
             => textView.Roles.Contains("DEBUGVIEW");
+
+        public async Task<ImmutableArray<string>> GetF1KeywordsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var vsView = await GetActiveVsTextViewAsync(cancellationToken);
+            ErrorHandler.ThrowOnFailure(vsView.GetBuffer(out var textLines));
+            ErrorHandler.ThrowOnFailure(textLines.GetLanguageServiceID(out var languageServiceGuid));
+
+            var languageService = await ((AsyncServiceProvider)AsyncServiceProvider.GlobalProvider).QueryServiceAsync(languageServiceGuid).WithCancellation(cancellationToken);
+            Assumes.Present(languageService);
+
+            var languageContextProvider = (IVsLanguageContextProvider)languageService;
+            var monitorUserContext = await GetRequiredGlobalServiceAsync<SVsMonitorUserContext, IVsMonitorUserContext>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
+            ErrorHandler.ThrowOnFailure(vsView.GetCaretPos(out var line, out var column));
+
+            var span = new TextManager.Interop.TextSpan()
+            {
+                iStartLine = line,
+                iStartIndex = column,
+                iEndLine = line,
+                iEndIndex = column,
+            };
+
+            ErrorHandler.ThrowOnFailure(languageContextProvider.UpdateLanguageContext(dwHint: 0, textLines, new[] { span }, emptyUserContext));
+            ErrorHandler.ThrowOnFailure(emptyUserContext.CountAttributes("keyword", fIncludeChildren: Convert.ToInt32(true), out var count));
+            var results = ImmutableArray.CreateBuilder<string>(count);
+            for (var i = 0; i < count; i++)
+            {
+                emptyUserContext.GetAttribute(i, "keyword", fIncludeChildren: Convert.ToInt32(true), pbstrName: out _, out var value);
+                results.Add(value);
+            }
+
+            return results.MoveToImmutable();
+        }
 
         #region Navigation bars
 
@@ -831,6 +877,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var bufferPosition = view.Caret.Position.BufferPosition;
             return bufferPosition.Position;
+        }
+
+        public async Task GoToBaseAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await TestServices.Shell.ExecuteCommandAsync(EditorConstants.EditorCommandID.GoToBase, cancellationToken);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.GoToBase, cancellationToken);
+            await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
         }
 
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
