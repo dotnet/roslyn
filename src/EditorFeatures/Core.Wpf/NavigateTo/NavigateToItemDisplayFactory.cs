@@ -4,23 +4,30 @@
 
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal sealed class NavigateToItemDisplayFactory : INavigateToItemDisplayFactory
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IUIThreadOperationExecutor _threadOperationExecutor;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
-        public NavigateToItemDisplayFactory(IThreadingContext threadingContext)
+        public NavigateToItemDisplayFactory(
+            IThreadingContext threadingContext,
+            IUIThreadOperationExecutor threadOperationExecutor,
+            IAsynchronousOperationListenerProvider asyncListenerProvider)
         {
             _threadingContext = threadingContext;
+            _threadOperationExecutor = threadOperationExecutor;
+            _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.NavigateTo);
         }
 
         public INavigateToItemDisplay CreateItemDisplay(NavigateToItem item)
-        {
-            var searchResult = (INavigateToSearchResult)item.Tag;
-            return new NavigateToItemDisplay(_threadingContext, searchResult);
-        }
+            => new NavigateToItemDisplay(
+                _threadingContext, _threadOperationExecutor, _asyncListener, (INavigateToSearchResult)item.Tag);
     }
 }
