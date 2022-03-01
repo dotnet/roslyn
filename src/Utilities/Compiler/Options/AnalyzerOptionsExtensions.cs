@@ -435,7 +435,7 @@ namespace Analyzer.Utilities
             DiagnosticDescriptor rule,
             SyntaxTree tree,
             Compilation compilation)
-            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.NoEnumerationMethods, rule, tree, compilation, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default), namePrefix: "M:");
+            => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.EnumerationMethods, rule, tree, compilation, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default), namePrefix: "M:");
 
         public static SymbolNamesWithValueOption<Unit> GetLinqChainMethodsOption(
             this AnalyzerOptions options,

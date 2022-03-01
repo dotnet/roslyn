@@ -137,6 +137,7 @@ namespace Analyzer.Utilities
         public const string SystemCollectionsImmutableIImmutableDictionary2 = "System.Collections.Immutable.IImmutableDictionary`2";
         public const string SystemCollectionsImmutableIImmutableList = "System.Collections.Immutable.IImmutableList";
         public const string SystemCollectionsImmutableIImmutableList1 = "System.Collections.Immutable.IImmutableList`1";
+        public const string SystemCollectionsImmutableImmutableList = "System.Collections.Immutable.ImmutableList";
         public const string SystemCollectionsImmutableIImmutableQueue1 = "System.Collections.Immutable.IImmutableQueue`1";
         public const string SystemCollectionsImmutableIImmutableSet1 = "System.Collections.Immutable.IImmutableSet`1";
         public const string SystemCollectionsImmutableIImmutableStack1 = "System.Collections.Immutable.IImmutableStack`1";

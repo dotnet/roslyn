@@ -207,12 +207,12 @@ namespace Analyzer.Utilities
 
         /// <summary>
         /// String option to configure names of method symbols (separated by '|') that marks all of the parameters with IEnumerable type
-        /// would be not enumerated.
+        /// would be enumerated.
         /// </summary>
-        public const string NoEnumerationMethods = "no_enumeration_methods";
+        public const string EnumerationMethods = "enumeration_methods";
 
         /// <summary>
-        /// String option to configure names of method symbols (separated by '|') that accepting IEnumerable type return a new IEnumerable type, like 'Select' and 'Where'.
+        /// String option to configure names of method symbols (separated by '|') that accepting parameter with IEnumerable type and return a new IEnumerable type, like 'Select' and 'Where'.
         /// </summary>
         public const string LinqChainMethods = "linq_chain_methods";
     }
