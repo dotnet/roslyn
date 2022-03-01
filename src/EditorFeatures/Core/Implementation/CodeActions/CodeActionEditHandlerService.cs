@@ -333,8 +333,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         {
                             var editorWorkspace = workspace;
                             var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
-                            if (await navigationService.TryNavigateToSpanAsync(
-                                    editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false))
+                            var location = await navigationService.GetLocationForSpanAsync(
+                                editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false);
+
+                            if (location != null &&
+                                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false))
                             {
                                 var openDocument = workspace.CurrentSolution.GetRequiredDocument(documentId);
                                 var openRoot = await openDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

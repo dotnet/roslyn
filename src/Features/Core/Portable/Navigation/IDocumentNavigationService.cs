@@ -37,8 +37,11 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static Task<bool> CanNavigateToPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
             => service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace: 0, cancellationToken);
 
-        public static Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
-            => service.TryNavigateToSpanAsync(workspace, documentId, textSpan, NavigationOptions.Default, cancellationToken);
+        public static Task<INavigableLocation?> GetLocationForSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+            => service.GetLocationForSpanAsync(workspace, documentId, textSpan, NavigationOptions.Default, cancellationToken);
+
+        public static Task<INavigableLocation?> GetLocationForSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
+            => service.GetLocationForSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
 
         public static Task<bool> TryNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
             => service.TryNavigateToSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan: false, cancellationToken);
