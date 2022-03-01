@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
@@ -52,10 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
             if (await navigationService.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false))
             {
-                var location = await navigationService.GetLocationForPositionAsync(
-                    workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                await navigationService.TryNavigateToPositionAsync(
+                    ThreadingContext, workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
             }
             else
             {

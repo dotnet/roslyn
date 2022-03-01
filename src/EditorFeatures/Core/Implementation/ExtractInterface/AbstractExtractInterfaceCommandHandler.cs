@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
@@ -79,10 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                     }
 
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                    var location = await navigationService.GetLocationForPositionAsync(
-                        workspace, result.NavigationDocumentId, 0, CancellationToken.None).ConfigureAwait(false);
-                    if (location != null)
-                        await location.NavigateToAsync(CancellationToken.None).ConfigureAwait(false);
+                    await navigationService.TryNavigateToPositionAsync(
+                        _threadingContext, workspace, result.NavigationDocumentId, position: 0, CancellationToken.None).ConfigureAwait(false);
                 });
 
                 return true;
