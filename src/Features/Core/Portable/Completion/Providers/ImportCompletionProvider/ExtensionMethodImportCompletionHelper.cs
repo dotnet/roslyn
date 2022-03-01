@@ -34,12 +34,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
             else
             {
-                await WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+                await WarmUpCacheInCurrentProcessAsync(document).ConfigureAwait(false);
             }
         }
 
-        public static Task WarmUpCacheInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
-            => ExtensionMethodSymbolComputer.UpdateCacheAsync(document.Project, cancellationToken);
+        public static Task WarmUpCacheInCurrentProcessAsync(Document document)
+            => ExtensionMethodSymbolComputer.UpdateCacheAsync(document.Project);
 
         public static async Task<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
             Document document,

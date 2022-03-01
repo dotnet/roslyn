@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext syntaxContext, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
-        protected abstract Task WarmUpCacheAsync(Document document);
+        protected abstract void WarmUpCacheInBackground(Document document);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
         protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
                 // Trigger a backgound task to warm up cache and return immediately.
-                // This won't cause multiple cache update to run simultaneously because WarmUpCacheAsync is implemented by AsyncBatchingWorkQueue.
-                _ = Task.Run(() => WarmUpCacheAsync(document));
+                WarmUpCacheInBackground(document);
                 return;
             }
 

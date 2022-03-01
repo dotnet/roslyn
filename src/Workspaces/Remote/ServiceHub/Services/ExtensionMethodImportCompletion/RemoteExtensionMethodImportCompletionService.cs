@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var document = solution.GetRequiredDocument(documentId);
-                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document, cancellationToken).ConfigureAwait(false);
+                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

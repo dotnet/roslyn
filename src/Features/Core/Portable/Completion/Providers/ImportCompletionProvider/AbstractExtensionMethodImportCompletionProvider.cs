@@ -27,8 +27,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
 
-        protected override Task WarmUpCacheAsync(Document document)
-            => ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None);
+        protected override void WarmUpCacheInBackground(Document document)
+        {
+            _ = ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None);
+        }
 
         protected override async Task AddCompletionItemsAsync(
             CompletionContext completionContext,

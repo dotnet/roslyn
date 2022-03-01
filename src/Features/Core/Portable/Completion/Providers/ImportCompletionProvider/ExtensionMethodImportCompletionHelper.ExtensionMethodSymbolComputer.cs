@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             private static readonly AsyncBatchingWorkQueue<(Workspace, ProjectId)> _workQueue = new(
                    TimeSpan.FromSeconds(1),
-                   UpdateCacheAsync,
+                   BatchUpdateCacheAsync,
                    EqualityComparer<(Workspace, ProjectId)>.Default,
                    AsynchronousOperationListenerProvider.NullListener,
                    CancellationToken.None);
@@ -79,26 +79,37 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// <summary>
             /// Force create/update all relevant indices
             /// </summary>
-            public static async Task UpdateCacheAsync(Project? project, CancellationToken cancellationToken)
+            public static Task UpdateCacheAsync(Project? project)
             {
                 if (project is not null)
                 {
-                    var cacheService = GetCacheService(project.Solution.Workspace);
-
-                    foreach (var relevantProject in GetAllRelevantProjects(project))
-                        await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var peReference in GetAllRelevantPeReferences(project))
-                        await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    _workQueue.AddWork((project.Solution.Workspace, project.Id));
+                    return _workQueue.WaitUntilCurrentBatchCompletesAsync();
                 }
+
+                return Task.CompletedTask;
             }
 
-            private static async ValueTask UpdateCacheAsync(ImmutableArray<(Workspace, ProjectId)> items, CancellationToken cancellationToken)
+            private static async ValueTask BatchUpdateCacheAsync(ImmutableArray<(Workspace, ProjectId)> items, CancellationToken cancellationToken)
             {
+                Solution? solution = null;
                 foreach (var (workspace, projectId) in items)
                 {
-                    var project = workspace.CurrentSolution.GetProject(projectId);
-                    await UpdateCacheAsync(project, cancellationToken).ConfigureAwait(false);
+                    // always use the same solution snapshot during a batch.
+                    solution ??= workspace.CurrentSolution;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var project = solution.GetProject(projectId);
+                    if (project is not null)
+                    {
+                        var cacheService = GetCacheService(project.Solution.Workspace);
+
+                        foreach (var relevantProject in GetAllRelevantProjects(project))
+                            await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
+
+                        foreach (var peReference in GetAllRelevantPeReferences(project))
+                            await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
 

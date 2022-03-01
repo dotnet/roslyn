@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract ImmutableArray<AliasDeclarationTypeNode> GetAliasDeclarationNodes(SyntaxNode node);
 
-        protected override Task WarmUpCacheAsync(Document document)
+        protected override void WarmUpCacheInBackground(Document document)
         {
             var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
-            return typeImportCompletionService.WarmUpCacheAsync(document.Project, CancellationToken.None);
+            _ = typeImportCompletionService.WarmUpCacheAsync(document.Project, CancellationToken.None);
         }
 
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)

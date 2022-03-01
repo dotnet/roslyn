@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             _workspace = workspace;
             _workQueue = new(
                    TimeSpan.FromSeconds(1),
-                   UpdateCacheAsync,
+                   BatchUpdateCacheAsync,
                    EqualityComparer<ProjectId>.Default,
                    AsynchronousOperationListenerProvider.NullListener,
                    CancellationToken.None);
@@ -147,11 +147,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             return (resultBuilder.ToImmutable(), isPartialResult);
         }
 
-        private async ValueTask UpdateCacheAsync(ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken)
+        private async ValueTask BatchUpdateCacheAsync(ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken)
         {
+            var solution = _workspace.CurrentSolution;
             foreach (var projectId in projectIds)
             {
-                var project = _workspace.CurrentSolution.GetProject(projectId);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var project = solution.GetProject(projectId);
                 if (project != null)
                     _ = await GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
             }
