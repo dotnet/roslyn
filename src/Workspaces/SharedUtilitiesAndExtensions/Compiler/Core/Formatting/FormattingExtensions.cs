@@ -284,11 +284,22 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
         {
-            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
+            if (annotation == SyntaxAnnotation.ElasticAnnotation)
             {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                yield return GetSpan(firstToken, lastToken);
+                var tokens = node.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
+                return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
+            }
+
+            return EnumerateAnnotatedSpans(node, annotation);
+
+            static IEnumerable<TextSpan> EnumerateAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
+            {
+                foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
+                {
+                    var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                    var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode()!.GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
+                    yield return GetSpan(firstToken, lastToken);
+                }
             }
         }
 
@@ -308,12 +319,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-        }
-
-        internal static IEnumerable<TextSpan> GetElasticSpans(SyntaxNode root)
-        {
-            var tokens = root.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
-            return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
         }
 
         internal static TextSpan GetElasticSpan(SyntaxToken token)

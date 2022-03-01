@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using EnvDTE80;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
@@ -16,12 +17,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         public static FindReferencesWindow_InProc Create() => new FindReferencesWindow_InProc();
 
-        public Reference[] GetContents(string windowCaption)
+        public Reference[] GetContents()
         {
             return InvokeOnUIThread<Reference[]>(cancellationToken =>
             {
                 // Find the tool window
-                var tableControl = GetFindReferencesWindow(windowCaption);
+                var tableControl = GetFindReferencesWindow();
 
                 // Remove all grouping
                 var columnStates = tableControl.ColumnStates;
@@ -53,11 +54,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
+        public void NavigateTo(Reference reference, bool isPreview, bool shouldActivate)
         {
             InvokeOnUIThread(cancellationToken =>
             {
-                var findReferencesWindow = GetFindReferencesWindow(windowCaption);
+                var findReferencesWindow = GetFindReferencesWindow();
 
                 foreach (var item in findReferencesWindow.Entries)
                 {
@@ -69,9 +70,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        private static IWpfTableControl2 GetFindReferencesWindow(string windowCaption)
+        private static IWpfTableControl2 GetFindReferencesWindow()
         {
-            var toolWindow = ((DTE2)GetDTE()).ToolWindows.GetToolWindow(windowCaption);
+            // Guid of the FindRefs window.  Defined here:
+            // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
+            var findReferencesWindowGuid = new Guid("a80febb4-e7e0-4147-b476-21aaf2453969");
+
+            var uiShell = GetGlobalService<SVsUIShell, IVsUIShell>();
+            ErrorHandler.ThrowOnFailure(uiShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFindFirst, ref findReferencesWindowGuid, out var windowFrame));
+            ErrorHandler.ThrowOnFailure(windowFrame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out var toolWindow));
 
             // Dig through to get the Find References control.
             var toolWindowType = toolWindow.GetType();
@@ -82,6 +89,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var tableControlAndCommandTargetType = toolWindowControl.GetType();
             var tableControlField = tableControlAndCommandTargetType.GetField("TableControl");
             var tableControl = (IWpfTableControl2)tableControlField.GetValue(toolWindowControl);
+
             return tableControl;
         }
 

@@ -305,7 +305,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             id: errorCode,
                             category: category,
                             message: message,
-                            enuMessageForBingSearch: message,
                             severity: DiagnosticSeverity.Warning,
                             defaultSeverity: DiagnosticSeverity.Warning,
                             isEnabledByDefault: true,

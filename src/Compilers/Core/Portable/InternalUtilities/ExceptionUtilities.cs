@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Roslyn.Utilities
 {
@@ -27,5 +28,14 @@ namespace Roslyn.Utilities
         {
             get { return new InvalidOperationException("This program location is thought to be unreachable."); }
         }
+
+        /// <summary>
+        /// Determine if an exception was an <see cref="OperationCanceledException"/>, and that the provided token caused the cancellation.
+        /// </summary>
+        /// <param name="exception">The exception to test.</param>
+        /// <param name="cancellationToken">Checked to see if the provided token was cancelled.</param>
+        /// <returns><see langword="true"/> if the exception was an <see cref="OperationCanceledException" /> and the token was canceled.</returns>
+        internal static bool IsCurrentOperationBeingCancelled(Exception exception, CancellationToken cancellationToken)
+            => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
     }
 }

@@ -58,11 +58,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
                 Return
             End If
 
-            Dim options = ImplementTypeOptions.From(document.Project)
             Dim service = document.GetLanguageService(Of IImplementInterfaceService)()
             Dim actions = service.GetCodeActions(
                 document,
-                options,
+                context.Options.ImplementTypeOptions,
                 Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False),
                 typeNode,
                 cancellationToken)

@@ -1257,4 +1257,10 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Shared_constructor" xml:space="preserve">
     <value>Shared constructor</value>
   </data>
+  <data name="Apply_isnot_preferences" xml:space="preserve">
+    <value>Apply IsNot preferences</value>
+  </data>
+  <data name="Apply_object_creation_preferences" xml:space="preserve">
+    <value>Apply object creation preferences</value>
+  </data>
 </root>

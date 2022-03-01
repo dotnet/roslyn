@@ -151,15 +151,20 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
-                var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
+                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+
+                var context = new CodeGenerationContext(
+                    addImports: false,
+                    sortMembers: false,
+                    autoInsertionLocation: false);
+
+                var codeGenerationOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+
+                var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    document.Project.Solution.Workspace,
-                    new CodeGenerationOptions(
-                        addImports: false,
-                        parseOptions: rootWithCoreMembers.SyntaxTree.Options,
-                        sortMembers: false,
-                        autoInsertionLocation: false));
+                    codeGenerationOptions,
+                    cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
                     rootWithCoreMembers.ReplaceNode(
@@ -291,12 +296,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             g.Argument(DisposingName, RefKind.None, g.TrueLiteralExpression())))));
 
                 // GC.SuppressFinalize(this);
-                statements.Add(g.ExpressionStatement(
-                    g.InvocationExpression(
-                        g.MemberAccessExpression(
-                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName!)),
-                            nameof(GC.SuppressFinalize)),
-                        g.ThisExpression())));
+                var gcType = compilation.GetTypeByMetadataName(typeof(GC).FullName!);
+                if (gcType != null)
+                {
+                    statements.Add(g.ExpressionStatement(
+                        g.InvocationExpression(
+                            g.MemberAccessExpression(
+                                g.TypeExpression(gcType),
+                                nameof(GC.SuppressFinalize)),
+                            g.ThisExpression())));
+                }
 
                 var modifiers = DeclarationModifiers.From(disposeMethod);
                 modifiers = modifiers.WithIsAbstract(false);

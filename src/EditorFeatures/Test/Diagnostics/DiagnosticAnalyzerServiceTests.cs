@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -40,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     {
         private static readonly TestComposition s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService = FeaturesTestCompositions.Features
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(TestDocumentTrackingService));
 
         private static readonly TestComposition s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
@@ -48,6 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private static AdhocWorkspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(additionalParts).GetHostServices());
+
+        private static void OpenDocumentAndMakeActive(Document document, Workspace workspace)
+        {
+            workspace.OpenDocument(document.Id);
+
+            var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            documentTrackingService.SetActiveDocument(document.Id);
+        }
 
         [Fact]
         public async Task TestHasSuccessfullyLoadedBeingFalse()
@@ -93,8 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options).WithAnalyzerReferences(new[] { analyzerReference }));
             var document = GetDocumentFromIncompleteProject(workspace);
 
-            // open document
-            workspace.OpenDocument(document.Id);
+            OpenDocumentAndMakeActive(document, workspace);
 
             await TestAnalyzerAsync(workspace, document, AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
         }
@@ -109,8 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var document = GetDocumentFromIncompleteProject(workspace);
 
-            // open document
-            workspace.OpenDocument(document.Id);
+            OpenDocumentAndMakeActive(document, workspace);
 
             await TestAnalyzerAsync(workspace, document, AnalyzerResultSetter, expectedSyntax: true, expectedSemantic: true);
         }
@@ -652,8 +657,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             switch (analysisScope)
             {
+                case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
-                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenAdditionalDocument(firstAdditionalDocument.Id);
                     await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(firstAdditionalDocument, InvocationReasons.SyntaxChanged, CancellationToken.None);
                     break;
@@ -670,9 +676,9 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             var expectedCount = (analysisScope, testMultiple) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, _) => 0,
-                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, false) => 1,
-                (BackgroundAnalysisScope.OpenFilesAndProjects, true) => 2,
+                (BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None, _) => 0,
+                (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution, false) => 1,
+                (BackgroundAnalysisScope.OpenFiles, true) => 2,
                 (BackgroundAnalysisScope.FullSolution, true) => 4,
                 _ => throw ExceptionUtilities.Unreachable,
             };
@@ -687,11 +693,11 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     var applicableDiagnostics = diagnostics.Where(
                         d => d.Id == analyzer.Descriptor.Id && d.DataLocation.OriginalFilePath == additionalDoc.FilePath);
 
-                    if (analysisScope == BackgroundAnalysisScope.ActiveFile)
+                    if (analysisScope is BackgroundAnalysisScope.ActiveFile or BackgroundAnalysisScope.None)
                     {
                         Assert.Empty(applicableDiagnostics);
                     }
-                    else if (analysisScope == BackgroundAnalysisScope.OpenFilesAndProjects &&
+                    else if (analysisScope == BackgroundAnalysisScope.OpenFiles &&
                         firstAdditionalDocument != additionalDoc)
                     {
                         Assert.Empty(applicableDiagnostics);
@@ -761,6 +767,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
 
             switch (analysisScope)
             {
+                case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
                     workspace.OpenDocument(document.Id);
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
@@ -768,7 +775,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
-                case BackgroundAnalysisScope.OpenFilesAndProjects:
+                case BackgroundAnalysisScope.OpenFiles:
                     workspace.OpenDocument(document.Id);
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
@@ -776,11 +783,14 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
                 case BackgroundAnalysisScope.FullSolution:
                     await incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged: true, InvocationReasons.Reanalyze, CancellationToken.None);
                     break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(analysisScope);
             }
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            if (includeAnalyzer)
+            if (includeAnalyzer && analysisScope != BackgroundAnalysisScope.None)
             {
                 Assert.True(diagnostic != null);
                 Assert.Equal(NamedTypeAnalyzer.DiagnosticId, diagnostic.Id);
@@ -793,7 +803,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         }
 
         [Theory, CombinatorialData]
-        internal async Task TestRemoveUnnecessaryInlineSuppressionsAnalyzer(BackgroundAnalysisScope analysisScope, bool testPragma)
+        internal async Task TestRemoveUnnecessaryInlineSuppressionsAnalyzer(BackgroundAnalysisScope analysisScope, bool isSourceGenerated, bool testPragma)
         {
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(
                 new CSharpCompilerDiagnosticAnalyzer(),
@@ -837,14 +847,33 @@ class A
 ";
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
+            string[] files;
+            string[] sourceGeneratedFiles;
+            if (isSourceGenerated)
+            {
+                files = Array.Empty<string>();
+                sourceGeneratedFiles = new[] { code };
+            }
+            else
+            {
+                files = new[] { code };
+                sourceGeneratedFiles = Array.Empty<string>();
+            }
+
+            using var workspace = TestWorkspace.CreateCSharp(files, sourceGeneratedFiles, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService), typeof(TestSyntaxTreeConfigurationService)));
+            var syntaxTreeConfigurationService = workspace.GetService<TestSyntaxTreeConfigurationService>();
+            syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace = true;
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();
-            var document = project.Documents.Single();
+            var document = isSourceGenerated ? (await project.GetSourceGeneratedDocumentsAsync(CancellationToken.None)).Single() : project.Documents.Single();
+            if (isSourceGenerated)
+                Assert.IsType<SourceGeneratedDocument>(document);
+            else
+                Assert.IsType<Document>(document);
 
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.GetService<IDiagnosticUpdateSourceRegistrationService>());
             var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
@@ -863,15 +892,24 @@ class A
 
             switch (analysisScope)
             {
+                case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
-                    workspace.OpenDocument(document.Id);
+                    if (isSourceGenerated)
+                        workspace.OpenSourceGeneratedDocument(document.Id);
+                    else
+                        workspace.OpenDocument(document.Id);
+
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
-                case BackgroundAnalysisScope.OpenFilesAndProjects:
-                    workspace.OpenDocument(document.Id);
+                case BackgroundAnalysisScope.OpenFiles:
+                    if (isSourceGenerated)
+                        workspace.OpenSourceGeneratedDocument(document.Id);
+                    else
+                        workspace.OpenDocument(document.Id);
+
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
@@ -882,21 +920,29 @@ class A
 
             await ((AsynchronousOperationListener)service.Listener).ExpeditedWaitAsync();
 
-            Assert.Equal(2, diagnostics.Count);
             var root = await document.GetSyntaxRootAsync();
-            if (testPragma)
+            if (analysisScope == BackgroundAnalysisScope.None)
             {
-                var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
-                Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
-                var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
-                Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
+                // Anayzers are disabled for BackgroundAnalysisScope.None.
+                Assert.Empty(diagnostics);
             }
             else
             {
-                var attribute1 = root.FindNode(diagnostics[0].GetTextSpan()).ToString();
-                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
-                var attribute2 = root.FindNode(diagnostics[1].GetTextSpan()).ToString();
-                Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
+                Assert.Equal(2, diagnostics.Count);
+                if (testPragma)
+                {
+                    var pragma1 = root.FindTrivia(diagnostics[0].GetTextSpan().Start).ToString();
+                    Assert.Equal($"#pragma warning disable {NamedTypeAnalyzer.DiagnosticId} // Unnecessary", pragma1);
+                    var pragma2 = root.FindTrivia(diagnostics[1].GetTextSpan().Start).ToString();
+                    Assert.Equal($"#pragma warning disable CS0168 // Variable is declared but never used - Unnecessary", pragma2);
+                }
+                else
+                {
+                    var attribute1 = root.FindNode(diagnostics[0].GetTextSpan()).ToString();
+                    Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category2"", ""{NamedTypeAnalyzer.DiagnosticId}"")", attribute1);
+                    var attribute2 = root.FindNode(diagnostics[1].GetTextSpan()).ToString();
+                    Assert.Equal($@"System.Diagnostics.CodeAnalysis.SuppressMessage(""Category3"", ""CS0168"")", attribute2);
+                }
             }
         }
 
@@ -944,7 +990,7 @@ class A
 
             var incrementalAnalyzer = (DiagnosticIncrementalAnalyzer)service.CreateIncrementalAnalyzer(workspace);
 
-            workspace.OpenDocument(document.Id);
+            OpenDocumentAndMakeActive(document, workspace);
 
             // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
             Assert.Empty(analyzer.CanceledCompilations);

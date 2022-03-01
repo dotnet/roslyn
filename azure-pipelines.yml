@@ -8,11 +8,17 @@ trigger:
 
 # Branches that trigger builds on PR
 pr:
-- main
-- main-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
 # Windows Build and Test Jobs
 jobs:
@@ -21,14 +27,14 @@ jobs:
     jobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    queueName: Build.Windows.Amd64.VS2022.Open
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
 - template: eng/pipelines/build-windows-job.yml
   parameters:
     jobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    queueName: Build.Windows.Amd64.VS2022.Open
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
@@ -158,7 +164,7 @@ jobs:
 - job: Correctness_Determinism
   pool:
     name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -174,7 +180,7 @@ jobs:
 - job: Correctness_Build
   pool:
     name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -206,7 +212,7 @@ jobs:
 - job: Correctness_Rebuild
   pool:
     name: NetCore1ESPool-Public
-    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Open
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml

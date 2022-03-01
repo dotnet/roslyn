@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.Progression)>
     Public Class GraphNodeCreationTests
-        Private Async Function AssertCreatedNodeIsAsync(code As String, expectedId As String, xml As XElement, Optional language As String = "C#") As Task
+        Private Shared Async Function AssertCreatedNodeIsAsync(code As String, expectedId As String, xml As XElement, Optional language As String = "C#") As Task
             Using testState = ProgressionTestState.Create(
                 <Workspace>
                     <Project Language=<%= language %> CommonReferences="true" FilePath="Z:\Project.csproj">

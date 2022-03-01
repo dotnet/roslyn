@@ -208,13 +208,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     Options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
                 return await CodeGenerator.AddMemberDeclarationsAsync(
-                    result.Project.Solution, classOrStructType,
+                    result.Project.Solution,
+                    classOrStructType,
                     memberDefinitions.Concat(extraMembers),
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         contextLocation: classOrStructDecl.GetLocation(),
                         autoInsertionLocation: groupMembers,
-                        sortMembers: groupMembers,
-                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                        sortMembers: groupMembers),
                     cancellationToken).ConfigureAwait(false);
             }
 

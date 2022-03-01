@@ -4156,6 +4156,147 @@ class Program
             Assert.Equal("Level 5", model.GetConstantValue(actual[7]).Value);
         }
 
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfRawInterpolatedString()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""""""Hello, world!"""""");
+        Console.WriteLine($""""""{DateTime.Now.ToString()}.{args[0]}"""""");
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+            Assert.True(model.GetConstantValue(actual[0]).HasValue);
+            Assert.Equal("Hello, world!", model.GetConstantValue(actual[0]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[0]).Type.SpecialType);
+            Assert.False(model.GetConstantValue(actual[1]).HasValue);
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfRawInterpolatedString2()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""""""{0}.{true}"""""");
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+
+            Assert.True(model.GetConstantValue(actual[0]).HasValue);
+            Assert.Equal(0, model.GetConstantValue(actual[0]).Value);
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(actual[0]).Type.SpecialType);
+
+            Assert.True(model.GetConstantValue(actual[1]).HasValue);
+            Assert.Equal(true, model.GetConstantValue(actual[1]).Value);
+            Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(actual[1]).Type.SpecialType);
+        }
+
+        [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
+        [Fact]
+        public void ConstantValueOfRawInterpolatedString3()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine($""""""{null}"""""");
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+
+            Assert.True(model.GetConstantValue(actual[0]).HasValue);
+            Assert.Null(model.GetConstantValue(actual[0]).Value);
+            Assert.Null(model.GetTypeInfo(actual[0]).Type);
+        }
+
+        [Fact]
+        public void ConstantValueOfRawInterpolatedStringComplex()
+        {
+            var source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        const string S1 = $""""""Number 3"""""";
+        Console.WriteLine($""""""{""""""Level 5""""""} {S1}"""""");
+        Console.WriteLine($""""""Level {5} {S1}"""""");
+    }
+
+    void M(string S1 = $""""""Testing"""""", Namae n = null)
+    {
+        if (n is Namae { X : $""""""ConstantInterpolatedString""""""}){
+            switch(S1){
+                case $""""""Level 5"""""":
+                    break;
+                case $""""""Radio Noise"""""":
+                    goto case $""""""Level 5"""""";
+            }
+        }
+        S1 = S0;
+    }
+}";
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var actual = tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>().ToArray();
+            Assert.Equal(@"$""""""Number 3""""""", actual[0].ToString());
+            Assert.Equal("Number 3", model.GetConstantValue(actual[0]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[0]).Type.SpecialType);
+
+            Assert.Equal(@"$""""""{""""""Level 5""""""} {S1}""""""", actual[1].ToString());
+            Assert.Equal("Level 5 Number 3", model.GetConstantValue(actual[1]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[1]).Type.SpecialType);
+
+            Assert.False(model.GetConstantValue(actual[2]).HasValue);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[2]).Type.SpecialType);
+
+            Assert.Equal(@"$""""""Testing""""""", actual[3].ToString());
+            Assert.Equal("Testing", model.GetConstantValue(actual[3]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[3]).Type.SpecialType);
+
+            Assert.Equal(@"$""""""ConstantInterpolatedString""""""", actual[4].ToString());
+            Assert.Equal("ConstantInterpolatedString", model.GetConstantValue(actual[4]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[4]).Type.SpecialType);
+
+            Assert.Equal(@"$""""""Level 5""""""", actual[5].ToString());
+            Assert.Equal("Level 5", model.GetConstantValue(actual[5]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[5]).Type.SpecialType);
+
+            Assert.Equal(@"$""""""Radio Noise""""""", actual[6].ToString());
+            Assert.Equal("Radio Noise", model.GetConstantValue(actual[6]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[6]).Type.SpecialType);
+
+            Assert.Equal(@"$""""""Level 5""""""", actual[7].ToString());
+            Assert.Equal("Level 5", model.GetConstantValue(actual[7]).Value);
+            Assert.Equal(SpecialType.System_String, model.GetTypeInfo(actual[7]).Type.SpecialType);
+        }
+
         [WorkItem(814, "https://github.com/dotnet/roslyn/issues/814")]
         [Fact]
         public void TypeOfDynamic()
@@ -4307,6 +4448,46 @@ public partial class C
 
             var model = comp.GetSemanticModel(tree);
             Assert.Equal("DEBUG", model.GetConstantValue(root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single()));
+        }
+
+        [Fact]
+        public void EqualsOnAliasSymbolWithNullContainingAssembly_NotEquals()
+        {
+            var text = @"
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute("".NETCoreApp, Version = v6.0"", FrameworkDisplayName = """")]
+";
+            var alias1 = getGlobalAlias(CreateCompilation(text));
+            var alias2 = getGlobalAlias(CreateCompilation(text));
+
+            Assert.Equal("<global namespace>", alias1.ContainingSymbol.ToTestDisplayString());
+            Assert.Null(alias1.ContainingAssembly);
+            Assert.False(alias1.Equals(alias2));
+
+            static IAliasSymbol getGlobalAlias(CSharpCompilation compilation)
+            {
+                var tree = compilation.SyntaxTrees.Single();
+                var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(ident => ident.Identifier.Text == "global").Single();
+                return compilation.GetSemanticModel(tree).GetAliasInfo(node);
+            }
+        }
+
+        [Fact]
+        public void EqualsOnAliasSymbolWithNullContainingAssembly_Equals()
+        {
+            var text = @"
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute("".NETCoreApp, Version = v6.0"", FrameworkDisplayName = """")]
+[assembly: global::System.Runtime.Versioning.TargetFrameworkAttribute("".NETCoreApp, Version = v6.0"", FrameworkDisplayName = """")]
+";
+            var compilation = CreateCompilation(text);
+            var tree = compilation.SyntaxTrees.Single();
+            var nodes = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(ident => ident.Identifier.Text == "global").ToArray();
+            var model = compilation.GetSemanticModel(tree);
+            var alias1 = model.GetAliasInfo(nodes[0]);
+            var alias2 = model.GetAliasInfo(nodes[1]);
+
+            Assert.Equal("<global namespace>", alias1.ContainingSymbol.ToTestDisplayString());
+            Assert.Null(alias1.ContainingAssembly);
+            Assert.True(alias1.Equals(alias2));
         }
 
         #region "regression helper"

@@ -3784,8 +3784,8 @@ class C
 
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
-                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
+                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) => (10,14)-(10,18)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState(debuggingSession);
@@ -3805,8 +3805,8 @@ class C
             // the regions remain unchanged
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
-                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) δ=1",
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
+                $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) => (10,14)-(10,18)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             // EnC update F v3 -> v4
@@ -3841,7 +3841,7 @@ class C
             // Stale active statement region is gone.
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) δ=0",
+                $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState(debuggingSession);
@@ -3966,8 +3966,8 @@ class C
 
             AssertEx.Equal(new[]
             {
-                $"0x06000002 v1 | AS {document.FilePath}: (3,41)-(3,42) δ=0",
-                $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) δ=2",
+                $"0x06000002 v1 | AS {document.FilePath}: (3,41)-(3,42) => (3,41)-(3,42)",
+                $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) => (9,14)-(9,18)",
             }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
             ExitBreakState(debuggingSession);

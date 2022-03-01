@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-                if (refKind != RefKind.None && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
+                if (refKind == RefKind.Out && parameterSyntax is ParameterSyntax { ExclamationExclamationToken: var exExToken, Identifier: var identifier } && exExToken.Kind() != SyntaxKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnByRefParameter, exExToken.GetLocation(), identifier.ValueText);
+                    diagnostics.Add(ErrorCode.ERR_NullCheckingOnOutParameter, exExToken.GetLocation(), identifier.ValueText);
                 }
                 if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
                 {
@@ -805,14 +805,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(useSiteInfo.DiagnosticInfo, location);
             }
-            if (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
-                || parameter.Type.IsNullableTypeOrTypeParameter())
+            if (parameter.IsDiscard)
+            {
+                diagnostics.Add(ErrorCode.ERR_DiscardCannotBeNullChecked, location);
+            }
+
+            var annotations = parameter.FlowAnalysisAnnotations;
+            if ((annotations & FlowAnalysisAnnotations.NotNull) == 0
+                && NullableWalker.GetParameterState(parameter.TypeWithAnnotations, annotations, applyParameterNullCheck: false).State.MayBeNull()
+                && !isTypeParameterWithPossiblyNonNullableType(parameter.TypeWithAnnotations, annotations))
             {
                 diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
             }
-            else if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
+
+            if (parameter.Type.IsNonNullableValueType() && !parameter.Type.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
+            }
+
+            // For type parameters, we only want to give the warning if no type argument would result in a non-nullable type.
+            static bool isTypeParameterWithPossiblyNonNullableType(TypeWithAnnotations typeWithAnnotations, FlowAnalysisAnnotations annotations)
+            {
+                if (!typeWithAnnotations.Type.IsTypeParameter())
+                {
+                    return false;
+                }
+
+                // We avoid checking the nullable annotations, etc. of constraints due to implementation complexity,
+                // and consider it acceptable to miss "!! on nullable type" warnings in scenarios like `void M<T, U>(U u!!) where U : T?`.
+                if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
+                {
+                    return false;
+                }
+
+                // `void M<T>([AllowNull] T t!!)`
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 

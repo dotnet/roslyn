@@ -292,32 +292,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            var endPosition = endPositionInSubjectBuffer.Value.Position;
-            var startPosition = endPosition;
-
-            // Find the snippet shortcut
-            while (startPosition > 0)
-            {
-                var c = currentText[startPosition - 1];
-                if (!syntaxFactsService.IsIdentifierPartCharacter(c) && c != '#' && c != '~')
-                {
-                    break;
-                }
-
-                startPosition--;
-            }
-
-            if (startPosition == endPosition)
+            if (!SnippetUtilities.TryGetWordOnLeft(endPositionInSubjectBuffer.Value.Position, currentText, syntaxFactsService, out var span))
             {
                 return false;
             }
 
-            if (!IsSnippetExpansionContext(document, startPosition, cancellationToken))
+            if (!IsSnippetExpansionContext(document, span.Value.Start, cancellationToken))
             {
                 return false;
             }
 
-            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(startPosition, endPosition, cancellationToken);
+            return GetSnippetExpansionClient(textView, subjectBuffer).TryInsertExpansion(span.Value.Start, span.Value.End, cancellationToken);
         }
 
         protected bool TryGetExpansionManager(out IVsExpansionManager expansionManager)

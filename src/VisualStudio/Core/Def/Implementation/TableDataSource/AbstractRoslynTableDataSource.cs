@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -15,7 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         where TItem : TableItem
         where TData : notnull
     {
-        public AbstractRoslynTableDataSource(Workspace workspace) : base(workspace)
+        public AbstractRoslynTableDataSource(Workspace workspace, IThreadingContext threadingContext)
+            : base(workspace, threadingContext)
             => ConnectToSolutionCrawlerService(workspace);
 
         protected ImmutableArray<DocumentId> GetDocumentsWithSameFilePath(Solution solution, DocumentId documentId)

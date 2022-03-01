@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,7 +45,9 @@ namespace IdeBenchmarks
 
             using var workspace = TestWorkspace.CreateCSharp(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            return Formatter.GetFormattedTextChanges(document.GetSyntaxRootSynchronously(CancellationToken.None), workspace);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+            var options = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty);
+            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
         }
 
         [Benchmark]
@@ -54,7 +58,9 @@ namespace IdeBenchmarks
 
             using var workspace = TestWorkspace.CreateVisualBasic(text);
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            return Formatter.GetFormattedTextChanges(document.GetSyntaxRootSynchronously(CancellationToken.None), workspace);
+            var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
+            var options = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty);
+            return Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None);
         }
     }
 }

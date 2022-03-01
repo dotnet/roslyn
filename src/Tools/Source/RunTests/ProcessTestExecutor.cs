@@ -196,7 +196,7 @@ namespace RunTests
                     }
                 }
 
-                Logger.Log($"Command line {assemblyInfo.DisplayName}: {Options.DotnetFilePath} {commandLineArguments}");
+                Logger.Log($"Command line {assemblyInfo.DisplayName} completed in {span.TotalSeconds} seconds: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 

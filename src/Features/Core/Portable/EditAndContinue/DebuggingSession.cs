@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
 
                         var analysis = await analyzer.AnalyzeDocumentAsync(
-                            LastCommittedSolution.GetRequiredProject(documentId.ProjectId),
+                            oldProject,
                             EditSession.BaseActiveStatements,
                             newDocument,
                             newActiveStatementSpans: ImmutableArray<LinePositionSpan>.Empty,
