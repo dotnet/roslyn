@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
 
             var formatAnnotatedSnippetDocument = await AddFormatAnnotationAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
-            //var documentWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(formatAnnotatedSnippetDocument, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();

@@ -359,5 +359,55 @@ class Test
 
             await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        Wr$$Blah
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"using System;
+
+class Program
+{
+    public void Method()
+    {
+        Console.WriteLine($$);
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        _Wr$$Blah_
+    }
+}";
+
+            var expectedCodeAfterCommit =
+@"using System;
+
+class Program
+{
+    public void Method()
+    {
+        Console.WriteLine($$);
+    }
+}";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+        }
     }
 }
