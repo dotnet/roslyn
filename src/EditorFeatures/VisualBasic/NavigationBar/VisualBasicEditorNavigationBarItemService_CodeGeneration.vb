@@ -39,9 +39,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken)
 
                 Dim solution = newDocument.Project.Solution
-                NavigateToPosition(
+                Await NavigateToPositionAsync(
                     solution.Workspace, solution.GetRequiredDocument(navigationPoint.Tree).Id,
-                    navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken)
+                    navigationPoint.Position, navigationPoint.VirtualSpaces, cancellationToken).ConfigureAwait(True)
 
                 transaction.Complete()
             End Using

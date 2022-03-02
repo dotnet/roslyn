@@ -2806,5 +2806,76 @@ class C { }
             driver = driver.RunGenerators(compilation);
             Assert.Single(referenceList, modifiedRef.Display);
         }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
+        public void LongBinaryExpression()
+        {
+            var source = @"
+class C {
+public static readonly string F = ""a""
+";
+
+            for (int i = 0; i < 7000; i++)
+            {
+                source += @" + ""a""
+";
+            }
+
+            source += @";
+}
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider((node, ct) => node is ClassDeclarationSyntax c, (context, ct) => context.Node).WithTrackingName("Syntax"), (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
+                ctx.RegisterImplementationSourceOutput(ctx.MetadataReferencesProvider, (context, ct) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, additionalTexts: new[] { new InMemoryAdditionalText("text.txt", "") }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            driver.GetRunResult();
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
+        public void Binary_Additional_Files_Do_Not_Throw_When_Compared()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, text) =>
+                {
+                    context.AddSource(Path.GetFileName(text.Path), "");
+                });
+            });
+
+            var additionalText1 = new InMemoryAdditionalText.BinaryText("file1");
+            var additionalText2 = new InMemoryAdditionalText.BinaryText("file2");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() },
+                parseOptions: parseOptions,
+                additionalTexts: new[] { additionalText1, additionalText2 },
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            driver = driver.RunGenerators(compilation);
+        }
     }
 }

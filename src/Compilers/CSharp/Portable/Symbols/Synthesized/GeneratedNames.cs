@@ -359,6 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
         /// The arity is appended via `N suffix in MetadataName calculation since the delegate is generic.
         /// </summary>
+        /// <remarks>
+        /// Logic here should match <see cref="TryParseSynthesizedDelegateName" />.
+        /// </remarks>
         internal static string MakeSynthesizedDelegateName(RefKindVector byRefs, bool returnsVoid, int generation)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -375,6 +378,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return pooledBuilder.ToStringAndFree();
         }
 
+        /// <summary>
+        /// Parses the name of a synthesized delegate out into the things it represents.
+        /// </summary>
+        /// <remarks>
+        /// Logic here should match <see cref="MakeSynthesizedDelegateName" />.
+        /// </remarks>
         internal static bool TryParseSynthesizedDelegateName(string name, out RefKindVector byRefs, out bool returnsVoid, out int generation, out int parameterCount)
         {
             byRefs = default;
@@ -390,39 +399,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            // The character after the prefix should be an open brace
-            if (name[DelegateNamePrefixLength] != '{')
-            {
-                return false;
-            }
-
             parameterCount = arity - (returnsVoid ? 0 : 1);
 
-            var lastBraceIndex = name.LastIndexOf('}');
-            if (lastBraceIndex < 0)
+            // If there are no ref kinds encoded
+            // (and therefore no braces), use the end of the prefix instead.
+            var nameEndIndex = name.LastIndexOf('}');
+            if (nameEndIndex < 0)
             {
-                return false;
+                nameEndIndex = DelegateNamePrefixLength - 1;
             }
-
-            // The ref kind string is between the two braces
-            var refKindString = name[DelegateNamePrefixLengthWithOpenBrace..lastBraceIndex];
-
-            if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
+            else
             {
-                return false;
-            }
-
-            // If there is a generation index it will be directly after the brace, otherwise the brace
-            // is the last character
-            if (lastBraceIndex < name.Length - 1)
-            {
-                // Format is a '#' followed by the generation number
-                if (name[lastBraceIndex + 1] != '#')
+                // There should be a character after the prefix, and it should be an open brace
+                if (name.Length <= DelegateNamePrefixLength || name[DelegateNamePrefixLength] != '{')
                 {
                     return false;
                 }
 
-                if (!int.TryParse(name[(lastBraceIndex + 2)..], out generation))
+                // If there are braces, then the ref kind string is encoded between them
+                var refKindString = name[DelegateNamePrefixLengthWithOpenBrace..nameEndIndex];
+
+                if (!RefKindVector.TryParse(refKindString, arity, out byRefs))
+                {
+                    return false;
+                }
+            }
+
+            // If there is a generation index it will be directly after the brace, otherwise the brace
+            // is the last character
+            if (nameEndIndex < name.Length - 1)
+            {
+                // Format is a '#' followed by the generation number
+                if (name[nameEndIndex + 1] != '#')
+                {
+                    return false;
+                }
+
+                if (!int.TryParse(name[(nameEndIndex + 2)..], out generation))
                 {
                     return false;
                 }
@@ -437,6 +450,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on this name.
             Debug.Assert((char)GeneratedNameKind.AsyncBuilderField == 't');
             return "<>t__builder";
+        }
+
+        internal static string DelegateCacheContainerType(int generation, string? methodName = null, int methodOrdinal = -1, int ownerUniqueId = -1)
+        {
+            const char NameKind = (char)GeneratedNameKind.DelegateCacheContainerType;
+
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+
+            builder.Append('<').Append(methodName).Append('>').Append(NameKind);
+
+            if (methodOrdinal > -1)
+            {
+                builder.Append(GeneratedNameConstants.SuffixSeparator).Append(methodOrdinal);
+            }
+
+            if (ownerUniqueId > -1)
+            {
+                builder.Append(IdSeparator).Append(ownerUniqueId);
+            }
+
+            AppendOptionalGeneration(builder, generation);
+
+            return result.ToStringAndFree();
+        }
+
+        internal static string DelegateCacheContainerFieldName(int id, string targetMethod)
+        {
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+
+            builder.Append('<').Append(id).Append(">__").Append(targetMethod);
+
+            return result.ToStringAndFree();
         }
 
         internal static string ReusableHoistedLocalFieldName(int number)

@@ -343,4 +343,19 @@
   <data name="Use_parameter_null_checking" xml:space="preserve">
     <value>Use parameter null checking</value>
   </data>
+  <data name="Lambda_expression_can_be_removed" xml:space="preserve">
+    <value>Lambda expression can be removed</value>
+  </data>
+  <data name="Remove_unnecessary_lambda_expression" xml:space="preserve">
+    <value>Remove unnecessary lambda expression</value>
+  </data>
+  <data name="Simplify_delegate_invocation" xml:space="preserve">
+    <value>Simplify delegate invocation</value>
+  </data>
+  <data name="Use_is_not_null_check" xml:space="preserve">
+    <value>Use 'is not null' check</value>
+  </data>
+  <data name="Use_is_object_check" xml:space="preserve">
+    <value>Use 'is object' check</value>
+  </data>
 </root>

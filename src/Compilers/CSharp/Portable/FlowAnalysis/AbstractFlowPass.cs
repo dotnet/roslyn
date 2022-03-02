@@ -488,9 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Specifies whether or not method's out parameters should be analyzed. If there's more
-        /// than one location in the method being analyzed, then the method is partial and we prefer
-        /// to report an out parameter in partial method error.
+        /// Specifies whether or not method's out parameters should be analyzed.
         /// </summary>
         /// <param name="location">location to be used</param>
         /// <returns>true if the out parameters of the method should be analyzed</returns>
@@ -917,6 +915,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
+            // Local functions below need to handle all patterns that come through here
+            Debug.Assert(node.Pattern is
+                BoundTypePattern or BoundRecursivePattern or BoundITuplePattern or BoundRelationalPattern or
+                BoundDeclarationPattern or BoundConstantPattern or BoundNegatedPattern or BoundBinaryPattern or
+                BoundDeclarationPattern or BoundDiscardPattern or BoundListPattern or BoundSlicePattern);
+
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
 
@@ -947,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitPattern(pattern);
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             if (!reachableLabels.Contains(node.WhenTrueLabel))
             {
                 SetState(this.StateWhenFalse);
@@ -976,6 +980,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundRelationalPattern:
                     case BoundDeclarationPattern { IsVar: false }:
                     case BoundConstantPattern { ConstantValue: { IsNull: false } }:
+                    case BoundListPattern:
+                    case BoundSlicePattern: // Only occurs in error cases
                         return false;
                     case BoundConstantPattern { ConstantValue: { IsNull: true } }:
                         return true;
@@ -1035,6 +1041,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundITuplePattern:
                     case BoundRelationalPattern:
                     case BoundDeclarationPattern:
+                    case BoundListPattern:
+                    case BoundSlicePattern: // Only occurs in error cases
                         return null;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);

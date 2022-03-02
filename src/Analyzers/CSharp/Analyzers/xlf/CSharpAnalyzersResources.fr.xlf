@@ -67,6 +67,11 @@
         <target state="translated">Déclaration de variable inline</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Directive using mal placée</target>
@@ -122,6 +127,11 @@
         <target state="translated">Supprimer les opérateurs de suppression</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">Supprimer l'opérateur de suppression inutile</target>
@@ -135,6 +145,11 @@
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Simplifier l'expression 'default'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_delegate_invocation">
+        <source>Simplify delegate invocation</source>
+        <target state="new">Simplify delegate invocation</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">
@@ -247,9 +262,19 @@
         <target state="translated">Utiliser l'opérateur d'index</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_is_not_null_check">
+        <source>Use 'is not null' check</source>
+        <target state="new">Use 'is not null' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
         <target state="translated">Utiliser la vérification 'is null'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_is_object_check">
+        <source>Use 'is object' check</source>
+        <target state="new">Use 'is object' check</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">

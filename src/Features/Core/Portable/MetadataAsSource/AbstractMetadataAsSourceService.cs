@@ -56,8 +56,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(docWithAssemblyInfo, cancellationToken).ConfigureAwait(false);
+
             var formattedDoc = await Formatter.FormatAsync(
-                docWithAssemblyInfo, SpecializedCollections.SingletonEnumerable(node.FullSpan), options: null, rules: GetFormattingRules(docWithAssemblyInfo), cancellationToken: cancellationToken).ConfigureAwait(false);
+                docWithAssemblyInfo,
+                SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                options,
+                GetFormattingRules(docWithAssemblyInfo),
+                cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);

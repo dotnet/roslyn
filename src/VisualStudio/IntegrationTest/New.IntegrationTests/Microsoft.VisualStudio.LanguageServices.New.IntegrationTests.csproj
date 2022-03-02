@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
+    <RootNamespace>Roslyn.VisualStudio.NewIntegrationTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
   <ItemGroup>

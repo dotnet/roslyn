@@ -169,6 +169,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseParameterNullCheckingId = "IDE0190";
 
+        public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

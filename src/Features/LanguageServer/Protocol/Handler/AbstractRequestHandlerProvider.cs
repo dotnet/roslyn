@@ -20,6 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <summary>
         /// Instantiates new handler instances and returns them.
         /// </summary>
-        public abstract ImmutableArray<IRequestHandler> CreateRequestHandlers();
+        public abstract ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind);
     }
 }

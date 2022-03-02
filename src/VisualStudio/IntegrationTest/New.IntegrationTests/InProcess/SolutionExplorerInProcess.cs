@@ -13,6 +13,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -151,6 +152,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
         }
 
+        public async Task AddCustomProjectAsync(string projectName, string projectFileExtension, string projectFileContent, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
+            Directory.CreateDirectory(projectPath);
+
+            var projectFilePath = Path.Combine(projectPath, projectName + projectFileExtension);
+            File.WriteAllText(projectFilePath, projectFileContent);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(solution.AddExistingProject(projectFilePath, pParent: null, out _));
+        }
+
         public async Task RestoreNuGetPackagesAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -187,6 +202,11 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
                 TimeSpan.FromMilliseconds(50),
                 cancellationToken);
+        }
+
+        public async Task SaveAllAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
@@ -318,6 +338,41 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
+        public async Task SetFileContentsAsync(string projectName, string relativeFilePath, string content, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            File.WriteAllText(filePath, content);
+        }
+
+        public async Task<string> GetFileContentsAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            return File.ReadAllText(filePath);
+        }
+
+        public async Task<(string solutionDirectory, string solutionFileFullPath, string userOptionsFile)> GetSolutionInfoAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (!await IsSolutionOpenAsync(cancellationToken))
+                throw new InvalidOperationException("No solution is open.");
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out var solutionDirectory, out var solutionFileFullPath, out var userOptionsFile));
+
+            return (solutionDirectory, solutionFileFullPath, userOptionsFile);
+        }
+
         private static string ConvertLanguageName(string languageName)
         {
             return languageName switch
@@ -343,16 +398,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         private async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out _, out var solutionFileFullPath, out _));
+            var (solutionDirectory, solutionFileFullPath, _) = await GetSolutionInfoAsync(cancellationToken);
             if (string.IsNullOrEmpty(solutionFileFullPath))
             {
                 throw new InvalidOperationException();
             }
 
-            return Path.GetDirectoryName(solutionFileFullPath);
+            return solutionDirectory;
         }
 
         private async Task<string> GetProjectTemplatePathAsync(string projectTemplate, string languageName, CancellationToken cancellationToken)

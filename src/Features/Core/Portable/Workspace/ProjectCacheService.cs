@@ -26,18 +26,21 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly object _gate = new();
 
         private readonly Workspace? _workspace;
+        private readonly ISyntaxTreeConfigurationService? _configurationService;
         private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
         private readonly SimpleMRUCache? _implicitCache;
         private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
 
         public ProjectCacheService(Workspace? workspace)
-            => _workspace = workspace;
-
-        public ProjectCacheService(Workspace? workspace, TimeSpan implicitCacheTimeout)
         {
             _workspace = workspace;
+            _configurationService = workspace?.Services.GetService<ISyntaxTreeConfigurationService>();
+        }
 
+        public ProjectCacheService(Workspace? workspace, TimeSpan implicitCacheTimeout)
+            : this(workspace)
+        {
             _implicitCache = new SimpleMRUCache();
             _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
         }
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Recoverable trees only save significant memory for larger trees.
         /// </summary>
         public int MinimumLengthForRecoverableTree
-            => 4 * 1024;
+            => (_configurationService?.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
 
         public bool IsImplicitCacheEmpty
         {
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Host
         [return: NotNullIfNotNull("instance")]
         public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T? instance) where T : class
         {
-            if (IsEnabled())
+            if (IsEnabled)
             {
                 lock (_gate)
                 {
@@ -113,10 +116,8 @@ namespace Microsoft.CodeAnalysis.Host
             return instance;
         }
 
-        private bool IsEnabled()
-        {
-            return _workspace == null || !_workspace.Options.GetOption(WorkspaceConfigurationOptions.DisableProjectCacheService);
-        }
+        private bool IsEnabled
+            => _configurationService?.DisableProjectCacheService != true;
 
         private bool PartOfP2PReferences(ProjectId key)
         {
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Host
         [return: NotNullIfNotNull("instance")]
         public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class
         {
-            if (IsEnabled())
+            if (IsEnabled)
             {
                 lock (_gate)
                 {

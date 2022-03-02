@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -338,6 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             nameof(NamespaceDeclarations),
             new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent),
             "csharp_style_namespace_declarations");
+
+        public static readonly Option2<CodeStyleOption2<bool>> PreferMethodGroupConversion = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferMethodGroupConversion),
+            defaultValue: s_trueWithSilentEnforcement,
+            "csharp_style_prefer_method_group_conversion",
+            "TextEditor.CSharp.Specific.PreferMethodGroupConversion");
 
 #if false
 

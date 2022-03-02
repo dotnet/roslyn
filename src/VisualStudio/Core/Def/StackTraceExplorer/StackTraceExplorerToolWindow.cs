@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -12,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Setup;
@@ -21,6 +23,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
@@ -60,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return false;
             }
 
-            var text = Clipboard.GetText();
-            if (string.IsNullOrEmpty(text))
+            var text = ClipboardHelpers.GetTextNoRetry();
+            if (RoslynString.IsNullOrEmpty(text))
             {
                 return false;
             }
@@ -72,13 +75,42 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             }
 
             var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
-            if (result.ParsedFrames.Any(static frame => frame.IsStackFrame))
+            if (result.ParsedFrames.Any(static frame => FrameTriggersActivate(frame)))
             {
                 await Root.ViewModel.AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
                 return true;
             }
 
             return false;
+        }
+
+        private static bool FrameTriggersActivate(ParsedFrame frame)
+        {
+            if (frame is not ParsedStackFrame parsedFrame)
+            {
+                return false;
+            }
+
+            var methodDeclaration = parsedFrame.Root.MethodDeclaration;
+
+            // Find the first token
+            var firstNodeOrToken = methodDeclaration.ChildAt(0);
+            while (firstNodeOrToken.IsNode)
+            {
+                firstNodeOrToken = firstNodeOrToken.Node.ChildAt(0);
+            }
+
+            if (firstNodeOrToken.Token.LeadingTrivia.IsDefault)
+            {
+                return false;
+            }
+
+            // If the stack frame starts with "at" we consider it a well formed stack frame and 
+            // want to automatically open the window. This helps avoids some false positive cases 
+            // where the window shows on code that parses as a stack frame but may not be. The explorer
+            // should still handle those cases if explicitly pasted in, but can lead to false positives 
+            // when automatically opening.
+            return firstNodeOrToken.Token.LeadingTrivia.Any(t => t.Kind == StackFrameKind.AtTrivia);
         }
 
         public void InitializeIfNeeded(RoslynPackage roslynPackage)

@@ -229,12 +229,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
-                targetDocument.Project.Solution.Workspace,
-                targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
+                targetDocument.Project.Solution.Workspace.Services,
+                formattingOptions,
                 formattingRules,
                 cancellationToken);
 
@@ -330,8 +331,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             if (CodeAnalysis.Workspace.TryGetWorkspace(document.GetTextSynchronously(cancellationToken).Container, out var workspace))
             {
                 var newName = newFullyQualifiedName.Substring(newFullyQualifiedName.LastIndexOf('.') + 1);
-                var optionSet = document.Project.Solution.Workspace.Options;
-                var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, newName, optionSet, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                var options = new SymbolRenameOptions();
+                var newSolution = Renamer.RenameSymbolAsync(document.Project.Solution, symbol, options, newName, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
                 var changedDocuments = newSolution.GetChangedDocuments(document.Project.Solution);
 
                 var undoTitle = string.Format(EditorFeaturesResources.Rename_0_to_1, symbol.Name, newName);

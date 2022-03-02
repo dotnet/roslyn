@@ -4,12 +4,15 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -114,7 +117,6 @@ namespace B
                 id: "test1",
                 category: "Test",
                 message: "test1 message",
-                enuMessageForBingSearch: "test1 message format",
                 severity: DiagnosticSeverity.Info,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: false,
@@ -150,7 +152,6 @@ namespace B
                 id: "test1",
                 category: "Test",
                 message: "test1 message",
-                enuMessageForBingSearch: "test1 message format",
                 severity: DiagnosticSeverity.Info,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: true,
@@ -173,6 +174,59 @@ namespace B
             Assert.Equal(externalAdditionalLocation.OriginalStartColumn, roundTripAdditionalLocation.OriginalStartColumn);
             Assert.Equal(externalAdditionalLocation.OriginalEndLine, roundTripAdditionalLocation.OriginalEndLine);
             Assert.Equal(externalAdditionalLocation.OriginalEndLine, roundTripAdditionalLocation.OriginalEndLine);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public async Task DiagnosticData_SourceGeneratedDocumentLocationIsPreserved()
+        {
+            var content = @"
+namespace B
+{
+    class A
+    {
+    }
+}
+";
+            using var workspace = TestWorkspace.CreateCSharp(files: Array.Empty<string>(), sourceGeneratedFiles: new[] { content }, composition: EditorTestCompositions.EditorFeatures);
+            var hostDocument = workspace.Documents.Single();
+            Assert.True(hostDocument.IsSourceGenerated);
+
+            var documentId = hostDocument.Id;
+            var project = workspace.CurrentSolution.GetRequiredProject(documentId.ProjectId);
+            var document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None);
+
+            await VerifyTextSpanAsync(content, 3, 10, 3, 11, new TextSpan(28, 1));
+            var location = new DiagnosticDataLocation(
+                documentId, sourceSpan: new TextSpan(28, 1), originalFilePath: document.FilePath,
+                originalStartLine: 3, originalStartColumn: 10, originalEndLine: 3, originalEndColumn: 11);
+
+            var diagnosticData = new DiagnosticData(
+                id: "test1",
+                category: "Test",
+                message: "test1 message",
+                severity: DiagnosticSeverity.Info,
+                defaultSeverity: DiagnosticSeverity.Info,
+                isEnabledByDefault: true,
+                warningLevel: 1,
+                projectId: documentId.ProjectId,
+                customTags: ImmutableArray<string>.Empty,
+                properties: ImmutableDictionary<string, string>.Empty,
+                location: location,
+                additionalLocations: ImmutableArray<DiagnosticDataLocation>.Empty,
+                language: project.Language);
+
+            var diagnostic = await diagnosticData.ToDiagnosticAsync(project, CancellationToken.None);
+            var roundTripDiagnosticData = DiagnosticData.Create(diagnostic, document);
+
+            var roundTripLocation = roundTripDiagnosticData.DataLocation;
+            Assert.NotNull(roundTripDiagnosticData.DataLocation);
+            Assert.Equal(location.DocumentId, roundTripLocation.DocumentId);
+            Assert.Equal(location.SourceSpan, roundTripLocation.SourceSpan);
+            Assert.Equal(location.OriginalFilePath, roundTripLocation.OriginalFilePath);
+            Assert.Equal(location.OriginalStartLine, roundTripLocation.OriginalStartLine);
+            Assert.Equal(location.OriginalStartColumn, roundTripLocation.OriginalStartColumn);
+            Assert.Equal(location.OriginalEndLine, roundTripLocation.OriginalEndLine);
+            Assert.Equal(location.OriginalEndLine, roundTripLocation.OriginalEndLine);
         }
     }
 }

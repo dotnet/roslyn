@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -66,9 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public bool CanNavigateTo()
                 => true;
 
-            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
-                => DefinitionItem.TryNavigateToAsync(
-                    _presenter._workspace, showInPreviewTab: isPreview, activateTab: shouldActivate, cancellationToken); // Only activate the tab if requested
+            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
+                => DefinitionItem.TryNavigateToAsync(_presenter._workspace, options, cancellationToken);
 
             public override bool TryGetValue(string key, out object? content)
             {

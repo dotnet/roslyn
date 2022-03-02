@@ -537,5 +537,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         Inline_Hints_DoubleClick = 530,
         NavigateToExternalSources = 531,
+
+        StackTraceToolWindow_ShowOnActivated = 540,
     }
 }
