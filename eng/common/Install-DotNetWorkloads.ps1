@@ -28,7 +28,7 @@ function Get-InstalledWorkloads
     $installedWorkloadsWithVersions = @{}
 
     # Shows versions of workloads that would be installed if a rollback were
-    # done. Includes uninstalled workloads, though, so these versios numbers
+    # done. Includes uninstalled workloads, though, so these version numbers
     # are only useful to us if we've confirmed elsewhere that the workload is
     # actually installed.
     $workloadUpdateOutput = & $dotnetPath workload update --print-rollback
