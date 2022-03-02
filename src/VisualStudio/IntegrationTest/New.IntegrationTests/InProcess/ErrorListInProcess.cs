@@ -66,28 +66,23 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                     continue;
                 }
 
-                var source = item.GetBuildTool();
-                var document = Path.GetFileName(item.GetPath() ?? item.GetDocumentName()) ?? "<unknown>";
-                var line = item.GetLine() ?? -1;
-                var column = item.GetColumn() ?? -1;
-                var errorCode = item.GetErrorCode() ?? "<unknown>";
-                var text = item.GetText() ?? "<unknown>";
-                var severity = item.GetCategory() switch
-                {
-                    __VSERRORCATEGORY.EC_ERROR => "error",
-                    __VSERRORCATEGORY.EC_WARNING => "warning",
-                    __VSERRORCATEGORY.EC_MESSAGE => "info",
-                    var unknown => unknown.ToString(),
-                };
-
-                var message = $"({source}) {document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
-                list.Add(message);
+                list.Add(GetMessage(item));
             }
 
             return list
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(x => x, StringComparer.Ordinal)
                 .ToImmutableArray();
+        }
+
+        public async Task<string> NavigateToErrorListItemAsync(int item, bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var items = await GetErrorItemsAsync(cancellationToken);
+
+            items[item].NavigateTo(isPreview, shouldActivate);
+            return GetMessage(items[item]);
         }
 
         private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(CancellationToken cancellationToken)
@@ -97,6 +92,26 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
             var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
             return args.AllEntries.ToImmutableArray();
+        }
+
+        private static string GetMessage(ITableEntryHandle item)
+        {
+            var source = item.GetBuildTool();
+            var document = Path.GetFileName(item.GetPath() ?? item.GetDocumentName()) ?? "<unknown>";
+            var line = item.GetLine() ?? -1;
+            var column = item.GetColumn() ?? -1;
+            var errorCode = item.GetErrorCode() ?? "<unknown>";
+            var text = item.GetText() ?? "<unknown>";
+            var severity = item.GetCategory() switch
+            {
+                __VSERRORCATEGORY.EC_ERROR => "error",
+                __VSERRORCATEGORY.EC_WARNING => "warning",
+                __VSERRORCATEGORY.EC_MESSAGE => "info",
+                var unknown => unknown.ToString(),
+            };
+
+            var message = $"({source}) {document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
+            return message;
         }
     }
 }

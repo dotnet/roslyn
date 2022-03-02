@@ -207,7 +207,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
-                cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
+                async cancellationToken =>
+                {
+                    try
+                    {
+                        return await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken);
+                    }
+                    catch (NullReferenceException)
+                    {
+                        // 🤮 Workaround for NuGet package restore throwing exceptions
+                        return false;
+                    }
+                },
                 TimeSpan.FromMilliseconds(50),
                 cancellationToken);
         }

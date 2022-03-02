@@ -268,6 +268,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             dte.ActiveDocument.Activate();
         }
 
+        public async Task SendExplicitFocusAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var textView = await GetActiveVsTextViewAsync(cancellationToken);
+            textView.SendExplicitFocus();
+        }
+
         public async Task<bool> IsUseSuggestionModeOnAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
