@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
     {
         public bool DisableRecoverableTrees { get; private set; }
         public bool DisableProjectCacheService { get; private set; }
+        public bool EnableOpeningSourceGeneratedFilesInWorkspace { get; private set; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -21,10 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
         }
 
-        internal void SetOptions(bool disableRecoverableTrees, bool disableProjectCacheService)
+        internal void SetOptions(bool disableRecoverableTrees, bool disableProjectCacheService, bool enableOpeningSourceGeneratedFilesInWorkspace)
         {
             DisableRecoverableTrees = disableRecoverableTrees;
             DisableProjectCacheService = disableProjectCacheService;
+            EnableOpeningSourceGeneratedFilesInWorkspace = enableOpeningSourceGeneratedFilesInWorkspace;
         }
     }
 }

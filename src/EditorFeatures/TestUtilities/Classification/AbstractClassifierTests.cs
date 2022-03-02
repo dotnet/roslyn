@@ -104,6 +104,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         protected async Task TestAsync(
             string code,
+            TestHost testHost,
+            ParseOptions? parseOptions,
+            params FormattedClassification[] expected)
+        {
+            await TestAsync(code, code, testHost, parseOptions, expected);
+        }
+
+        protected async Task TestAsync(
+            string code,
             string allCode,
             TestHost testHost,
             params FormattedClassification[] expected)
@@ -267,6 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
             await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
+            await service.AddEmbeddedLanguageClassificationsAsync(document, span, options, result, CancellationToken.None);
             return result.ToImmutable();
         }
 

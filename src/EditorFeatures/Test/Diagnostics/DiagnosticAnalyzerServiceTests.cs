@@ -803,7 +803,7 @@ dotnet_diagnostic.{NamedTypeAnalyzer.DiagnosticId}.severity = warning
         }
 
         [Theory, CombinatorialData]
-        internal async Task TestRemoveUnnecessaryInlineSuppressionsAnalyzer(BackgroundAnalysisScope analysisScope, bool testPragma)
+        internal async Task TestRemoveUnnecessaryInlineSuppressionsAnalyzer(BackgroundAnalysisScope analysisScope, bool isSourceGenerated, bool testPragma)
         {
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(
                 new CSharpCompilerDiagnosticAnalyzer(),
@@ -847,14 +847,33 @@ class A
 ";
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(code, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
+            string[] files;
+            string[] sourceGeneratedFiles;
+            if (isSourceGenerated)
+            {
+                files = Array.Empty<string>();
+                sourceGeneratedFiles = new[] { code };
+            }
+            else
+            {
+                files = new[] { code };
+                sourceGeneratedFiles = Array.Empty<string>();
+            }
+
+            using var workspace = TestWorkspace.CreateCSharp(files, sourceGeneratedFiles, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService), typeof(TestSyntaxTreeConfigurationService)));
+            var syntaxTreeConfigurationService = workspace.GetService<TestSyntaxTreeConfigurationService>();
+            syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace = true;
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
 
             var project = workspace.CurrentSolution.Projects.Single();
-            var document = project.Documents.Single();
+            var document = isSourceGenerated ? (await project.GetSourceGeneratedDocumentsAsync(CancellationToken.None)).Single() : project.Documents.Single();
+            if (isSourceGenerated)
+                Assert.IsType<SourceGeneratedDocument>(document);
+            else
+                Assert.IsType<Document>(document);
 
             Assert.IsType<MockDiagnosticUpdateSourceRegistrationService>(workspace.GetService<IDiagnosticUpdateSourceRegistrationService>());
             var service = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
@@ -875,14 +894,22 @@ class A
             {
                 case BackgroundAnalysisScope.None:
                 case BackgroundAnalysisScope.ActiveFile:
-                    workspace.OpenDocument(document.Id);
+                    if (isSourceGenerated)
+                        workspace.OpenSourceGeneratedDocument(document.Id);
+                    else
+                        workspace.OpenDocument(document.Id);
+
                     var documentTrackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
                     documentTrackingService.SetActiveDocument(document.Id);
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 
                 case BackgroundAnalysisScope.OpenFiles:
-                    workspace.OpenDocument(document.Id);
+                    if (isSourceGenerated)
+                        workspace.OpenSourceGeneratedDocument(document.Id);
+                    else
+                        workspace.OpenDocument(document.Id);
+
                     await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, InvocationReasons.SemanticChanged, CancellationToken.None);
                     break;
 

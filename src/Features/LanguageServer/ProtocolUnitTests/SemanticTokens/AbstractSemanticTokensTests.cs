@@ -7,6 +7,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -18,8 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
     {
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
-            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
-                CreateSemanticTokensRangeParams(caret, range), new LSP.VSInternalClientCapabilities(), null, CancellationToken.None);
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, RoslynSemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
+                CreateSemanticTokensRangeParams(caret, range), CancellationToken.None);
             Contract.ThrowIfNull(result);
             return result;
         }
@@ -30,6 +33,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 Range = range
             };
+
+        protected static async Task UpdateDocumentTextAsync(string updatedText, Workspace workspace)
+        {
+            var docId = ((TestWorkspace)workspace).Documents.First().Id;
+            await ((TestWorkspace)workspace).ChangeDocumentAsync(docId, SourceText.From(updatedText));
+        }
 
         // VS doesn't currently support multi-line tokens, so we want to verify that we aren't
         // returning any in the tokens array.
