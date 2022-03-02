@@ -9215,6 +9215,76 @@ internal static class NoExtensionMethods
             Assert.Null(GetSymbolNamesJoined(results.UsedLocalFunctions));
         }
 
+
+        [Fact]
+        public void TestDataFlowsOfIdentifierWithDelegateConversionCast()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+using System;
+
+internal static class NoExtensionMethods
+{
+    internal static Func<T> AsFunc<T>(this T value) where T : class
+    {
+        return (Func<T>)/*<bind>*/ value /*</bind>*/.Return;
+    }
+
+    private static T Return<T>(this T value)
+    {
+        return value;
+    }
+}
+");
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact]
+        public void TestDataFlowsOfIdentifierWithDelegateConversionTarget()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+using System;
+
+internal static class NoExtensionMethods
+{
+    internal static Func<T> AsFunc<T>(this T value) where T : class
+    {
+        Func<T> result =/*<bind>*/ value /*</bind>*/.Return;
+        return result;
+    }
+
+    private static T Return<T>(this T value)
+    {
+        return value;
+    }
+}
+");
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("result", GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("value, result", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
         [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
         public void DefiniteAssignmentInReceiverOfExtensionMethodInDelegateCreation()
         {
