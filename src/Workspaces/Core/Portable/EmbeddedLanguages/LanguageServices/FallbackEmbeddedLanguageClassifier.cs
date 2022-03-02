@@ -3,33 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
-    internal class FallbackSyntaxClassifier : AbstractSyntaxClassifier
+    internal class FallbackEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         private readonly EmbeddedLanguageInfo _info;
+        private readonly ImmutableArray<int> _supportedKinds;
 
-        public override ImmutableArray<int> SyntaxTokenKinds { get; }
-
-        public FallbackSyntaxClassifier(EmbeddedLanguageInfo info)
+        public FallbackEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-            SyntaxTokenKinds = ImmutableArray.Create(
+            _supportedKinds = ImmutableArray.Create(
                 info.SyntaxKinds.CharacterLiteralToken,
                 info.SyntaxKinds.StringLiteralToken,
                 info.SyntaxKinds.InterpolatedStringTextToken);
         }
 
-        public override void AddClassifications(
-            SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void RegisterClassifications(EmbeddedLanguageClassifierContext context)
         {
-            if (!SyntaxTokenKinds.Contains(token.RawKind))
+            var token = context.SyntaxToken;
+            if (!_supportedKinds.Contains(token.RawKind))
                 return;
 
             var virtualChars = _info.VirtualCharService.TryConvertToVirtualChars(token);
@@ -44,7 +39,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
             foreach (var vc in virtualChars)
             {
                 if (vc.Span.Length > 1)
-                    result.Add(new ClassifiedSpan(ClassificationTypeNames.StringEscapeCharacter, vc.Span));
+                    context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
             }
         }
     }

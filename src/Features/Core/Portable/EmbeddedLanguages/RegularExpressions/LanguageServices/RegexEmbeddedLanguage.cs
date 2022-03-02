@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
-        public ISyntaxClassifier Classifier { get; }
+        public IEmbeddedLanguageClassifier? Classifier { get; }
         public IDocumentHighlightsService? DocumentHighlightsService { get; }
         public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             EmbeddedLanguageInfo info)
         {
             Info = info;
-            Classifier = new RegexSyntaxClassifier(info);
+            Classifier = new RegexEmbeddedLanguageClassifier(info);
 
             _provider = provider;
 
