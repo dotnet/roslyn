@@ -181,10 +181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return node.Update(expression, argumentList);
             }
 
-            public SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrToken, SemanticModel semanticModel, bool simplifyAllDescendants)
+            public SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrToken, SemanticModel semanticModel)
             {
                 this.SemanticModel = semanticModel;
-                this.alwaysSimplify = simplifyAllDescendants;
+                this.alwaysSimplify = true;
                 this.HasMoreWork = false;
                 _processedParentNodes.Clear();
 

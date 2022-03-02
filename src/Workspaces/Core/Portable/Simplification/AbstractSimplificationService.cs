@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // Create a simple interval tree for simplification spans.
             var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
 
-            bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
+            var isNodeOrTokenOutsideSimplifySpans = (SyntaxNodeOrToken nodeOrToken) =>
                 !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -145,7 +145,8 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Reduce all the nodesAndTokensToReduce using the given reducers/rewriters and
                 // store the reduced nodes and/or tokens in the reduced nodes/tokens maps.
                 // Note that this method doesn't update the original syntax tree.
-                await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
+                await this.ReduceAsync(
+                    document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
 
                 if (reducedNodesMap.Any() || reducedTokensMap.Any())
                 {
@@ -195,7 +196,6 @@ namespace Microsoft.CodeAnalysis.Simplification
                 simplifyTasks[i] = Task.Run(async () =>
                 {
                     var nodeOrToken = nodeOrTokenToReduce.OriginalNodeOrToken;
-                    var simplifyAllDescendants = nodeOrTokenToReduce.SimplifyAllDescendants;
                     var semanticModelForReduce = semanticModel;
                     var currentNodeOrToken = nodeOrTokenToReduce.NodeOrToken;
                     var isNode = nodeOrToken.IsNode;
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                             }
 
                             // Reduce the current node or token.
-                            currentNodeOrToken = rewriter.VisitNodeOrToken(currentNodeOrToken, semanticModelForReduce, simplifyAllDescendants);
+                            currentNodeOrToken = rewriter.VisitNodeOrToken(currentNodeOrToken, semanticModelForReduce);
                         }
                         while (rewriter.HasMoreWork);
                     }

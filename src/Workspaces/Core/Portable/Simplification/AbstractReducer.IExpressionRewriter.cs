@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             void Initialize(ParseOptions parseOptions, OptionSet optionSet, CancellationToken cancellationToken);
 
-            SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrTokenToReduce, SemanticModel semanticModel, bool simplifyAllDescendants);
+            SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrTokenToReduce, SemanticModel semanticModel);
 
             bool HasMoreWork { get; }
         }

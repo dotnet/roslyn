@@ -55,20 +55,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 End If
 
                 Dim savedSimplifyAllDescendants = Me._simplifyAllDescendants
-                Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse node.HasAnnotation(Simplifier.Annotation)
+                Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia:=True).Any(s_hasSimplifierAnnotation)
 
                 If Not Me._insideSpeculatedNode AndAlso SpeculationAnalyzer.CanSpeculateOnNode(node) Then
-                    If Me._simplifyAllDescendants OrElse node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia:=True).Any(s_hasSimplifierAnnotation) Then
+                    If Me._simplifyAllDescendants Then
                         Me._insideSpeculatedNode = True
                         Dim rewrittenNode = MyBase.Visit(node)
-                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, _simplifyAllDescendants, node))
+                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, node))
                         Me._insideSpeculatedNode = False
                     End If
                 ElseIf node.ContainsAnnotations OrElse savedSimplifyAllDescendants Then
-                    If Not Me._insideSpeculatedNode AndAlso
-                    IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso
-                    Me._simplifyAllDescendants Then
-                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node))
+                    If Not Me._insideSpeculatedNode AndAlso IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso Me._simplifyAllDescendants Then
+                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, node))
                     End If
 
                     node = MyBase.Visit(node)
@@ -98,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse token.HasAnnotation(Simplifier.Annotation)
 
                 If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso token.Kind <> SyntaxKind.None Then
-                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, simplifyAllDescendants:=True, originalNodeOrToken:=token))
+                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, OriginalNodeOrToken:=token))
                 End If
 
                 If token.ContainsAnnotations OrElse savedSimplifyAllDescendants Then
@@ -160,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 End If
 
                 Dim savedSimplifyAllDescendants = Me._simplifyAllDescendants
-                Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse node.HasAnnotation(Simplifier.Annotation)
+                Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse node.DescendantNodesAndTokensAndSelf(s_containsAnnotations, descendIntoTrivia:=True).Any(s_hasSimplifierAnnotation)
 
                 Dim begin = DirectCast(Visit(node.BlockStatement), MethodBaseSyntax)
                 Dim endStatement = DirectCast(Visit(node.EndBlockStatement), EndBlockStatementSyntax)
@@ -169,12 +167,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' Hence, we need to reduce the entire method body as a single unit.
                 ' However, there is no SyntaxNode for the method body or statement list, hence we add the MethodBlockBaseSyntax to the list of nodes to be reduced.
                 ' Subsequently, when the AbstractReducer is handed a MethodBlockBaseSyntax, it will reduce only the statement list inside it.
-                If Me._simplifyAllDescendants OrElse
-                   node.Statements.Any(Function(s) s.DescendantNodesAndTokensAndSelf(s_containsAnnotations, descendIntoTrivia:=True).Any(s_hasSimplifierAnnotation)) Then
+                If Me._simplifyAllDescendants Then
                     Me._insideSpeculatedNode = True
                     Dim statements = VisitList(node.Statements)
                     Dim rewrittenNode = updateFunc(node, node.BlockStatement, statements, node.EndBlockStatement)
-                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, Me._simplifyAllDescendants, node))
+                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, node))
                     Me._insideSpeculatedNode = False
                 End If
 

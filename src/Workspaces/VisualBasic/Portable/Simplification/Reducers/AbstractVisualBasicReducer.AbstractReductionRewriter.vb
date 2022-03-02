@@ -164,9 +164,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Return SimplifyNode(statement, newNode, GetParentNode(statement), simplifier)
             End Function
 
-            Public Function VisitNodeOrToken(nodeOrToken As SyntaxNodeOrToken, semanticModel As SemanticModel, simplifyAllDescendants As Boolean) As SyntaxNodeOrToken Implements IReductionRewriter.VisitNodeOrToken
+            Public Function VisitNodeOrToken(nodeOrToken As SyntaxNodeOrToken, semanticModel As SemanticModel) As SyntaxNodeOrToken Implements IReductionRewriter.VisitNodeOrToken
                 _semanticModel = DirectCast(semanticModel, SemanticModel)
-                _alwaysSimplify = simplifyAllDescendants
+                _alwaysSimplify = True
                 _hasMoreWork = False
                 _processedParentNodes.Clear()
 
