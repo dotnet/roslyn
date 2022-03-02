@@ -739,9 +739,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void GoToDefinition()
             => ExecuteCommand(WellKnownCommandNames.Edit_GoToDefinition);
 
-        public void GoToImplementation()
-            => ExecuteCommand(WellKnownCommandNames.Edit_GoToImplementation);
-
         /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.
         /// </summary>
