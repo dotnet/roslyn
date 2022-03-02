@@ -10539,6 +10539,79 @@ class Program
         }
 
         [Fact]
+        public void PatternMatchSpanChar_ObsoleteMemoryExtensions()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        public ref T this[int index] => ref _array[index];
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public int Length => _array.Length;
+        public ref T this[int index] => ref _array[index];
+    }
+    [Obsolete]
+    public static class MemoryExtensions
+    {
+        [Obsolete]
+        public static ReadOnlySpan<char> AsSpan(string s)
+        {
+            var array = new char[s.Length];
+            for (int i = 0; i < s.Length; i++) array[i] = s[i];
+            return new ReadOnlySpan<char>(array);
+        }
+        [Obsolete]
+        public static bool SequenceEqual<T>(ReadOnlySpan<T> a, ReadOnlySpan<T> b)
+        {
+            if (a.Length != b.Length) return false;
+            for (int i = 0; i < a.Length; i++)
+                if (!object.Equals(a[i], b[i])) return false;
+            return true;
+        }
+        [Obsolete]
+        public static bool SequenceEqual<T>(Span<T> a, ReadOnlySpan<T> b)
+        {
+            return SequenceEqual((ReadOnlySpan<T>)a, b);
+        }
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static bool F1(ReadOnlySpan<char> span) => span is ""123"";
+    static bool F2(Span<char> span) => span is ""ABC"";
+    static void F(Span<char> span)
+    {
+        Console.WriteLine((F1((ReadOnlySpan<char>)span), F2(span)));
+    }
+    static void Main()
+    {
+        F(new Span<char>(new [] { 'A', 'B', 'C' }));
+        F(new Span<char>(new [] { '1', '2', '3' }));
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput:
+@"(False, True)
+(True, False)
+");
+        }
+
+        [Fact]
         public void PatternMatchSpanChar_GetTypeInfo()
         {
             var source =
