@@ -240,7 +240,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             static bool ChangesMadeOutsideDocument(Document currentDocument, Document updatedDocument)
             {
                 var solutionChanges = updatedDocument.Project.Solution.GetChanges(currentDocument.Project.Solution);
-                if (solutionChanges.GetAddedProjects().Any() ||
+                return
+                    solutionChanges.GetAddedProjects().Any() ||
                     solutionChanges.GetRemovedProjects().Any() ||
                     solutionChanges.GetAddedAnalyzerReferences().Any() ||
                     solutionChanges.GetRemovedAnalyzerReferences().Any() ||
@@ -256,12 +257,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                                           projectChanges.GetAddedAnalyzerConfigDocuments().Any() ||
                                           projectChanges.GetChangedDocuments().Any(documentId => documentId != updatedDocument.Id) ||
                                           projectChanges.GetChangedAdditionalDocuments().Any(documentId => documentId != updatedDocument.Id) ||
-                                          projectChanges.GetChangedAnalyzerConfigDocuments().Any(documentId => documentId != updatedDocument.Id)))
-                {
-                    return true;
-                }
-
-                return false;
+                                          projectChanges.GetChangedAnalyzerConfigDocuments().Any(documentId => documentId != updatedDocument.Id));
             }
         }
         public EnabledDiagnosticOptions GetAllDiagnostics()
