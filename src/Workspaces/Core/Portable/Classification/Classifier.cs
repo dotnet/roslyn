@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             classsificationService.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
             classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
-            
+
             // intentionally adding to the semanticClassifications array here.
             embeddedLanguageService.AddEmbeddedLanguageClassifications(semanticModel, textSpan, options, semanticClassifications, cancellationToken);
 
