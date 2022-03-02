@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (rehydrated == null)
                 return;
 
-            var location = await _streamingFindUsagesPresenter.GetNavigableLocationAsync(
+            var location = await _streamingFindUsagesPresenter.GetStreamingLocationAsync(
                 _threadingContext,
                 _workspace,
                 string.Format(CultureInfo.InvariantCulture, EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
