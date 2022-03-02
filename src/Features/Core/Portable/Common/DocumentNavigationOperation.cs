@@ -4,8 +4,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
