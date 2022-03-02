@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [Order(After = AbstractCodeCleanUpFixer.SortImportsFixId)]
         [ConfigurationKey("unused")]
         [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.AddBracesDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements))]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_required_braces_for_single_line_control_statements))]
         public static readonly FixIdDefinition? AddBracesDiagnosticId;
 
         [Export]

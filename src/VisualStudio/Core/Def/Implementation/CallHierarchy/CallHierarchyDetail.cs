@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.CallHierarchy;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 {
     internal class CallHierarchyDetail : ICallHierarchyItemDetails
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly TextSpan _span;
         private readonly DocumentId _documentId;
         private readonly Workspace _workspace;
@@ -23,10 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly int _startLine;
         private readonly string _text;
 
-        public CallHierarchyDetail(Location location, Workspace workspace)
+        public CallHierarchyDetail(IThreadingContext threadingContext, Location location, Workspace workspace)
         {
             _span = location.SourceSpan;
             _documentId = workspace.CurrentSolution.GetDocumentId(location.SourceTree);
+            _threadingContext = threadingContext;
             _workspace = workspace;
             _endColumn = location.GetLineSpan().Span.End.Character;
             _endLine = location.GetLineSpan().EndLinePosition.Line;
@@ -68,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
                 var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
                 // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
-                navigator.TryNavigateToSpan(_workspace, document.Id, _span, options, CancellationToken.None);
+                _threadingContext.JoinableTaskFactory.Run(() =>
+                    navigator.TryNavigateToSpanAsync(_workspace, document.Id, _span, options, CancellationToken.None));
             }
         }
     }
