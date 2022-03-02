@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length + 1);
             foreach (var field in implicitlyInitializedFields)
             {
+                // PROTOTYPE(sda): we are missing use site errors here
+                // see CodeGenTupleTests.CustomValueTuple_StructWithConstructor
                 builder.Add(new BoundExpressionStatement(
                     syntax,
                     F.AssignmentExpression(

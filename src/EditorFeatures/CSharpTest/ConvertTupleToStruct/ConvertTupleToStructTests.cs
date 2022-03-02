@@ -2317,62 +2317,64 @@ internal struct NewStruct
                 {
                     ExpectedDiagnostics =
                     {
-    // /0/Test0.cs(6,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'NewStruct.NewStruct(int, int)'
-    DiagnosticResult.CompilerError("CS7036").WithSpan(6, 22, 6, 31).WithArguments("a", "NewStruct.NewStruct(int, int)"),
-    // /0/Test0.cs(13,16): error CS0102: The type 'NewStruct' already contains a definition for 'a'
-    DiagnosticResult.CompilerError("CS0102").WithSpan(13, 16, 13, 17).WithArguments("NewStruct", "a"),
-    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
-    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
-    // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
-    DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
-    // /0/Test0.cs(15,33): error CS0100: The parameter name 'a' is a duplicate
-    DiagnosticResult.CompilerError("CS0100").WithSpan(15, 33, 15, 34).WithArguments("a"),
-    // /0/Test0.cs(17,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(17, 14, 17, 15).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(17,18): error CS0229: Ambiguity between 'int' and 'int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(17, 18, 17, 19).WithArguments("int", "int"),
-    // /0/Test0.cs(18,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(18, 14, 18, 15).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(18,18): error CS0229: Ambiguity between 'int' and 'int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(18, 18, 18, 19).WithArguments("int", "int"),
-    // /0/Test0.cs(24,21): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(24, 21, 24, 22).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(24,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(24, 32, 24, 33).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(25,21): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(25, 21, 25, 22).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(25,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(25, 32, 25, 33).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(31,50): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(31, 50, 31, 51).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(32,50): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(32, 50, 32, 51).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(36,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
-    DiagnosticResult.CompilerError("CS0177").WithSpan(36, 17, 36, 28).WithArguments("a"),
-    // /0/Test0.cs(36,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
-    DiagnosticResult.CompilerError("CS0177").WithSpan(36, 17, 36, 28).WithArguments("a"),
-    // /0/Test0.cs(36,48): error CS0100: The parameter name 'a' is a duplicate
-    DiagnosticResult.CompilerError("CS0100").WithSpan(36, 48, 36, 49).WithArguments("a"),
-    // /0/Test0.cs(38,9): error CS0229: Ambiguity between 'out int' and 'out int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(38, 9, 38, 10).WithArguments("out int", "out int"),
-    // /0/Test0.cs(38,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(38, 18, 38, 19).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(39,9): error CS0229: Ambiguity between 'out int' and 'out int'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(39, 9, 39, 10).WithArguments("out int", "out int"),
-    // /0/Test0.cs(39,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(39, 18, 39, 19).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(42,49): error CS8127: Tuple element names must be unique.
-    DiagnosticResult.CompilerError("CS8127").WithSpan(42, 49, 42, 50),
-    // /0/Test0.cs(44,23): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(44, 23, 44, 24).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(44,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(44, 32, 44, 33).WithArguments("NewStruct.a", "NewStruct.a"),
-    // /0/Test0.cs(47,59): error CS8127: Tuple element names must be unique.
-    DiagnosticResult.CompilerError("CS8127").WithSpan(47, 59, 47, 60),
-    // /0/Test0.cs(49,36): error CS0229: Ambiguity between '(int a, int a).a' and '(int a, int a).a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(49, 36, 49, 37).WithArguments("(int a, int a).a", "(int a, int a).a"),
-    // /0/Test0.cs(49,45): error CS0229: Ambiguity between '(int a, int a).a' and '(int a, int a).a'
-    DiagnosticResult.CompilerError("CS0229").WithSpan(49, 45, 49, 46).WithArguments("(int a, int a).a", "(int a, int a).a"),
+                        // /0/Test0.cs(6,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'NewStruct.NewStruct(int, int)'
+                        DiagnosticResult.CompilerError("CS7036").WithSpan(6, 22, 6, 31).WithArguments("a", "NewStruct.NewStruct(int, int)"),
+                        // /0/Test0.cs(13,16): error CS0102: The type 'NewStruct' already contains a definition for 'a'
+                        DiagnosticResult.CompilerError("CS0102").WithSpan(13, 16, 13, 17).WithArguments("NewStruct", "a"),
+                        // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
+                        DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
+                        // /0/Test0.cs(15,12): error CS0171: Field 'NewStruct.a' must be fully assigned before control is returned to the caller
+                        DiagnosticResult.CompilerError("CS0171").WithSpan(15, 12, 15, 21).WithArguments("NewStruct.a"),
+                        // /0/Test0.cs(15,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        DiagnosticResult.CompilerError("CS8652").WithSpan(15, 12, 15, 21).WithArguments("implicit initialization in struct constructors"),
+                        // /0/Test0.cs(15,33): error CS0100: The parameter name 'a' is a duplicate
+                        DiagnosticResult.CompilerError("CS0100").WithSpan(15, 33, 15, 34).WithArguments("a"),
+                        // /0/Test0.cs(17,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(17, 14, 17, 15).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(17,18): error CS0229: Ambiguity between 'int' and 'int'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(17, 18, 17, 19).WithArguments("int", "int"),
+                        // /0/Test0.cs(18,14): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(18, 14, 18, 15).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(18,18): error CS0229: Ambiguity between 'int' and 'int'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(18, 18, 18, 19).WithArguments("int", "int"),
+                        // /0/Test0.cs(24,21): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(24, 21, 24, 22).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(24,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(24, 32, 24, 33).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(25,21): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(25, 21, 25, 22).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(25,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(25, 32, 25, 33).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(31,50): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(31, 50, 31, 51).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(32,50): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(32, 50, 32, 51).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(36,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                        DiagnosticResult.CompilerError("CS0177").WithSpan(36, 17, 36, 28).WithArguments("a"),
+                        // /0/Test0.cs(36,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                        DiagnosticResult.CompilerError("CS0177").WithSpan(36, 17, 36, 28).WithArguments("a"),
+                        // /0/Test0.cs(36,48): error CS0100: The parameter name 'a' is a duplicate
+                        DiagnosticResult.CompilerError("CS0100").WithSpan(36, 48, 36, 49).WithArguments("a"),
+                        // /0/Test0.cs(38,9): error CS0229: Ambiguity between 'out int' and 'out int'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(38, 9, 38, 10).WithArguments("out int", "out int"),
+                        // /0/Test0.cs(38,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(38, 18, 38, 19).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(39,9): error CS0229: Ambiguity between 'out int' and 'out int'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(39, 9, 39, 10).WithArguments("out int", "out int"),
+                        // /0/Test0.cs(39,18): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(39, 18, 39, 19).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(42,49): error CS8127: Tuple element names must be unique.
+                        DiagnosticResult.CompilerError("CS8127").WithSpan(42, 49, 42, 50),
+                        // /0/Test0.cs(44,23): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(44, 23, 44, 24).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(44,32): error CS0229: Ambiguity between 'NewStruct.a' and 'NewStruct.a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(44, 32, 44, 33).WithArguments("NewStruct.a", "NewStruct.a"),
+                        // /0/Test0.cs(47,59): error CS8127: Tuple element names must be unique.
+                        DiagnosticResult.CompilerError("CS8127").WithSpan(47, 59, 47, 60),
+                        // /0/Test0.cs(49,36): error CS0229: Ambiguity between '(int a, int a).a' and '(int a, int a).a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(49, 36, 49, 37).WithArguments("(int a, int a).a", "(int a, int a).a"),
+                        // /0/Test0.cs(49,45): error CS0229: Ambiguity between '(int a, int a).a' and '(int a, int a).a'
+                        DiagnosticResult.CompilerError("CS0229").WithSpan(49, 45, 49, 46).WithArguments("(int a, int a).a", "(int a, int a).a"),
                     }
                 },
                 Options = { PreferImplicitTypeWithInfo() },
