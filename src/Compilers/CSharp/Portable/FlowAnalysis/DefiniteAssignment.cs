@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Struct fields that are implicitly initialized, due to being used before being written, or not being written at an exit point.
         /// </summary>
-        private PooledHashSet<FieldSymbol>? _implicitlyInitializedFields;
+        private PooledHashSet<FieldSymbol>? _implicitlyInitializedFieldsOpt;
 
-        private PooledHashSet<FieldSymbol> NonNullImplicitlyInitializedFields => _implicitlyInitializedFields ??= PooledHashSet<FieldSymbol>.GetInstance();
+        private PooledHashSet<FieldSymbol> ImplicitlyInitializedFields => _implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance();
 
         /// <summary>
         /// Map from variables that had their addresses taken, to the location of the first corresponding
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variableSlot.Free();
             _usedVariables.Free();
             _readParameters?.Free();
-            _implicitlyInitializedFields?.Free();
+            _implicitlyInitializedFieldsOpt?.Free();
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         isSuppressed ? ErrorCode.WRN_UnassignedThis : ErrorCode.ERR_UnassignedThis, location, isSuppressed, field);
                                 }
 
-                                this.NonNullImplicitlyInitializedFields.Add(field);
+                                this.ImplicitlyInitializedFields.Add(field);
                             }
                         }
                         reported = true;
@@ -501,12 +501,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If it reports nothing, there is nothing to report and we are done.
                 strictDiagnostics.Free();
+                Debug.Assert(implicitlyInitializedFieldsOpt.IsDefault);
                 return;
             }
 
             // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
             // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
-            (DiagnosticBag compatDiagnostics, implicitlyInitializedFieldsOpt) = analyze(strictAnalysis: false);
+            (DiagnosticBag compatDiagnostics, var compatImplicitlyInitializedFieldsOpt) = analyze(strictAnalysis: false);
+
+            // PROTOTYPE(sda): only realize the array if we think it will actually be used
+            // note that "compat" may be missing some implicit initializations, because it considers certain fields to always be fully assigned.
+            Debug.Assert(compatImplicitlyInitializedFieldsOpt.IsDefault
+                || (implicitlyInitializedFieldsOpt is var strictFields && compatImplicitlyInitializedFieldsOpt.All(field => strictFields.Contains(field))));
+
+            if (MessageID.IDS_FeatureImplicitInitializationInStructConstructors.GetFeatureAvailabilityDiagnosticInfo(compilation) is { } diagnosticInfo)
+            {
+                // We only give the LangVersion error if "compat" initializations are present.
+                if (!compatImplicitlyInitializedFieldsOpt.IsDefault)
+                {
+                    Debug.Assert(!compatImplicitlyInitializedFieldsOpt.IsEmpty);
+                    Debug.Assert(member.Locations.Length == 1);
+                    diagnostics.Add(diagnosticInfo, member.Locations[0]);
+                }
+                // We never insert implicit initializations before C# 11.
+                implicitlyInitializedFieldsOpt = default;
+            }
 
             // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
             // So we just report the compat ones including that error.
@@ -537,6 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(diagnostic);
                     continue;
                 }
+                Debug.Assert(!diagnostic.IsSuppressed);
 
                 // Otherwise downgrade the error to a warning.
                 ErrorCode oldCode = (ErrorCode)diagnostic.Code;
@@ -568,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool badRegion = false;
                     walker.Analyze(ref badRegion, result);
-                    if (walker._implicitlyInitializedFields is { } implicitlyInitializedFields)
+                    if (walker._implicitlyInitializedFieldsOpt is { } implicitlyInitializedFields)
                     {
                         Debug.Assert(walker._requireOutParamsAssigned);
                         var builder = ArrayBuilder<FieldSymbol>.GetInstance(implicitlyInitializedFields.Count);
@@ -587,11 +607,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         Debug.Assert(builder.Count == implicitlyInitializedFields.Count);
                         implicitlyInitializedFieldsOpt = builder.ToImmutableAndFree();
-                        if (MessageID.IDS_FeatureImplicitInitializationInStructConstructors.GetFeatureAvailabilityDiagnosticInfo(compilation) is { } diagnosticInfo)
-                        {
-                            Debug.Assert(member.Locations.Length == 1);
-                            result.Add(diagnosticInfo, member.Locations[0]);
-                        }
                     }
 
                     Debug.Assert(!badRegion);
@@ -1212,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slot == -1 || !State.IsAssigned(slot))
                     {
                         Debug.Assert((object)field.ContainingType == CurrentSymbol.EnclosingThisSymbol().Type);
-                        NonNullImplicitlyInitializedFields.Add(field);
+                        ImplicitlyInitializedFields.Add(field);
                     }
                 }
 
@@ -1255,7 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // See `FlowDiagnosticTests.AutoPropInitialization5`.
                     if ((object)fieldToInitialize.ContainingType == CurrentSymbol.EnclosingThisSymbol()!.Type)
                     {
-                        NonNullImplicitlyInitializedFields.Add(fieldToInitialize);
+                        ImplicitlyInitializedFields.Add(fieldToInitialize);
                     }
                 }
 
