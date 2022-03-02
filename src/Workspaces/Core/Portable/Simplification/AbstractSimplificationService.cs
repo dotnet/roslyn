@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.Simplification
         where TStatementSyntax : SyntaxNode
         where TCrefSyntax : SyntaxNode
     {
-        private ImmutableArray<AbstractReducer> _reducers;
+        protected static readonly Func<SyntaxNode, bool> s_containsAnnotations = n => n.ContainsAnnotations;
+        protected static readonly Func<SyntaxNodeOrToken, bool> s_hasSimplifierAnnotation = n => n.HasAnnotation(Simplifier.Annotation);
+
+        private readonly ImmutableArray<AbstractReducer> _reducers;
 
         protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
             => _reducers = reducers;
