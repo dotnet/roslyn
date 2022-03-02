@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
             if (containerType is not null && containerType.IsRefLikeType)
             {
-                namedSymbols = namedSymbols.RemoveAll(s => s.ContainingType.SpecialType == SpecialType.System_Object || s.ContainingType.SpecialType == SpecialType.System_ValueType);
+                namedSymbols = namedSymbols.RemoveAll(s => s.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType);
             }
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
