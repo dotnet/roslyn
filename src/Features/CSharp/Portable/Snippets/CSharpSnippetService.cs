@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
@@ -21,42 +23,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     [ExportLanguageService(typeof(ISnippetService), LanguageNames.CSharp), Shared]
     internal class CSharpSnippetService : ISnippetService
     {
-        private readonly IEnumerable<Lazy<ISnippetProvider>> _snippetProvider;
+        private readonly IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> _snippetProvider;
+        private readonly Lazy<Dictionary<string, ISnippetProvider>> _snippetProviderDictionary;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProvider)
         {
             _snippetProvider = snippetProvider;
+            _snippetProviderDictionary = new Lazy<Dictionary<string, ISnippetProvider>>(()
+                => _snippetProvider.ToDictionary(provider => provider.Value.SnippetIdentifier, provider => provider.Value));
         }
 
         public ISnippetProvider GetSnippetProvider(string snippetIdentifier)
         {
-            foreach (var provider in _snippetProvider)
-            {
-                if (snippetIdentifier == provider.Value.SnippetIdentifier)
-                {
-                    return provider.Value;
-                }
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(snippetIdentifier);
+            return _snippetProviderDictionary.Value[snippetIdentifier];
         }
 
         /// <summary>
         /// Iterates through all providers and determines if the snippet 
         /// can be added to the Completion list at the corresponding position.
         /// </summary>
-        public async Task<ImmutableArray<SnippetData?>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<SnippetData>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var arrayBuilder = ImmutableArray.CreateBuilder<SnippetData?>();
-            foreach (var provider in _snippetProvider)
+            using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
+            foreach (var provider in _snippetProvider.Where(b => b.Metadata.Language == document.Project.Language))
             {
                 var snippetData = await provider.Value.GetSnippetDataAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (snippetData is not null)
-                {
-                    arrayBuilder.Add(snippetData);
-                }
+                arrayBuilder.AddIfNotNull(snippetData);
             }
 
             return arrayBuilder.ToImmutable();

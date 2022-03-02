@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis.Snippets
     internal struct SnippetData
     {
         public readonly string DisplayName;
+        public readonly string SnippetIdentifier;
 
-        public SnippetData(string displayName)
+        public SnippetData(string displayName, string snippetIdentifier)
         {
             DisplayName = displayName;
+            SnippetIdentifier = snippetIdentifier;
         }
     }
 }

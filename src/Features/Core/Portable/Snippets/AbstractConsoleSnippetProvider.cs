@@ -31,12 +31,9 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
         }
 
-        protected override string SnippetIdentifier => "cw";
+        public override string SnippetIdentifier => "cw";
 
-        protected override string GetSnippetDisplayName()
-        {
-            return FeaturesResources.Write_to_the_Console;
-        }
+        public override string SnippetDisplayName => FeaturesResources.Write_to_the_Console;
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {

@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractSnippetProvider : ISnippetProvider
     {
-        protected abstract string SnippetIdentifier { get; }
+        public abstract string SnippetIdentifier { get; }
+        public abstract string SnippetDisplayName { get; }
+
         protected readonly SyntaxAnnotation _cursorAnnotation = new();
         protected readonly SyntaxAnnotation _findSnippetAnnotation = new();
 
@@ -28,11 +30,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// for each corresponding SnippetProvider
         /// </summary>
         protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Gets the localized string that is displayed in the Completion list
-        /// </summary>
-        protected abstract string GetSnippetDisplayName();
 
         /// <summary>
         /// Generates the new snippet's TextChange's that are being inserted into the document
@@ -61,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             if (await IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false))
             {
-                return new SnippetData(GetSnippetDisplayName());
+                return new SnippetData(SnippetDisplayName, SnippetIdentifier);
             }
 
             return null;
@@ -84,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
             return new Snippet(
-                displayText: GetSnippetDisplayName(),
+                displayText: SnippetDisplayName,
                 textChanges: changes.ToImmutableArray(),
                 cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
                 renameLocations: await GetRenameLocationsAsync(reformattedDocument, position, cancellationToken).ConfigureAwait(false));

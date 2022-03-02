@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Snippets
         public string Name { get; }
         public string Language { get; }
 
-        public ExportSnippetProviderAttribute(string name!!, string language!!)
+        public ExportSnippetProviderAttribute(string name, string language)
             : base(typeof(ISnippetProvider))
         {
-            Name = name;
-            Language = language;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Language = language ?? throw new ArgumentNullException(nameof(language));
         }
     }
 }

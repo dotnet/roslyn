@@ -155,6 +155,10 @@ class Program
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
+        /// <summary>
+        /// Simplifier does not work as intended, once that changes this outcome
+        /// should be able to simplify the inserted snippet.
+        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertConsoleSnippetInLocalFunctionTest()
         {
@@ -181,13 +185,17 @@ class Program
         var x = 5;
         void LocalMethod()
         {
-            Console.WriteLine($$);
+            global::System.Console.WriteLine($$);
         }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
+        /// <summary>
+        /// Simplifier does not work as intended, once that changes this outcome
+        /// should be able to simplify the inserted snippet.
+        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertConsoleSnippetInAnonymousFunctionTest()
         {
@@ -210,13 +218,17 @@ public delegate void Print(int value);
 static void Main(string[] args)
 {
     Print print = delegate(int val) {
-        Console.WriteLine($$);
+        global::System.Console.WriteLine($$);
     };
 
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
+        /// <summary>
+        /// Simplifier does not work as intended, once that changes this outcome
+        /// should be able to simplify the inserted snippet.
+        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
         {
@@ -234,7 +246,7 @@ using System;
 
 Func<int, int, bool> testForEquality = (x, y) =>
 {
-    Console.WriteLine($$);
+    global::System.Console.WriteLine($$);
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);

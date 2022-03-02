@@ -15,14 +15,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
     {
         public AbstractSnippetCompletionProvider()
         {
-
         }
-
-        internal abstract string Language { get; }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
-            var (strippedDocument, position) = await GetDocumentWithoutInvocationAsync(document, SnippetCompletionItem.GetInvocationPosition(item), cancellationToken).ConfigureAwait(false);
+            var (strippedDocument, position) = await GetDocumentWithoutInvokingTextAsync(document, SnippetCompletionItem.GetInvocationPosition(item), cancellationToken).ConfigureAwait(false);
             var service = strippedDocument.GetRequiredLanguageService<ISnippetService>();
             var snippetIdentifier = SnippetCompletionItem.GetSnippetIdentifier(item);
             var snippetProvider = service.GetSnippetProvider(snippetIdentifier);
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allChangesDocument = document.WithText(allChangesText);
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            return CompletionChange.Create(change, newPosition: snippet.CursorPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -47,23 +44,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 return;
             }
 
-            var (strippedDocument, newPosition) = await GetDocumentWithoutInvocationAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
 
             foreach (var snippetData in snippets)
             {
-                if (snippetData is null)
-                {
-                    continue;
-                }
-
-                var snippetValue = snippetData.Value;
                 var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetValue.DisplayName,
+                    displayText: snippetData.DisplayName,
                     displayTextSuffix: "",
                     position: position,
-                    snippetIdentifier: 
+                    snippetIdentifier: snippetData.SnippetIdentifier,
                     glyph: Glyph.Snippet);
                 context.AddItem(completionItem);
             }
@@ -82,17 +73,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         /// {
         ///     Wr$$             //invoked by typing out the completion 
         /// }
-        private static async Task<(Document, int)> GetDocumentWithoutInvocationAsync(Document document, int position, CancellationToken cancellationToken)
+        private static async Task<(Document, int)> GetDocumentWithoutInvokingTextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var (startPosition, endPosition) = GetStartAndEndPositionOfInvocationText(originalText, position);
-            var textChange = new TextChange(TextSpan.FromBounds(startPosition, endPosition), string.Empty);
+            var completionService = document.GetRequiredLanguageService<CompletionService>();
+            var span = completionService.GetDefaultCompletionListSpan(originalText, position);
+            var textChange = new TextChange(span, string.Empty);
             originalText = originalText.WithChanges(textChange);
             var newDocument = document.WithText(originalText);
-            return (newDocument, startPosition);
+            return (newDocument, span.Start);
         }
 
-        private static (int startPosition, int endPosition) GetStartAndEndPositionOfInvocationText(SourceText text, int position)
+        /*private static (int startPosition, int endPosition) GetSpanOfAlreadyWrittenWord(SourceText text, int position)
         {
             var startPosition = position;
             var endPosition = position;
@@ -116,6 +108,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             }
 
             return (startPosition, endPosition);
-        }
+        }*/
     }
 }

@@ -55,12 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             return node;
         }
 
-        private static SyntaxNode? GetConsoleExpressionStatement(SyntaxNode root, int position)
-        {
-            var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            return closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
-        }
-
         protected override Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             return Task.FromResult(ImmutableArray<TextSpan>.Empty);

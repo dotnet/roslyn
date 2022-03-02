@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             get;
         }
 
+        string SnippetDisplayName
+        {
+            get;
+        }
+
         /// Determines if a snippet can exist at a particular location.
         Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken);
 
