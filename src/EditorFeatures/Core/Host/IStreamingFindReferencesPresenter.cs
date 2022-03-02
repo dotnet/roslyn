@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If there's only a single item, navigates to it.  Otherwise, presents all the
         /// items to the user.
         /// </summary>
-        public static async Task<INavigableLocation?> GetNavigableLocationAsync(
+        public static async Task<INavigableLocation?> GetStreamingLocationAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
             Workspace workspace,

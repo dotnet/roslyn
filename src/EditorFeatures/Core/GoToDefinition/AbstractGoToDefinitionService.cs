@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = builder.ToImmutable();
 
-            return await _streamingPresenter.GetNavigableLocationAsync(
+            return await _streamingPresenter.GetStreamingLocationAsync(
                 _threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 
