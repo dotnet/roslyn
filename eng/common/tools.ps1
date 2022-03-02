@@ -231,8 +231,8 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   Write-PipelineSetVariable -Name 'DOTNET_SKIP_FIRST_TIME_EXPERIENCE' -Value '1'
 
   # Install any dotnet workloads specified in global.json
-    $globalJsonPath = Join-Path $RepoRoot 'global.json'
-    & $PSScriptRoot\Install-DotNetWorkloads.ps1 -globalJsonPath $globalJsonPath -dotnetPath (Join-Path $dotnetRoot dotnet)
+  $globalJsonPath = Join-Path $RepoRoot 'global.json'
+  & $PSScriptRoot\Install-DotNetWorkloads.ps1 -globalJsonPath $globalJsonPath | Out-Null
 
   return $global:_DotNetInstallDir = $dotnetRoot
 }
