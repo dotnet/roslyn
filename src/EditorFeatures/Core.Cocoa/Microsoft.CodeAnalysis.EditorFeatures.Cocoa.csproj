@@ -63,4 +63,13 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
+
+  <!-- Turn off windows dependency check. Some packages still have windows-specific dependencies,
+       even though in the cases that matter they are not used at run-time -->
+  <Target Name="IgnoreWindowsReferenceError" BeforeTargets="_CheckForTransitiveWindowsDesktopDependencies">
+    <ItemGroup>
+      <TransitiveFrameworkReference Remove="Microsoft.WindowsDesktop.App" />
+      <TransitiveFrameworkReference Remove="Microsoft.WindowsDesktop.App.WPF" />
+    </ItemGroup>
+  </Target>
 </Project>
