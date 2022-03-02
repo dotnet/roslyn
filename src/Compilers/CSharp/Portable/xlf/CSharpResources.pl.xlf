@@ -1037,6 +1037,11 @@
         <target state="translated">Metoda częściowa „{0}” musi mieć modyfikatory dostępności, ponieważ ma parametry „out”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">Dopasowanie wzorca jest niedozwolone dla typów wskaźnika.</target>

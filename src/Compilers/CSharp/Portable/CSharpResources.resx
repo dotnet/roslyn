@@ -6917,6 +6917,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_StructHasInitializersAndNoDeclaredConstructor" xml:space="preserve">
     <value>A 'struct' with field initializers must include an explicitly declared constructor.</value>
   </data>
+  <data name="ERR_PatternSpanCharCannotBeStringNull" xml:space="preserve">
+    <value>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</value>
+  </data>
   <data name="ERR_EncUpdateFailedDelegateTypeChanged" xml:space="preserve">
     <value>Cannot update because an inferred delegate type has changed.</value>
   </data>
