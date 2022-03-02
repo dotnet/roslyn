@@ -98,3 +98,11 @@ https://github.com/dotnet/roslyn/issues/57750
         public S() { Y = 0; } // ok
     }
     ```
+
+7. <a name="7"></a>Before Visual Studio 17.2, the C# compiler would accept incorrect default argument values involving a reference conversion of a string constant, and would emit `null` as the constant value instead of the default value specified in source. In Visual Studio 17.2, this becomes an error. See [roslyn#59806](https://github.com/dotnet/roslyn/pull/59806).
+
+    For instance, the following results in an error in 17.2:
+    ```csharp
+    void M(IEnumerable<char> s = "hello")
+    ```
+
