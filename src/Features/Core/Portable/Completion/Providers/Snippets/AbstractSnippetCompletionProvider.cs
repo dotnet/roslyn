@@ -19,15 +19,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
+            // This retrieves the document without the text used to invoke completion
+            // as well as the new cursor position after that has been removed.
             var (strippedDocument, position) = await GetDocumentWithoutInvokingTextAsync(document, SnippetCompletionItem.GetInvocationPosition(item), cancellationToken).ConfigureAwait(false);
             var service = strippedDocument.GetRequiredLanguageService<ISnippetService>();
             var snippetIdentifier = SnippetCompletionItem.GetSnippetIdentifier(item);
             var snippetProvider = service.GetSnippetProvider(snippetIdentifier);
+
+            // This retrieves the generated Snippet
             var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
             var strippedText = await strippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            // This introduces the text changes of the snippet into the document with the completion invoking text
             var allChangesText = strippedText.WithChanges(snippet.TextChanges);
+
+            // This retrieves ALL text changes from the original document which includes the TextChanges from the snippet
+            // as well as the clean up.
             var allChangesDocument = document.WithText(allChangesText);
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
             return CompletionChange.Create(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
@@ -76,38 +86,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         private static async Task<(Document, int)> GetDocumentWithoutInvokingTextAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            // Uses the existing CompletionService logic to find the TextSpan we want to use for the document sans invoking text
             var completionService = document.GetRequiredLanguageService<CompletionService>();
             var span = completionService.GetDefaultCompletionListSpan(originalText, position);
+
             var textChange = new TextChange(span, string.Empty);
             originalText = originalText.WithChanges(textChange);
             var newDocument = document.WithText(originalText);
             return (newDocument, span.Start);
         }
-
-        /*private static (int startPosition, int endPosition) GetSpanOfAlreadyWrittenWord(SourceText text, int position)
-        {
-            var startPosition = position;
-            var endPosition = position;
-
-            for (var i = position - 1; i >= 0; i--)
-            {
-                if (!char.IsLetter(text[i]) && !text[i].Equals('_'))
-                {
-                    startPosition = i;
-                    break;
-                }
-            }
-
-            for (var i = position; i < text.Length; i++)
-            {
-                if (!char.IsLetter(text[i]) && !text[i].Equals('_'))
-                {
-                    endPosition = i;
-                    break;
-                }
-            }
-
-            return (startPosition, endPosition);
-        }*/
     }
 }
