@@ -6989,4 +6989,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
+  <data name="ERR_NoEnumConstraint" xml:space="preserve">
+    <value>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</value>
+  </data>
+  <data name="ERR_NoDelegateConstraint" xml:space="preserve">
+    <value>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</value>
+  </data>
+  <data name="ERR_MisplacedRecord" xml:space="preserve">
+    <value>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</value>
+  </data>
 </root>
