@@ -75,7 +75,7 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
-            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 15minutes");
+            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 25minutes");
 
             return builder.ToString();
         }

@@ -4,10 +4,10 @@
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal interface IDashboardColorUpdater
+    internal interface IInlineRenameColorUpdater
     {
         /// <summary>
-        /// Implemented by a host to set the properties on <see cref="DashboardColors"/>.
+        /// Implemented by a host to set the properties on <see cref="InlineRenameColors"/>.
         /// </summary>
         public void UpdateColors();
     }
