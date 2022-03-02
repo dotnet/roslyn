@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Text.RegularExpressions;
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,6 +22,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class StateResetInProcess
     {
+        /// <summary>
+        /// Contains the persistence slots of tool windows to close between tests.
+        /// </summary>
+        /// <seealso cref="__VSFPROPID.VSFPROPID_GuidPersistenceSlot"/>
+        private static readonly ImmutableHashSet<Guid> s_windowsToClose = ImmutableHashSet.Create(
+            FindReferencesWindowInProcess.FindReferencesWindowGuid);
+
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
@@ -63,11 +71,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
             options.SetOptionValue(latencyGuardOptionKey, false);
 
-            // Close all Find References windows
+            // Close tool windows where desired (see s_windowsToClose)
             await foreach (var window in TestServices.Shell.EnumerateWindowsAsync(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool, cancellationToken).WithCancellation(cancellationToken))
             {
-                ErrorHandler.ThrowOnFailure(window.GetProperty((int)__VSFPROPID.VSFPROPID_Caption, out var captionObj));
-                if (Regex.IsMatch($"{captionObj}", "^(?:'.*' references|Find All References(?: \\d)?)$"))
+                ErrorHandler.ThrowOnFailure(window.GetGuidProperty((int)__VSFPROPID.VSFPROPID_GuidPersistenceSlot, out var persistenceSlot));
+                if (s_windowsToClose.Contains(persistenceSlot))
                 {
                     window.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
                 }
