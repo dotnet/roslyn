@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// Determines whether it is possible to navigate to the given position in the specified document.
         /// </summary>
         /// <remarks>Legal to call from any thread.</remarks>
-        Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines whether it is possible to navigate to the given line/offset in the specified document.
@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Navigation
 
     internal static class IDocumentNavigationServiceExtensions
     {
+        public static Task<bool> CanNavigateToSpanAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+            => service.CanNavigateToSpanAsync(workspace, documentId, textSpan, allowInvalidSpan: false, cancellationToken);
+
         public static Task<bool> CanNavigateToPositionAsync(this IDocumentNavigationService service, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
             => service.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace: 0, cancellationToken);
 
