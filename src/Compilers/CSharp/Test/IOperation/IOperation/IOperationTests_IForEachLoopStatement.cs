@@ -5555,7 +5555,11 @@ Block[B0] - Entry
                         (Identity)
                       Operand: 
                         IParameterReferenceOperation: pets (OperationKind.ParameterReference, Type: System.Collections.Generic.IAsyncEnumerable<System.String>) (Syntax: 'pets')
-                  Arguments(0)
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'await forea ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
     .try {R2, R3}
@@ -6304,7 +6308,11 @@ Block[B0] - Entry
                               Operand: 
                                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                           Arguments(0)
-                  Arguments(0)
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(C?)null')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: '(C?)null')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
     .try {R2, R3}
