@@ -2,21 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
-using Xunit.Abstractions;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpAddMissingReference : AbstractEditorTest
     {
         private const string FileInLibraryProject1 = @"Public Class Class1
@@ -107,15 +102,14 @@ class Program
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpAddMissingReference(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpAddMissingReference()
         {
         }
 
         public override async Task InitializeAsync()
         {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.SolutionExplorer.CreateSolution("ReferenceErrors", solutionElement: XElement.Parse(
+            await base.InitializeAsync();
+            await TestServices.SolutionExplorer.CreateSolutionAsync("ReferenceErrors", solutionElement: XElement.Parse(
                 "<Solution>" +
                $"   <Project ProjectName=\"{ClassLibrary1Name}\" ProjectTemplate=\"{WellKnownProjectTemplates.WinFormsApplication}\" Language=\"{LanguageNames.VisualBasic}\">" +
                 "       <Document FileName=\"Class1.vb\"><![CDATA[" +
@@ -141,44 +135,46 @@ class Program
                 "]]>" +
                 "       </Document>" +
                "   </Project>" +
-                "</Solution>"));
+                "</Solution>"), HangMitigatingCancellationToken);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
-        public void VerifyAvailableCodeActions()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        public async Task VerifyAvailableCodeActions()
         {
-            var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Program.cs");
-            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            VisualStudio.Editor.PlaceCaret("y.ee", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false);
-            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: false);
+            var consoleProject = ConsoleProjectName;
+            await TestServices.SolutionExplorer.OpenFileAsync(consoleProject, "Program.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("y.goo", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("y.ee", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("a.bar", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
-        public void InvokeSomeFixesInCSharpThenVerifyReferences()
+        [IdeFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        public async Task InvokeSomeFixesInCSharpThenVerifyReferences()
         {
-            var consoleProject = new ProjectUtils.Project(ConsoleProjectName);
-            VisualStudio.SolutionExplorer.OpenFile(consoleProject, "Program.cs");
-            VisualStudio.Editor.PlaceCaret("y.goo", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true);
-            VisualStudio.SolutionExplorer.Verify.AssemblyReferencePresent(
-                project: consoleProject,
+            var consoleProject = ConsoleProjectName;
+            await TestServices.SolutionExplorer.OpenFileAsync(consoleProject, "Program.cs", HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("y.goo", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorerVerifier.AssemblyReferencePresentAsync(
+                projectName: consoleProject,
                 assemblyName: "System.Windows.Forms",
                 assemblyVersion: "4.0.0.0",
-                assemblyPublicKeyToken: "b77a5c561934e089");
-            VisualStudio.Editor.PlaceCaret("a.bar", charsOffset: 1);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Add project reference to 'ClassLibrary3'.", applyFix: true);
-            VisualStudio.SolutionExplorer.Verify.ProjectReferencePresent(
-                project: consoleProject,
-                referencedProjectName: ClassLibrary3Name);
+                assemblyPublicKeyToken: "b77a5c561934e089",
+                HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("a.bar", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorerVerifier.ProjectReferencePresentAsync(
+                projectName: consoleProject,
+                referencedProjectName: ClassLibrary3Name,
+                HangMitigatingCancellationToken);
         }
     }
 }
