@@ -509,7 +509,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
             (DiagnosticBag compatDiagnostics, var compatImplicitlyInitializedFieldsOpt) = analyze(strictAnalysis: false);
 
-            // PROTOTYPE(sda): only realize the array if we think it will actually be used
             // note that "compat" may be missing some implicit initializations, because it considers certain fields to always be fully assigned.
             Debug.Assert(compatImplicitlyInitializedFieldsOpt.IsDefault
                 || (implicitlyInitializedFieldsOpt is var strictFields && compatImplicitlyInitializedFieldsOpt.All(field => strictFields.Contains(field))));
@@ -1260,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // the field was contained in 'this' by some level of nesting.
                 // we now have a slot for the field directly contained in 'this'.
-                // PROTOTYPE(sda): should we handle nested fields here? seems like an optimization.
+                // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
                 if (localSlot != -1)
                 {
                     var fieldToInitialize = (FieldSymbol)variableBySlot[localSlot].Symbol;

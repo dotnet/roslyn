@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         internal ImmutableArray<Diagnostic> FlowDiagnostics(CSharpCompilation compilation)
         {
-            var flowDiagnostics = DiagnosticBag.GetInstance();
+            var flowDiagnostics = BindingDiagnosticBag.GetInstance();
             foreach (var method in AllMethods(compilation.SourceModule.GlobalNamespace))
             {
                 var sourceSymbol = method as SourceMemberMethodSymbol;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
 
-            return flowDiagnostics.ToReadOnlyAndFree<Diagnostic>();
+            return flowDiagnostics.ToReadOnlyAndFree().Diagnostics;
         }
 
         private IEnumerable<MethodSymbol> AllMethods(Symbol symbol)

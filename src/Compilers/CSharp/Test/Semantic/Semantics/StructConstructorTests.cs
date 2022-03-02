@@ -2672,7 +2672,6 @@ public struct S
                 //         return;
                 Diagnostic(ErrorCode.WRN_UnassignedThis, "return;", isSuppressed: true).WithArguments("S.x").WithLocation(7, 9));
 
-            // PROTOTYPE(sda): IL should be simpler here
             verifier.VerifyIL("S..ctor", @"
 {
   // Code size       11 (0xb)

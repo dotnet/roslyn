@@ -30,36 +30,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             BoundBlock block,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool hasTrailingExpression,
             bool originalBodyNested)
         {
 #if DEBUG
             // We should only see a trailingExpression if we're in a Script initializer.
             Debug.Assert(!hasTrailingExpression || method.IsScriptInitializer);
-            var initialDiagnosticCount = diagnostics.ToReadOnly().Length;
+            var initialDiagnosticCount = diagnostics.ToReadOnly().Diagnostics.Length;
 #endif
             var compilation = method.DeclaringCompilation;
 
             if (method.ReturnsVoid || method.IsIterator || method.IsAsyncEffectivelyReturningTask(compilation))
             {
                 ImmutableArray<FieldSymbol> implicitlyInitializedFields = default;
+                bool needsImplicitReturn = true;
                 // we don't analyze synthesized void methods.
-                // PROTOTYPE(sda): is the latter condition unreachable?
-                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer && !(method.ContainingType.IsStructType() && method.IsParameterlessConstructor() && !method.IsDefaultValueTypeConstructor())) ||
-                    Analyze(compilation, method, block, diagnostics, out implicitlyInitializedFields))
+                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) ||
+                    Analyze(compilation, method, block, diagnostics.DiagnosticBag, out needsImplicitReturn, out implicitlyInitializedFields))
                 {
                     if (!implicitlyInitializedFields.IsDefault)
                     {
                         Debug.Assert(!implicitlyInitializedFields.IsEmpty);
                         block = PrependImplicitInitializations(block, method, implicitlyInitializedFields, compilationState, diagnostics);
                     }
-                    block = AppendImplicitReturn(block, method, originalBodyNested);
+                    if (needsImplicitReturn)
+                    {
+                        block = AppendImplicitReturn(block, method, originalBodyNested);
+                    }
                 }
             }
-            else if (Analyze(compilation, method, block, diagnostics, out var unusedImplicitlyInitializedFields))
+            else if (Analyze(compilation, method, block, diagnostics.DiagnosticBag, out var needsImplicitReturn, out var unusedImplicitlyInitializedFields))
             {
                 Debug.Assert(unusedImplicitlyInitializedFields.IsDefault);
+                Debug.Assert(needsImplicitReturn);
                 // If the method is a lambda expression being converted to a non-void delegate type
                 // and the end point is reachable then suppress the error here; a special error
                 // will be reported by the lambda binder.
@@ -79,10 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // return in cases where one was missing should never produce different Diagnostics.
                     IEnumerable<Diagnostic> getErrorsOnly(IEnumerable<Diagnostic> diags) => diags.Where(d => d.Severity == DiagnosticSeverity.Error);
                     var flowAnalysisDiagnostics = DiagnosticBag.GetInstance();
-                    Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics, out unusedImplicitlyInitializedFields));
+                    Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics, needsImplicitReturn: out _, out unusedImplicitlyInitializedFields));
                     Debug.Assert(unusedImplicitlyInitializedFields.IsDefault);
                     // Ignore warnings since flow analysis reports nullability mismatches.
-                    Debug.Assert(getErrorsOnly(flowAnalysisDiagnostics.ToReadOnly()).SequenceEqual(getErrorsOnly(diagnostics.ToReadOnly().Skip(initialDiagnosticCount))));
+                    Debug.Assert(getErrorsOnly(flowAnalysisDiagnostics.ToReadOnly()).SequenceEqual(getErrorsOnly(diagnostics.ToReadOnly().Diagnostics.Skip(initialDiagnosticCount))));
                     flowAnalysisDiagnostics.Free();
 #endif
                 }
@@ -97,19 +101,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return block;
         }
 
-        private static BoundBlock PrependImplicitInitializations(BoundBlock body, MethodSymbol method, ImmutableArray<FieldSymbol> implicitlyInitializedFields, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        private static BoundBlock PrependImplicitInitializations(BoundBlock body, MethodSymbol method, ImmutableArray<FieldSymbol> implicitlyInitializedFields, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(method.MethodKind == MethodKind.Constructor);
             Debug.Assert(method.ContainingType.IsStructType());
 
             var syntax = body.Syntax;
-            var F = new SyntheticBoundNodeFactory(method, syntax, compilationState, new BindingDiagnosticBag(diagnostics));
+            var F = new SyntheticBoundNodeFactory(method, syntax, compilationState, diagnostics);
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length + 1);
             foreach (var field in implicitlyInitializedFields)
             {
-                // PROTOTYPE(sda): we are missing use site errors here
-                // see CodeGenTupleTests.CustomValueTuple_StructWithConstructor
+                diagnostics.Add(field.GetUseSiteInfo(), syntax);
                 builder.Add(new BoundExpressionStatement(
                     syntax,
                     F.AssignmentExpression(
@@ -168,12 +171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             BoundBlock block,
             DiagnosticBag diagnostics,
+            out bool needsImplicitReturn,
             out ImmutableArray<FieldSymbol> implicitlyInitializedFieldsOpt)
         {
-            var result = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
+            needsImplicitReturn = ControlFlowPass.Analyze(compilation, method, block, diagnostics);
             DefiniteAssignmentPass.Analyze(compilation, method, block, diagnostics, out implicitlyInitializedFieldsOpt, requireOutParamsAssigned: true);
-            // PROTOTYPE(sda): we probably need separate flags to indicate adding the implicit return versus adding the implicit field initialization
-            return result || !implicitlyInitializedFieldsOpt.IsDefault;
+            return needsImplicitReturn || !implicitlyInitializedFieldsOpt.IsDefault;
         }
     }
 }

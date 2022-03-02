@@ -13364,11 +13364,14 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            // PROTOTYPE(sda): we should report a use site diagnostic here
             var comp = CreateCompilationWithMscorlib40(source, assemblyName: "test");
             comp.VerifyEmitDiagnostics(
-                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
+                // (7,37): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "{ }").WithArguments("Item1", "(T1, T2)", "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 37),
+                // (7,37): error CS8128: Member 'Item2' was not found on type '(T1, T2)' from assembly 'test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "{ }").WithArguments("Item2", "(T1, T2)", "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 37)
                 );
         }
 
@@ -13386,11 +13389,14 @@ namespace System
 }
 " + tupleattributes_cs;
 
-            // PROTOTYPE(sda): maybe we should give a use site diagnostic on the implicit 'Item1 = default, Item2 = default' assignments
             var comp = CreateCompilationWithMscorlib40(source, assemblyName: "test");
             comp.VerifyEmitDiagnostics(
-                // error CS7038: Failed to emit module 'test': Unable to determine specific cause of the failure.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("test", "Unable to determine specific cause of the failure.").WithLocation(1, 1)
+                // (7,37): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "{ }").WithArguments("Item1", "(T1, T2)", "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 37),
+                // (7,37): error CS8128: Member 'Item2' was not found on type '(T1, T2)' from assembly 'test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "{ }").WithArguments("Item2", "(T1, T2)", "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 37)
                 );
         }
 
