@@ -237,6 +237,19 @@
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[d17.2p3]"
     },
+    "release/dev17.3": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "4.3.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.3p1]"
+    },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",
       "version": "2.6.*",
