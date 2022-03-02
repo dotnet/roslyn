@@ -37,6 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetOption2(globalOptions, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
             ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
+            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
 
             static void ResetOption2<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
