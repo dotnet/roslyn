@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
                     break;
 
                 case Uri uri:
-                    writer.WriteValue(uri.AbsoluteUri);
+                    writer.WriteValue(uri.ToString());
                     break;
 
                 default:
