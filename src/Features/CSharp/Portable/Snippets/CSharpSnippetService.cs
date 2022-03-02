@@ -30,17 +30,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
             _snippetProvider = snippetProvider;
         }
 
-        public ISnippetProvider GetSnippetProvider(SnippetData data)
+        public ISnippetProvider GetSnippetProvider(string snippetIdentifier)
         {
             foreach (var provider in _snippetProvider)
             {
-                if (data.DisplayName == provider.Value.GetSnippetText())
+                if (snippetIdentifier == provider.Value.SnippetIdentifier)
                 {
                     return provider.Value;
                 }
             }
 
-            throw ExceptionUtilities.UnexpectedValue(data.DisplayName);
+            throw ExceptionUtilities.UnexpectedValue(snippetIdentifier);
         }
 
         /// <summary>

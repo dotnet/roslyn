@@ -14,13 +14,15 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal interface ISnippetProvider
     {
+        string SnippetIdentifier
+        {
+            get;
+        }
+
         /// Determines if a snippet can exist at a particular location.
         Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// Gets the Snippet from the corresponding snippet provider.
         Task<Snippet> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
-
-        /// Gets the text that is displayed by the Completion item.
-        string GetSnippetText();
     }
 }

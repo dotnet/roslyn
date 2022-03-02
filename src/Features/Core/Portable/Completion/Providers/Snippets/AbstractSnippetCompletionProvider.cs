@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         {
             var (strippedDocument, position) = await GetDocumentWithoutInvocationAsync(document, SnippetCompletionItem.GetInvocationPosition(item), cancellationToken).ConfigureAwait(false);
             var service = strippedDocument.GetRequiredLanguageService<ISnippetService>();
-            var snippetProvider = service.GetSnippetProvider(new SnippetData(item.DisplayText));
+            var snippetIdentifier = SnippetCompletionItem.GetSnippetIdentifier(item);
+            var snippetProvider = service.GetSnippetProvider(snippetIdentifier);
             var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
             var strippedText = await strippedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var allChangesText = strippedText.WithChanges(snippet.TextChanges);
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                     displayText: snippetValue.DisplayName,
                     displayTextSuffix: "",
                     position: position,
+                    snippetIdentifier: 
                     glyph: Glyph.Snippet);
                 context.AddItem(completionItem);
             }

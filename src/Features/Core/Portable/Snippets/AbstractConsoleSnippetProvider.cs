@@ -31,36 +31,30 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
         }
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = compilation.GetTypeByMetadataName(typeof(Console).FullName);
-            if (symbol is null)
-            {
-                return false;
-            }
-
-            if (!ShouldDisplaySnippet(syntaxContext))
-            {
-                return false;
-            }
-
-            return true;
-        }
+        public override string SnippetIdentifier => "cw";
 
         protected override string GetSnippetDisplayName()
         {
             return FeaturesResources.Write_to_the_Console;
         }
 
+        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var symbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
+            if (symbol is null)
+            {
+                return false;
+            }
+
+            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            return ShouldDisplaySnippet(syntaxContext);
+        }
+
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var arrayBuilder);
             var snippetTextChange = await GenerateSnippetAsync(document, position, cancellationToken).ConfigureAwait(false);
-            arrayBuilder.AddRange(snippetTextChange);
-            return arrayBuilder.ToImmutableArray();
+            return ImmutableArray.Create(snippetTextChange);
         }
 
         private async Task<TextChange> GenerateSnippetAsync(Document document, int position, CancellationToken cancellationToken)
@@ -69,11 +63,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             var generator = SyntaxGenerator.GetGenerator(document);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var typeExpression = generator.TypeExpression(symbol.GetSymbolType());
+            var typeExpression = generator.TypeExpression(symbol);
             var declaration = GetAsyncSupportingDeclaration(token);
             var isAsync = generator.GetModifiers(declaration).IsAsync;
-            SyntaxNode? invocation;
-            invocation = isAsync
+            var invocation = isAsync
                 ? generator.ExpressionStatement(generator.AwaitExpression(generator.InvocationExpression(
                     generator.MemberAccessExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.Out))), generator.IdentifierName(nameof(Console.Out.WriteLineAsync))))))
                 : generator.ExpressionStatement(generator.InvocationExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.WriteLine)))));
@@ -110,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
         }
 
-        private static async Task<ISymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<INamedTypeSymbol> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName);

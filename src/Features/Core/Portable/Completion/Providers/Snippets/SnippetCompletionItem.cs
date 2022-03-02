@@ -13,10 +13,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             string displayText,
             string displayTextSuffix,
             int position,
+            string snippetIdentifier,
             Glyph glyph)
         {
             var props = ImmutableDictionary<string, string>.Empty
-                .Add("Position", position.ToString());
+                .Add("Position", position.ToString())
+                .Add("SnippetIdentifier", snippetIdentifier);
 
             return CommonCompletionItem.Create(
                 displayText: displayText,
@@ -27,15 +29,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 rules: CompletionItemRules.Default);
         }
 
+        public static string GetSnippetIdentifier(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("SnippetIdentifier", out var text))
+            {
+                return text;
+            }
+
+            return string.Empty;
+        }
+
         public static int GetInvocationPosition(CompletionItem item)
         {
             if (item.Properties.TryGetValue("Position", out var text)
-                && int.TryParse(text, out var number))
+                && int.TryParse(text, out var num))
             {
-                return number;
+                return num;
             }
 
-            return 0;
+            return -1;
         }
     }
 }

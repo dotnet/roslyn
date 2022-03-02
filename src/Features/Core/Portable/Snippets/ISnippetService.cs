@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Retrieves all possible types of snippets for a particular position
         Task<ImmutableArray<SnippetData?>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken);
 
-        /// Gets the corresponding provider from the snippet data. 
+        /// Gets the corresponding provider from a snippet identifier 
         /// Called upon by the AbstractSnippetCompletionProvider
-        ISnippetProvider GetSnippetProvider(SnippetData data);
+        ISnippetProvider GetSnippetProvider(string snippetIdentifier);
     }
 }

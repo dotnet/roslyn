@@ -19,16 +19,29 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractSnippetProvider : ISnippetProvider
     {
-        protected SyntaxAnnotation _cursorAnnotation = new();
-        protected SyntaxAnnotation _findSnippetAnnotation = new();
+        public abstract string SnippetIdentifier { get; }
+        protected readonly SyntaxAnnotation _cursorAnnotation = new();
+        protected readonly SyntaxAnnotation _findSnippetAnnotation = new();
 
-        /// Enumerates all the cases in which a particular snippet should occur. 
+        /// <summary>
+        /// Uses the SyntaxContext to determine if the location the cursor is at is a valid place
+        /// for each corresponding SnippetProvider
+        /// </summary>
         protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Gets the localized string that is displayed in the Completion list
+        /// </summary>
         protected abstract string GetSnippetDisplayName();
+
+        /// <summary>
         /// Generates the new snippet's TextChange's that are being inserted into the document
+        /// </summary>
         protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Method for each snippet to locate the inserted SyntaxNode to reformat
+        /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
         protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
         protected abstract Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken);
@@ -77,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 renameLocations: await GetRenameLocationsAsync(reformattedDocument, position, cancellationToken).ConfigureAwait(false));
         }
 
-        private  async Task<Document> CleanupDocumentAsync(
+        private async Task<Document> CleanupDocumentAsync(
             Document document, CancellationToken cancellationToken)
         {
             if (document.SupportsSyntaxTree)
@@ -112,11 +125,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
-        }
-
-        public string GetSnippetText()
-        {
-            return GetSnippetDisplayName();
         }
     }
 }
