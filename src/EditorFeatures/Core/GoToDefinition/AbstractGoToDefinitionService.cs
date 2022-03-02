@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -15,32 +11,23 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    internal abstract class AbstractGoToDefinitionService : AbstractFindDefinitionService, IAsyncGoToDefinitionService
+    internal abstract class AbstractAsyncGoToDefinitionService : AbstractFindDefinitionService, IAsyncGoToDefinitionService
     {
         private readonly IThreadingContext _threadingContext;
-
-        /// <summary>
-        /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
-        /// </summary>
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
-        protected AbstractGoToDefinitionService(
+        protected AbstractAsyncGoToDefinitionService(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
-
-        async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
-            => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
         private static Task<INavigableLocation?> GetNavigableLocationAsync(
             Document document, int position, CancellationToken cancellationToken)
@@ -53,9 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 workspace, document.Id, position, virtualSpace: 0,
                 new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken);
         }
-
-        public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
-            => throw new NotImplementedException("Use FindDefinitionLocationAsync instead.");
 
         public async Task<INavigableLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
