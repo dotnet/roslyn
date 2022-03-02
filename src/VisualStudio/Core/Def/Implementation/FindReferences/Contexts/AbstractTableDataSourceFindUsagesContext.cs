@@ -57,7 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
             private readonly IGlobalOptionService _globalOptions;
-            private readonly IThreadingContext _threadingContext;
+
+            protected readonly IThreadingContext ThreadingContext;
             protected readonly IWpfTableControl2 TableControl;
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
@@ -127,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
                 _globalOptions = globalOptions;
-                _threadingContext = threadingContext;
+                ThreadingContext = threadingContext;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
                 TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
@@ -383,7 +384,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     lineText,
                     symbolUsageInfo,
                     additionalProperties,
-                    _threadingContext);
+                    ThreadingContext);
             }
 
             private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
@@ -423,7 +424,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     if (!_definitionToBucket.TryGetValue(definition, out var bucket))
                     {
-                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault);
+                        bucket = RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault, ThreadingContext);
                         _definitionToBucket.Add(definition, bucket);
                     }
 

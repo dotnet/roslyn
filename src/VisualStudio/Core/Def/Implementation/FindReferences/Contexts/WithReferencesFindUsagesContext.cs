@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                             SymbolsWithoutReferencesDefinitionItem,
                             bucket => SimpleMessageEntry.CreateAsync(
                                 definitionBucket: bucket,
-                                navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault: false),
+                                navigationBucket: RoslynDefinitionBucket.Create(Presenter, this, definition, expandedByDefault: false, this.ThreadingContext),
                                 string.Format(ServicesVSResources.No_references_found_to_0, definition.NameDisplayParts.JoinText()))!,
                             addToEntriesWhenGroupingByDefinition: whenGroupingByDefinition,
                             addToEntriesWhenNotGroupingByDefinition: !whenGroupingByDefinition,

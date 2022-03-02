@@ -9,15 +9,23 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
-    internal static class IDocumentNavigationServiceExtensions
+    internal static class INavigableLocationExtensions
     {
-        private static async Task<bool> SwitchToMainThreadAndNavigateAsync(IThreadingContext threadingContext, INavigableLocation? location, CancellationToken cancellationToken)
+        public static async Task<bool> NavigateToAsync(this INavigableLocation? location, IThreadingContext threadingContext, CancellationToken cancellationToken)
         {
             if (location == null)
                 return false;
 
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             return await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    internal static class IDocumentNavigationServiceExtensions
+    {
+        private static Task<bool> SwitchToMainThreadAndNavigateAsync(IThreadingContext threadingContext, INavigableLocation? location, CancellationToken cancellationToken)
+        {
+            return location.NavigateToAsync(threadingContext, cancellationToken);
         }
 
         public static async Task<bool> TryNavigateToSpanAsync(

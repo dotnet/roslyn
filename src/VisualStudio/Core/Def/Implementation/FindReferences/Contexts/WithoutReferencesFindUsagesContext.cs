@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 {
                     // No source spans means metadata references.
                     // Display it for Go to Base and try to navigate to metadata.
-                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket));
+                    entries.Add(new MetadataDefinitionItemEntry(this, definitionBucket, this.ThreadingContext));
                 }
                 else
                 {
