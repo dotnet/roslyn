@@ -22,14 +22,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal DocumentId DocumentId { get; }
         internal int Position { get; }
 
-        public DocumentNavigationOperation(DocumentId documentId!!, int position = 0)
+        public DocumentNavigationOperation(DocumentId documentId, int position = 0)
         {
-            DocumentId = documentId;
+            DocumentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
             Position = position;
         }
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
+            // Intentionally empty.  Handling of this operation is special cased in CodeActionEditHandlerService.cs 
         }
     }
 }
