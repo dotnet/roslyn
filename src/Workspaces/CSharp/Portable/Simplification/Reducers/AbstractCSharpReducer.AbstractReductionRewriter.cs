@@ -29,10 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public bool HasMoreWork { get; private set; }
 
-            // can be used to simplify whole subtrees while just annotating one syntax node.
-            // This is e.g. useful in the name simplification, where a whole qualified name is annotated
-            protected bool alwaysSimplify;
-
             private readonly HashSet<SyntaxNode> _processedParentNodes = new();
 
             protected AbstractReductionRewriter(ObjectPool<IReductionRewriter> pool)
@@ -53,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 _processedParentNodes.Clear();
                 SemanticModel = null;
                 HasMoreWork = false;
-                alwaysSimplify = false;
 
                 _pool.Free(this);
             }
@@ -115,11 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 Debug.Assert(parentNode != null);
 
                 this.CancellationToken.ThrowIfCancellationRequested();
-
-                if (!this.alwaysSimplify && !node.HasAnnotation(Simplifier.Annotation))
-                {
-                    return newNode;
-                }
 
                 if (node != newNode || _processedParentNodes.Contains(parentNode))
                 {
@@ -184,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrToken, SemanticModel semanticModel)
             {
                 this.SemanticModel = semanticModel;
-                this.alwaysSimplify = true;
                 this.HasMoreWork = false;
                 _processedParentNodes.Clear();
 

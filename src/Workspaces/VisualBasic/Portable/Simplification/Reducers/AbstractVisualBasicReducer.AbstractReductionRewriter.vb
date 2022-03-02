@@ -24,7 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private _semanticModel As SemanticModel
 
             Private _hasMoreWork As Boolean
-            Protected _alwaysSimplify As Boolean
 
             Protected Sub New(pool As ObjectPool(Of IReductionRewriter))
                 _pool = pool
@@ -44,7 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 _semanticModel = Nothing
 
                 _hasMoreWork = False
-                _alwaysSimplify = False
 
                 _pool.Free(Me)
             End Sub
@@ -80,10 +78,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Debug.Assert(parentNode IsNot Nothing)
 
                 CancellationToken.ThrowIfCancellationRequested()
-
-                If Not _alwaysSimplify AndAlso Not node.HasAnnotation(Simplifier.Annotation) Then
-                    Return newNode
-                End If
 
                 If node IsNot newNode OrElse _processedParentNodes.Contains(parentNode) Then
                     _hasMoreWork = True
@@ -124,10 +118,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 CancellationToken.ThrowIfCancellationRequested()
 
-                If Not _alwaysSimplify AndAlso Not token.HasAnnotation(Simplifier.Annotation) Then
-                    Return newToken
-                End If
-
                 If token <> newToken OrElse _processedParentNodes.Contains(parentNode) Then
                     _hasMoreWork = True
                     Return newToken
@@ -165,8 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Function
 
             Public Function VisitNodeOrToken(nodeOrToken As SyntaxNodeOrToken, semanticModel As SemanticModel) As SyntaxNodeOrToken Implements IReductionRewriter.VisitNodeOrToken
-                _semanticModel = DirectCast(semanticModel, SemanticModel)
-                _alwaysSimplify = True
+                _semanticModel = semanticModel
                 _hasMoreWork = False
                 _processedParentNodes.Clear()
 

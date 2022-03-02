@@ -24,12 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 this.CancellationToken.ThrowIfCancellationRequested();
 
-                // Only simplify if us, or a parent, was marked as needing simplification.
-                if (!alwaysSimplify && !typeSyntax.HasAnnotation(Simplifier.Annotation))
-                {
-                    return typeSyntax;
-                }
-
                 // Definitely do not simplify us if we were told to not simplify.
                 if (typeSyntax.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
                 {
