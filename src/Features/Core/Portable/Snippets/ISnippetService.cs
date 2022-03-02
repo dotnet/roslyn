@@ -15,11 +15,15 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal interface ISnippetService : ILanguageService
     {
+        /// <summary>
         /// Retrieves all possible types of snippets for a particular position
+        /// </summary>
         Task<ImmutableArray<SnippetData?>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken);
 
+        /// <summary>
         /// Gets the corresponding provider from a snippet identifier 
         /// Called upon by the AbstractSnippetCompletionProvider
+        /// </summary>
         ISnippetProvider GetSnippetProvider(string snippetIdentifier);
     }
 }
