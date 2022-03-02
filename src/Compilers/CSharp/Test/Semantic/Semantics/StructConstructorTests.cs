@@ -2576,7 +2576,7 @@ struct S
                     //     public S() { }
                     Diagnostic(ErrorCode.WRN_UnassignedThis, "S", isSuppressed: true).WithArguments("S.x").WithLocation(5, 12));
 
-            // PROTOTYPE(sda): how are suppressions removed from compiler diagnostics?
+            // TODO: how are suppressions removed from compiler diagnostics?
             CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS8881", ReportDiagnostic.Warn))
                 .VerifyDiagnostics(
                 // (4,16): warning CS0649: Field 'S.x' is never assigned to, and will always have its default value 0
