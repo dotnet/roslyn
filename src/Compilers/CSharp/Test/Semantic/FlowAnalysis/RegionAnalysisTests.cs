@@ -9179,7 +9179,7 @@ class C {
         [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
         public void TestDataFlowsOfIdentifierWithDelegateConversion()
         {
-            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+            var results = CompileAndAnalyzeDataFlowExpression(@"
 using System;
 
 internal static class NoExtensionMethods
@@ -9200,7 +9200,19 @@ internal static class NoExtensionMethods
     }
 }
 	");
-            Assert.True(analysis.Succeeded);
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("value", GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("value", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Equal("value", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("value", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(results.UsedLocalFunctions));
         }
 
         [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
@@ -9222,15 +9234,9 @@ static class Extension
 }
 	");
             comp.VerifyDiagnostics(
-                // (3,6): warning CS0219: The variable 'b' is assigned but its value is never used
-                // bool b = true;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b").WithArguments("b").WithLocation(3, 6),
-                // (4,37): warning CS0168: The variable 'i' is declared but never used
+                // (4,42): error CS0165: Use of unassigned local variable 'i'
                 // _ = new Func<string>((b ? M(out var i) : i.ToString()).ExtensionMethod);
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(4, 37),
-                // (6,8): warning CS8321: The local function 'M' is declared but never used
-                // string M(out int i)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 8)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(4, 42)
                 );
         }
     }
