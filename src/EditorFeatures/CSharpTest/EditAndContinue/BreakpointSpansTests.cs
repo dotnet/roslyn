@@ -271,7 +271,7 @@ class Class
             VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
 class Class
 {
-    [|static Cl$$ass()|]
+    static Cl$$ass()
 }");
         }
 
@@ -4305,10 +4305,10 @@ $$    using ([|var vv = goo()|])
         [Fact]
         public void InstanceConstructor_NoBody()
         {
-            TestMissing(
+            TestSpan(
 @"class Class
 {
-    Cla$$ss()
+    [|Cla$$ss()|]
 }");
         }
 
