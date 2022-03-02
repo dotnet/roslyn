@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -21,25 +17,18 @@ namespace Microsoft.CodeAnalysis.CodeActions
     /// </summary>
     public class DocumentNavigationOperation : CodeActionOperation
     {
-        private readonly DocumentId _documentId;
-        private readonly int _position;
+        internal DocumentId DocumentId { get; }
+        internal int Position { get; }
 
         public DocumentNavigationOperation(DocumentId documentId, int position = 0)
         {
-            _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
-            _position = position;
+            DocumentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
+            Position = position;
         }
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            if (workspace.CanOpenDocuments)
-            {
-                var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-                var threadingService = workspace.Services.GetService<IWorkspaceThreadingServiceProvider>();
-
-                threadingService.Service.Run(
-                    () => navigationService.TryNavigateToPositionAsync(workspace, _documentId, _position, cancellationToken));
-            }
+            // Intentionally empty.  Handling of this operation is special cased in CodeActionEditHandlerService.cs 
         }
     }
 }

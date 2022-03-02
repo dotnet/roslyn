@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             return _threadingProvider.Service.Run(() => obj.TryNavigateToPositionAsync(workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken));
         }
 
-        /// <inheritdoc cref="IDocumentNavigationService.TryNavigateToPositionAsync"/>
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var obj = _underlyingObject;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If there's only a single item, navigates to it.  Otherwise, presents all the
         /// items to the user.
         /// </summary>
-        public static async Task<bool> TryNavigateToOrPresentItemsAsync(
+        public static async Task<INavigableLocation?> GetStreamingLocationAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
             Workspace workspace,
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             CancellationToken cancellationToken)
         {
             if (items.IsDefaultOrEmpty)
-                return false;
+                return null;
 
             using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitionsBuilder);
             foreach (var item in items)
@@ -78,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                     definitionsBuilder.Add(item);
             }
 
+            var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true);
             var definitions = definitionsBuilder.ToImmutable();
 
             // See if there's a third party external item we can navigate to.  If so, defer 
@@ -88,15 +87,12 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                if (await item.TryNavigateToAsync(workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false))
-                    return true;
+                return new NavigableLocation(cancellationToken => item.TryNavigateToAsync(workspace, options, cancellationToken));
             }
 
             var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
             if (nonExternalItems.Length == 0)
-            {
-                return false;
-            }
+                return null;
 
             if (nonExternalItems.Length == 1 &&
                 nonExternalItems[0].SourceSpans.Length <= 1)
@@ -104,11 +100,14 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // There was only one location to navigate to.  Just directly go to that location. If we're directly
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
-                return await nonExternalItems[0].TryNavigateToAsync(
-                    workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+                return new NavigableLocation(cancellationToken =>
+                    nonExternalItems[0].TryNavigateToAsync(workspace, options, cancellationToken));
             }
 
-            if (presenter != null)
+            if (presenter == null)
+                return null;
+
+            return new NavigableLocation(async cancellationToken =>
             {
                 // Can only navigate or present items on UI thread.
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -128,9 +127,9 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 {
                     await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
                 }
-            }
 
-            return true;
+                return true;
+            });
         }
     }
 }
