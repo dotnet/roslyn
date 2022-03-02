@@ -101,7 +101,7 @@ class C
                 Dim cursorBuffer = cursorDocument.GetTextBuffer()
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(threadingContext, presenter)
+                Dim goToDefService = New CSharpAsyncGoToDefinitionService(threadingContext, presenter)
 
                 Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
                 Dim handler = New GoToDefinitionCommandHandler(workspace.GetService(Of IThreadingContext))

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         showProgress: false);
 
                     var cancellationToken = context.UserCancellationToken;
-                    var location = await _presenter.GetNavigableLocationAsync(
+                    var location = await _presenter.GetStreamingLocationAsync(
                         _threadingContext,
                         _document.Project.Solution.Workspace,
                         _definitions[0].NameDisplayParts.GetFullText(),

@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() presenterCalled = True)
 
                 Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                    DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IAsyncGoToDefinitionService),
-                    New VisualBasicGoToDefinitionService(threadingContext, presenter))
+                    DirectCast(New CSharpAsyncGoToDefinitionService(threadingContext, presenter), IAsyncGoToDefinitionService),
+                    New VisualBasicAsyncGoToDefinitionService(threadingContext, presenter))
 
                 Dim defLocation = Await goToDefService.FindDefinitionLocationAsync(document, cursorPosition, CancellationToken.None)
                 Dim actualResult = defLocation IsNot Nothing AndAlso
