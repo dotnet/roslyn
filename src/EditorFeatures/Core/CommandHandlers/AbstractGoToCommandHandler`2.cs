@@ -187,7 +187,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             if (definitions.Length > 0)
             {
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
-                var location = await _streamingPresenter.TryNavigateToLocationAsync(
+                var location = await _streamingPresenter.TryPresentLocationsAsync(
                     _threadingContext,
                     document.Project.Solution.Workspace,
                     title ?? this.DisplayName,

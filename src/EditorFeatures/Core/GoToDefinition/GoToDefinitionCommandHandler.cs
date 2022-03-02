@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private static (Document?, IGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document?, IGoToDefinitionService?, IAsyncGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document, document?.GetLanguageService<IGoToDefinitionService>());
+            return (document, document?.GetLanguageService<IGoToDefinitionService>(), document?.GetLanguageService<IAsyncGoToDefinitionService>());
         }
 
         public CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
-            return service != null
+            var (_, service, asyncService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return service != null || asyncService != null
                 ? CommandState.Available
                 : CommandState.Unspecified;
         }
@@ -53,19 +53,22 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
             var subjectBuffer = args.SubjectBuffer;
-            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            var (document, service, asyncService) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+
+            if (service == null && asyncService == null)
+                return false;
 
             // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
             // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
             // This can be removed once typescript implements LSP support for goto def.
-            if (service != null && !subjectBuffer.IsInLspEditorContext())
+            if (!subjectBuffer.IsInLspEditorContext())
             {
                 Contract.ThrowIfNull(document);
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue)
                 {
                     _threadingContext.JoinableTaskFactory.Run(() =>
-                        ExecuteCommandAsync(document, caretPos.Value, service, context));
+                        ExecuteCommandAsync(document, caretPos.Value, service, asyncService, context));
                     return true;
                 }
             }
@@ -74,14 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         }
 
         private async Task ExecuteCommandAsync(
-            Document document, int caretPosition, IGoToDefinitionService? goToDefinitionService, CommandExecutionContext context)
+            Document document, int caretPosition, IGoToDefinitionService? service, IAsyncGoToDefinitionService? asyncService, CommandExecutionContext context)
         {
             string? errorMessage = null;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
-                if (goToDefinitionService is IAsyncGoToDefinitionService asyncService)
+                if (asyncService != null)
                 {
                     var location = await asyncService.FindDefinitionLocationAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
                     var success = await location.NavigateToAsync(_threadingContext, cancellationToken).ConfigureAwait(false);
@@ -91,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 }
                 else
                 {
-                    if (goToDefinitionService != null &&
-                        goToDefinitionService.TryGoToDefinition(document, caretPosition, cancellationToken))
+                    if (service != null &&
+                        service.TryGoToDefinition(document, caretPosition, cancellationToken))
                     {
                         return;
                     }
@@ -126,8 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 _handler = handler;
             }
 
-            public Task ExecuteCommandAsync(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
-                => _handler.ExecuteCommandAsync(document, caretPosition, goToDefinitionService, context);
+            public Task ExecuteCommandAsync(Document document, int caretPosition, IAsyncGoToDefinitionService asyncService, CommandExecutionContext context)
+                => _handler.ExecuteCommandAsync(document, caretPosition, service: null, asyncService, context);
         }
     }
 }

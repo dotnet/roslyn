@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 
     internal static class IStreamingFindUsagesPresenterExtensions
     {
-        public static async Task<bool> TryNavigateToLocationAsync(
+        public static async Task<bool> TryPresentLocationsAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
             Workspace workspace,
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             ImmutableArray<DefinitionItem> items,
             CancellationToken cancellationToken)
         {
-            var location = await presenter.GetNavigableLocationAsync(
+            var location = await presenter.GetStreamingLocationAsync(
                 threadingContext, workspace, title, items, cancellationToken).ConfigureAwait(false);
             if (location == null)
                 return false;
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// If there's only a single item, navigates to it.  Otherwise, presents all the
         /// items to the user.
         /// </summary>
-        public static async Task<INavigableLocation?> GetNavigableLocationAsync(
+        public static async Task<INavigableLocation?> GetStreamingLocationAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
             Workspace workspace,

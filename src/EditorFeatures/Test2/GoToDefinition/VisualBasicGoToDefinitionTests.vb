@@ -564,7 +564,7 @@ End Class
 
 Module Ex
     <System.Runtime.CompilerServices.Extension()>
-    public async function TestExt(Of T)(ex As T)
+    Public Sub TestExt(Of T)(ex As T)
     End Sub
     <System.Runtime.CompilerServices.Extension()>
     Public Sub [|TestExt|](ex As string)
