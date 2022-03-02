@@ -728,6 +728,7 @@ try {
 
   if ($restore) {
     &(Ensure-DotNetSdk) tool restore
+    InitializeDotNetWorkloads
   }
 
   try

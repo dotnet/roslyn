@@ -167,9 +167,6 @@ function InitializeDotNetCli {
   Write-PipelineSetVariable -name "DOTNET_MULTILEVEL_LOOKUP" -value "0"
   Write-PipelineSetVariable -name "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" -value "1"
 
-  # Install any dotnet workloads specified in global.json
-  dotnet workload install macos # TODO: Call Install-DotNetWorkloads.ps1
-
   # return value
   _InitializeDotNetCli="$dotnet_root"
 }
@@ -234,6 +231,10 @@ function InstallDotNet {
     echo "Attempting to install dotnet from $variationName."
     bash "$install_script" "${variation[@]}" && installSuccess=1
     if [[ "$installSuccess" -eq 1 ]]; then
+      # Install any dotnet workloads specified in global.json
+      # TODO: Call Install-DotNetWorkloads.ps1 instead
+      # TODO: Also do this during repeat restore
+      dotnet workload install macos
       break
     fi
 

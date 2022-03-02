@@ -230,11 +230,14 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   Write-PipelineSetVariable -Name 'DOTNET_MULTILEVEL_LOOKUP' -Value '0'
   Write-PipelineSetVariable -Name 'DOTNET_SKIP_FIRST_TIME_EXPERIENCE' -Value '1'
 
+  return $global:_DotNetInstallDir = $dotnetRoot
+}
+
+function InitializeDotNetWorkloads()
+{
   # Install any dotnet workloads specified in global.json
   $globalJsonPath = Join-Path $RepoRoot 'global.json'
   & $PSScriptRoot\Install-DotNetWorkloads.ps1 -globalJsonPath $globalJsonPath | Out-Null
-
-  return $global:_DotNetInstallDir = $dotnetRoot
 }
 
 function Retry($downloadBlock, $maxRetries = 5) {
@@ -331,6 +334,9 @@ function InstallDotNet([string] $dotnetRoot,
     try {
       & $installScript @variation
       $installSuccess = $true
+
+      InitializeDotNetWorkloads
+
       break
     }
     catch {
