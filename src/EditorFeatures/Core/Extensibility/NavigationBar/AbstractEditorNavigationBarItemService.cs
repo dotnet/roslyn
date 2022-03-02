@@ -50,12 +50,13 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         protected async Task NavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            if (await navigationService.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false))
+            var location = await navigationService.GetLocationForPositionAsync(
+                workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+
+            if (location != null)
             {
-                var location = await navigationService.GetLocationForPositionAsync(
-                    workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                return;
             }
             else
             {

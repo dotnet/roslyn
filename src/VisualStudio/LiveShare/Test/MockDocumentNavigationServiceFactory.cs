@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
 
             public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken) => SpecializedTasks.True;
 
-            public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken) => SpecializedTasks.True;
+            public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken) => SpecializedTasks.True;
 
             public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
                 => NavigableLocation.TestAccessor.Create(true);
