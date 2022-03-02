@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 SemanticTokensHelpers.TokenTypeToIndex,
                 request.Range,
                 options,
-                includeSyntacticClassifications: context.ClientName is not null && context.ClientName.Equals(ProtocolConstants.RazorCSharp),
+                includeSyntacticClassifications: context.Document.IsRazorDocument(),
                 cancellationToken).ConfigureAwait(false);
 
             return new RoslynSemanticTokens { Data = tokensData, IsFinalized = isFinalized };
