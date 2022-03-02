@@ -76,54 +76,5 @@ class C
                 Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
             End Using
         End Function
-
-        '        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        '        Public Async Function TestCancellation() As Task
-        '            ' Run without cancelling.
-        '            Dim updates = Await CancelAsync(Integer.MaxValue, False)
-        '            Assert.InRange(updates, 0, Integer.MaxValue)
-        '            Dim i As Integer = 0
-        '            While i < updates
-        '                Dim n = Await CancelAsync(i, True)
-        '                Assert.Equal(n, i + 1)
-        '                i += 1
-        '            End While
-        '        End Function
-
-        '        Private Shared Async Function CancelAsync(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Task(Of Integer)
-        '            Dim definition =
-        '<Workspace>
-        '    <Project Language="C#" CommonReferences="true">
-        '        <Document>
-        '            class [|C|] { $$C c; }"
-        '        </Document>
-        '    </Project>
-        '</Workspace>
-
-        '            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-        '                Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
-        '                Dim cursorPosition = cursorDocument.CursorPosition.Value
-
-        '                Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
-
-        '                Dim navigatedTo = False
-        '                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-        '                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() navigatedTo = True)
-
-        '                Dim cursorBuffer = cursorDocument.GetTextBuffer()
-        '                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
-
-        '                Dim goToDefService = New CSharpAsyncGoToDefinitionService(threadingContext, presenter)
-
-        '                Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
-        '                Dim handler = New GoToDefinitionCommandHandler(workspace.GetService(Of IThreadingContext))
-        '                Await handler.GetTestAccessor().ExecuteCommandAsync(
-        '                    document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
-
-        '                Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
-
-        '                Return waitContext.Updates
-        '            End Using
-        '        End Function
     End Class
 End Namespace
