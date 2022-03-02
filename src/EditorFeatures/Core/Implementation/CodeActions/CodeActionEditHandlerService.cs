@@ -171,8 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 {
                     // Come back to the UI thread after processing the operations so we can commit the transaction
                     applied = await ProcessOperationsAsync(
-                        workspace, operations, progressTracker,
-                        cancellationToken).ConfigureAwait(true);
+                        workspace, operations, progressTracker, cancellationToken).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
                 {
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
             var updatedSolution = operations.OfType<ApplyChangesOperation>().FirstOrDefault()?.ChangedSolution ?? oldSolution;
             await TryNavigateToLocationOrStartRenameSessionAsync(
-                workspace, oldSolution, updatedSolution, cancellationToken).ConfigureAwait(false);
+                workspace, operations, oldSolution, updatedSolution, cancellationToken).ConfigureAwait(false);
             return applied;
         }
 
@@ -288,30 +287,44 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return applied;
         }
 
-        private async Task TryNavigateToLocationOrStartRenameSessionAsync(Workspace workspace, Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
+        private async Task TryNavigateToLocationOrStartRenameSessionAsync(
+            Workspace workspace,
+            ImmutableArray<CodeActionOperation> operations,
+            Solution oldSolution,
+            Solution newSolution,
+            CancellationToken cancellationToken)
         {
+            var navigationOperation = operations.OfType<DocumentNavigationOperation>().FirstOrDefault();
+            if (navigationOperation != null && workspace.CanOpenDocuments)
+            {
+                var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+                var location = await navigationService.GetLocationForPositionAsync(
+                    workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
+                if (location != null)
+                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
             foreach (var documentId in changedDocuments)
             {
                 var document = newSolution.GetRequiredDocument(documentId);
                 if (!document.SupportsSyntaxTree)
-                {
                     continue;
-                }
 
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var navigationTokenOpt = root.GetAnnotatedTokens(NavigationAnnotation.Kind).FirstOrNull();
-                if (navigationTokenOpt.HasValue)
+                var navigationToken = root.GetAnnotatedTokens(NavigationAnnotation.Kind).FirstOrNull();
+                if (navigationToken.HasValue)
                 {
                     var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
                     await navigationService.TryNavigateToPositionAsync(
-                        this.ThreadingContext, workspace, documentId, navigationTokenOpt.Value.SpanStart, cancellationToken).ConfigureAwait(false);
+                        this.ThreadingContext, workspace, documentId, navigationToken.Value.SpanStart, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
-                var renameTokenOpt = root.GetAnnotatedTokens(RenameAnnotation.Kind).FirstOrNull();
-                if (renameTokenOpt.HasValue)
+                var renameToken = root.GetAnnotatedTokens(RenameAnnotation.Kind).FirstOrNull();
+                if (renameToken.HasValue)
                 {
                     // It's possible that the workspace's current solution is not the same as
                     // newSolution. This can happen if the workspace host performs other edits
@@ -319,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     // formatting can happen. To work around this, we create a SyntaxPath to the
                     // rename token in the newSolution and resolve it to the current solution.
 
-                    var pathToRenameToken = new SyntaxPath(renameTokenOpt.Value);
+                    var pathToRenameToken = new SyntaxPath(renameToken.Value);
                     var latestDocument = workspace.CurrentSolution.GetDocument(documentId);
                     if (latestDocument != null)
                     {
