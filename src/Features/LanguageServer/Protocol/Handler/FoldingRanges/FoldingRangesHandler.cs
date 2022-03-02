@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FoldingRangesHandler)), Shared]
     [Method(Methods.TextDocumentFoldingRangeName)]
-    internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]?>
+    internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandlerAndProvider<FoldingRangeParams, FoldingRange[]?>
     {
         private readonly IGlobalOptionService _globalOptions;
 

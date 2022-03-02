@@ -47,7 +47,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
     internal class ExportRoslynLanguagesLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
     {
-        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute(Type firstHandlerType, params Type[] additionalHandlerTypes) : base(ProtocolConstants.RoslynLspLanguagesContract, firstHandlerType, additionalHandlerTypes)
+        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute(Type firstHandlerType, params Type[] additionalHandlerTypes)
+            : base(ProtocolConstants.RoslynLspLanguagesHandlerProviderContract, firstHandlerType, additionalHandlerTypes)
         {
         }
     }

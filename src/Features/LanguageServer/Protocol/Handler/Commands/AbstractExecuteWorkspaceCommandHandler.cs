@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Commands
 {
     internal abstract class AbstractExecuteWorkspaceCommandHandler : IRequestHandler<ExecuteCommandParams, object>
     {
-        public abstract string Command { get; }
-
         public abstract bool MutatesSolutionState { get; }
         public abstract bool RequiresLSPSolution { get; }
 

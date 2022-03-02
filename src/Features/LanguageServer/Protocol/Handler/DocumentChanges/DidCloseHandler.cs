@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DidCloseHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidCloseName)]
-    internal class DidCloseHandler : AbstractStatelessRequestHandler<LSP.DidCloseTextDocumentParams, object?>
+    internal class DidCloseHandler : AbstractStatelessRequestHandlerAndProvider<LSP.DidCloseTextDocumentParams, object?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

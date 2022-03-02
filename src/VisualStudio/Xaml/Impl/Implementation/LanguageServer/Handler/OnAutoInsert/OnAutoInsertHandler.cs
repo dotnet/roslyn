@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportXamlLspRequestHandlerProvider(typeof(OnAutoInsertHandler)), Shared]
     [Method(VSInternalMethods.OnAutoInsertName)]
-    internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
+    internal class OnAutoInsertHandler : AbstractStatelessRequestHandlerAndProvider<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

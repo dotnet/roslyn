@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
                 Range = range
             };
 
-        protected static async Task UpdateDocumentTextAsync(string updatedText, Workspace workspace)
-        {
-            var docId = ((TestWorkspace)workspace).Documents.First().Id;
-            await ((TestWorkspace)workspace).ChangeDocumentAsync(docId, SourceText.From(updatedText));
-        }
-
         // VS doesn't currently support multi-line tokens, so we want to verify that we aren't
         // returning any in the tokens array.
         private protected static async Task VerifyNoMultiLineTokens(TestLspServer testLspServer, int[] tokens)

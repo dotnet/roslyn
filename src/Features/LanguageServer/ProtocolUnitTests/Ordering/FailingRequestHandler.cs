@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FailingRequestHandler)), PartNotDiscoverable]
     [Method(MethodName)]
-    internal class FailingRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
+    internal class FailingRequestHandler : AbstractStatelessRequestHandlerAndProvider<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(FailingRequestHandler);
         private const int Delay = 100;

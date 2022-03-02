@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -12,6 +13,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ImmutableArray<string> RoslynLspLanguages = ImmutableArray.Create(LanguageNames.CSharp, LanguageNames.VisualBasic, LanguageNames.FSharp);
 
-        public const string RoslynLspLanguagesContract = "RoslynLspLanguages";
+        /// <summary>
+        /// MEF contract name for importing and exporting <see cref="AbstractRequestHandlerProvider"/> instances
+        /// for <see cref="RoslynLspLanguages"/>
+        /// </summary>
+        public const string RoslynLspLanguagesHandlerProviderContract = "RoslynLspLanguages";
     }
 }

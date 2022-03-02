@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FormatDocumentOnTypeHandler)), Shared]
     [Method(Methods.TextDocumentOnTypeFormattingName)]
-    internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
+    internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandlerAndProvider<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

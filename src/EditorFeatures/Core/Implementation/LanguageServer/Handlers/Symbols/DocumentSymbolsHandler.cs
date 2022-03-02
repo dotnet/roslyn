@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentSymbolsHandler)), Shared]
     [Method(Methods.TextDocumentDocumentSymbolName)]
-    internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
+    internal class DocumentSymbolsHandler : AbstractStatelessRequestHandlerAndProvider<DocumentSymbolParams, object[]>
     {
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

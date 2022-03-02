@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </summary>
     [ExportXamlLspRequestHandlerProvider(typeof(CompletionResolveHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal class CompletionResolveHandler : AbstractStatelessRequestHandlerAndProvider<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly IGlobalOptionService _globalOptions;
 
