@@ -5,6 +5,8 @@
     <!-- https://github.com/dotnet/roslyn/pull/59429#issuecomment-1043195174 -->
     <EnableDefaultmacOSItems>false</EnableDefaultmacOSItems>
 
+    <NoWarn>$(NoWarn);NU1701;CS8601;CS8618;CS8622</NoWarn>
+
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
