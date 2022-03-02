@@ -2071,6 +2071,20 @@ tryAgain:
                 case SyntaxKind.DefaultKeyword:
                     var defaultToken = this.EatToken();
                     return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
+                case SyntaxKind.EnumKeyword:
+                    {
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
+                case SyntaxKind.DelegateKeyword when PeekToken(1).Kind is not SyntaxKind.AsteriskToken:
+                    {
+                        // Produce a specific diagnostic for `where T : delegate`
+                        // but not `where T : delegate*<...>
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);

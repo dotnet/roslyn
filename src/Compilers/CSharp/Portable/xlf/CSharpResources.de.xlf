@@ -917,6 +917,16 @@
         <target state="translated">Im Basistyp "{0}" wurde kein zugänglicher Kopierkonstruktor gefunden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoEnumConstraint">
+        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
+        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
         <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
         <target state="translated">Der bedingte Ausdruck ist in der Sprachversion {0} nicht gültig, da zwischen „{1}“ und „{2}“ kein allgemeiner Typ gefunden wurde. Um eine Zielkonvertierung zu verwenden, führen Sie ein Upgrade auf die Sprachversion {3} oder höher aus.</target>
