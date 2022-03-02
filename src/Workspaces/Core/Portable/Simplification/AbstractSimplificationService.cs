@@ -328,20 +328,4 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         protected abstract void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken);
     }
-
-    internal struct NodeOrTokenToReduce
-    {
-        public readonly SyntaxNodeOrToken NodeOrToken;
-        public readonly bool SimplifyAllDescendants;
-        public readonly SyntaxNodeOrToken OriginalNodeOrToken;
-        public readonly bool CanBeSpeculated;
-
-        public NodeOrTokenToReduce(SyntaxNodeOrToken nodeOrToken, bool simplifyAllDescendants, SyntaxNodeOrToken originalNodeOrToken, bool canBeSpeculated = true)
-        {
-            this.NodeOrToken = nodeOrToken;
-            this.SimplifyAllDescendants = simplifyAllDescendants;
-            this.OriginalNodeOrToken = originalNodeOrToken;
-            this.CanBeSpeculated = canBeSpeculated;
-        }
-    }
 }
