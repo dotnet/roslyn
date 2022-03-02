@@ -451,6 +451,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
 
+
+            //If container type is "ref struct" then we should exclude methods from object and ValueType that are not overriden,
+            //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
+            if (containerType is not null && containerType.IsRefLikeType)
+            {
+                namedSymbols = namedSymbols.RemoveAll(s => s.ContainingType.SpecialType == SpecialType.System_Object || s.ContainingType.SpecialType == SpecialType.System_ValueType);
+            }
+
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.
             var unnamedSymbols = _context.IsNameOfContext || excludeInstance
