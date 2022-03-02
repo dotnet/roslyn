@@ -28,11 +28,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.CloseSolution(saveFirst);
 
         /// <summary>
-        /// The full file path to the solution file.
-        /// </summary>
-        public string SolutionFileFullPath => _inProc.SolutionFileFullPath;
-
-        /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
         /// </summary>
         public void CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
