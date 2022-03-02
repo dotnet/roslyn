@@ -192,7 +192,6 @@ namespace Microsoft.CodeAnalysis.Simplification
                 simplifyTasks[i] = Task.Run(async () =>
                 {
                     var nodeOrToken = nodeOrTokenToReduce.OriginalNodeOrToken;
-                    var simplifyAllDescendants = nodeOrTokenToReduce.SimplifyAllDescendants;
                     var semanticModelForReduce = semanticModel;
                     var currentNodeOrToken = nodeOrTokenToReduce.NodeOrToken;
                     var isNode = nodeOrToken.IsNode;
@@ -256,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                             }
 
                             // Reduce the current node or token.
-                            currentNodeOrToken = rewriter.VisitNodeOrToken(currentNodeOrToken, semanticModelForReduce, simplifyAllDescendants);
+                            currentNodeOrToken = rewriter.VisitNodeOrToken(currentNodeOrToken, semanticModelForReduce, simplifyAllDescendants: true);
                         }
                         while (rewriter.HasMoreWork);
                     }
@@ -332,16 +331,12 @@ namespace Microsoft.CodeAnalysis.Simplification
     internal struct NodeOrTokenToReduce
     {
         public readonly SyntaxNodeOrToken NodeOrToken;
-        public readonly bool SimplifyAllDescendants;
         public readonly SyntaxNodeOrToken OriginalNodeOrToken;
-        public readonly bool CanBeSpeculated;
 
-        public NodeOrTokenToReduce(SyntaxNodeOrToken nodeOrToken, bool simplifyAllDescendants, SyntaxNodeOrToken originalNodeOrToken, bool canBeSpeculated = true)
+        public NodeOrTokenToReduce(SyntaxNodeOrToken nodeOrToken, SyntaxNodeOrToken originalNodeOrToken)
         {
             this.NodeOrToken = nodeOrToken;
-            this.SimplifyAllDescendants = simplifyAllDescendants;
             this.OriginalNodeOrToken = originalNodeOrToken;
-            this.CanBeSpeculated = canBeSpeculated;
         }
     }
 }

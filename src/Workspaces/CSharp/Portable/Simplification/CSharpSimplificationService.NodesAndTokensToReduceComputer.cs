@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     {
                         _insideSpeculatedNode = true;
                         var rewrittenNode = base.Visit(node);
-                        _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(rewrittenNode, _simplifyAllDescendants, node));
+                        _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(rewrittenNode, node));
                         _insideSpeculatedNode = false;
                     }
                 }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 if (_simplifyAllDescendants && !_insideSpeculatedNode && !token.IsKind(SyntaxKind.None))
                 {
-                    _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, simplifyAllDescendants: true, originalNodeOrToken: token));
+                    _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, token));
                 }
 
                 if (token.ContainsAnnotations || savedSimplifyAllDescendants)

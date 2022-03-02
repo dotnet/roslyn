@@ -64,14 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If Me._simplifyAllDescendants OrElse node.DescendantNodesAndTokens(s_containsAnnotations, descendIntoTrivia:=True).Any(s_hasSimplifierAnnotation) Then
                         Me._insideSpeculatedNode = True
                         Dim rewrittenNode = MyBase.Visit(node)
-                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, _simplifyAllDescendants, node))
+                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, node))
                         Me._insideSpeculatedNode = False
                     End If
                 ElseIf node.ContainsAnnotations OrElse savedSimplifyAllDescendants Then
-                    If Not Me._insideSpeculatedNode AndAlso
-                    IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso
-                    Me._simplifyAllDescendants Then
-                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, False, node, False))
+                    If Not Me._insideSpeculatedNode AndAlso IsNodeVariableDeclaratorOfFieldDeclaration(node) AndAlso Me._simplifyAllDescendants Then
+                        Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(node, node))
                     End If
 
                     node = MyBase.Visit(node)
@@ -101,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse token.HasAnnotation(Simplifier.Annotation)
 
                 If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso token.Kind <> SyntaxKind.None Then
-                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, simplifyAllDescendants:=True, originalNodeOrToken:=token))
+                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, token))
                 End If
 
                 If token.ContainsAnnotations OrElse savedSimplifyAllDescendants Then
@@ -185,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Me._insideSpeculatedNode = True
                     Dim statements = VisitList(node.Statements)
                     Dim rewrittenNode = updateFunc(node, node.BlockStatement, statements, node.EndBlockStatement)
-                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, Me._simplifyAllDescendants, node))
+                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, node))
                     Me._insideSpeculatedNode = False
                 End If
 
