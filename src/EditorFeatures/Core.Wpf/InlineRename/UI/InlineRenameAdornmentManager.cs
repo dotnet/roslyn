@@ -6,36 +6,41 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.Editor.InlineRename.Adornment;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal class DashboardAdornmentManager : IDisposable
+    internal class InlineRenameAdornmentManager : IDisposable
     {
         private readonly IWpfTextView _textView;
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
-        private readonly IDashboardColorUpdater? _dashboardColorUpdater;
+        private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
 
         private readonly IAdornmentLayer _adornmentLayer;
 
-        private static readonly ConditionalWeakTable<InlineRenameSession, DashboardViewModel> s_createdViewModels =
-            new ConditionalWeakTable<InlineRenameSession, DashboardViewModel>();
+        private static readonly ConditionalWeakTable<InlineRenameSession, object> s_createdViewModels =
+            new ConditionalWeakTable<InlineRenameSession, object>();
 
-        public DashboardAdornmentManager(
+        public InlineRenameAdornmentManager(
             InlineRenameService renameService,
             IEditorFormatMapService editorFormatMapService,
-            IDashboardColorUpdater? dashboardColorUpdater,
-            IWpfTextView textView)
+            IInlineRenameColorUpdater? dashboardColorUpdater,
+            IWpfTextView textView,
+            IGlobalOptionService globalOptionService)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
             _dashboardColorUpdater = dashboardColorUpdater;
             _textView = textView;
-
-            _adornmentLayer = textView.GetAdornmentLayer(DashboardAdornmentProvider.AdornmentLayerName);
+            _globalOptionService = globalOptionService;
+            _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
             _textView.Closed += OnTextViewClosed;
@@ -64,12 +69,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _dashboardColorUpdater?.UpdateColors();
 
-                var newAdornment = new Dashboard(
-                    s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
-                    _editorFormatMapService,
-                    _textView);
-                _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
-                    (tag, adornment) => ((Dashboard)adornment).Dispose());
+                var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
+                if (useInlineAdornment)
+                {
+                    var adornment = new InlineRenameAdornment(
+                        (InlineRenameAdornmentViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new InlineRenameAdornmentViewModel(session)),
+                        _textView);
+
+                    _adornmentLayer.AddAdornment(
+                        AdornmentPositioningBehavior.ViewportRelative,
+                        null, // Set no visual span because we don't want the editor to automatically remove the adornment if the overlapping span changes
+                        tag: null,
+                        adornment,
+                        (tag, adornment) => ((InlineRenameAdornment)adornment).Dispose());
+                }
+                else
+                {
+                    var newAdornment = new Dashboard(
+                        (DashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
+                        _editorFormatMapService,
+                        _textView);
+
+                    _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
+                        (tag, adornment) => ((Dashboard)adornment).Dispose());
+                }
             }
         }
 

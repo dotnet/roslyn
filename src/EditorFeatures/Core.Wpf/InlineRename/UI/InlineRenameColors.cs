@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal static class DashboardColors
+    internal static class InlineRenameColors
     {
         // In the Dashboard XAML, we bind to these keys to provide the correct color resources.
         // The default values of these fields match the names of the keys in DashboardColors.xaml,
@@ -20,5 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public static object BackgroundBrushKey { get; set; } = "BackgroundBrush";
         public static object AccentBarColorKey { get; set; } = "AccentBarBrush";
         public static object ButtonStyleKey { get; set; } = "ButtonStyle";
+        public static object ButtonBorderBrush { get; set; } = "ButtonBorderBrush";
     }
 }
