@@ -18,25 +18,18 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
-    internal abstract class AbstractGoToDefinitionService : AbstractFindDefinitionService, IAsyncGoToDefinitionService
+    internal abstract class AbstractAsyncGoToDefinitionService : AbstractFindDefinitionService, IAsyncGoToDefinitionService
     {
         private readonly IThreadingContext _threadingContext;
-
-        /// <summary>
-        /// Used to present go to definition results in <see cref="GetNavigableLocationAsync"/>
-        /// </summary>
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
-        protected AbstractGoToDefinitionService(
+        protected AbstractAsyncGoToDefinitionService(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
-
-        async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
-            => await FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
 
         private static Task<INavigableLocation?> GetNavigableLocationAsync(
             Document document, int position, CancellationToken cancellationToken)
@@ -49,9 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 workspace, document.Id, position, virtualSpace: 0,
                 new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken);
         }
-
-        public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
-            => throw new NotImplementedException("Use FindDefinitionLocationAsync instead.");
 
         public async Task<INavigableLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
@@ -129,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = builder.ToImmutable();
 
-            return await _streamingPresenter.GetNavigableLocationAsync(
+            return await _streamingPresenter.GetStreamingLocationAsync(
                 _threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -103,7 +101,21 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return definitions.ToImmutable();
         }
 
-#nullable enable
+        public static async Task<bool> TryNavigateToLocationAsync(
+            ISymbol symbol,
+            Solution solution,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true)
+        {
+            var location = await GetDefinitionLocationAsync(
+                symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
+            if (location == null)
+                return false;
+
+            return await location.NavigateToAsync(threadingContext, cancellationToken).ConfigureAwait(false);
+        }
 
         public static async Task<INavigableLocation?> GetDefinitionLocationAsync(
             ISymbol symbol,
@@ -118,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-            return await streamingPresenter.GetNavigableLocationAsync(
+            return await streamingPresenter.GetStreamingLocationAsync(
                 threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 
@@ -136,7 +148,5 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
             return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
-
-#nullable restore
     }
 }

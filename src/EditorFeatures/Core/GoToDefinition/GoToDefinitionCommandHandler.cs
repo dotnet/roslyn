@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -41,21 +42,21 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             _threadingContext = threadingContext;
             _executor = executor;
-            _listener = listenerProvider.GetListener(FeatureAttribute.GoToBase);
+            _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
         }
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private static (Document?, IGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document?, IGoToDefinitionService?, IAsyncGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document, document?.GetLanguageService<IGoToDefinitionService>());
+            return (document, document?.GetLanguageService<IGoToDefinitionService>(), document?.GetLanguageService<IAsyncGoToDefinitionService>());
         }
 
         public CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
-            return service != null
+            var (_, service, asyncService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return service != null || asyncService != null
                 ? CommandState.Available
                 : CommandState.Unspecified;
         }
@@ -63,12 +64,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
             var subjectBuffer = args.SubjectBuffer;
-            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            var (document, service, asyncService) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+
+            if (service == null && asyncService == null)
+                return false;
 
             // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
             // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
             // This can be removed once typescript implements LSP support for goto def.
-            if (service == null || subjectBuffer.IsInLspEditorContext())
+            if (subjectBuffer.IsInLspEditorContext())
                 return false;
 
             Contract.ThrowIfNull(document);
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (!caretPos.HasValue)
                 return false;
 
-            if (service is IAsyncGoToDefinitionService asyncService)
+            if (asyncService != null)
             {
                 // We're showing our own UI, ensure the editor doesn't show anything itself.
                 context.OperationContext.TakeOwnership();

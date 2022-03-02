@@ -166,7 +166,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var editorWorkspace = openedDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-                    return await navigationService.TryNavigateToSpanAsync(
+                    await navigationService.TryNavigateToSpanAsync(
+                        this.ThreadingContext,
                         editorWorkspace,
                         openedDocument.Id,
                         result.IdentifierLocation.SourceSpan,

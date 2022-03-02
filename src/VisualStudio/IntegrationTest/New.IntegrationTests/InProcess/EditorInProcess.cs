@@ -34,6 +34,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
@@ -45,6 +46,15 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     internal partial class EditorInProcess
     {
+        public async Task<string> GetDirtyIndicatorAsync(CancellationToken cancellationToken)
+        {
+            var version = await TestServices.Shell.GetVersionAsync(cancellationToken);
+            if (version < Version.Parse("17.2.32224.407"))
+                return "*";
+
+            return " ⬤";
+        }
+
         public async Task WaitForEditorOperationsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -879,6 +889,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return bufferPosition.Position;
         }
 
+        public async Task GoToDefinitionAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.GotoDefn, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo, FeatureAttribute.GoToDefinition },
+                cancellationToken);
+        }
+
         public async Task GoToBaseAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -889,6 +907,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.GoToBase, cancellationToken);
             await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
+        }
+
+        public async Task GoToImplementationAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.GoToImplementation, cancellationToken);
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.GoToImplementation },
+                cancellationToken);
         }
 
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)

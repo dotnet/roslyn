@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return If(CanNavigateToPositionReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function CanNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToSpanAsync
+            Public Function CanNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToSpanAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedTextSpan = textSpan
 

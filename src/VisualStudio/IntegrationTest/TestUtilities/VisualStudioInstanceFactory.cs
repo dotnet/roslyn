@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var logDir = Path.Combine(assemblyDirectory, "TestResults", "Screenshots");
                 var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
 
                 var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;

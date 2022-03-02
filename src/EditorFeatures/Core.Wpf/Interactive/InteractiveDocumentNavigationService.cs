@@ -26,10 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             _threadingContext = threadingContext;
         }
 
-        public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.True;
-        }
+        public Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
+            => SpecializedTasks.True;
 
         public Task<bool> CanNavigateToLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
             => SpecializedTasks.False;
@@ -54,12 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
             var textView = interactiveWorkspace.Window.TextView;
             var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
-
-            var textSnapshot = document?.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
-            if (textSnapshot == null)
-            {
+            if (document is null)
                 return null;
-            }
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+            if (textSnapshot == null)
+                return null;
 
             var snapshotSpan = new SnapshotSpan(textSnapshot, textSpan.Start, textSpan.Length);
             var virtualSnapshotSpan = new VirtualSnapshotSpan(snapshotSpan);
@@ -89,12 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         }
 
         public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
-            => throw new NotSupportedException();
+            => SpecializedTasks.Null<INavigableLocation>();
 
         public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
-            => throw new NotSupportedException();
-
-        public Task<bool> TryNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
-            => throw new NotSupportedException();
+            => SpecializedTasks.Null<INavigableLocation>();
     }
 }

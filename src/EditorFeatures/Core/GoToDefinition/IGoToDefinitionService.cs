@@ -24,9 +24,4 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <returns>True if navigating to the definition of the symbol at the provided position succeeds.  False, otherwise.</returns>
         bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken);
     }
-
-    internal interface IAsyncGoToDefinitionService : IGoToDefinitionService
-    {
-        Task<INavigableLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken);
-    }
 }
