@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
         }
 
-        public override string SnippetIdentifier => "cw";
+        protected override string SnippetIdentifier => "cw";
 
         protected override string GetSnippetDisplayName()
         {
@@ -63,7 +63,10 @@ namespace Microsoft.CodeAnalysis.Snippets
             var generator = SyntaxGenerator.GetGenerator(document);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var typeExpression = generator.TypeExpression(symbol);
+
+            // We know symbol is not null at this point since it was checked when determining
+            // if we are in a valid location to insert the snippet.
+            var typeExpression = generator.TypeExpression(symbol!);
             var declaration = GetAsyncSupportingDeclaration(token);
             var isAsync = generator.GetModifiers(declaration).IsAsync;
             var invocation = isAsync
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
         }
 
-        private static async Task<INamedTypeSymbol> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
+        private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName);

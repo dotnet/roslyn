@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractSnippetProvider : ISnippetProvider
     {
-        public abstract string SnippetIdentifier { get; }
+        protected abstract string SnippetIdentifier { get; }
         protected readonly SyntaxAnnotation _cursorAnnotation = new();
         protected readonly SyntaxAnnotation _findSnippetAnnotation = new();
 
