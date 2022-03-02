@@ -38,6 +38,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
             ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
             ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
+            ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.PrettyListing);
 
             static void ResetOption2<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
