@@ -2713,6 +2713,197 @@ Block[B7] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void CheckForEachLoopOperationInfoArguments()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+	Console.WriteLine(x);
+}
+/*</bind>*/
+
+struct CustomAsyncEnumerable : IAsyncEnumerable<int>
+{
+	public AsyncEnumerator GetAsyncEnumerator([CallerMemberName] string s = default,
+	   [CallerLineNumber] int line = default)
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		Console.WriteLine(""GetAsyncEnumerator"");
+		return new();
+	}
+
+	IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token)
+	{
+		Console.WriteLine(""IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token)"");
+		return GetAsyncEnumerator();
+	}
+}
+
+struct AsyncEnumerator : IAsyncEnumerator<int>
+{
+	private int x;
+	public ValueTask<bool> MoveNextAsync([CallerMemberName] string s = default,
+		[CallerLineNumber] int line = default, int r = 12)
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		return ValueTask.FromResult(x++ < 5);
+	}
+
+	ValueTask<bool> IAsyncEnumerator<int>.MoveNextAsync()
+	{
+		Console.WriteLine(""IAsyncEnumerator<int>.MoveNextAsync()"");
+		return MoveNextAsync();
+	}
+	ValueTask IAsyncDisposable.DisposeAsync()
+	{
+		Console.WriteLine(""IAsyncDisposable.DisposeAsync()"");
+		return DisposeAsync();
+	}
+
+	public int Current => x;
+	
+	public ValueTask DisposeAsync([CallerMemberName] string s = default,
+						[CallerLineNumber] int line = default, int xxx=12, string f = """")
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		return ValueTask.CompletedTask;
+	}
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            //todo: replace with public api access
+            Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
+            Assert.Equal(3, op.Info.MoveNextArguments.Length);
+            Assert.True(op.Info.DisposeArguments.IsDefaultOrEmpty);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void CheckForEachLoopOperationInfoArguments2()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+    Console.WriteLine(x);
+}
+/*</bind>*/
+
+ref struct CustomAsyncEnumerable
+{
+    public AsyncEnumerator GetAsyncEnumerator([CallerMemberName] string s = default,
+        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        Console.WriteLine(""GetAsyncEnumerator"");
+        return new();
+    }
+}
+
+struct AsyncEnumerator
+{
+    private int x;
+    public ValueTask<bool> MoveNextAsync([CallerMemberName] string s = default,
+                        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        return ValueTask.FromResult(x++ < 5);
+    }
+
+    public int Current => x;
+
+    public ValueTask DisposeAsync([CallerMemberName] string s = default,
+                        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        return ValueTask.CompletedTask;
+    }
+}
+";
+
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            //todo: replace with public api access
+            Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
+            Assert.Equal(2, op.Info.MoveNextArguments.Length);
+            Assert.Equal(2, op.Info.DisposeArguments.Length);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ForEachFlow_07()
