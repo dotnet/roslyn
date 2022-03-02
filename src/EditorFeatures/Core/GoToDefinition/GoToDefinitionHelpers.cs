@@ -116,8 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (location == null)
                 return false;
 
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<INavigableLocation> GetDefinitionLocationAsync(

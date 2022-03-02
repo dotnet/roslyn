@@ -66,8 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             if (location == null)
                 return false;
 
-            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
