@@ -70,12 +70,16 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         defaultDescription: EditorFeaturesResources.Navigating_to_definition,
                         allowCancellation: true,
                         showProgress: false);
-                    await _presenter.TryNavigateToOrPresentItemsAsync(
+
+                    var cancellationToken = context.UserCancellationToken;
+                    var location = await _presenter.GetStreamingLocationAsync(
                         _threadingContext,
                         _document.Project.Solution.Workspace,
                         _definitions[0].NameDisplayParts.GetFullText(),
                         _definitions,
-                        context.UserCancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
+                    if (location != null)
+                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

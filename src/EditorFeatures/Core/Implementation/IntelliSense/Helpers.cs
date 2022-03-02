@@ -218,8 +218,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
                 if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
                 {
-                    await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+                    var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                         symbol, solution, threadingContext, streamingPresenter, cancellationToken).ConfigureAwait(false);
+                    if (location != null)
+                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

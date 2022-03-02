@@ -105,9 +105,11 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (symbolInfo.Symbol == null)
                 return false;
 
-            return await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+            var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                 symbolInfo.Symbol, currentProject.Solution,
                 _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+            return location != null &&
+                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)

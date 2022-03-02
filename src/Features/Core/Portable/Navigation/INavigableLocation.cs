@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// allow final clients to call this from a non-UI thread while allowing the navigation to jump to the UI
         /// thread.
         /// </summary>
-        Task<bool> NavigateToAsync(CancellationToken cancelletionToken);
+        Task<bool> NavigateToAsync(CancellationToken cancellationToken);
     }
 
     internal class NavigableLocation : INavigableLocation

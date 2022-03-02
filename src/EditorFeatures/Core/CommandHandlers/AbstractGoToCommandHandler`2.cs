@@ -187,12 +187,14 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             if (definitions.Length > 0)
             {
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
-                await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                var location = await _streamingPresenter.GetStreamingLocationAsync(
                     _threadingContext,
                     document.Project.Solution.Workspace,
                     title ?? this.DisplayName,
                     definitions,
                     cancellationToken).ConfigureAwait(false);
+                if (location != null)
+                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
                 return;
             }
         }

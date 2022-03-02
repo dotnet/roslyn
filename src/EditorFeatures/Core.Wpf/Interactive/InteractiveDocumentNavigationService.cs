@@ -54,12 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
             var textView = interactiveWorkspace.Window.TextView;
             var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
-
-            var textSnapshot = document?.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
-            if (textSnapshot == null)
-            {
+            if (document is null)
                 return null;
-            }
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+            if (textSnapshot == null)
+                return null;
 
             var snapshotSpan = new SnapshotSpan(textSnapshot, textSpan.Start, textSpan.Length);
             var virtualSnapshotSpan = new VirtualSnapshotSpan(snapshotSpan);
