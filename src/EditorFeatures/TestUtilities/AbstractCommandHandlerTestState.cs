@@ -295,6 +295,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public void SendPageDown(Action<PageDownKeyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new PageDownKeyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
 
+        public void SendCopy(Action<CopyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
+            => commandHandler(new CopyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
+
         public void SendCut(Action<CutCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new CutCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
 
