@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             if (isPullDiagnostics)
             {
                 serverCapabilities.SupportsDiagnosticRequests = true;
-                serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
             }
 
             return serverCapabilities;

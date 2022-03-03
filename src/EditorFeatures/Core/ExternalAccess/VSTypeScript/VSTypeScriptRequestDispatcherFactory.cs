@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [Shared]
 [Export(typeof(VSTypeScriptRequestDispatcherFactory))]
