@@ -1745,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
                 if (info.Arguments.Length == 0)
                 {
-                    return default;
+                    return ImmutableArray<IArgumentOperation>.Empty;
                 }
                 var args = DeriveArguments(
                     info.Method,
