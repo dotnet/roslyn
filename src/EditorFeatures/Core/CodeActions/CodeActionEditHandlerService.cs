@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             if (_renameService.ActiveSession != null)
             {
                 workspace.Services.GetService<INotificationService>()?.SendNotification(
-                    EditorFeaturesResources.Cannot_apply_operation_while_a_rename_session_is_active,
+                    CSharpEditorFeaturesResources.Cannot_apply_operation_while_a_rename_session_is_active,
                     severity: NotificationSeverity.Error);
                 return false;
             }

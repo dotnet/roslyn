@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _renameService = renameService;
         }
 
-        public string DisplayName => EditorFeaturesResources.Rename;
+        public string DisplayName => CSharpEditorFeaturesResources.Rename;
 
         protected abstract bool DashboardShouldReceiveKeyboardNavigation(ITextView textView);
 

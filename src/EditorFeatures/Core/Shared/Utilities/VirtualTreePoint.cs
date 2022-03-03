@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             if (Text != other.Text)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.Can_t_compare_positions_from_different_text_snapshots);
+                throw new InvalidOperationException(CSharpEditorFeaturesResources.Can_t_compare_positions_from_different_text_snapshots);
             }
 
             return ComparerWithState.CompareTo(this, other, s_comparers);

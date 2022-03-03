@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
                 // Ensure we're back on the UI thread before showing a failure message.
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                notificationService.SendNotification(EditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
+                notificationService.SendNotification(CSharpEditorFeaturesResources.The_definition_of_the_object_is_hidden, severity: NotificationSeverity.Error);
             }
         }
 

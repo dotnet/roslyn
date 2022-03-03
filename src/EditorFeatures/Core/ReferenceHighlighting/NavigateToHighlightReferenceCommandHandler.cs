@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         private readonly IOutliningManagerService _outliningManagerService;
         private readonly IViewTagAggregatorFactoryService _tagAggregatorFactory;
 
-        public string DisplayName => EditorFeaturesResources.Navigate_To_Highlight_Reference;
+        public string DisplayName => CSharpEditorFeaturesResources.Navigate_To_Highlight_Reference;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

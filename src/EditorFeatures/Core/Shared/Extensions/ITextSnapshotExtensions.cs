@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
 
             // partial mode is always cancellable
-            using (operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
+            using (operationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Waiting_for_background_work_to_finish))
             {
                 var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)

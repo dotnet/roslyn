@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
         {
             var initializationFailureContext = new InitializationFailureContext();
-            initializationFailureContext.FailureMessage = string.Format(EditorFeaturesResources.Language_client_initialization_failed,
+            initializationFailureContext.FailureMessage = string.Format(CSharpEditorFeaturesResources.Language_client_initialization_failed,
                 Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
             return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);
         }

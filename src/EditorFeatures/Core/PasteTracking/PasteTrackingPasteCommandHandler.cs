@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.PasteTracking
     [Order(Before = PredefinedCommandHandlerNames.FormatDocument)]
     internal class PasteTrackingPasteCommandHandler : IChainedCommandHandler<PasteCommandArgs>
     {
-        public string DisplayName => EditorFeaturesResources.Paste_Tracking;
+        public string DisplayName => CSharpEditorFeaturesResources.Paste_Tracking;
 
         private readonly PasteTrackingService _pasteTrackingService;
 

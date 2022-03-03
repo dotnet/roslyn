@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IOutliningManagerService _outliningManagerService;
 
-        public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
+        public string DisplayName => CSharpEditorFeaturesResources.Go_To_Adjacent_Member;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             int? targetPosition = null;
 
-            using (context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Navigating))
+            using (context.OperationContext.AddScope(allowCancellation: true, description: CSharpEditorFeaturesResources.Navigating))
             {
                 var task = GetTargetPositionAsync(document, caretPoint.Value.Position, gotoNextMember, context.OperationContext.UserCancellationToken);
                 targetPosition = task.WaitAndGetResult(context.OperationContext.UserCancellationToken);

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (interfaceImpls.Length == 0)
                 return false;
 
-            var title = string.Format(EditorFeaturesResources._0_implemented_members,
+            var title = string.Format(CSharpEditorFeaturesResources._0_implemented_members,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>

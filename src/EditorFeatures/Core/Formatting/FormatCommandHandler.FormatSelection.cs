@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_currently_selected_text))
+            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Formatting_currently_selected_text))
             {
                 var buffer = args.SubjectBuffer;
 

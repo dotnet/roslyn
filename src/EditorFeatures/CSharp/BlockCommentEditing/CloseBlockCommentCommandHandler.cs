@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             _globalOptions = globalOptions;
         }
 
-        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
+        public string DisplayName => CSharpEditorFeaturesResources.Block_Comment_Editing;
 
         public bool ExecuteCommand(TypeCharCommandArgs args, CommandExecutionContext executionContext)
         {

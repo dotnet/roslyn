@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             get { return ExteriorTriviaText[^1]; }
         }
 
-        public string DisplayName => EditorFeaturesResources.Documentation_Comment;
+        public string DisplayName => CSharpEditorFeaturesResources.Documentation_Comment;
 
         private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
             => service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // According to JasonMal, the text undo history is associated with the surface buffer
             // in projection buffer scenarios, so the following line's usage of the surface buffer
             // is correct.
-            using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line))
+            using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(CSharpEditorFeaturesResources.Insert_new_line))
             {
                 var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
                 editorOperations.InsertNewLine();
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 
         public bool ExecuteCommand(InsertCommentCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Inserting_documentation_comment))
+            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Inserting_documentation_comment))
             {
                 return CompleteComment(args.SubjectBuffer, args.TextView, InsertOnCommandInvoke, context.OperationContext.UserCancellationToken);
             }

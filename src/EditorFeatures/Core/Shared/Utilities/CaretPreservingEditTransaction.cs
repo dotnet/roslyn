@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             if (!_active)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
+                throw new InvalidOperationException(CSharpEditorFeaturesResources.The_transaction_is_already_complete);
             }
 
             _editorOperations.AddAfterTextBufferChangePrimitive();
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             if (!_active)
             {
-                throw new InvalidOperationException(EditorFeaturesResources.The_transaction_is_already_complete);
+                throw new InvalidOperationException(CSharpEditorFeaturesResources.The_transaction_is_already_complete);
             }
 
             if (_transaction != null)

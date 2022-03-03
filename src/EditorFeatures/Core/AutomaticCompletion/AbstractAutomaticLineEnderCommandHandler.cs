@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
 
-        public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
+        public string DisplayName => CSharpEditorFeaturesResources.Automatic_Line_Ender;
 
         protected AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 return;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Automatically_completing))
+            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Automatically_completing))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 if (selectNodeAndOperationKind != null)
                 {
                     var (selectedNode, addBrace) = selectNodeAndOperationKind.Value;
-                    using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
+                    using var transaction = args.TextView.CreateEditTransaction(CSharpEditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
                     ModifySelectedNode(args, document, selectedNode, addBrace, caretPosition, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 var endingInsertionPosition = GetInsertionPositionForEndingString(document, subjectLineWhereCaretIsOn, cancellationToken);
                 if (endingInsertionPosition != null)
                 {
-                    using var transaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
+                    using var transaction = args.TextView.CreateEditTransaction(CSharpEditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
                     InsertEnding(args.TextView, document, endingInsertionPosition.Value, caretPosition, cancellationToken);
                     NextAction(operations, nextHandler);
                     transaction.Complete();
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 }
 
                 // Neither of the two operations could be performed
-                using var editTransaction = args.TextView.CreateEditTransaction(EditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
+                using var editTransaction = args.TextView.CreateEditTransaction(CSharpEditorFeaturesResources.Automatic_Line_Ender, _undoRegistry, _editorOperationsFactoryService);
                 NextAction(operations, nextHandler);
                 editTransaction.Complete();
             }

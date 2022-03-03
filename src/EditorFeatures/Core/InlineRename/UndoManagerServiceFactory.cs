@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var undoHistory = this.UndoManagers[subjectBuffer].TextUndoHistory;
 
                 // Create an undo transaction to mark the starting point of the rename session in this buffer
-                using var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Start_Rename);
+                using var undoTransaction = undoHistory.CreateTransaction(CSharpEditorFeaturesResources.Start_Rename);
 
                 undoTransaction.Complete();
                 this.UndoManagers[subjectBuffer].StartRenameSessionUndoTransaction = undoTransaction;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     undoHistory.Undo(1);
                 }
 
-                using var undoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Start_Rename);
+                using var undoTransaction = undoHistory.CreateTransaction(CSharpEditorFeaturesResources.Start_Rename);
 
                 applyEdit();
                 undoTransaction.Complete();

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
         }
 
-        public string DisplayName => EditorFeaturesResources.Go_to_Definition;
+        public string DisplayName => CSharpEditorFeaturesResources.Go_to_Definition;
 
         private static (Document?, IGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             string? errorMessage = null;
 
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
+            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Navigating_to_definition))
             {
                 if (goToDefinitionService != null &&
                     goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 context.OperationContext.TakeOwnership();
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
-                notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
+                notificationService.SendNotification(errorMessage, title: CSharpEditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
         }
 

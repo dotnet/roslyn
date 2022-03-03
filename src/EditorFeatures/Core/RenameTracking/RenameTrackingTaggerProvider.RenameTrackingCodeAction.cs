@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                             // in the lightbulb. If this happens, do not perform the rename requested
                             // and instead let the user know their fix will not be applied. 
                             _document.Project.Solution.Workspace.Services.GetService<INotificationService>()
-                                ?.SendNotification(EditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
+                                ?.SendNotification(CSharpEditorFeaturesResources.The_rename_tracking_session_was_cancelled_and_is_no_longer_available, severity: NotificationSeverity.Error);
                             return false;
                         }
 
                         var snapshotSpan = stateMachine.TrackingSession.TrackingSpan.GetSpan(stateMachine.Buffer.CurrentSnapshot);
                         var newName = snapshotSpan.GetText();
-                        var displayText = string.Format(EditorFeaturesResources.Rename_0_to_1, stateMachine.TrackingSession.OriginalName, newName);
+                        var displayText = string.Format(CSharpEditorFeaturesResources.Rename_0_to_1, stateMachine.TrackingSession.OriginalName, newName);
                         _renameTrackingCommitter = new RenameTrackingCommitter(stateMachine, snapshotSpan, _refactorNotifyServices, _undoHistoryRegistry, displayText);
                         return true;
                     }

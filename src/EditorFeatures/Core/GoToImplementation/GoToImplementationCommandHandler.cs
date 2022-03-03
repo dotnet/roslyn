@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         {
         }
 
-        public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
+        public override string DisplayName => CSharpEditorFeaturesResources.Go_To_Implementation;
 
-        protected override string ScopeDescription => EditorFeaturesResources.Locating_implementations;
+        protected override string ScopeDescription => CSharpEditorFeaturesResources.Locating_implementations;
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
         protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
