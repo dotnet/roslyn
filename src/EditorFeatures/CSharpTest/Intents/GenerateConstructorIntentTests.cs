@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 }";
 
             // lang=json
-            var intentData = @"{ ""accessibility"": ""private""}";
+            var intentData = @"{ ""accessibility"": ""Private""}";
 
             await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
         }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 }";
 
             // lang=json
-            var intentData = @"{ ""accessibility"": ""protectedAndInternal""}";
+            var intentData = @"{ ""accessibility"": ""ProtectedAndInternal""}";
 
             await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, initialText, expectedText, intentData: intentData).ConfigureAwait(false);
         }

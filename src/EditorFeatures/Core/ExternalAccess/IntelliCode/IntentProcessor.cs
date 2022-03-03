@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
-            _serializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+            _serializerOptions.Converters.Add(new JsonStringEnumConverter());
         }
 
         private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
