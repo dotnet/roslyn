@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             _globalOptions = globalOptions;
         }
 
-        public string DisplayName => CSharpEditorFeaturesResources.Split_comment;
+        public string DisplayName => EditorFeaturesResources.Split_comment;
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
             => CommandState.Unspecified;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
             if (!LineProbablyContainsComment(splitCommentService, new SnapshotPoint(snapshot, position)))
                 return false;
 
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Split_comment))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Split_comment))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
                 var result = SplitCommentAsync(textView, document, new SnapshotSpan(snapshot, selectionSpan), cancellationToken).WaitAndGetResult(cancellationToken);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SplitComment
                     return false;
 
                 using var transaction = CaretPreservingEditTransaction.TryCreate(
-                    CSharpEditorFeaturesResources.Split_comment, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+                    EditorFeaturesResources.Split_comment, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
                 subjectBuffer.Replace(result.Value.replacementSpan, result.Value.replacementText);
 

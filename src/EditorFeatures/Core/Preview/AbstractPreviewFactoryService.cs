@@ -158,42 +158,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(CSharpEditorFeaturesResources.Adding_reference_0_to_1, metadataReference.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Adding_reference_0_to_1, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var metadataReference in projectChanges.GetRemovedMetadataReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(CSharpEditorFeaturesResources.Removing_reference_0_from_1, metadataReference.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Removing_reference_0_from_1, metadataReference.Display, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetAddedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(CSharpEditorFeaturesResources.Adding_reference_0_to_1, newSolution.GetRequiredProject(projectReference.ProjectId).Name, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Adding_reference_0_to_1, newSolution.GetRequiredProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var projectReference in projectChanges.GetRemovedProjectReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(CSharpEditorFeaturesResources.Removing_reference_0_from_1, oldSolution.GetRequiredProject(projectReference.ProjectId).Name, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Removing_reference_0_from_1, oldSolution.GetRequiredProject(projectReference.ProjectId).Name, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetAddedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(CSharpEditorFeaturesResources.Adding_analyzer_reference_0_to_1, analyzer.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Adding_analyzer_reference_0_to_1, analyzer.Display, oldProject.Name)));
                     }
 
                     foreach (var analyzer in projectChanges.GetRemovedAnalyzerReferences())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         previewItems.Add(new SolutionPreviewItem(oldProject.Id, null,
-                            string.Format(CSharpEditorFeaturesResources.Removing_analyzer_reference_0_from_1, analyzer.Display, oldProject.Name)));
+                            string.Format(EditorFeaturesResources.Removing_analyzer_reference_0_from_1, analyzer.Display, oldProject.Name)));
                     }
                 }
 
@@ -201,21 +201,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     previewItems.Add(new SolutionPreviewItem(project.Id, null,
-                        string.Format(CSharpEditorFeaturesResources.Adding_project_0, project.Name)));
+                        string.Format(EditorFeaturesResources.Adding_project_0, project.Name)));
                 }
 
                 foreach (var project in solutionChanges.GetRemovedProjects())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     previewItems.Add(new SolutionPreviewItem(project.Id, null,
-                        string.Format(CSharpEditorFeaturesResources.Removing_project_0, project.Name)));
+                        string.Format(EditorFeaturesResources.Removing_project_0, project.Name)));
                 }
 
                 foreach (var projectChanges in solutionChanges.GetProjectChanges().Where(ProjectReferencesChanged))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     previewItems.Add(new SolutionPreviewItem(projectChanges.OldProject.Id, null,
-                        string.Format(CSharpEditorFeaturesResources.Changing_project_references_for_0, projectChanges.OldProject.Name)));
+                        string.Format(EditorFeaturesResources.Changing_project_references_for_0, projectChanges.OldProject.Name)));
                 }
 
                 changeSummary = new SolutionChangeSummary(oldSolution, newSolution, solutionChanges);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var firstLine = string.Format(CSharpEditorFeaturesResources.Adding_0_to_1_with_content_colon,
+            var firstLine = string.Format(EditorFeaturesResources.Adding_0_to_1_with_content_colon,
                 document.Name, document.Project.Name);
 
             var originalBuffer = _projectionBufferFactoryService.CreatePreviewProjectionBuffer(
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // IProjectionBufferFactoryService is a Visual Studio API which is not documented as free-threaded
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var firstLine = string.Format(CSharpEditorFeaturesResources.Removing_0_from_1_with_content_colon,
+            var firstLine = string.Format(EditorFeaturesResources.Removing_0_from_1_with_content_colon,
                 document.Name, document.Project.Name);
 
             var span = new SnapshotSpan(oldBuffer.CurrentSnapshot, Span.FromBounds(0, oldBuffer.CurrentSnapshot.Length))

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             _globalOptions = globalOptions;
         }
 
-        public string DisplayName => CSharpEditorFeaturesResources.Block_Comment_Editing;
+        public string DisplayName => EditorFeaturesResources.Block_Comment_Editing;
 
         public CommandState GetCommandState(ReturnKeyCommandArgs args)
             => CommandState.Unspecified;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             if (textToInsert == null)
                 return false;
 
-            using var transaction = _undoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(CSharpEditorFeaturesResources.Insert_new_line);
+            using var transaction = _undoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line);
 
             var editorOperations = _editorOperationsFactoryService.GetEditorOperations(textView);
             editorOperations.ReplaceText(GetReplacementSpan(caretPosition.Value), textToInsert);

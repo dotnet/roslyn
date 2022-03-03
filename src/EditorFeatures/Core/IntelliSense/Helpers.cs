@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             try
             {
                 using var token = asyncListener.BeginAsyncOperation(nameof(NavigateToQuickInfoTargetAsync));
-                using var context = operationExecutor.BeginExecute(CSharpEditorFeaturesResources.IntelliSense, CSharpEditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
+                using var context = operationExecutor.BeginExecute(EditorFeaturesResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
                 var cancellationToken = context.UserCancellationToken;
                 var solution = workspace.CurrentSolution;

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Automatic_Formatting;
+        public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
-            using (var transaction = CreateEditTransaction(textView, CSharpEditorFeaturesResources.Formatting))
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
                 var changes = formattingService.GetFormattingChangesAsync(
                     document, selectionOpt, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            using (var transaction = CreateEditTransaction(textView, CSharpEditorFeaturesResources.Automatic_Formatting))
+            using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Automatic_Formatting))
             {
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
                 document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, cancellationToken);

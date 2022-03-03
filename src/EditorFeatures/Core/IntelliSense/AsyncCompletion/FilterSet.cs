@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var addImageId = Shared.Extensions.GlyphExtensions.GetImageCatalogImageId(KnownImageIds.ExpandScope);
 
             Expander = new CompletionExpander(
-                CSharpEditorFeaturesResources.Expander_display_text,
+                EditorFeaturesResources.Expander_display_text,
                 accessKey: "a",
-                new ImageElement(addImageId, CSharpEditorFeaturesResources.Expander_image_element));
+                new ImageElement(addImageId, EditorFeaturesResources.Expander_image_element));
 
             CompletionFilter CreateCompletionFilterAndAddToBuilder(string displayText, char accessKey, params string[] tags)
             {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return new CompletionFilter(
                 displayText,
                 accessKey.ToString(),
-                new ImageElement(new ImageId(imageId.Guid, imageId.Id), CSharpEditorFeaturesResources.Filter_image_element));
+                new ImageElement(new ImageId(imageId.Guid, imageId.Id), EditorFeaturesResources.Filter_image_element));
         }
 
         public FilterSet()

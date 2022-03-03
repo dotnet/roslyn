@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         {
             AssertIsForeground();
             using var waitContext = _uiThreadOperationExecutor.BeginExecute(
-                CSharpEditorFeaturesResources.Navigation_Bars,
-                CSharpEditorFeaturesResources.Refreshing_navigation_bars,
+                EditorFeaturesResources.Navigation_Bars,
+                EditorFeaturesResources.Refreshing_navigation_bars,
                 allowCancellation: true,
                 showProgress: false);
 

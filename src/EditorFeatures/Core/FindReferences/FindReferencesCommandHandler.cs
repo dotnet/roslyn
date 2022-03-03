@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Find_References;
+        public string DisplayName => EditorFeaturesResources.Find_References;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 // service will push results into. This operation is not externally cancellable.  Instead, the find refs
                 // window will cancel it if another request is made to use it.
                 var (context, cancellationToken) = presenter.StartSearchWithCustomColumns(
-                    CSharpEditorFeaturesResources.Find_References,
+                    EditorFeaturesResources.Find_References,
                     supportsReferences: true,
                     includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
                     includeKindColumn: document.Project.Language != LanguageNames.FSharp);

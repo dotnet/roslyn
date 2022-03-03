@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     return false;
                 }
 
-                using var caretPreservingTransaction = new CaretPreservingEditTransaction(CSharpEditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
+                using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
 
                 // Apply the change to complete the brace.
                 ApplyBraceCompletionResult(braceResult.Value);
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                         var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, options, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
-                            using var caretPreservingTransaction = new CaretPreservingEditTransaction(CSharpEditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
+                            using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);
                             ApplyBraceCompletionResult(changesAfterReturn.Value);
                             caretPreservingTransaction.Complete();
                         }
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             internal ITextUndoTransaction CreateUndoTransaction()
-                => _undoHistory.CreateTransaction(CSharpEditorFeaturesResources.Brace_Completion);
+                => _undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion);
 
             private void MoveCaretToClosingPoint()
             {

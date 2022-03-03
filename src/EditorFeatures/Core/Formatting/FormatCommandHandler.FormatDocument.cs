@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Formatting_document))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
                 Format(args.TextView, document, null, context.OperationContext.UserCancellationToken);
             }

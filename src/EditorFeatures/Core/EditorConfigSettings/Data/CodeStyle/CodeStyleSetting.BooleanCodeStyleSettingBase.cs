@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                 : base(description, updater)
             {
                 Category = category;
-                _trueValueDescription = trueValueDescription ?? CSharpEditorFeaturesResources.Yes;
-                _falseValueDescription = falseValueDescription ?? CSharpEditorFeaturesResources.No;
+                _trueValueDescription = trueValueDescription ?? EditorFeaturesResources.Yes;
+                _falseValueDescription = falseValueDescription ?? EditorFeaturesResources.No;
             }
 
             public override string Category { get; }

@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
         protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Extract_Interface;
+        public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
         public CommandState GetCommandState(ExtractInterfaceCommandArgs args)
             => IsAvailable(args.SubjectBuffer, out _) ? CommandState.Available : CommandState.Unspecified;
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Extract_Interface))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Extract_Interface))
             {
                 var subjectBuffer = args.SubjectBuffer;
                 if (!IsAvailable(subjectBuffer, out var workspace))

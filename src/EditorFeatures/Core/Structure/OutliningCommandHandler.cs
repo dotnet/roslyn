@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
         public OutliningCommandHandler(IOutliningManagerService outliningManagerService)
             => _outliningManagerService = outliningManagerService;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Outlining;
+        public string DisplayName => EditorFeaturesResources.Outlining;
 
         public bool ExecuteCommand(StartAutomaticOutliningCommandArgs args, CommandExecutionContext context)
         {

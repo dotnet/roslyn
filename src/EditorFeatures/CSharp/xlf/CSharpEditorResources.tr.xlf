@@ -37,11 +37,6 @@
         <target state="translated">Ara değer olarak eklenmiş tam dizeyi düzelt</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fixing_string_literal_after_paste">
-        <source>Fixing string literal after paste</source>
-        <target state="new">Fixing string literal after paste</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
         <target state="translated">'{1}' için '{0}' bütünleştirilmiş kod bulundu:</target>

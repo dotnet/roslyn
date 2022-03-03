@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
     {
         private readonly ITextUndoHistoryRegistry _undoHistory;
 
-        public string DisplayName => CSharpEditorFeaturesResources.XML_End_Tag_Completion;
+        public string DisplayName => EditorFeaturesResources.XML_End_Tag_Completion;
 
         public AbstractXmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
             => _undoHistory = undoHistory;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Completing_Tag))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Completing_Tag))
             {
                 var buffer = args.SubjectBuffer;
 

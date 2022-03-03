@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal abstract partial class AbstractEditorInlineRenameService
     {
-        internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+        internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
 
         private sealed class FailureInlineRenameInfo : IInlineRenameInfo
         {

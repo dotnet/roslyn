@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Change_Signature;
+        public string DisplayName => EditorFeaturesResources.Change_Signature;
 
         public CommandState GetCommandState(ReorderParametersCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
                 finalSolution = previewService.PreviewChanges(
-                    string.Format(CSharpEditorFeaturesResources.Preview_Changes_0, CSharpEditorFeaturesResources.Change_Signature),
+                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
                     "vs.csharp.refactoring.preview",
-                    CSharpEditorFeaturesResources.Change_Signature_colon,
+                    EditorFeaturesResources.Change_Signature_colon,
                     result.Name,
                     result.Glyph.GetValueOrDefault(),
                     result.UpdatedSolution,

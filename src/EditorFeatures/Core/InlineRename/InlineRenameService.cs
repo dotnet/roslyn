@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_activeRenameSession != null)
             {
-                throw new InvalidOperationException(CSharpEditorFeaturesResources.An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one);
+                throw new InvalidOperationException(EditorFeaturesResources.An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one);
             }
 
             var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             workspace, document.Id, documentSpan.SourceSpan, cancellationToken).ConfigureAwait(false);
                         if (!canNavigate)
                         {
-                            return new InlineRenameSessionInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to);
+                            return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to);
                         }
                     }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     {
                         if (buffer.IsReadOnly(originalSpan))
                         {
-                            return new InlineRenameSessionInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file);
+                            return new InlineRenameSessionInfo(EditorFeaturesResources.You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file);
                         }
                     }
                 }

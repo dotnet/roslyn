@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            var title = string.Format(CSharpEditorFeaturesResources._0_declarations,
+            var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);

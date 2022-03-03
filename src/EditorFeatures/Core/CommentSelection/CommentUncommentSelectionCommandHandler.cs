@@ -59,17 +59,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         public bool ExecuteCommand(UncommentSelectionCommandArgs args, CommandExecutionContext context)
             => this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
 
-        public override string DisplayName => CSharpEditorFeaturesResources.Comment_Uncomment_Selection;
+        public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
         protected override string GetTitle(Operation operation) =>
             operation == Operation.Comment
-                ? CSharpEditorFeaturesResources.Comment_Selection
-                : CSharpEditorFeaturesResources.Uncomment_Selection;
+                ? EditorFeaturesResources.Comment_Selection
+                : EditorFeaturesResources.Uncomment_Selection;
 
         protected override string GetMessage(Operation operation) =>
             operation == Operation.Comment
-                ? CSharpEditorFeaturesResources.Commenting_currently_selected_text
-                : CSharpEditorFeaturesResources.Uncommenting_currently_selected_text;
+                ? EditorFeaturesResources.Commenting_currently_selected_text
+                : EditorFeaturesResources.Uncommenting_currently_selected_text;
 
         /// <summary>
         /// Add the necessary edits to the given spans. Also collect tracking spans over each span.

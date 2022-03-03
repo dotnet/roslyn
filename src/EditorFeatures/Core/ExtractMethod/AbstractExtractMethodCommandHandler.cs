@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             _renameService = renameService;
             _globalOptions = globalOptions;
         }
-        public string DisplayName => CSharpEditorFeaturesResources.Extract_Method;
+        public string DisplayName => EditorFeaturesResources.Extract_Method;
 
         public CommandState GetCommandState(ExtractMethodCommandArgs args)
         {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Applying_Extract_Method_refactoring))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
             {
                 return Execute(args.SubjectBuffer, args.TextView, context.OperationContext);
             }
@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                         // and also will take it into consideration when measuring command handling duration.
                         waitContext.TakeOwnership();
                         if (!notificationService.ConfirmMessageBox(
-                                CSharpEditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
+                                EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
                                 string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
-                                CSharpEditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
-                                title: CSharpEditorFeaturesResources.Extract_Method,
+                                EditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
+                                title: EditorFeaturesResources.Extract_Method,
                                 severity: NotificationSeverity.Error))
                         {
                             // We handled the command, displayed a notification and did not produce code.
@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 if (notificationService != null)
                 {
                     notificationService.SendNotification(
-                        CSharpEditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
                         string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)),
-                        title: CSharpEditorFeaturesResources.Extract_Method,
+                        title: EditorFeaturesResources.Extract_Method,
                         severity: NotificationSeverity.Error);
                 }
 
@@ -201,10 +201,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             if (notificationService != null)
             {
                 if (!notificationService.ConfirmMessageBox(
-                        CSharpEditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
+                        EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine +
                         string.Join("", result.Reasons.Select(r => Environment.NewLine + "  " + r)) + Environment.NewLine + Environment.NewLine +
-                        CSharpEditorFeaturesResources.Do_you_still_want_to_proceed_This_may_produce_broken_code,
-                        title: CSharpEditorFeaturesResources.Extract_Method,
+                        EditorFeaturesResources.Do_you_still_want_to_proceed_This_may_produce_broken_code,
+                        title: EditorFeaturesResources.Extract_Method,
                         severity: NotificationSeverity.Warning))
                 {
                     return true;

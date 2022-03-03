@@ -126,9 +126,5 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option2<bool> SkipAnalyzersForImplicitlyTriggeredBuilds = new(
             FeatureName, "SkipAnalyzersForImplicitlyTriggeredBuilds", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds"));
-
-        public static readonly Option2<bool> AutomaticallyFixStringContentsOnPaste = new(
-            FeatureName, "AutomaticallyFixStringContentsOnPaste", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.AutomaticallyFixStringContentsOnPaste"));
     }
 }

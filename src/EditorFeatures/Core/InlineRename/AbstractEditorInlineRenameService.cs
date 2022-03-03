@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (triggerToken == default)
             {
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_must_rename_an_identifier);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
             }
 
             return await GetRenameInfoAsync(_refactorNotifyServices, document, triggerToken, cancellationToken).ConfigureAwait(false);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (syntaxFacts.IsReservedOrContextualKeyword(triggerToken))
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_must_rename_an_identifier);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_must_rename_an_identifier);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
@@ -57,24 +57,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // RenameOverloads option to be on.
             var triggerSymbol = tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             if (triggerSymbol == null)
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
 
             // see https://github.com/dotnet/roslyn/issues/10898
             // we are disabling rename for tuple fields for now
             // 1) compiler does not return correct location information in these symbols
             // 2) renaming tuple fields seems a complex enough thing to require some design
             if (triggerSymbol.ContainingType?.IsTupleType == true)
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
 
             // If rename is invoked on a member group reference in a nameof expression, then the
             // RenameOverloads option should be forced on.
             var forceRenameOverloads = tokenRenameInfo.IsMemberGroup;
             var symbol = await RenameLocations.ReferenceProcessing.TryGetRenamableSymbolAsync(document, triggerToken.SpanStart, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
 
             if (symbol.Kind == SymbolKind.Alias && symbol.IsExtern)
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
 
             // Cannot rename constructors in VB.  TODO: this logic should be in the VB subclass of this type.
             var workspace = document.Project.Solution.Workspace;
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     semanticModel, triggerToken.SpanStart, workspace, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (originalSymbol != null && originalSymbol.IsConstructor())
-                    return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             if (CheckLanguageSpecificIssues(semanticModel, symbol, triggerToken, out var langError))
@@ -104,17 +104,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // We enable the parameter in RaiseEvent, if the Event is declared with a signature. If the Event is declared as a 
                 // delegate type, we do not have a connection between the delegate type and the event.
                 // this prevents a rename in this case :(.
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
             }
 
             if (symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType)
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.Renaming_anonymous_type_members_is_not_yet_supported);
 
             if (symbol.IsErrorType())
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.Please_resolve_errors_in_your_code_before_renaming_this_element);
 
             if (symbol.Kind == SymbolKind.Method && ((IMethodSymbol)symbol).MethodKind == MethodKind.UserDefinedOperator)
-                return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_operators);
+                return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_operators);
 
             var symbolLocations = symbol.Locations;
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (location.IsInMetadata)
                 {
-                    return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_that_are_defined_in_metadata);
                 }
                 else if (location.IsInSource)
                 {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     if (sourceDocument is SourceGeneratedDocument)
                     {
                         // The file is generated so we can't go editing it (for now)
-                        return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                        return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                     }
 
                     if (document.Project.IsSubmission)
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         var projectIdOfLocation = sourceDocument.Project.Id;
 
                         if (solution.Projects.Any(p => p.IsSubmission && p.ProjectReferences.Any(r => r.ProjectId == projectIdOfLocation)))
-                            return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
+                            return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_elements_from_previous_submissions);
                     }
                     else
                     {
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else
                 {
-                    return new FailureInlineRenameInfo(CSharpEditorFeaturesResources.You_cannot_rename_this_element);
+                    return new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
                 }
             }
 

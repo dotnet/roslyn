@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Finding_token_to_rename))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
             {
                 ExecuteRenameWorker(args, context);
             }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretPoint.HasValue)
             {
-                ShowErrorDialog(workspace, CSharpEditorFeaturesResources.You_must_rename_an_identifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 context.OperationContext, _threadingContext);
             if (document == null)
             {
-                ShowErrorDialog(workspace, CSharpEditorFeaturesResources.You_must_rename_an_identifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // There can be zero selectedSpans in projection scenarios.
             if (selectedSpans.Count != 1)
             {
-                ShowErrorDialog(workspace, CSharpEditorFeaturesResources.You_must_rename_an_identifier);
+                ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);
                 return;
             }
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private static void ShowErrorDialog(Workspace workspace, string message)
         {
             var notificationService = workspace.Services.GetService<INotificationService>();
-            notificationService.SendNotification(message, title: CSharpEditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
+            notificationService.SendNotification(message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
         }
     }
 }

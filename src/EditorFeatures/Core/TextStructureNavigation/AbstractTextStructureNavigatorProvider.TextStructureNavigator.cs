@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var result = default(TextExtent);
                     _uiThreadOperationExecutor.Execute(
-                        title: CSharpEditorFeaturesResources.Text_Navigation,
-                        defaultDescription: CSharpEditorFeaturesResources.Finding_word_extent,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        defaultDescription: EditorFeaturesResources.Finding_word_extent,
                         allowCancellation: true,
                         showProgress: false,
                         action: context =>
@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _uiThreadOperationExecutor.Execute(
-                        title: CSharpEditorFeaturesResources.Text_Navigation,
-                        defaultDescription: CSharpEditorFeaturesResources.Finding_enclosing_span,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
                         allowCancellation: true,
                         showProgress: false,
                         action: context =>
@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _uiThreadOperationExecutor.Execute(
-                        title: CSharpEditorFeaturesResources.Text_Navigation,
-                        defaultDescription: CSharpEditorFeaturesResources.Finding_enclosing_span,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
                         allowCancellation: true,
                         showProgress: false,
                         action: context =>
@@ -191,8 +191,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _uiThreadOperationExecutor.Execute(
-                        title: CSharpEditorFeaturesResources.Text_Navigation,
-                        defaultDescription: CSharpEditorFeaturesResources.Finding_span_of_next_sibling,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        defaultDescription: EditorFeaturesResources.Finding_span_of_next_sibling,
                         allowCancellation: true,
                         showProgress: false,
                         action: context =>
@@ -243,8 +243,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 {
                     var span = default(SnapshotSpan);
                     var result = _uiThreadOperationExecutor.Execute(
-                        title: CSharpEditorFeaturesResources.Text_Navigation,
-                        defaultDescription: CSharpEditorFeaturesResources.Finding_span_of_previous_sibling,
+                        title: EditorFeaturesResources.Text_Navigation,
+                        defaultDescription: EditorFeaturesResources.Finding_span_of_previous_sibling,
                         allowCancellation: true,
                         showProgress: false,
                         action: context =>

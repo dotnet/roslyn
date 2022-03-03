@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Execute_In_Interactive;
+        public string DisplayName => EditorFeaturesResources.Execute_In_Interactive;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

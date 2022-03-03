@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.GoToBase
         {
         }
 
-        public override string DisplayName => CSharpEditorFeaturesResources.Go_To_Base;
+        public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
-        protected override string ScopeDescription => CSharpEditorFeaturesResources.Locating_bases;
+        protected override string ScopeDescription => EditorFeaturesResources.Locating_bases;
         protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
         protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)

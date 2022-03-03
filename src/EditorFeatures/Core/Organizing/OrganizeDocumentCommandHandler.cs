@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         public OrganizeDocumentCommandHandler(IThreadingContext threadingContext)
             => _threadingContext = threadingContext;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Organize_Document;
+        public string DisplayName => EditorFeaturesResources.Organize_Document;
 
         public CommandState GetCommandState(OrganizeDocumentCommandArgs args)
-            => GetCommandState(args, _ => CSharpEditorFeaturesResources.Organize_Document, needsSemantics: true);
+            => GetCommandState(args, _ => EditorFeaturesResources.Organize_Document, needsSemantics: true);
 
         public bool ExecuteCommand(OrganizeDocumentCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Organizing_document))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
                 var cancellationToken = context.OperationContext.UserCancellationToken;
                 var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChanges(
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public bool ExecuteCommand(SortImportsCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Organizing_document))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
                 SortImports(args.SubjectBuffer, context.OperationContext);
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
 
         public bool ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Organizing_document))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
                 this.SortAndRemoveUnusedImports(args.SubjectBuffer, context.OperationContext);
             }

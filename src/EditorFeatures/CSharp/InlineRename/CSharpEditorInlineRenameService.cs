@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
             if (triggerToken.IsTypeNamedDynamic() &&
                 symbol.Kind == SymbolKind.DynamicType)
             {
-                langError = CSharpEditorFeaturesResources.You_cannot_rename_this_element;
+                langError = EditorFeaturesResources.You_cannot_rename_this_element;
                 return true;
             }
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename
 
                 if (symbolForVar == null)
                 {
-                    langError = CSharpEditorFeaturesResources.You_cannot_rename_this_element;
+                    langError = EditorFeaturesResources.You_cannot_rename_this_element;
                     return true;
                 }
             }

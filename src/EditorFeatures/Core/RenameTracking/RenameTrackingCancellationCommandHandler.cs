@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
         }
 
-        public string DisplayName => CSharpEditorFeaturesResources.Rename_Tracking_Cancellation;
+        public string DisplayName => EditorFeaturesResources.Rename_Tracking_Cancellation;
 
         public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
         {

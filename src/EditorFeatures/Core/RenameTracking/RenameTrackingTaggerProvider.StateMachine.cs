@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         if (text.AreOnSameLine(userSpan.Start, snapshotSpan.Start))
                         {
                             var title = string.Format(
-                                CSharpEditorFeaturesResources.Rename_0_to_1,
+                                EditorFeaturesResources.Rename_0_to_1,
                                 trackingSession.OriginalName,
                                 snapshotSpan.GetText());
 

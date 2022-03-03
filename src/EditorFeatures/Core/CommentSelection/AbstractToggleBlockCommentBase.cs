@@ -65,11 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         public bool ExecuteCommand(ToggleBlockCommentCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, ValueTuple.Create(), context);
 
-        public override string DisplayName => CSharpEditorFeaturesResources.Toggle_Block_Comment;
+        public override string DisplayName => EditorFeaturesResources.Toggle_Block_Comment;
 
-        protected override string GetTitle(ValueTuple command) => CSharpEditorFeaturesResources.Toggle_Block_Comment;
+        protected override string GetTitle(ValueTuple command) => EditorFeaturesResources.Toggle_Block_Comment;
 
-        protected override string GetMessage(ValueTuple command) => CSharpEditorFeaturesResources.Toggling_block_comment;
+        protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_block_comment;
 
         internal override async Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)

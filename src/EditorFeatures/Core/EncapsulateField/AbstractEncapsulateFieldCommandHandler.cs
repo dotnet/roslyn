@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IAsynchronousOperationListener _listener;
 
-        public string DisplayName => CSharpEditorFeaturesResources.Encapsulate_Field;
+        public string DisplayName => EditorFeaturesResources.Encapsulate_Field;
 
         public AbstractEncapsulateFieldCommandHandler(
             IThreadingContext threadingContext,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 return false;
             }
 
-            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Applying_Encapsulate_Field_refactoring);
+            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring);
 
             return Execute(args, waitScope);
         }
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             if (result == null)
             {
                 var notificationService = workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(CSharpEditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
+                notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
                 return false;
             }
 
@@ -90,9 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             if (previewService != null)
             {
                 finalSolution = previewService.PreviewChanges(
-                    string.Format(CSharpEditorFeaturesResources.Preview_Changes_0, CSharpEditorFeaturesResources.Encapsulate_Field),
+                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                      "vs.csharp.refactoring.preview",
-                    CSharpEditorFeaturesResources.Encapsulate_Field_colon,
+                    EditorFeaturesResources.Encapsulate_Field_colon,
                     result.Name,
                     result.Glyph,
                     finalSolution,
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 return true;
             }
 
-            using (var undoTransaction = _undoManager.GetTextBufferUndoManager(args.SubjectBuffer).TextBufferUndoHistory.CreateTransaction(CSharpEditorFeaturesResources.Encapsulate_Field))
+            using (var undoTransaction = _undoManager.GetTextBufferUndoManager(args.SubjectBuffer).TextBufferUndoHistory.CreateTransaction(EditorFeaturesResources.Encapsulate_Field))
             {
                 if (!workspace.TryApplyChanges(finalSolution))
                 {

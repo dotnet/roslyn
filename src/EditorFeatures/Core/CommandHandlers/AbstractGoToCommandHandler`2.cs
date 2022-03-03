@@ -252,7 +252,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             if (!isFullyLoaded)
             {
                 await findContext.ReportInformationalMessageAsync(
-                    CSharpEditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, cancellationToken).ConfigureAwait(false);
+                    EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, cancellationToken).ConfigureAwait(false);
             }
 
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
-            using var _ = context.OperationContext.AddScope(allowCancellation: true, CSharpEditorFeaturesResources.Formatting_pasted_text);
+            using var _ = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_pasted_text);
             var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer);
 
             nextHandler();

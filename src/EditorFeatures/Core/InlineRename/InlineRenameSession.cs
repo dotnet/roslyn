@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (_triggerDocument == null)
             {
-                throw new InvalidOperationException(CSharpEditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
+                throw new InvalidOperationException(EditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
             }
 
             _inlineRenameSessionDurationLogBlock = Logger.LogBlock(FunctionId.Rename_InlineSession, CancellationToken.None);
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (_dismissed)
             {
-                throw new InvalidOperationException(CSharpEditorFeaturesResources.This_session_has_already_been_dismissed);
+                throw new InvalidOperationException(EditorFeaturesResources.This_session_has_already_been_dismissed);
             }
         }
 
@@ -702,8 +702,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             previewChanges = previewChanges || _previewChanges;
 
             var result = _uiThreadOperationExecutor.Execute(
-                title: CSharpEditorFeaturesResources.Rename,
-                defaultDescription: CSharpEditorFeaturesResources.Computing_Rename_information,
+                title: EditorFeaturesResources.Rename,
+                defaultDescription: EditorFeaturesResources.Computing_Rename_information,
                 allowCancellation: true,
                 showProgress: false,
                 action: context => CommitCore(context, previewChanges));
@@ -746,9 +746,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     operationContext.TakeOwnership();
                     newSolution = previewService.PreviewChanges(
-                        string.Format(CSharpEditorFeaturesResources.Preview_Changes_0, CSharpEditorFeaturesResources.Rename),
+                        string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
-                        string.Format(CSharpEditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
+                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
                         newSolution,
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 // The user hasn't cancelled by now, so we're done waiting for them. Off to
                 // rename!
-                using var _ = operationContext.AddScope(allowCancellation: false, CSharpEditorFeaturesResources.Updating_files);
+                using var _ = operationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
 
                 Dismiss(rollbackTemporaryEdits: true);
                 CancelAllOpenDocumentTrackingTasks();
@@ -802,13 +802,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var notificationService = _workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    CSharpEditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
-                    CSharpEditorFeaturesResources.Rename_Symbol,
+                    EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
+                    EditorFeaturesResources.Rename_Symbol,
                     NotificationSeverity.Error);
                 return;
             }
 
-            using var undoTransaction = _workspace.OpenGlobalUndoTransaction(CSharpEditorFeaturesResources.Inline_Rename);
+            using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
             var finalSolution = newSolution.Workspace.CurrentSolution;
             foreach (var id in changedDocumentIDs)
             {
@@ -856,8 +856,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     var notificationService = _workspace.Services.GetService<INotificationService>();
                     operationContext.TakeOwnership();
                     notificationService.SendNotification(
-                        CSharpEditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                        CSharpEditorFeaturesResources.Rename_Symbol,
+                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
+                        EditorFeaturesResources.Rename_Symbol,
                         NotificationSeverity.Information);
                 }
 
