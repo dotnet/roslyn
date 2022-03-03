@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Editing;
@@ -91,8 +92,10 @@ namespace Microsoft.CodeAnalysis.Snippets
         {
             if (document.SupportsSyntaxTree)
             {
+                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, _findSnippetAnnotation, addImportOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 document = await Simplifier.ReduceAsync(document, _findSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 

@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             // if we are in a valid location to insert the snippet.
             var typeExpression = generator.TypeExpression(symbol!);
             var declaration = GetAsyncSupportingDeclaration(token);
-            var isAsync = generator.GetModifiers(declaration).IsAsync;
+            var isAsync = declaration is not null && generator.GetModifiers(declaration).IsAsync;
+
             var invocation = isAsync
                 ? generator.ExpressionStatement(generator.AwaitExpression(generator.InvocationExpression(
                     generator.MemberAccessExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.Out))), generator.IdentifierName(nameof(Console.Out.WriteLineAsync))))))
