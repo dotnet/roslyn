@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.UserNotifications.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
@@ -27,6 +28,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             {
                 await ((IVsShell7)shell).LoadPackageAsync(s_compilerPackage);
             }
+
+#pragma warning disable CS0612 // Type or member is obsolete
+            // Workaround for deadlock loading ExtensionManagerPackage prior to
+            // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
+            await GetServiceAsync(typeof(SVsUserNotificationsService));
+#pragma warning restore CS0612 // Type or member is obsolete
 
             IntegrationTestServiceCommands.Initialize(this);
         }
