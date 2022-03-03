@@ -8228,7 +8228,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(
+                .VerifyEmitDiagnostics(
                     // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(ReadOnlySpan<char> chars) => chars is "";
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 57),
@@ -8257,7 +8257,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(
+                .VerifyEmitDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
@@ -8310,7 +8310,7 @@ class Program
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,18): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
                 //         _ = s is "str";
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(7, 18),
@@ -9578,7 +9578,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(
+                .VerifyEmitDiagnostics(
                     // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(Span<char> chars) => chars is "";
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 49),
@@ -9607,7 +9607,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyDiagnostics(
+                .VerifyEmitDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
@@ -9664,7 +9664,7 @@ class Program
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (7,18): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
                 //         _ = s is "str";
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(7, 18),
