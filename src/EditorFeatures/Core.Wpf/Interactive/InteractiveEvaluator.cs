@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
 
         internal CSharpInteractiveEvaluator(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             IContentType contentType,
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices);
+            _workspace = new InteractiveWindowWorkspace(hostServices, globalOptions);
 
             _session = new InteractiveSession(_workspace, threadingContext, listener, languageInfo, initialWorkingDirectory);
             _session.Host.ProcessInitialized += ProcessInitialized;

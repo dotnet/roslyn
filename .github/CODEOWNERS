@@ -7,10 +7,6 @@
 docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
-# Notify docs team for new breaking change documentation
-docs/compilers/CSharp @dotnet/docs
-docs/compilers/Visual\ Basic @dotnet/docs
-
 eng/ @dotnet/roslyn-infrastructure
 scripts/ @dotnet/roslyn-infrastructure
 
