@@ -12,8 +12,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
     /// Defines an attribute used to export instances of <see cref="AbstractRequestHandlerProvider"/>.
+    /// We specifically disallow multiple as a provider should only provide handlers for a single contract.
+    /// If we exported the same provider for multiple contracts, we would not be able to tell which handlers are associated with which contract.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
     internal class ExportLspRequestHandlerProviderAttribute : ExportAttribute
     {
         public Type[] HandlerTypes { get; }
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Defines an easy to use subclass for ExportLspRequestHandlerProviderAttribute with the roslyn languages contract name.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
     internal class ExportRoslynLanguagesLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
     {
         public ExportRoslynLanguagesLspRequestHandlerProviderAttribute(Type firstHandlerType, params Type[] additionalHandlerTypes) : base(ProtocolConstants.RoslynLspLanguagesContract, firstHandlerType, additionalHandlerTypes)

@@ -5,19 +5,22 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
+using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
+using Newtonsoft.Json;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     /// <summary>
     /// Language client to handle TS LSP requests.
@@ -27,12 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [ContentType(ContentTypeNames.TypeScriptContentTypeName)]
     [ContentType(ContentTypeNames.JavaScriptContentTypeName)]
     [Export(typeof(ILanguageClient))]
-    internal class TypeScriptInProcLanguageClient : AbstractInProcLanguageClient
+    internal class VSTypeScriptInProcLanguageClient : AbstractInProcLanguageClient
     {
+        private readonly IVSTypeScriptCapabilitiesProvider? _typeScriptCapabilitiesProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-        public TypeScriptInProcLanguageClient(
-            RequestDispatcherFactory requestDispatcherFactory,
+        public VSTypeScriptInProcLanguageClient(
+            [Import(AllowDefault = true)] IVSTypeScriptCapabilitiesProvider? typeScriptCapabilitiesProvider,
+            VSTypeScriptRequestDispatcherFactory requestDispatcherFactory,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -41,13 +47,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IThreadingContext threadingContext)
             : base(requestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
+            _typeScriptCapabilitiesProvider = typeScriptCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(InternalLanguageNames.TypeScript);
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = new VSInternalServerCapabilities();
+            var serverCapabilities = GetTypeScriptServerCapabilities(clientCapabilities);
 
             serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
             {
@@ -75,5 +82,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
         public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RoslynTypeScriptLspServer;
+
+        private VSInternalServerCapabilities GetTypeScriptServerCapabilities(ClientCapabilities clientCapabilities)
+        {
+            if (_typeScriptCapabilitiesProvider != null)
+            {
+                var serializedClientCapabilities = JsonConvert.SerializeObject(clientCapabilities);
+                var serializedServerCapabilities = _typeScriptCapabilitiesProvider.GetServerCapabilities(serializedClientCapabilities);
+                var typeScriptServerCapabilities = JsonConvert.DeserializeObject<VSInternalServerCapabilities>(serializedServerCapabilities);
+                Contract.ThrowIfNull(typeScriptServerCapabilities);
+                return typeScriptServerCapabilities;
+            }
+            else
+            {
+                return new VSInternalServerCapabilities();
+            }
+        }
     }
 }
