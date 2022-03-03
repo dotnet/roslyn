@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using System.Collections.Generic;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
