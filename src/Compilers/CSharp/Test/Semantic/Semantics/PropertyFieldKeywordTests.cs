@@ -1576,6 +1576,63 @@ class C
         }
 
         [Fact]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindOriginalFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P => 0;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindSpeculatedFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P => 0;
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
         public void SpeculativeSemanticModel_FieldIdentifierInRegularAccessor_ReplaceBlock_BindOriginalFirst()
         {
             var comp = CreateCompilation(@"
