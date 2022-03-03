@@ -9,10 +9,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
+        private readonly IGlobalOptionService _globalOptions;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -52,8 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext) : base(threadingContext)
+        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, IThreadingContext threadingContext)
+            : base(threadingContext)
         {
+            _globalOptions = globalOptions;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
         }
@@ -102,33 +105,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            if (!item.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
+            if (!CompletionItemData.TryGetData(item, out var itemData))
             {
                 // Roslyn should not be called if the item committing was not provided by Roslyn.
                 return CommitResultUnhandled;
             }
 
             var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typeChar;
-            if (Helpers.IsFilterCharacter(roslynItem, typeChar, filterText))
+            if (Helpers.IsFilterCharacter(itemData.RoslynItem, typeChar, filterText))
             {
                 // Returning Cancel means we keep the current session and consider the character for further filtering.
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
-            var options = CompletionOptions.From(document.Project);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var serviceRules = completionService.GetRules(options);
 
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
-            // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
+            // Now we check for the commit character in the context of Rules that could change the list of commit characters.
 
-            if (!Helpers.IsStandardCommitCharacter(typeChar) && !IsCommitCharacter(serviceRules, roslynItem, typeChar))
+            if (!Helpers.IsStandardCommitCharacter(typeChar) && !IsCommitCharacter(serviceRules, itemData.RoslynItem, typeChar))
             {
                 // Returning None means we complete the current session with a void commit. 
                 // The Editor then will try to trigger a new completion session for the character.
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!item.Properties.TryGetProperty(CompletionSource.TriggerLocation, out SnapshotPoint triggerLocation))
+            if (!itemData.TriggerLocation.HasValue)
             {
                 // Need the trigger snapshot to calculate the span when the commit changes to be applied.
                 // They should always be available from items provided by Roslyn CompletionSource.
@@ -136,19 +139,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            if (!session.Properties.TryGetProperty(CompletionSource.CompletionListSpan, out TextSpan completionListSpan))
-            {
-                return CommitResultUnhandled;
-            }
-
-            var triggerDocument = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var triggerDocument = itemData.TriggerLocation.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
             {
                 return CommitResultUnhandled;
             }
 
+            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
+            if (!sessionData.CompletionListSpan.HasValue)
+            {
+                return CommitResultUnhandled;
+            }
+
             // Telemetry
-            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+            if (sessionData.TargetTypeFilterExperimentEnabled)
             {
                 // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
                 // (regardless of whether that filter button was active at the time of commit).
@@ -163,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             return Commit(
                 session, triggerDocument, completionService, subjectBuffer,
-                roslynItem, completionListSpan, commitChar, triggerLocation.Snapshot, serviceRules,
+                itemData.RoslynItem, sessionData.CompletionListSpan.Value, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
                 filterText, cancellationToken);
         }
 
@@ -186,19 +190,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (!subjectBuffer.CheckEditAccess())
             {
                 // We are on the wrong thread.
-                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer did not provide Edit Access"));
+                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer did not provide Edit Access"), ErrorSeverity.Critical);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
             if (subjectBuffer.EditInProgress)
             {
-                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer is editing by someone else."));
+                FatalError.ReportAndCatch(new InvalidOperationException("Subject buffer is editing by someone else."), ErrorSeverity.Critical);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
             CompletionChange change;
 
-            // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
+            // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not canceled.
             // Catching this scenario for further investigations.
             // See https://github.com/dotnet/roslyn/issues/38455.
             try
@@ -241,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 if (change.NewPosition.HasValue)
                 {
-                    // Roslyn knows how to positionate the caret in the snapshot we just created.
+                    // Roslyn knows how to position the caret in the snapshot we just created.
                     // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
                 }
@@ -271,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (roslynItem.Rules.FormatOnCommit)
                 {
                     // The edit updates the snapshot however other extensions may make changes there.
-                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
+                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
                     var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
 
@@ -312,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static bool IsCommitCharacter(CompletionRules completionRules, CompletionItem item, char ch)
         {
-            // First see if the item has any specifc commit rules it wants followed.
+            // First see if the item has any specific commit rules it wants followed.
             foreach (var rule in item.Rules.CommitCharacterRules)
             {
                 switch (rule.Kind)

@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var notificationService = _model.Session.Workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(ex.Message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
             }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
                 // Show a nice error to the user via an info bar
                 var errorReportingService = _model.Session.Workspace.Services.GetService<IErrorReportingService>();

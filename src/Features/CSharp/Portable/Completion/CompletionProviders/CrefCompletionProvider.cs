@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItems(items);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -417,11 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private const string InsertionTextProperty = "insertionText";
-
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {
-            if (!selectedItem.Properties.TryGetValue(InsertionTextProperty, out var insertionText))
+            if (!selectedItem.Properties.TryGetValue(CommonCompletionItem.InsertionTextProperty, out var insertionText))
             {
                 insertionText = selectedItem.DisplayText;
             }

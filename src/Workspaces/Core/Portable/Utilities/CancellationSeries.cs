@@ -9,9 +9,6 @@
 // reference implementation.
 
 using System;
-#if DEBUG
-using System.Diagnostics;
-#endif
 using System.Threading;
 
 namespace Roslyn.Utilities
@@ -42,22 +39,7 @@ namespace Roslyn.Utilities
             _cts.Cancel();
 
             _superToken = token;
-
-#if DEBUG
-            _ctorStack = new StackTrace();
-#endif
         }
-
-#if DEBUG
-        private readonly StackTrace _ctorStack;
-
-        ~CancellationSeries()
-        {
-            Contract.ThrowIfFalse(
-                Environment.HasShutdownStarted || _cts == null,
-                $"Instance of CancellationSeries not disposed before being finalized{Environment.NewLine}Stack at construction:{Environment.NewLine}{_ctorStack}");
-        }
-#endif
 
         /// <summary>
         /// Determines if the cancellation series has an active token which has not been cancelled.
@@ -131,10 +113,6 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-#if DEBUG
-            GC.SuppressFinalize(this);
-#endif
-
             var source = Interlocked.Exchange(ref _cts, null);
 
             if (source == null)

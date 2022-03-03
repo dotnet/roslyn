@@ -147,8 +147,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             _activeFrame = frame;
 
-            if (!_visibleFrames.Any(f => f.Frame == frame))
+            var existingFrame = _visibleFrames.FirstOrDefault(f => f.Frame == frame);
+            if (existingFrame == null)
             {
+                _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
+            }
+            else if (existingFrame.TextBuffer == null)
+            {
+                // If no text buffer is associated with existing frame, remove the existing frame and add the new one.
+                // Note that we do not need to disconnect the existing frame here. It will get disconnected along with
+                // the new frame whenever the document is closed or de-activated.
+                _visibleFrames = _visibleFrames.Remove(existingFrame);
                 _visibleFrames = _visibleFrames.Add(new FrameListener(this, frame));
             }
 
@@ -210,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly VisualStudioActiveDocumentTracker _documentTracker;
             private readonly uint _frameEventsCookie;
 
-            private readonly ITextBuffer? _textBuffer;
+            internal ITextBuffer? TextBuffer { get; }
 
             public FrameListener(VisualStudioActiveDocumentTracker service, IVsWindowFrame frame)
             {
@@ -225,11 +234,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     if (docData is IVsTextBuffer bufferAdapter)
                     {
-                        _textBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
+                        TextBuffer = _documentTracker._editorAdaptersFactoryService.GetDocumentBuffer(bufferAdapter);
 
-                        if (_textBuffer != null && !_textBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
+                        if (TextBuffer != null && !TextBuffer.ContentType.IsOfType(ContentTypeNames.RoslynContentType))
                         {
-                            _textBuffer.Changed += NonRoslynTextBuffer_Changed;
+                            TextBuffer.Changed += NonRoslynTextBuffer_Changed;
                         }
                     }
                 }
@@ -244,12 +253,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             /// </summary>
             public DocumentId? GetDocumentId(Workspace workspace)
             {
-                if (_textBuffer == null)
+                if (TextBuffer == null)
                 {
                     return null;
                 }
 
-                var textContainer = _textBuffer.AsTextContainer();
+                var textContainer = TextBuffer.AsTextContainer();
                 return workspace.GetDocumentIdInCurrentContext(textContainer);
             }
 
@@ -283,9 +292,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _documentTracker.AssertIsForeground();
                 _documentTracker.RemoveFrame(this);
 
-                if (_textBuffer != null)
+                if (TextBuffer != null)
                 {
-                    _textBuffer.Changed -= NonRoslynTextBuffer_Changed;
+                    TextBuffer.Changed -= NonRoslynTextBuffer_Changed;
                 }
 
                 if (_frameEventsCookie != VSConstants.VSCOOKIE_NIL)

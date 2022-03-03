@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundTemp = _factory.StoreToTemp(rewrittenLeft, out tempAssignment);
 
             // temp != null
-            BoundExpression nullCheck = MakeNullCheck(syntax, boundTemp, BinaryOperatorKind.NotEqual);
+            BoundExpression nullCheck = _factory.MakeNullCheck(syntax, boundTemp, BinaryOperatorKind.NotEqual);
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftPlaceholder, leftConversion, rewrittenResultType);

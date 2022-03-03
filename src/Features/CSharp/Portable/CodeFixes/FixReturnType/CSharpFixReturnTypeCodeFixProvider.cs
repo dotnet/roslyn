@@ -49,9 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 
             var analyzedTypes = await TryGetOldAndNewReturnTypeAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
             if (analyzedTypes == default)
-            {
                 return;
-            }
 
             if (IsVoid(analyzedTypes.declarationToFix) && IsVoid(analyzedTypes.fixedDeclaration))
             {
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             return;
 
             static bool IsVoid(TypeSyntax typeSyntax)
-                => typeSyntax is PredefinedTypeSyntax predefined && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword);
+                => typeSyntax is PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword };
         }
 
         private static async Task<(TypeSyntax declarationToFix, TypeSyntax fixedDeclaration)> TryGetOldAndNewReturnTypeAsync(
@@ -78,37 +76,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
             var node = location.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var returnedValue = node is ReturnStatementSyntax returnStatement ? returnStatement.Expression : node;
             if (returnedValue == null)
-            {
                 return default;
-            }
 
             var (declarationTypeToFix, useTask) = TryGetDeclarationTypeToFix(node);
             if (declarationTypeToFix == null)
-            {
                 return default;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var returnedType = semanticModel.GetTypeInfo(returnedValue, cancellationToken).Type;
-            if (returnedType == null)
-            {
-                returnedType = semanticModel.Compilation.ObjectType;
-            }
+            returnedType ??= semanticModel.Compilation.ObjectType;
 
             TypeSyntax fixedDeclaration;
             if (useTask)
             {
                 var taskOfTType = semanticModel.Compilation.TaskOfTType();
                 if (taskOfTType is null)
-                {
                     return default;
-                }
 
-                fixedDeclaration = taskOfTType.Construct(returnedType).GenerateTypeSyntax();
+                fixedDeclaration = taskOfTType.Construct(returnedType).GenerateTypeSyntax(allowVar: false);
             }
             else
             {
-                fixedDeclaration = returnedType.GenerateTypeSyntax();
+                fixedDeclaration = returnedType.GenerateTypeSyntax(allowVar: false);
             }
 
             fixedDeclaration = fixedDeclaration.WithAdditionalAnnotations(Simplifier.Annotation).WithTriviaFrom(declarationTypeToFix);
@@ -126,40 +115,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
 
         private static (TypeSyntax type, bool useTask) TryGetDeclarationTypeToFix(SyntaxNode node)
         {
-            return node.GetAncestors().Select(a => TryGetReturnTypeToFix(a)).FirstOrDefault(p => p != default);
+            return node.GetAncestors().Select(TryGetReturnTypeToFix).FirstOrDefault(p => p.type != null);
 
-            // Local functions
             static (TypeSyntax type, bool useTask) TryGetReturnTypeToFix(SyntaxNode containingMember)
             {
-                switch (containingMember)
+                return containingMember switch
                 {
-                    case MethodDeclarationSyntax method:
-                        // void M() { return 1; }
-                        // async Task M() { return 1; }
-                        return (method.ReturnType, IsAsync(method.Modifiers));
-
-                    case LocalFunctionStatementSyntax localFunction:
-                        // void local() { return 1; }
-                        // async Task local() { return 1; }
-                        return (localFunction.ReturnType, IsAsync(localFunction.Modifiers));
-
-                    default:
-                        return default;
-                }
-            }
-
-            static bool IsAsync(SyntaxTokenList modifiers)
-            {
-                return modifiers.Any(SyntaxKind.AsyncKeyword);
+                    // void M() { return 1; }
+                    // async Task M() { return 1; }
+                    MethodDeclarationSyntax method => (method.ReturnType, method.Modifiers.Any(SyntaxKind.AsyncKeyword)),
+                    // void local() { return 1; }
+                    // async Task local() { return 1; }
+                    LocalFunctionStatementSyntax localFunction => (localFunction.ReturnType, localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword)),
+                    _ => default,
+                };
             }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Fix_return_type,
-                     createChangedDocument,
-                     CSharpFeaturesResources.Fix_return_type)
+                : base(CSharpFeaturesResources.Fix_return_type, createChangedDocument, nameof(CSharpFeaturesResources.Fix_return_type))
             {
             }
         }

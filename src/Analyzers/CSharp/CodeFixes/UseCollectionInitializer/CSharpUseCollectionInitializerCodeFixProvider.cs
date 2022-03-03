@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -13,6 +10,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
-            ObjectCreationExpressionSyntax,
+            BaseObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement,
-            ObjectCreationExpressionSyntax objectCreation,
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             return statement.ReplaceNode(
@@ -45,25 +44,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 GetNewObjectCreation(objectCreation, matches));
         }
 
-        private static ObjectCreationExpressionSyntax GetNewObjectCreation(
-            ObjectCreationExpressionSyntax objectCreation,
+        private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
-                objectCreation, CreateExpressions(matches));
+                objectCreation, CreateExpressions(objectCreation, matches));
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
-            var nodesAndTokens = new List<SyntaxNodeOrToken>();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+            UseInitializerHelpers.AddExistingItems(objectCreation, nodesAndTokens);
+
             for (var i = 0; i < matches.Length; i++)
             {
                 var expressionStatement = matches[i];
 
                 var newExpression = ConvertExpression(expressionStatement.Expression)
                     .WithoutTrivia()
-                    .WithLeadingTrivia(expressionStatement.GetLeadingTrivia());
+                    .WithPrependedLeadingTrivia(expressionStatement.GetLeadingTrivia());
 
                 if (i < matches.Length - 1)
                 {

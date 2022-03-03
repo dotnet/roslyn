@@ -10,7 +10,7 @@ In some scenarios, users may wish to collect performance traces using the PerfVi
 
 Instructions for manually recording with PerfView:
 
-1. Download [PerfView](http://www.microsoft.com/en-us/download/details.aspx?id=28567) and save it to a temporary directory
+1. Download [PerfView](https://github.com/Microsoft/perfview/blob/main/documentation/Downloading.md) and save it to a temporary directory
 1. If using one of the predefined command lines below, review the section to identify the best time to start and stop measuring for the problem at hand and type of recording
 1. Create the directory **C:\temp** if it doesn't exist (or change the following instructions to use a different directory)
 1. From an administrative command prompt, start a PerfView collection using one of the command line sequences from defined below
@@ -20,7 +20,7 @@ Instructions for manually recording with PerfView:
 
 This performance trace performs well for gathering general information during an interval of 100 seconds or more, depending on resource usage during the interval.
 
-    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc,.NETTasks:0:0 -ThreadTime -NoV2Rundown -NoNGenRundown
+    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc -ThreadTime -NoV2Rundown -NoNGenRundown
 
 ## CPU Only
 
@@ -28,7 +28,7 @@ This performance trace gathers CPU usage information only. It supports longer tr
 
 ⚠️ This performance trace is unable to gather information about hangs or UI delays. It should only be used in cases where the General Purpose command failed to produce the desired result.
 
-    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc,.NETTasks:0:0 -NoV2Rundown -NoNGenRundown
+    perfview.exe collect C:\temp\ReproTrace.etl -CircularMB:4096 -BufferSizeMB:256 -Merge:true -Zip:true -Providers:641d7f6c-481c-42e8-ab7e-d18dc5e5cb9e,*Microsoft-VisualStudio-Common,*RoslynEventSource,*StreamJsonRpc -NoV2Rundown -NoNGenRundown
 
 ## GC Only
 

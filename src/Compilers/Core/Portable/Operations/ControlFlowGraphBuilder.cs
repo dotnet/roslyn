@@ -1380,7 +1380,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public override IOperation? VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
             VisitStatements(operation.Operations);
             LeaveRegion();
@@ -1495,7 +1494,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public override IOperation? VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-
+            Debug.Assert(captureIdForResult is null);
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
         }
@@ -1612,7 +1611,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     IOperation? rewrittenThrow = base.Visit(whenTrueConversion.Operand, null);
                     Debug.Assert(rewrittenThrow!.Kind == OperationKind.None);
-                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                    Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
 
                     UnconditionalBranch(afterIf);
 
@@ -1630,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                     IOperation rewrittenThrow = BaseVisitRequired(whenFalseConversion.Operand, null);
                     Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                    Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
                 }
                 else
                 {
@@ -2036,25 +2035,47 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             var previousInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerArgumentContext;
 
-            if (arguments.SelectAsArray(predicate: arg => arg.Value is IInterpolatedStringHandlerCreationOperation,
-                                        selector: arg => (IInterpolatedStringHandlerCreationOperation)arg.Value)
-                    is { IsDefaultOrEmpty: false } interpolatedStrings)
+            ArrayBuilder<IInterpolatedStringHandlerCreationOperation>? interpolatedStringBuilder = null;
+            int lastIndexForSpilling = -1;
+
+            for (int i = 0; i < arguments.Length; i++)
             {
+                if (arguments[i].Value is IInterpolatedStringHandlerCreationOperation creation)
+                {
+                    lastIndexForSpilling = i;
+                    interpolatedStringBuilder ??= ArrayBuilder<IInterpolatedStringHandlerCreationOperation>.GetInstance();
+                    interpolatedStringBuilder.Add(creation);
+                }
+            }
+
+            if (lastIndexForSpilling > -1)
+            {
+                Debug.Assert(interpolatedStringBuilder != null);
                 _currentInterpolatedStringHandlerArgumentContext = new InterpolatedStringHandlerArgumentsContext(
-                    interpolatedStrings,
-                    _evalStack.Count - (instancePushed ? 1 : 0),
+                    interpolatedStringBuilder.ToImmutableAndFree(),
+                    startingStackDepth: _evalStack.Count - (instancePushed ? 1 : 0),
                     hasReceiver: instancePushed);
             }
 
-            VisitAndPushArray(arguments, UnwrapArgument);
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                // If there are declaration expressions in the arguments before an interpolated string handler, and that declaration
+                // expression is referenced by the handler constructor, we need to spill it to ensure the declaration doesn't end
+                // up in the tree twice. However, we don't want to generally introduce spilling for these declarations: that could
+                // have unexpected affects on consumers. So we limit the spilling to those indexes before the last interpolated string
+                // handler. We _could_ limit this further by only spilling declaration expressions if the handler in question actually
+                // referenced a specific declaration expression in the argument list, but we think that the difficulty in implementing
+                // this check is more complexity than this scenario needs.
+                var argument = arguments[i].Value switch
+                {
+                    IDeclarationExpressionOperation declaration when i < lastIndexForSpilling => declaration.Expression,
+                    var value => value
+                };
+
+                PushOperand(VisitRequired(argument));
+            }
+
             _currentInterpolatedStringHandlerArgumentContext = previousInterpolatedStringHandlerContext;
-        }
-
-        private static readonly Func<IArgumentOperation, IOperation> UnwrapArgument = UnwrapArgumentDoNotCaptureDirectly;
-
-        private static IOperation UnwrapArgumentDoNotCaptureDirectly(IArgumentOperation argument)
-        {
-            return argument.Value;
         }
 
         private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
@@ -2094,6 +2115,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation visitedArrayReference = PopOperand();
             PopStackFrame(frame);
             return new ArrayElementReferenceOperation(visitedArrayReference, visitedIndices, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new ImplicitIndexerReferenceOperation(instance, argument, operation.LengthSymbol, operation.IndexerSymbol, semanticModel: null,
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
@@ -2799,7 +2831,7 @@ oneMoreTime:
                         IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
                         Debug.Assert(rewrittenThrow != null);
                         Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                        Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                        Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
                         dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
                         return;
                     }
@@ -2930,7 +2962,7 @@ oneMoreTime:
                 IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
                 Debug.Assert(rewrittenThrow != null);
                 Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
             }
             else
             {

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
         protected abstract bool TryInitializeExplicitInterfaceState(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken, out SyntaxToken identifierToken, out IPropertySymbol propertySymbol, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression, out bool isInExecutableBlock, out bool isinConditionalAccessExpression);
 
-        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, OptionSet options, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot);
+        protected abstract bool TryConvertToLocalDeclaration(ITypeSymbol type, SyntaxToken identifierToken, SemanticModel semanticModel, CancellationToken cancellationToken, out SyntaxNode newRoot);
 
         public async Task<ImmutableArray<CodeAction>> GenerateVariableAsync(
             Document document,
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false));
 
-                if (AddParameterService.Instance.HasCascadingDeclarations(state.ContainingMethod))
+                if (AddParameterService.HasCascadingDeclarations(state.ContainingMethod))
                     result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true));
             }
         }

@@ -107,6 +107,11 @@
         <target state="translated">어셈블리</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="translated">포커스에서 자동으로 스택 추적 탐색기 열기</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">암시적으로 값을 무시하는 식 문을 사용하지 마세요.</target>
@@ -125,11 +130,6 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">뒤로</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">백그라운드 분석 범위:</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -199,12 +199,12 @@
       </trans-unit>
       <trans-unit id="Clear">
         <source>Clear</source>
-        <target state="new">Clear</target>
+        <target state="translated">지우기</target>
         <note>Clear content action</note>
       </trans-unit>
       <trans-unit id="Close_tab">
         <source>Close Tab</source>
-        <target state="new">Close Tab</target>
+        <target state="translated">탭 닫기</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_Style">
@@ -235,6 +235,11 @@
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">색 힌트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="new">Colorize JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -287,6 +292,11 @@
         <target state="translated">기본값(전체 솔루션)</target>
         <note>This text is a menu command</note>
       </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="new">Default (None)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
       <trans-unit id="Default_Open_Documents">
         <source>Default (Open Documents)</source>
         <target state="translated">기본값(문서 열기)</target>
@@ -309,7 +319,7 @@
       </trans-unit>
       <trans-unit id="Display_diagnostics_inline_experimental">
         <source>Display diagnostics inline (experimental)</source>
-        <target state="new">Display diagnostics inline (experimental)</target>
+        <target state="translated">진단 인라인 표시(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
@@ -392,6 +402,11 @@
         <target state="translated">전체 솔루션</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="new">Entire Solution and External Sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">오류</target>
@@ -405,6 +420,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">평가 중(큐의 {0}개 작업)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="new">External Sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -492,14 +512,14 @@
         <target state="translated">상속 여백</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="new">Inline Diagnostics (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">상속된 인터페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">인라인 진단(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -529,12 +549,17 @@
       </trans-unit>
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
-        <target state="new">Invalid type name</target>
+        <target state="translated">잘못된 형식 이름</target>
         <note />
       </trans-unit>
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">항목 원본</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="new">JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -604,7 +629,7 @@
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type_colon">
         <source>Move Static Members to Another Type:</source>
-        <target state="new">Move Static Members to Another Type:</target>
+        <target state="translated">정적 멤버를 다른 형식으로 이동:</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -802,6 +827,11 @@
         <target state="translated">'{0}'(으)로 이동</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">외부 원본으로 이동</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
         <target state="translated">안 함 </target>
@@ -949,12 +979,12 @@
       </trans-unit>
       <trans-unit id="Paste">
         <source>Paste</source>
-        <target state="new">Paste</target>
+        <target state="translated">붙여넣기</target>
         <note />
       </trans-unit>
       <trans-unit id="Paste_valid_stack_trace">
         <source>Paste a valid stack trace to view and navigate it's values</source>
-        <target state="new">Paste a valid stack trace to view and navigate it's values</target>
+        <target state="translated">유효한 스택 추적을 붙여넣어 해당 값을 보고 탐색합니다.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
@@ -980,6 +1010,11 @@
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
         <target state="translated">인덱스 연산자 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="new">Prefer method group conversion</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
@@ -1019,7 +1054,7 @@
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
-        <target state="new">Prefer tuple swap</target>
+        <target state="translated">튜플 교환 선호</target>
         <note />
       </trans-unit>
       <trans-unit id="Projects">
@@ -1064,12 +1099,17 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">{0} 이름을 {1}(으)로 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="new">Report invalid JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -1115,6 +1155,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0}에서 코드 분석 실행</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="new">Run background code analysis for:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
@@ -1244,17 +1289,17 @@
       </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
-        <target state="new">Sort usings</target>
+        <target state="translated">Using 정렬</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace_Explorer">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">스택 추적 탐색기</target>
         <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
       </trans-unit>
       <trans-unit id="Stack_trace_0">
         <source>Stack Trace {0}</source>
-        <target state="new">Stack Trace {0}</target>
+        <target state="translated">스택 추적 {0}개</target>
         <note>Header for numbered stack trace view tabs</note>
       </trans-unit>
       <trans-unit id="Suggestion">
@@ -1264,7 +1309,7 @@
       </trans-unit>
       <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
         <source>Suppress hints when argument matches parameter name</source>
-        <target state="new">Suppress hints when argument matches parameter name</target>
+        <target state="translated">인수가 매개 변수 이름과 일치하는 경우 힌트 표시 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
@@ -1609,7 +1654,7 @@
       </trans-unit>
       <trans-unit id="at_the_end_of_the_line_of_code">
         <source>at the end of the line of code</source>
-        <target state="new">at the end of the line of code</target>
+        <target state="translated">코드 줄의 끝에</target>
         <note />
       </trans-unit>
       <trans-unit id="generated_by_0_suffix">
@@ -2635,7 +2680,7 @@ Additional information: {1}</source>
       </trans-unit>
       <trans-unit id="on_the_right_edge_of_the_editor_window">
         <source>on the right edge of the editor window</source>
-        <target state="new">on the right edge of the editor window</target>
+        <target state="translated">편집기 창의 오른쪽 가장자리</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

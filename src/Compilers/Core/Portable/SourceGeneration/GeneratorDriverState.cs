@@ -18,8 +18,10 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<AdditionalText> additionalTexts,
                                       ImmutableArray<GeneratorState> generatorStates,
                                       DriverStateTable stateTable,
+                                      SyntaxStore syntaxStore,
                                       IncrementalGeneratorOutputKind disabledOutputs,
-                                      TimeSpan runtime)
+                                      TimeSpan runtime,
+                                      bool trackIncrementalGeneratorSteps)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -28,8 +30,10 @@ namespace Microsoft.CodeAnalysis
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
             StateTable = stateTable;
+            SyntaxStore = syntaxStore;
             DisabledOutputs = disabledOutputs;
             RunTime = runtime;
+            TrackIncrementalSteps = trackIncrementalGeneratorSteps;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -78,6 +82,8 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly DriverStateTable StateTable;
 
+        internal readonly SyntaxStore SyntaxStore;
+
         /// <summary>
         /// A bit field containing the output kinds that should not be produced by this generator driver.
         /// </summary>
@@ -85,12 +91,15 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly TimeSpan RunTime;
 
+        internal readonly bool TrackIncrementalSteps;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
             DriverStateTable? stateTable = null,
+            SyntaxStore? syntaxStore = null,
             ParseOptions? parseOptions = null,
             AnalyzerConfigOptionsProvider? optionsProvider = null,
             IncrementalGeneratorOutputKind? disabledOutputs = null,
@@ -104,8 +113,10 @@ namespace Microsoft.CodeAnalysis
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
+                syntaxStore ?? this.SyntaxStore,
                 disabledOutputs ?? this.DisabledOutputs,
-                runTime ?? this.RunTime
+                runTime ?? this.RunTime,
+                this.TrackIncrementalSteps
                 );
         }
     }

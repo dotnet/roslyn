@@ -3,20 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     [ExportLanguageService(typeof(IFindUsagesService), InternalLanguageNames.TypeScript), Shared]
-    internal class VSTypeScriptFindUsagesService : IFindUsagesService
+    internal sealed class VSTypeScriptFindUsagesService : IFindUsagesService
     {
         private readonly IVSTypeScriptFindUsagesService _underlyingService;
 
@@ -27,23 +27,23 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             _underlyingService = underlyingService;
         }
 
-        public Task FindReferencesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
-            => _underlyingService.FindReferencesAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
+        public Task FindReferencesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
+            => _underlyingService.FindReferencesAsync(document, position, new Context(context), cancellationToken);
 
-        public Task FindImplementationsAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
-            => _underlyingService.FindImplementationsAsync(document, position, new VSTypeScriptFindUsagesContext(context), cancellationToken);
+        public Task FindImplementationsAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
+            => _underlyingService.FindImplementationsAsync(document, position, new Context(context), cancellationToken);
 
-        private class VSTypeScriptFindUsagesContext : IVSTypeScriptFindUsagesContext
+        private sealed class Context : IVSTypeScriptFindUsagesContext
         {
             private readonly IFindUsagesContext _context;
-            private readonly Dictionary<VSTypeScriptDefinitionItem, DefinitionItem> _definitionItemMap = new();
 
-            public VSTypeScriptFindUsagesContext(IFindUsagesContext context)
+            public Context(IFindUsagesContext context)
             {
                 _context = context;
             }
 
-            public IVSTypeScriptStreamingProgressTracker ProgressTracker => new VSTypeScriptStreamingProgressTracker(_context.ProgressTracker);
+            public IVSTypeScriptStreamingProgressTracker ProgressTracker
+                => new ProgressTracker(_context.ProgressTracker);
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => _context.ReportMessageAsync(message, cancellationToken);
@@ -51,45 +51,21 @@ namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
                 => _context.SetSearchTitleAsync(title, cancellationToken);
 
-            private DefinitionItem GetOrCreateDefinitionItem(VSTypeScriptDefinitionItem item)
-            {
-                lock (_definitionItemMap)
-                {
-                    if (!_definitionItemMap.TryGetValue(item, out var result))
-                    {
-                        result = DefinitionItem.Create(
-                            item.Tags,
-                            item.DisplayParts,
-                            item.SourceSpans,
-                            item.NameDisplayParts,
-                            item.Properties,
-                            item.DisplayableProperties,
-                            item.DisplayIfNoReferences);
-                        _definitionItemMap.Add(item, result);
-                    }
-
-                    return result;
-                }
-            }
-
             public ValueTask OnDefinitionFoundAsync(VSTypeScriptDefinitionItem definition, CancellationToken cancellationToken)
-            {
-                var item = GetOrCreateDefinitionItem(definition);
-                return _context.OnDefinitionFoundAsync(item, cancellationToken);
-            }
+                => _context.OnDefinitionFoundAsync(definition.UnderlyingObject, cancellationToken);
 
             public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
-            {
-                var item = GetOrCreateDefinitionItem(reference.Definition);
-                return _context.OnReferenceFoundAsync(new SourceReferenceItem(item, reference.SourceSpan, reference.SymbolUsageInfo), cancellationToken);
-            }
+                => _context.OnReferenceFoundAsync(reference.UnderlyingObject, cancellationToken);
+
+            public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+                => ValueTaskFactory.CompletedTask;
         }
 
-        private class VSTypeScriptStreamingProgressTracker : IVSTypeScriptStreamingProgressTracker
+        private sealed class ProgressTracker : IVSTypeScriptStreamingProgressTracker
         {
             private readonly IStreamingProgressTracker _progressTracker;
 
-            public VSTypeScriptStreamingProgressTracker(IStreamingProgressTracker progressTracker)
+            public ProgressTracker(IStreamingProgressTracker progressTracker)
             {
                 _progressTracker = progressTracker;
             }

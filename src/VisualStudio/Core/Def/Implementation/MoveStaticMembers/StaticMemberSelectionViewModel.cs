@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
             }
         }
 
-        private void SelectMembers(ImmutableArray<SymbolViewModel<ISymbol>> members, bool isChecked = true)
+        private static void SelectMembers(ImmutableArray<SymbolViewModel<ISymbol>> members, bool isChecked = true)
         {
             foreach (var member in members)
             {

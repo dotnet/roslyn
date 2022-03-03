@@ -3,17 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
-using Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -143,45 +141,6 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         AssertEx.NotNull(openedDocument);
         Assert.Equal("LSP text", (await openedDocument.GetTextAsync(CancellationToken.None)).ToString());
         Assert.Equal("NewCSProj1", openedDocument.Project.AssemblyName);
-    }
-
-    [Fact]
-    public async Task TestForksOnOptionChangesChangesAsync()
-    {
-        var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        DateTime.Now.ToString(""{|caret:|});
-    }
-}";
-        using var testLspServer = await CreateTestLspServerAsync(markup);
-        var documentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
-
-        // Open the document via LSP to create the initial LSP solution.
-        await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServer, markup);
-
-        var completionParams = CreateCompletionParams(
-                testLspServer.GetLocations("caret").Single(),
-                invokeKind: VSInternalCompletionInvokeKind.Typing,
-                triggerCharacter: "\"",
-                triggerKind: CompletionTriggerKind.TriggerCharacter);
-        var completionItems = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams);
-        Assert.Contains(completionItems.Items, item => item.Label == "d");
-
-        // Modify an option via the workspace.
-        var solutionWithChangedOption = testLspServer.TestWorkspace.CurrentSolution.WithOptions(
-            testLspServer.TestWorkspace.Options.WithChangedOption(CodeAnalysis.Completion.CompletionOptions.Metadata.ProvideDateAndTimeCompletions, LanguageNames.CSharp, false));
-        await testLspServer.TestWorkspace.ChangeSolutionAsync(solutionWithChangedOption);
-
-        // Assert that the LSP incremental solution is cleared.
-        Assert.Null(GetManagerWorkspaceState(testLspServer.TestWorkspace, testLspServer));
-
-        // Verify that we fork again from the workspace and the new LSP solution has the new text and respects the updated option.
-        completionItems = await CompletionTests.RunGetCompletionsAsync(testLspServer, completionParams);
-        Assert.Null(completionItems);
     }
 
     [Fact]
@@ -510,8 +469,8 @@ class A
 
         var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
 
-        using var testLspServerOne = new TestLspServer(testWorkspace);
-        using var testLspServerTwo = new TestLspServer(testWorkspace);
+        using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, clientCapabilities: new(), WellKnownLspServerKinds.AlwaysActiveVSLspServer);
+        using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, clientCapabilities: new(), WellKnownLspServerKinds.AlwaysActiveVSLspServer);
 
         Assert.NotEqual(testLspServerOne.GetManager(), testLspServerTwo.GetManager());
 

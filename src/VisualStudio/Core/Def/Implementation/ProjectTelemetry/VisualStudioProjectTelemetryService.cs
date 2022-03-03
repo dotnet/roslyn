@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             {
                 // Cancellation is normal (during VS closing).  Just ignore.
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
                 // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
                 // a BG service we don't want impacting the user experience.
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private void AddFilteredData(ImmutableArray<ProjectTelemetryData> infos, ArrayBuilder<ProjectTelemetryData> filteredInfos)
+        private static void AddFilteredData(ImmutableArray<ProjectTelemetryData> infos, ArrayBuilder<ProjectTelemetryData> filteredInfos)
         {
             using var _ = PooledHashSet<ProjectId>.GetInstance(out var seenProjectIds);
 
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectTelemetr
             }
         }
 
-        private void NotifyTelemetryService(ProjectTelemetryData info)
+        private static void NotifyTelemetryService(ProjectTelemetryData info)
         {
             try
             {

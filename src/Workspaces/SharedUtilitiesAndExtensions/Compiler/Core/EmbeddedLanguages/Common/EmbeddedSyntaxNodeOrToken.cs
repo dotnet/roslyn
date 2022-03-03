@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -12,8 +12,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxKind : struct
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
     {
+        private readonly EmbeddedSyntaxToken<TSyntaxKind> _token;
+
         public readonly TSyntaxNode? Node;
-        public readonly EmbeddedSyntaxToken<TSyntaxKind> Token;
 
         private EmbeddedSyntaxNodeOrToken(TSyntaxNode? node) : this()
         {
@@ -23,11 +24,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         private EmbeddedSyntaxNodeOrToken(EmbeddedSyntaxToken<TSyntaxKind> token) : this()
         {
             Debug.Assert((int)(object)token.Kind != 0);
-            Token = token;
+            _token = token;
         }
+
+        public readonly EmbeddedSyntaxToken<TSyntaxKind> Token
+        {
+            get
+            {
+                Debug.Assert(Node == null);
+                return _token;
+            }
+        }
+        public TSyntaxKind Kind => Node?.Kind ?? Token.Kind;
 
         [MemberNotNullWhen(true, nameof(Node))]
         public bool IsNode => Node != null;
+
+        public TextSpan? GetFullSpan()
+            => IsNode ? Node.GetFullSpan() : _token.GetFullSpan();
 
         public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TSyntaxNode>(TSyntaxNode? node)
             => new(node);

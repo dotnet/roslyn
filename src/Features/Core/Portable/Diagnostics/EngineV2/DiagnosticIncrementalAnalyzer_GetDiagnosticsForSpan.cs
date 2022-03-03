@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  CancellationToken cancellationToken)
             {
                 var stateSets = owner._stateManager
-                                     .GetOrCreateStateSets(document.Project).Where(s => !owner.DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(s.Analyzer, document.Project));
+                                     .GetOrCreateStateSets(document.Project).Where(s => AnalyzerHelper.IsAnalyzerEnabledForProject(s.Analyzer, document.Project));
 
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -148,11 +148,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
                     foreach (var stateSet in _stateSets)
                     {
-                        if (_shouldIncludeDiagnostic != null &&
-                            !_owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).Any(a => _shouldIncludeDiagnostic(a.Id)))
-                        {
+                        if (!ShouldIncludeAnalyzer(stateSet.Analyzer, _shouldIncludeDiagnostic, _owner))
                             continue;
-                        }
 
                         if (!await TryAddCachedDocumentDiagnosticsAsync(stateSet, AnalysisKind.Syntax, list, cancellationToken).ConfigureAwait(false))
                             syntaxAnalyzers.Add(stateSet.Analyzer);
@@ -185,6 +182,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
+                }
+
+                // Local functions
+                static bool ShouldIncludeAnalyzer(
+                    DiagnosticAnalyzer analyzer,
+                    Func<string, bool>? shouldIncludeDiagnostic,
+                    DiagnosticIncrementalAnalyzer owner)
+                {
+                    // Special case DocumentDiagnosticAnalyzer to never skip these document analyzers
+                    // based on 'shouldIncludeDiagnostic' predicate. More specifically, TS has special document
+                    // analyzer which report 0 supported diagnostics, but we always want to execute it.
+                    if (analyzer is DocumentDiagnosticAnalyzer)
+                    {
+                        return true;
+                    }
+
+                    // Skip analyzer if none of its reported diagnostics should be included.
+                    if (shouldIncludeDiagnostic != null &&
+                        !owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer).Any(a => shouldIncludeDiagnostic(a.Id)))
+                    {
+                        return false;
+                    }
+
+                    return true;
                 }
             }
 

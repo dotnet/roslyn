@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return _service.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
         }
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
+        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch)
         {
             return _service.SupportsFormattingOnTypedCharacter(document, ch);
         }

@@ -1,6 +1,7 @@
 # Roslyn integration test pipeline for validating against branch builds of VS.
 
 trigger: none # Manual trigger for now
+pr: none # Manual trigger for now
 
 resources:
   pipelines:
@@ -15,6 +16,13 @@ resources:
     type: git
     name: DartLab.Templates
     ref: refs/heads/dev/bradwhit/RemoveCheckoutNone
+  - repository: RoslynMirror
+    endpoint: dnceng/internal dotnet-roslyn
+    type: git
+    name: internal/dotnet-roslyn
+    ref: $(Build.SourceBranchName)
+    trigger:
+    - main
 
 variables:
 - name: XUNIT_LOGS
@@ -54,6 +62,7 @@ stages:
         filePath: $(DartLab.Path)\Scripts\VisualStudio\Build\Get-VisualStudioDropName.ps1
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     deployAndRunTestsStepList:
+    - checkout: RoslynMirror
     - template: eng/pipelines/test-integration-job.yml
       parameters:
         configuration: $(_configuration)

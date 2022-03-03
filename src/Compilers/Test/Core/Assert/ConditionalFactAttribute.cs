@@ -312,6 +312,12 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on macOS";
     }
 
+    public class LinuxOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsLinux;
+        public override string SkipReason => "Test not supported on Windows or macOS";
+    }
+
     public class ClrOnly : ExecutionCondition
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMono();

@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
@@ -31,7 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
-        private IComponentModel _componentModel_doNotAccessDirectly;
 
         protected AbstractPackage()
         {
@@ -82,9 +79,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
-
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Do the MEF loads and initialization in the BG explicitly.
+            await TaskScheduler.Default;
 
             // Ensure the nuget package services are initialized. This initialization pass will only run
             // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
@@ -95,24 +91,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             //
             // This code will have to be moved elsewhere once any of that load path is changed such that the package
             // no longer loads if a file is opened.
+            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
             _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
-            _packageInstallerService?.Connect(this.RoslynLanguageName);
-            _symbolSearchService?.Connect(this.RoslynLanguageName);
-        }
-
-        internal IComponentModel ComponentModel
-        {
-            get
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-
-                if (_componentModel_doNotAccessDirectly == null)
-                    _componentModel_doNotAccessDirectly = (IComponentModel)GetService(typeof(SComponentModel));
-
-                return _componentModel_doNotAccessDirectly;
-            }
+            _packageInstallerService?.RegisterLanguage(this.RoslynLanguageName);
+            _symbolSearchService?.RegisterLanguage(this.RoslynLanguageName);
         }
 
         protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);

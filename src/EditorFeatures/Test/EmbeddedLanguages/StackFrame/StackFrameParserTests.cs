@@ -439,5 +439,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                             Identifier(keyword.Trim()),
                             IdentifierToken(keyword.Trim(), leadingTrivia: SpaceTrivia(2), trailingTrivia: SpaceTrivia()))))
                 );
+
+        [Fact]
+        public void TestGeneratedMain()
+            => Verify(@"Program.<Main>$(String[] args)",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName(
+                        Identifier("Program"),
+                        GeneratedName("Main")),
+                    argumentList: ParameterList(
+                            Parameter(ArrayType(Identifier("String"), ArrayRankSpecifier(trailingTrivia: SpaceTrivia())),
+                            IdentifierToken("args")))
+                    )
+                );
+
+        [Fact]
+        public void TestLocalMethod()
+            => Verify(@"C.<M>g__Local|0_0()",
+                methodDeclaration: MethodDeclaration(
+                    QualifiedName(
+                        Identifier("C"),
+                        LocalMethod(
+                            GeneratedName("M", endWithDollar: false),
+                            "Local",
+                            "0_0"))
+                    )
+                );
     }
 }

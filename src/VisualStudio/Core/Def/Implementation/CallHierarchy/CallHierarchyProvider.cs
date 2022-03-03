@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             return null;
         }
 
-        private ISymbol GetTargetSymbol(ISymbol symbol)
+        private static ISymbol GetTargetSymbol(ISymbol symbol)
         {
             if (symbol is IMethodSymbol methodSymbol)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
             var workspace = project.Solution.Workspace;
-            var options = project.Solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true);
+            var options = NavigationOptions.Default with { PreferProvisionalTab = true };
             var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
 
             symbolNavigationService.TryNavigateToSymbol(resolution.Symbol, project, options, cancellationToken);

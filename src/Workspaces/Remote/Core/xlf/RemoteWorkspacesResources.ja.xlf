@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_CompilationAvailable">
         <source>Project semantics availability</source>
-        <target state="new">Project semantics availability</target>
+        <target state="translated">プロジェクト セマンティクスの可用性</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
@@ -112,11 +112,6 @@
         <target state="translated">セマンティック分類</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">セマンティック分類キャッシュ</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">資産プロバイダー</target>
@@ -124,7 +119,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">スタック トレース エクスプローラー</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

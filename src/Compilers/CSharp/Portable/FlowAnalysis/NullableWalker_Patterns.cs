@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Expression);
             var expressionState = ResultType;
 
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -514,6 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var outputSlot = makeDagTempSlot(type, output);
                                         Debug.Assert(outputSlot > 0);
                                         addToTempMap(output, outputSlot, type.Type);
+                                        this.State[outputSlot] = NullableFlowState.NotNull; // Slice value is assumed to be never null
                                         break;
                                     }
                                 case BoundDagAssignmentEvaluation e:
@@ -828,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(node.Expression);
             var expressionState = ResultType;
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, stateWhenNotNullOpt: null);
             var endState = UnreachableState();
 
             if (!node.ReportedNotExhaustive && node.DefaultLabel != null &&
@@ -836,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultLabelState.believedReachable)
             {
                 SetState(defaultLabelState.state);
-                var nodes = node.DecisionDag.TopologicallySortedNodes;
+                var nodes = node.ReachabilityDecisionDag.TopologicallySortedNodes;
                 var leaf = nodes.Where(n => n is BoundLeafDecisionDagNode leaf && leaf.Label == node.DefaultLabel).First();
                 var samplePattern = PatternExplainer.SamplePatternForPathToDagNode(
                     BoundDagTemp.ForOriginalInput(node.Expression), nodes, leaf, nullPaths: true, out bool requiresFalseWhenClause, out _);
@@ -856,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var arm in node.SwitchArms)
             {
-                SetState(getStateForArm(arm));
+                SetState(getStateForArm(arm, labelStateMap));
                 // https://github.com/dotnet/roslyn/issues/35836 Is this where we want to take the snapshot?
                 TakeIncrementalSnapshot(arm);
                 VisitPatternForRewriting(arm.Pattern);
@@ -872,6 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
             }
 
+            SetState(endState);
+
             var placeholders = placeholderBuilder.ToImmutableAndFree();
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
@@ -881,54 +884,92 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
             NullableFlowState inferredState;
+            TypeWithState resultType;
 
-            if (inferType)
+            if (inferType && inferredType is null)
             {
-                if (inferredType is null)
+                // This can happen when we're inferring the return type of a lambda, or when there are no arms (an error case).
+                // For this case, we don't need to do any work, as the unconverted switch expression can't contribute info, and
+                // there is nothing that is being publicly exposed to the semantic model.
+                Debug.Assert((node is BoundUnconvertedSwitchExpression && _returnTypesOpt is not null)
+                                || node is BoundSwitchExpression { SwitchArms: { Length: 0 } });
+                inferredState = default;
+
+                resultType = TypeWithState.Create(inferredType, inferredState);
+
+                conversions.Free();
+                resultTypes.Free();
+                expressions.Free();
+                labelStateMap.Free();
+                SetResult(node, resultType, inferredTypeWithAnnotations);
+                return;
+            }
+
+            resultType = convertArms(node, labelStateMap, conversions, resultTypes, expressions, inferredTypeWithAnnotations, isTargetTyped: !inferType);
+
+            SetResult(node, resultType, inferredTypeWithAnnotations, updateAnalyzedNullability: false);
+            return;
+
+            TypeWithState convertArms(
+                BoundSwitchExpression node,
+                PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)> labelStateMap,
+                ArrayBuilder<Conversion> conversions,
+                ArrayBuilder<TypeWithState> resultTypes,
+                ArrayBuilder<BoundExpression> expressions,
+                TypeWithAnnotations inferredTypeWithAnnotations,
+                bool isTargetTyped)
+            {
+                if (!isTargetTyped)
                 {
-                    // This can happen when we're inferring the return type of a lambda, or when there are no arms (an error case).
-                    // For this case, we don't need to do any work, as the unconverted switch expression can't contribute info, and
-                    // there is nothing that is being publicly exposed to the semantic model.
-                    Debug.Assert((node is BoundUnconvertedSwitchExpression && _returnTypesOpt is not null)
-                                 || node is BoundSwitchExpression { SwitchArms: { Length: 0 } });
-                    inferredState = default;
-                }
-                else
-                {
+                    int numSwitchArms = node.SwitchArms.Length;
                     for (int i = 0; i < numSwitchArms; i++)
                     {
                         var nodeForSyntax = expressions[i];
                         var arm = node.SwitchArms[i];
-                        var armState = getStateForArm(arm);
+                        var armState = getStateForArm(arm, labelStateMap);
                         resultTypes[i] = ConvertConditionalOperandOrSwitchExpressionArmResult(arm.Value, nodeForSyntax, conversions[i], inferredTypeWithAnnotations, resultTypes[i], armState, armState.Reachable);
                     }
-                    inferredState = BestTypeInferrer.GetNullableState(resultTypes);
                 }
-            }
-            else
-            {
-                var states = ArrayBuilder<(LocalState, TypeWithState, bool)>.GetInstance(numSwitchArms);
-                for (int i = 0; i < numSwitchArms; i++)
+
+                NullableFlowState inferredState = BestTypeInferrer.GetNullableState(resultTypes);
+
+                if (!isTargetTyped)
                 {
-                    var nodeForSyntax = expressions[i];
-                    var armState = getStateForArm(node.SwitchArms[i]);
-                    states.Add((armState, resultTypes[i], armState.Reachable));
+                    conversions.Free();
+                    resultTypes.Free();
+                    expressions.Free();
+                    labelStateMap.Free();
+                }
+                else
+                {
+                    addConvertArmsAsCompletion(node, labelStateMap, conversions, resultTypes, expressions);
                 }
 
-                ConditionalInfoForConversion.Add(node, states.ToImmutableAndFree());
-                inferredState = BestTypeInferrer.GetNullableState(resultTypes);
+                TypeWithState resultType = TypeWithState.Create(inferredTypeWithAnnotations.Type, inferredState);
+
+                if (!isTargetTyped)
+                {
+                    SetAnalyzedNullability(node, resultType);
+                }
+
+                return resultType;
             }
 
-            var resultType = TypeWithState.Create(inferredType, inferredState);
+            void addConvertArmsAsCompletion(
+                BoundSwitchExpression node,
+                PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)> labelStateMap,
+                ArrayBuilder<Conversion> conversions,
+                ArrayBuilder<TypeWithState> resultTypes,
+                ArrayBuilder<BoundExpression> expressions)
+            {
+                TargetTypedAnalysisCompletion[node] =
+                    (TypeWithAnnotations inferredTypeWithAnnotations) =>
+                    {
+                        return convertArms(node, labelStateMap, conversions, resultTypes, expressions, inferredTypeWithAnnotations, isTargetTyped: false);
+                    };
+            }
 
-            conversions.Free();
-            resultTypes.Free();
-            expressions.Free();
-            labelStateMap.Free();
-            SetState(endState);
-            SetResult(node, resultType, inferredTypeWithAnnotations);
-
-            LocalState getStateForArm(BoundSwitchExpressionArm arm)
+            LocalState getStateForArm(BoundSwitchExpressionArm arm, PooledDictionary<LabelSymbol, (LocalState state, bool believedReachable)> labelStateMap)
                 => !arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState();
         }
 
@@ -944,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitPatternForRewriting(node.Pattern);
             var hasStateWhenNotNull = VisitPossibleConditionalAccess(node.Expression, out var conditionalStateWhenNotNull);
             var expressionState = ResultType;
-            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.DecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);
+            var labelStateMap = LearnFromDecisionDag(node.Syntax, node.ReachabilityDecisionDag, node.Expression, expressionState, hasStateWhenNotNull ? conditionalStateWhenNotNull : null);
             var trueState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenFalseLabel : node.WhenTrueLabel, out var s1) ? s1.state : UnreachableState();
             var falseState = labelStateMap.TryGetValue(node.IsNegated ? node.WhenTrueLabel : node.WhenFalseLabel, out var s2) ? s2.state : UnreachableState();
             labelStateMap.Free();
