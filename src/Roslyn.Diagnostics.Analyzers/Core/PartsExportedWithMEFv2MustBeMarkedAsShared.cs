@@ -19,7 +19,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer : DiagnosticAnalyzer
     {
-        internal static DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.MissingSharedAttributeRuleId,
             CreateLocalizableResourceString(nameof(PartsExportedWithMEFv2MustBeMarkedAsSharedTitle)),
             CreateLocalizableResourceString(nameof(PartsExportedWithMEFv2MustBeMarkedAsSharedMessage)),
