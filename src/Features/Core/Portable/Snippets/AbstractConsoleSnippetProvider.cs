@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName);
+            var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);
             return symbol;
         }
     }
