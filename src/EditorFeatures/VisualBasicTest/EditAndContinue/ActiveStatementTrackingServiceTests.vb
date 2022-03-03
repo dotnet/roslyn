@@ -31,7 +31,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -57,7 +57,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -83,7 +83,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -116,7 +116,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
     End Class
 End Namespace
