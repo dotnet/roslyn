@@ -155,13 +155,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
-        public void TestPasteExternalNewLineIntoNormalString()
+        public void TestPasteExternalNewLineIntoNormalString1()
         {
             TestPasteOnly(
                 pasteText: "\n",
                 @"var x = ""$$""",
                 @"var x = ""\n$$""",
                 afterUndo: "var x = \"\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalString2()
+        {
+            TestPasteOnly(
+                pasteText: "\r\n",
+                @"var x = ""$$""",
+                @"var x = ""\r\n$$""",
+                afterUndo: "var x = \"\r\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteTabIntoNormalString1()
+        {
+            TestPasteOnly(
+                pasteText: "\t",
+                @"var x = ""$$""",
+                @"var x = ""\t$$""",
+                afterUndo: "var x = \"\t$$\"");
         }
     }
 }

@@ -8,7 +8,9 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -140,25 +142,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (!AllChangesInSameStringToken(rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste, out var tokenBeforePaste))
                 return;
 
-            // try to find the same token after the paste.  If it's got no errors, and still ends at the same expected
-            // location, then it looks like what was pasted was entirely legal and should not be touched.
             var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
             var documentAfterPaste = snapshotAfterPaste.GetOpenDocumentInCurrentContextWithChanges();
             if (documentAfterPaste == null)
                 return;
 
-            var rootAfterPaste = documentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
-
-            var tokenAfterPaste = rootAfterPaste.FindToken(tokenBeforePaste.SpanStart);
-            if (tokenBeforePaste.Kind() == tokenAfterPaste.Kind() &&
-                tokenBeforePaste.SpanStart == tokenAfterPaste.SpanStart &&
-                !tokenAfterPaste.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-            {
-                var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(tokenBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
-                if (spanAfterPaste == tokenAfterPaste.Span)
-                    return;
-            }
+            // If the pasting was successful, then no need to change anything.
+            if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, tokenBeforePaste, cancellationToken))
+                return;
 
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
@@ -175,6 +166,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
             transaction.Complete();
+        }
+
+        private static bool PasteWasSuccessful(
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
+            SyntaxToken tokenBeforePaste,
+            CancellationToken cancellationToken)
+        {
+            // Pasting a control character into a normal string literal is normally not desired.  So even if this
+            // is legal, we still escape the contents to make the pasted code clear.
+            if (tokenBeforePaste.IsRegularStringLiteral() &&
+                snapshotBeforePaste.Version.Changes.Any(c => ContainsControlCharacter(c.NewText)))
+            {
+                return false;
+            }
+
+            // try to find the same token after the paste.  If it's got no errors, and still ends at the same expected
+            // location, then it looks like what was pasted was entirely legal and should probably not be touched.
+
+            var documentAfterPaste = snapshotAfterPaste.GetOpenDocumentInCurrentContextWithChanges();
+            Contract.ThrowIfNull(documentAfterPaste);
+            var rootAfterPaste = documentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
+
+            var tokenAfterPaste = rootAfterPaste.FindToken(tokenBeforePaste.SpanStart);
+            if (tokenBeforePaste.Kind() != tokenAfterPaste.Kind() ||
+                tokenBeforePaste.SpanStart != tokenAfterPaste.SpanStart ||
+                tokenAfterPaste.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                return false;
+            }
+
+            var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(tokenBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+            var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
+            return spanAfterPaste == tokenAfterPaste.Span;
+        }
+
+        private static bool ContainsControlCharacter(string newText)
+        {
+            foreach (var c in newText)
+            {
+                if (char.IsControl(c))
+                    return true;
+            }
+
+            return false;
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChanges(SyntaxToken token, INormalizedTextChangeCollection changes)
