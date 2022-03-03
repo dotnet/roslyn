@@ -119,6 +119,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
 
+            // Start solution crawler in the remote workspace:
+            await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
+                CancellationToken.None).ConfigureAwait(false);
+
             // Ensure remote workspace is in sync with normal workspace.
             var solution = workspace.CurrentSolution;
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
@@ -194,6 +199,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
+
+            // Start solution crawler in the remote workspace:
+            await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
+                CancellationToken.None).ConfigureAwait(false);
 
             var cancellationTokenSource = new CancellationTokenSource();
             var solution = workspace.CurrentSolution;
