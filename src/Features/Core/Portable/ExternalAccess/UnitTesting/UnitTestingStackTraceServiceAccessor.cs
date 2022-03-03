@@ -43,10 +43,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
 
         public async Task<bool> TryNavigateToAsync(Workspace workspace, UnitTestingDefinitionItemWrapper definitionItem, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
         {
-            var location = await definitionItem.UnderlyingObject.GetNavigableLocationAsync(
-                workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken).ConfigureAwait(false);
+            var location = await definitionItem.UnderlyingObject.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
             return location != null &&
-                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                await location.NavigateToAsync(new NavigationOptions(showInPreviewTab, activateTab), cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                                 editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false);
 
                             if (location != null &&
-                                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false))
+                                await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false))
                             {
                                 var openDocument = workspace.CurrentSolution.GetRequiredDocument(documentId);
                                 var openRoot = await openDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

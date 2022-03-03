@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
@@ -50,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                     thirdPartyNavigationAllowed:=True,
                     cancellationToken:=CancellationToken.None)
                 Dim success = location IsNot Nothing AndAlso
-                    Await location.NavigateToAsync(CancellationToken.None)
+                    Await location.NavigateToAsync(NavigationOptions.Default, CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using

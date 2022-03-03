@@ -107,10 +107,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                         document.Id,
                         sourceLocation.StartPosition.Line,
                         sourceLocation.StartPosition.Character,
-                        NavigationOptions.Default,
                         cancellationToken).ConfigureAwait(false);
                     if (location != null)
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                        await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

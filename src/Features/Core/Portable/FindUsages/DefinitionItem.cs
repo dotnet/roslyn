@@ -180,8 +180,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             => TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
 
 #pragma warning disable CS0612 // Type or member is obsolete
-        public virtual Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
-            => Task.FromResult<INavigableLocation?>(new NavigableLocation(cancellationToken => TryNavigateToAsync(workspace, options, cancellationToken)));
+        public virtual Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
+            => Task.FromResult<INavigableLocation?>(new NavigableLocation((options, cancellationToken) => TryNavigateToAsync(workspace, options, cancellationToken)));
 #pragma warning restore CS0612 // Type or member is obsolete
 
         public static DefinitionItem Create(
