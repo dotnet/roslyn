@@ -2,28 +2,40 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Classification.Classifiers
+namespace Microsoft.CodeAnalysis.Classification
 {
-    internal sealed class EmbeddedLanguageClassificationService : IEmbeddedLanguageClassificationService
+    internal abstract class AbstractEmbeddedLanguageClassificationService : IEmbeddedLanguageClassificationService
     {
-        private readonly IEmbeddedLanguagesProvider _languagesProvider;
-
         private readonly HashSet<int> _syntaxTokenKinds = new();
+        private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> _classifiers;
 
-        public EmbeddedLanguageClassificationService(
-            IEmbeddedLanguagesProvider languagesProvider,
+        protected AbstractEmbeddedLanguageClassificationService(
+            IEnumerable<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> classifiers,
             ISyntaxKinds syntaxKinds)
         {
-            _languagesProvider = languagesProvider;
+            // Move the fallback classifier to the end if it exists.
+            var classifierList = ExtensionOrderer.Order(classifiers).Where(c => c.Metadata.Language == this.Language).ToList();
+            var fallbackClassifier = classifierList.FirstOrDefault(c => c.Metadata.Name == WellKnownEmbeddedLanguageClassifierNames.Fallback);
+            if (fallbackClassifier != null)
+            {
+                classifierList.Remove(fallbackClassifier);
+                classifierList.Add(fallbackClassifier);
+            }
+
+            _classifiers = classifierList.ToImmutableArray();
 
             _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
             _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
@@ -36,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 _syntaxTokenKinds.Add(syntaxKinds.MultiLineRawStringLiteralToken.Value);
         }
 
+        protected abstract string Language { get; }
+
         public async Task AddEmbeddedLanguageClassificationsAsync(
             Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
@@ -47,13 +61,13 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(_languagesProvider, _syntaxTokenKinds, semanticModel, textSpan, options, result, cancellationToken);
+            var worker = new Worker(_classifiers, _syntaxTokenKinds, semanticModel, textSpan, options, result, cancellationToken);
             worker.Recurse(root);
         }
 
         private ref struct Worker
         {
-            private readonly IEmbeddedLanguagesProvider _languagesProvider;
+            private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> _classifiers;
             private readonly HashSet<int> _syntaxTokenKinds;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
@@ -62,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             private readonly CancellationToken _cancellationToken;
 
             public Worker(
-                IEmbeddedLanguagesProvider languagesProvider,
+                ImmutableArray<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> classifiers,
                 HashSet<int> syntaxTokenKinds,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
@@ -70,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 ArrayBuilder<ClassifiedSpan> result,
                 CancellationToken cancellationToken)
             {
-                _languagesProvider = languagesProvider;
+                _classifiers = classifiers;
                 _syntaxTokenKinds = syntaxTokenKinds;
                 _semanticModel = semanticModel;
                 _textSpan = textSpan;
@@ -110,15 +124,14 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             {
                 if (token.Span.IntersectsWith(_textSpan) && _syntaxTokenKinds.Contains(token.RawKind))
                 {
-                    var context = new EmbeddedLanguageClassifierContext(
+                    var context = new EmbeddedLanguageClassificationContext(
                         _semanticModel, token, _options, _result, _cancellationToken);
-                    foreach (var language in _languagesProvider.Languages)
+                    foreach (var classifier in _classifiers)
                     {
-                        var classifier = language.Classifier;
                         if (classifier != null)
                         {
                             var count = _result.Count;
-                            classifier.RegisterClassifications(context);
+                            classifier.Value.RegisterClassifications(context);
                             if (_result.Count != count)
                             {
                                 // This classifier added values.  No need to check the other ones.

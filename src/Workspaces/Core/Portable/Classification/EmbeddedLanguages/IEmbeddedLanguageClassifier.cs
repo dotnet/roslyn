@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+using System;
+using System.Composition;
+
+namespace Microsoft.CodeAnalysis.Classification
 {
     internal interface IEmbeddedLanguageClassifier
     {
@@ -10,6 +13,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         /// This method will be called for all string and character tokens in a file to determine if there are special
         /// embedded language strings to classify.
         /// </summary>
-        void RegisterClassifications(EmbeddedLanguageClassifierContext context);
+        void RegisterClassifications(EmbeddedLanguageClassificationContext context);
     }
 }

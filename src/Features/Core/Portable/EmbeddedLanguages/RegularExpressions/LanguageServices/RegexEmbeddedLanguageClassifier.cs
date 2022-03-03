@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             _info = info;
         }
 
-        public void RegisterClassifications(EmbeddedLanguageClassifierContext context)
+        public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
             var token = context.SyntaxToken;
             if (!_info.IsAnyStringLiteral(token.RawKind))
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             }
         }
 
-        private static void AddClassifications(RegexNode node, Visitor visitor, EmbeddedLanguageClassifierContext context)
+        private static void AddClassifications(RegexNode node, Visitor visitor, EmbeddedLanguageClassificationContext context)
         {
             node.Accept(visitor);
 
@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             }
         }
 
-        private static void AddTriviaClassifications(RegexToken token, EmbeddedLanguageClassifierContext context)
+        private static void AddTriviaClassifications(RegexToken token, EmbeddedLanguageClassificationContext context)
         {
             foreach (var trivia in token.LeadingTrivia)
                 AddTriviaClassifications(trivia, context);
         }
 
-        private static void AddTriviaClassifications(RegexTrivia trivia, EmbeddedLanguageClassifierContext context)
+        private static void AddTriviaClassifications(RegexTrivia trivia, EmbeddedLanguageClassificationContext context)
         {
             if (trivia.Kind == RegexKind.CommentTrivia &&
                 trivia.VirtualChars.Length > 0)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
 
         private class Visitor : IRegexNodeVisitor
         {
-            public EmbeddedLanguageClassifierContext Context;
+            public EmbeddedLanguageClassificationContext Context;
 
             private void AddClassification(RegexToken token, string typeName)
             {
