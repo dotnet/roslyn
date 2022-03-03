@@ -79,72 +79,77 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         private async Task<(ImmutableArray<CacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
         {
-            var isPartialResult = false;
-            using var _1 = ArrayBuilder<CacheEntry>.GetInstance(out var resultBuilder);
-            using var _2 = ArrayBuilder<Project>.GetInstance(out var projectsBuilder);
-            using var _3 = PooledHashSet<ProjectId>.GetInstance(out var nonGlobalAliasedProjectReferencesSet);
-
-            var solution = currentProject.Solution;
-            var graph = solution.GetProjectDependencyGraph();
-            var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
-
-            projectsBuilder.Add(currentProject);
-            projectsBuilder.AddRange(referencedProjects);
-            nonGlobalAliasedProjectReferencesSet.AddRange(currentProject.ProjectReferences.Where(pr => !HasGlobalAlias(pr.Aliases)).Select(pr => pr.ProjectId));
-
-            foreach (var project in projectsBuilder)
+            try
             {
-                var projectId = project.Id;
-                if (nonGlobalAliasedProjectReferencesSet.Contains(projectId))
-                    continue;
+                var isPartialResult = false;
+                using var _1 = ArrayBuilder<CacheEntry>.GetInstance(out var resultBuilder);
+                using var _2 = ArrayBuilder<Project>.GetInstance(out var projectsBuilder);
+                using var _3 = PooledHashSet<ProjectId>.GetInstance(out var nonGlobalAliasedProjectReferencesSet);
 
-                if (forceCacheCreation)
-                {
-                    var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, cancellationToken).ConfigureAwait(false);
-                    resultBuilder.Add(upToDateCacheEntry);
-                }
-                else if (CacheService.ProjectItemsCache.TryGetValue(projectId, out var cacheEntry))
-                {
-                    resultBuilder.Add(cacheEntry);
-                }
-                else
-                {
-                    isPartialResult = true;
-                }
-            }
+                var solution = currentProject.Solution;
+                var graph = solution.GetProjectDependencyGraph();
+                var referencedProjects = graph.GetProjectsThatThisProjectTransitivelyDependsOn(currentProject.Id).Select(id => solution.GetRequiredProject(id)).Where(p => p.SupportsCompilation);
 
-            var originCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(originCompilation));
-            foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
-            {
-                // Can't cache items for reference with null key. We don't want risk potential perf regression by 
-                // making those items repeatedly, so simply not returning anything from this assembly, until 
-                // we have a better understanding on this scenario.
-                var peReferenceKey = GetPEReferenceCacheKey(peReference);
-                if (peReferenceKey is null || !HasGlobalAlias(peReference.Properties.Aliases))
-                    continue;
+                projectsBuilder.Add(currentProject);
+                projectsBuilder.AddRange(referencedProjects);
+                nonGlobalAliasedProjectReferencesSet.AddRange(currentProject.ProjectReferences.Where(pr => !HasGlobalAlias(pr.Aliases)).Select(pr => pr.ProjectId));
 
-                if (forceCacheCreation)
+                foreach (var project in projectsBuilder)
                 {
-                    if (TryGetUpToDateCacheForPEReference(originCompilation, solution, editorBrowsableInfo.Value, peReference, cancellationToken, out var upToDateCacheEntry))
+                    var projectId = project.Id;
+                    if (nonGlobalAliasedProjectReferencesSet.Contains(projectId))
+                        continue;
+
+                    if (forceCacheCreation)
                     {
+                        var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, cancellationToken).ConfigureAwait(false);
                         resultBuilder.Add(upToDateCacheEntry);
                     }
+                    else if (CacheService.ProjectItemsCache.TryGetValue(projectId, out var cacheEntry))
+                    {
+                        resultBuilder.Add(cacheEntry);
+                    }
+                    else
+                    {
+                        isPartialResult = true;
+                    }
                 }
-                else if (CacheService.PEItemsCache.TryGetValue(peReferenceKey, out var cacheEntry))
+
+                var originCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var editorBrowsableInfo = new Lazy<EditorBrowsableInfo>(() => new EditorBrowsableInfo(originCompilation));
+                foreach (var peReference in currentProject.MetadataReferences.OfType<PortableExecutableReference>())
                 {
-                    resultBuilder.Add(cacheEntry);
+                    // Can't cache items for reference with null key. We don't want risk potential perf regression by 
+                    // making those items repeatedly, so simply not returning anything from this assembly, until 
+                    // we have a better understanding on this scenario.
+                    var peReferenceKey = GetPEReferenceCacheKey(peReference);
+                    if (peReferenceKey is null || !HasGlobalAlias(peReference.Properties.Aliases))
+                        continue;
+
+                    if (forceCacheCreation)
+                    {
+                        if (TryGetUpToDateCacheForPEReference(originCompilation, solution, editorBrowsableInfo.Value, peReference, cancellationToken, out var upToDateCacheEntry))
+                        {
+                            resultBuilder.Add(upToDateCacheEntry);
+                        }
+                    }
+                    else if (CacheService.PEItemsCache.TryGetValue(peReferenceKey, out var cacheEntry))
+                    {
+                        resultBuilder.Add(cacheEntry);
+                    }
+                    else
+                    {
+                        isPartialResult = true;
+                    }
                 }
-                else
-                {
-                    isPartialResult = true;
-                }
+
+                return (resultBuilder.ToImmutable(), isPartialResult);
             }
-
-            if (!forceCacheCreation)
-                _workQueue.AddWork(currentProject.Id);
-
-            return (resultBuilder.ToImmutable(), isPartialResult);
+            finally
+            {
+                if (!forceCacheCreation)
+                    _workQueue.AddWork(currentProject.Id);
+            }
         }
 
         private async ValueTask BatchUpdateCacheAsync(ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken)
@@ -171,9 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// This method is intended to be used for getting types from source only, so the project must support compilation. 
         /// For getting types from PE, use <see cref="TryGetUpToDateCacheForPEReference"/>.
         /// </summary>
-        private async Task<CacheEntry> GetUpToDateCacheForProjectAsync(
-          Project project,
-          CancellationToken cancellationToken)
+        private async Task<CacheEntry> GetUpToDateCacheForProjectAsync(Project project, CancellationToken cancellationToken)
         {
             // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);

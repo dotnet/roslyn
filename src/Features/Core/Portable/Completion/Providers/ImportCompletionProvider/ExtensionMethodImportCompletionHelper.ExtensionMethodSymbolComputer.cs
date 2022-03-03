@@ -115,51 +115,56 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
             {
-                // Find applicable symbols in parallel
-                using var _1 = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
-
-                foreach (var peReference in GetAllRelevantPeReferences(_originatingDocument.Project))
+                try
                 {
-                    tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
-                        peReference,
-                        forceCacheCreation,
-                        cancellationToken).AsTask(), cancellationToken));
-                }
+                    // Find applicable symbols in parallel
+                    using var _1 = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
 
-                foreach (var project in GetAllRelevantProjects(_originatingDocument.Project))
-                {
-                    tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromProjectAsync(
-                        project,
-                        forceCacheCreation,
-                        cancellationToken), cancellationToken));
-                }
-
-                using var _2 = ArrayBuilder<IMethodSymbol>.GetInstance(out var symbols);
-                var isPartialResult = false;
-
-                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                foreach (var result in results)
-                {
-                    // `null` indicates we don't have the index ready for the corresponding project/PE.
-                    // returns what we have even it means we only show partial results.
-                    if (result == null)
+                    foreach (var peReference in GetAllRelevantPeReferences(_originatingDocument.Project))
                     {
-                        isPartialResult = true;
-                        continue;
+                        tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
+                            peReference,
+                            forceCacheCreation,
+                            cancellationToken).AsTask(), cancellationToken));
                     }
 
-                    symbols.AddRange(result);
+                    foreach (var project in GetAllRelevantProjects(_originatingDocument.Project))
+                    {
+                        tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromProjectAsync(
+                            project,
+                            forceCacheCreation,
+                            cancellationToken), cancellationToken));
+                    }
+
+                    using var _2 = ArrayBuilder<IMethodSymbol>.GetInstance(out var symbols);
+                    var isPartialResult = false;
+
+                    var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                    foreach (var result in results)
+                    {
+                        // `null` indicates we don't have the index ready for the corresponding project/PE.
+                        // returns what we have even it means we only show partial results.
+                        if (result == null)
+                        {
+                            isPartialResult = true;
+                            continue;
+                        }
+
+                        symbols.AddRange(result);
+                    }
+
+                    var browsableSymbols = symbols.ToImmutable()
+                        .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
+
+                    return (browsableSymbols, isPartialResult);
                 }
-
-                var browsableSymbols = symbols.ToImmutable()
-                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
-
-                // If we are not force creating/updating the cache, an update task needs to be queued in background.
-                if (!forceCacheCreation)
-                    _workQueue.AddWork((_originatingDocument.Project.Solution.Workspace, _originatingDocument.Project.Id));
-
-                return (browsableSymbols, isPartialResult);
+                finally
+                {
+                    // If we are not force creating/updating the cache, an update task needs to be queued in background.
+                    if (!forceCacheCreation)
+                        _workQueue.AddWork((_originatingDocument.Project.Solution.Workspace, _originatingDocument.Project.Id));
+                }
             }
 
             // Returns all referenced projects and originating project itself.
