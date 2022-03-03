@@ -73,10 +73,21 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new TextChange(TextSpan.FromBounds(position, position), invocation.NormalizeWhitespace().ToFullString());
         }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
+        protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).First();
+            var invocationExpression = caretTarget.DescendantNodes().Where(syntaxFacts.IsInvocationExpression).FirstOrDefault();
+            if (invocationExpression is null)
+            {
+                return null;
+            }
+
             var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
+
+            if (argumentListNode is null)
+            {
+                return null;
+            }
+
             return argumentListNode!.GetLocation().SourceSpan.End - 1;
         }
 

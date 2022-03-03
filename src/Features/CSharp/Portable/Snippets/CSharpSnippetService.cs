@@ -21,39 +21,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportLanguageService(typeof(ISnippetService), LanguageNames.CSharp), Shared]
-    internal class CSharpSnippetService : ISnippetService
+    internal class CSharpSnippetService : AbstractSnippetService
     {
-        private readonly IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> _snippetProvider;
-        private readonly Lazy<Dictionary<string, ISnippetProvider>> _snippetProviderDictionary;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProvider)
+        public CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
+            : base(lazySnippetProviders)
         {
-            _snippetProvider = snippetProvider;
-            _snippetProviderDictionary = new Lazy<Dictionary<string, ISnippetProvider>>(()
-                => _snippetProvider.ToDictionary(provider => provider.Value.SnippetIdentifier, provider => provider.Value));
-        }
-
-        public ISnippetProvider GetSnippetProvider(string snippetIdentifier)
-        {
-            return _snippetProviderDictionary.Value[snippetIdentifier];
-        }
-
-        /// <summary>
-        /// Iterates through all providers and determines if the snippet 
-        /// can be added to the Completion list at the corresponding position.
-        /// </summary>
-        public async Task<ImmutableArray<SnippetData>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
-            foreach (var provider in _snippetProvider.Where(b => b.Metadata.Language == document.Project.Language))
-            {
-                var snippetData = await provider.Value.GetSnippetDataAsync(document, position, cancellationToken).ConfigureAwait(false);
-                arrayBuilder.AddIfNotNull(snippetData);
-            }
-
-            return arrayBuilder.ToImmutable();
         }
     }
 }

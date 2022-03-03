@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// <summary>
         /// The position that the cursor should end up on
         /// </summary>
-        public readonly int CursorPosition;
+        public readonly int? CursorPosition;
 
         /// <summary>
         /// The TextSpans that need to be renamed if we insert a snippet with values that the user may want to change
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         public Snippet(
             string displayText,
             ImmutableArray<TextChange> textChanges,
-            int cursorPosition,
+            int? cursorPosition,
             ImmutableArray<TextSpan> renameLocations)
         {
             if (textChanges.IsEmpty)

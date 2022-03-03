@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Method for each snippet to locate the inserted SyntaxNode to reformat
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
-        protected abstract int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
+        protected abstract int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
         protected abstract Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
