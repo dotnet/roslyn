@@ -204,5 +204,10 @@ namespace Analyzer.Utilities
         /// CA1826 (Do not use Enumerable methods on indexable collections. Instead use the collection directly).
         /// </summary>
         public const string ExcludeOrDefaultMethods = "exclude_ordefault_methods";
+
+        /// <summary>
+        /// String option to configure names of additional "None" enum case (separated by '|') for CA1008.
+        /// </summary>
+        public const string AdditionalEnumNoneNames = "additional_enum_none_names";
     }
 }
