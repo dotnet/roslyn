@@ -2897,7 +2897,6 @@ struct AsyncEnumerator
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   NextVariables(0)");
 
-            //todo: replace with public api access
             Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
             Assert.Equal(2, op.Info.MoveNextArguments.Length);
             Assert.Equal(2, op.Info.DisposeArguments.Length);
