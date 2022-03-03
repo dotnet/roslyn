@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             state.TestCopyPaste(expectedMarkup, pasteText, afterUndo);
         }
 
+        #region Paste from external source into normal string
+
         [WpfFact]
         public void TestPasteExternalNewLineIntoNormalString1()
         {
@@ -210,8 +212,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteOnly(
                 pasteText: "\t\"\"\t",
                 @"var x = ""$$""",
-                @"var x = ""\t\""\""$$\t""",
-                afterUndo: "var x = \"\"$$\"");
+                @"var x = ""\t\""\""\t$$""",
+                afterUndo: "var x = \"\t\"\"\t$$\"");
         }
+
+        #endregion
+
+        #region Paste from external source into verbatim string
+
+        #endregion
     }
 }
