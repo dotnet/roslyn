@@ -595,6 +595,39 @@ static class Program
         }
 
         [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestComplexOrderedAttributeArguments()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(bool a, bool b, bool c)
+    {
+    }
+}
+
+[Mark(b: true, c: true, a: false)]
+static class Program
+{
+    public static void Main()
+    {
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 2, 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal("a: false", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal("b: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal("c: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
+        }
+
+        [Fact]
         public void TestBadParamsCtor()
         {
             var comp = CreateCompilationWithMscorlib46(@"

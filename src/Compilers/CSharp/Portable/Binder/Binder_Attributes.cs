@@ -347,15 +347,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var constructorArgumentSourceIndices = ImmutableArray.CreateBuilder<int>(initialCapacity: lengthAfterRewriting);
-                for (int i = 0; i < lengthAfterRewriting; i++)
+                var constructorArgumentSourceIndices = ArrayBuilder<int>.GetInstance(lengthAfterRewriting);
+                constructorArgumentSourceIndices.Count = lengthAfterRewriting;
+                for (int argIndex = 0; argIndex < lengthAfterRewriting; argIndex++)
                 {
-                    constructorArgumentSourceIndices.Add(
-                        defaultArguments[i] ? -1 :
-                        argsToParamsOpt.IsDefault ? i :
-                        argsToParamsOpt[i]);
+                    int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
+                    constructorArgumentSourceIndices[paramIndex] = defaultArguments[argIndex] ? -1 : argIndex;
                 }
-                return constructorArgumentSourceIndices.MoveToImmutable();
+                return constructorArgumentSourceIndices.ToImmutableAndFree();
             }
         }
 
