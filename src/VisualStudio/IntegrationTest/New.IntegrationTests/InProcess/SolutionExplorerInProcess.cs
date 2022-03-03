@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
@@ -32,6 +33,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task CreateSolutionAsync(string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            Contract.ThrowIfTrue(await IsSolutionOpenAsync(cancellationToken));
 
             var solutionPath = CreateTemporaryPath();
             await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
