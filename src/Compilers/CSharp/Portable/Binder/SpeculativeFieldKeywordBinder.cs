@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A binder that can bind a possible field identifier in a given property accessor.
+    /// A binder that can bind a possible field identifier in a given property accessor for speculative semantic model scenarios.
     /// </summary>
     internal class SpeculativeFieldKeywordBinder : Binder
     {
