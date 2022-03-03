@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
@@ -39,6 +40,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);
             ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.AddImportsOnPaste);
             ResetPerLanguageOption2(globalOptions, FeatureOnOffOptions.PrettyListing);
+            ResetPerLanguageOption2(globalOptions, CompletionViewOptions.EnableArgumentCompletionSnippets);
 
             static void ResetOption2<T>(IGlobalOptionService globalOptions, Option2<T> option)
             {
