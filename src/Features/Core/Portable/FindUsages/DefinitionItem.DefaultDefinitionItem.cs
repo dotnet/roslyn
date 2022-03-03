@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                         Contract.ThrowIfNull(project);
 
                         var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
-                        return navigationService.TryNavigateToSymbol(symbol, project, options with { PreferProvisionalTab = true }, cancellationToken);
+                        return await navigationService.TryNavigateToSymbolAsync(
+                            symbol, project, options with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
                     }
 
                     return false;
