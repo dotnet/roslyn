@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var substitutedSourceMethod = method.SubstitutedSourceMethod;
             _parameterOffset = substitutedSourceMethod.IsStatic ? 0 : 1;
             _targetParameters = method.Parameters;
+            // PROTOTYPE(semi-auto-props): We may want to introduce a field keyword binder.
             _sourceBinder = new InMethodBinder(substitutedSourceMethod, new BuckStopsHereBinder(next.Compilation));
         }
 
