@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
-        public void TestPasteTabIntoNormalString1()
+        public void TestPasteExternalTabIntoNormalString1()
         {
             TestPasteOnly(
                 pasteText: "\t",
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
-        public void TestPasteSingleQuoteIntoNormalString()
+        public void TestPasteExternalSingleQuoteIntoNormalString()
         {
             TestPasteOnly(
                 pasteText: "'",
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
-        public void TestPasteDoubleQuoteIntoNormalString()
+        public void TestPasteExternalDoubleQuoteIntoNormalString()
         {
             TestPasteOnly(
                 pasteText: "\"",
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
-        public void TestPasteComplexStringIntoNormalString()
+        public void TestPasteExternalComplexStringIntoNormalString()
         {
             TestPasteOnly(
                 pasteText: "\t\"\"\t",
@@ -216,10 +216,89 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 afterUndo: "var x = \"\t\"\"\t$$\"");
         }
 
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoNormalString()
+        {
+            TestPasteOnly(
+                pasteText: "abc",
+                @"var x = ""$$""",
+                @"var x = ""abc$$""",
+                afterUndo: @"var x = ""$$""");
+        }
+
         #endregion
 
         #region Paste from external source into verbatim string
 
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoVerbatimString1()
+        {
+            TestPasteOnly(
+                pasteText: "\n",
+                @"var x = @""$$""",
+                "var x = @\"\n$$\"",
+                afterUndo: @"var x = @""$$""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoVerbatimString2()
+        {
+            TestPasteOnly(
+                pasteText: "\r\n",
+                @"var x = @""$$""",
+                "var x = @\"\r\n$$\"",
+                afterUndo: @"var x = @""$$""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTabIntoVerbatimString1()
+        {
+            TestPasteOnly(
+                pasteText: "\t",
+                @"var x = @""$$""",
+                "var x = @\"\t$$\"",
+                afterUndo: @"var x = @""$$""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalSingleQuoteIntoVerbatimString()
+        {
+            TestPasteOnly(
+                pasteText: "'",
+                @"var x = @""$$""",
+                @"var x = @""'$$""",
+                afterUndo: @"var x = @""$$""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalDoubleQuoteIntoVerbatimString()
+        {
+            TestPasteOnly(
+                pasteText: "\"",
+                @"var x = @""$$""",
+                @"var x = @""""$$""""",
+                afterUndo: @"var x = @""""$$""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalComplexStringIntoVerbatimString()
+        {
+            TestPasteOnly(
+                pasteText: "\t\"\"\t",
+                @"var x = @""$$""",
+                "var x = @\"\t\"\"\t$$\"",
+                afterUndo: @"var x = @""$$""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoVerbatimString()
+        {
+            TestPasteOnly(
+                pasteText: "abc",
+                @"var x = @""$$""",
+                @"var x = @""abc$$""",
+                afterUndo: @"var x = @""$$""");
+        }
         #endregion
     }
 }
