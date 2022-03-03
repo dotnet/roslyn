@@ -6,22 +6,28 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
-    internal class HostSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
+    internal sealed class HostSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HostSolutionCrawlerWorkspaceEventListener()
+        public HostSolutionCrawlerWorkspaceEventListener(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public void StartListening(Workspace workspace, object? serviceOpt)
         {
-            var registration = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            registration.Register(workspace);
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
+            }
         }
 
         public void StopListening(Workspace workspace)
