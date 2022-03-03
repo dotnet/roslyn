@@ -120,10 +120,5 @@ namespace Microsoft.CodeAnalysis.Snippets
             var symbol = compilation.GetBestTypeByMetadataName(typeof(Console).FullName);
             return symbol;
         }
-
-        protected override Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray<TextSpan>.Empty);
-        }
     }
 }

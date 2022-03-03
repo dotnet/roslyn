@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         protected abstract Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document, SyntaxAnnotation reformatAnnotation, SyntaxAnnotation cursorAnnotation, int position, CancellationToken cancellationToken);
         protected abstract int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget);
-        protected abstract Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines if the location is valid for a snippet,
@@ -122,6 +121,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
+        }
+
+        protected virtual Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(ImmutableArray<TextSpan>.Empty);
         }
     }
 }
