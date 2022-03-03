@@ -112,7 +112,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundStatement>.GetInstance(implicitlyInitializedFields.Length + 1);
             foreach (var field in implicitlyInitializedFields)
             {
-                diagnostics.Add(field.GetUseSiteInfo(), syntax);
                 builder.Add(new BoundExpressionStatement(
                     syntax,
                     F.AssignmentExpression(
