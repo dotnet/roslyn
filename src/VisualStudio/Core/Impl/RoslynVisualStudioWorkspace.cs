@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 symbolInfo.Symbol, currentProject.Solution,
                 _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
             return location != null &&
-                await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true),cancellationToken).ConfigureAwait(false);
+                await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
