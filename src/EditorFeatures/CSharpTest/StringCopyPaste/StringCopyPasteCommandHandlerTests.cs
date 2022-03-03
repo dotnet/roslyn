@@ -203,5 +203,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 @"var x = ""\""$$""",
                 afterUndo: "var x = \"\"$$\"");
         }
+
+        [WpfFact]
+        public void TestPasteComplexStringIntoNormalString()
+        {
+            TestPasteOnly(
+                pasteText: "\t\"\"\t",
+                @"var x = ""$$""",
+                @"var x = ""\t\""\""$$\t""",
+                afterUndo: "var x = \"\"$$\"");
+        }
     }
 }
