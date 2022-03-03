@@ -7,12 +7,14 @@ using Microsoft.CodeAnalysis.Completion;
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
     internal readonly record struct OmniSharpCompletionOptions(
-        bool ShowItemsFromUnimportedNamespaces)
+        bool ShowItemsFromUnimportedNamespaces,
+        bool ForceExpandedCompletionIndexCreation)
     {
         internal CompletionOptions ToCompletionOptions()
             => CompletionOptions.Default with
             {
                 ShowItemsFromUnimportedNamespaces = ShowItemsFromUnimportedNamespaces,
+                ForceExpandedCompletionIndexCreation = ForceExpandedCompletionIndexCreation,
                 UpdateImportCompletionCacheInBackground = true
             };
     }
