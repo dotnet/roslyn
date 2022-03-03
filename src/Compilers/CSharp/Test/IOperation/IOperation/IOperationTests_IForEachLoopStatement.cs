@@ -2900,6 +2900,35 @@ struct AsyncEnumerator
             Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
             Assert.Equal(2, op.Info.MoveNextArguments.Length);
             Assert.Equal(2, op.Info.DisposeArguments.Length);
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
