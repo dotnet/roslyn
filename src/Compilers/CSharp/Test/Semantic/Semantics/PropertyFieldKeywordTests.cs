@@ -1662,6 +1662,88 @@ class C
         }
 
         [Fact]
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_BindOriginalFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var block = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field;
+        }
+    }
+}").GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, block, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_BindSpeculatedFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var block = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field;
+        }
+    }
+}").GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, block, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
         public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindOriginalFirst()
         {
             var comp = CreateCompilation(@"
@@ -2193,7 +2275,7 @@ public class C
 {
     public int P1 { get => field; }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -2206,14 +2288,7 @@ public class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
             comp.VerifyDiagnostics();
 
-            if (comp.IsNullableAnalysisEnabledAlways)
-            {
-                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
-            }
-            else
-            {
-                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
-            }
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }

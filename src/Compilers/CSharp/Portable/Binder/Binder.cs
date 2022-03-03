@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -192,6 +193,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             RoslynDebug.Assert(Next is object);
             return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+        }
+
+        internal virtual Symbol? GetSymbolForPossibleFieldKeyword()
+        {
+            RoslynDebug.Assert(Next is object);
+            return this.Next.GetSymbolForPossibleFieldKeyword();
         }
 
         /// <summary>

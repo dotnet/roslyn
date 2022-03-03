@@ -216,15 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (SynthesizedBackingFieldSymbol?)_lazyBackingFieldSymbol;
         }
 
-        internal SynthesizedBackingFieldSymbol? GetOrCreateBackingFieldForFieldKeyword(bool isSemanticModelBinder)
+        internal SynthesizedBackingFieldSymbol? GetOrCreateBackingFieldForFieldKeyword()
         {
-            // field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
-            var shouldBindField = !isSemanticModelBinder || FieldKeywordBackingField is not null;
-            if (!shouldBindField)
-            {
-                return null;
-            }
-
             return GetOrCreateBackingField(isCreatedForFieldKeyword: true, isEarlyConstructed: false);
         }
 

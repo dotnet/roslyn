@@ -232,7 +232,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
 
-            return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
+            // PROTOTYPE(semi-auto-props): We should traverse until we get a property accessor, similar to Binder_Expressions. We may want to share the code.
+            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            {
+                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+            }
+
+            binder = new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
+            return binder;
         }
 
         private Binder GetSpeculativeBinderForAttribute(int position, AttributeSyntax attribute)

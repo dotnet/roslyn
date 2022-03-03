@@ -307,6 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)accessor != null)
                         {
                             resultBinder = new InMethodBinder(accessor, resultBinder);
+                            if (propertyOrEventDecl.IsKind(SyntaxKind.PropertyDeclaration))
+                            {
+                                resultBinder = new FieldKeywordBinder(accessor, resultBinder);
+                            }
                         }
                     }
 
@@ -406,6 +410,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((object)accessor != null)
                     {
                         resultBinder = new InMethodBinder(accessor, resultBinder);
+                        if (!propertySymbol.IsIndexer)
+                        {
+                            resultBinder = new FieldKeywordBinder(accessor, resultBinder);
+                        }
                     }
 
                     binderCache.TryAdd(key, resultBinder);
