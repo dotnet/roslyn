@@ -4,25 +4,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
 using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
-using System.Threading;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
@@ -119,9 +119,9 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
 
         internal const string MethodName = "testMethod";
 
-        public override bool MutatesSolutionState => false;
+        protected override bool MutatesSolutionState => false;
 
-        public override bool RequiresLSPSolution => true;
+        protected override bool RequiresLSPSolution => true;
 
         protected override TypeScriptTextDocumentIdentifier? GetTypeSciptTextDocumentIdentifier(TSRequest request)
         {

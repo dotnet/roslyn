@@ -12,17 +12,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
 
 /// <summary>
-/// Request handler type exposed to typescript 
+/// Request handler type exposed to typescript.
 /// </summary>
-/// <typeparam name="TRequestType"></typeparam>
-/// <typeparam name="TResponseType"></typeparam>
 internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TResponseType> : IRequestHandler<TRequestType, TResponseType>, IVSTypeScriptRequestHandler
 {
-    public abstract bool MutatesSolutionState { get; }
+    bool IRequestHandler.MutatesSolutionState => MutatesSolutionState;
 
-    public abstract bool RequiresLSPSolution { get; }
+    bool IRequestHandler.RequiresLSPSolution => RequiresLSPSolution;
 
-    public TextDocumentIdentifier? GetTextDocumentIdentifier(TRequestType request)
+    TextDocumentIdentifier? IRequestHandler<TRequestType, TResponseType>.GetTextDocumentIdentifier(TRequestType request)
     {
         var typeScriptIdentifier = GetTypeSciptTextDocumentIdentifier(request);
         if (typeScriptIdentifier == null)
@@ -40,10 +38,14 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
         };
     }
 
-    public Task<TResponseType> HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
+    Task<TResponseType> IRequestHandler<TRequestType, TResponseType>.HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
     {
         return HandleRequestAsync(request, new TypeScriptRequestContext(context.Solution, context.Document), cancellationToken);
     }
+
+    protected abstract bool MutatesSolutionState { get; }
+
+    protected abstract bool RequiresLSPSolution { get; }
 
     protected abstract Task<TResponseType> HandleRequestAsync(TRequestType request, TypeScriptRequestContext context, CancellationToken cancellationToken);
 

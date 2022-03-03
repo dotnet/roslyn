@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
 
-internal abstract class AbstractVSTypeScriptRequestHandlerProvider : AbstractRequestHandlerProvider
+internal abstract class AbstractVSTypeScriptRequestHandlerProvider : IRequestHandlerProvider
 {
-    public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+    ImmutableArray<IRequestHandler> IRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds serverKind)
     {
         return CreateRequestHandlers().SelectAsArray(tsHandler => (IRequestHandler)tsHandler);
     }

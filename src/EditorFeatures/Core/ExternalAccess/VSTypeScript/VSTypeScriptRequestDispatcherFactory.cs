@@ -18,7 +18,7 @@ internal class VSTypeScriptRequestDispatcherFactory : AbstractRequestDispatcherF
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VSTypeScriptRequestDispatcherFactory(
-        [ImportMany(ProtocolConstants.TypeScriptLanguageContract)] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders) : base(requestHandlerProviders)
+        [ImportMany(ProtocolConstants.TypeScriptLanguageContract)] IEnumerable<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders) : base(requestHandlerProviders)
     {
     }
 

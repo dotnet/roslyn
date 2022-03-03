@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [Shared]
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentPullDiagnosticHandler), typeof(WorkspacePullDiagnosticHandler))]
-    internal class PullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
+    internal class PullDiagnosticHandlerProvider : IRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             return ImmutableArray.Create<IRequestHandler>(
                 new DocumentPullDiagnosticHandler(serverKind, _diagnosticService, _analyzerService),
