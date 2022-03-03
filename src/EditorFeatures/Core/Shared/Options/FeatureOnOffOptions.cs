@@ -119,6 +119,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "AutomaticallyCompleteStatementOnSemicolon", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.AutomaticallyCompleteStatementOnSemicolon"));
 
+        public static readonly Option2<bool> AutomaticallyFixStringContentsOnPaste = new(
+            FeatureName, "AutomaticallyFixStringContentsOnPaste", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.AutomaticallyFixStringContentsOnPaste"));
+
         /// <summary>
         /// Not used by Roslyn but exposed in C# and VB option UI. Used by TestWindow and Project System.
         /// TODO: remove https://github.com/dotnet/roslyn/issues/57253

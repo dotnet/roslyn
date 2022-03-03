@@ -8,9 +8,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -22,6 +20,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -111,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             //else
             //{
             ProcessPasteFromUnknownSource(
+                textView,
                 subjectBuffer,
                 snapshotBeforePaste,
                 selectionsBeforePaste,
@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         private void ProcessPasteFromUnknownSource(
+            ITextView textView,
             ITextBuffer subjectBuffer,
             ITextSnapshot snapshotBeforePaste,
             NormalizedSnapshotSpanCollection selectionsBeforePaste,
@@ -162,14 +163,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
-            var textEscapedTextChanges = GetEscapedTextChanges(
+            var escapedTextChanges = GetEscapedTextChanges(
                 tokenBeforePaste, snapshotAfterPaste.Version.Changes);
 
-            // Now, create a transaction, roll us back to the prior version, then apply these new changes
+            var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
+            var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
+
             using var transaction = new CaretPreservingEditTransaction(
-                CSharpEditorFeaturesResources.Fixing_string_literal_after_paste,
-                _undoHistoryRegistry,
-                _editorOperationsFactoryService);
+                CSharpEditorResources.Fixing_string_literal_after_paste,
+                textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChanges(SyntaxToken token, INormalizedTextChangeCollection changes)
