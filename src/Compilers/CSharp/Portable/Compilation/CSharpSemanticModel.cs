@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             expression = SyntaxFactory.GetStandaloneExpression(expression);
 
-            binder = GetSpeculativeBinder(position, expression, bindingOption);
+            binder = this.GetSpeculativeBinder(position, expression, bindingOption);
             if (binder == null)
             {
                 return null;
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(attribute);
 
             return CanGetSemanticInfo(attribute)
-                ? GetMemberGroupWorker(attribute, SymbolInfoOptions.DefaultOptions, cancellationToken).GetPublicSymbols()
+                ? this.GetMemberGroupWorker(attribute, SymbolInfoOptions.DefaultOptions, cancellationToken).GetPublicSymbols()
                 : ImmutableArray<ISymbol>.Empty;
         }
 
@@ -1583,7 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 TypeSymbol baseType;
-                if ((object)containingType == null || (baseType = containingType.BaseTypeNoUseSiteDiagnostics) is null)
+                if ((object)containingType == null || (object)(baseType = containingType.BaseTypeNoUseSiteDiagnostics) == null)
                 {
                     throw new ArgumentException(
                         "Not a valid position for a call to LookupBaseMembers (must be in a type with a base type)",
@@ -2345,7 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Gets TypeInfo for a type or namespace or alias reference.
         internal static CSharpTypeInfo GetTypeInfoForSymbol(Symbol symbol)
         {
-            Debug.Assert(symbol is not null);
+            Debug.Assert((object)symbol != null);
 
             // Determine type. Dig through aliases if necessary.
             TypeSymbol type = UnwrapAlias(symbol) as TypeSymbol;
@@ -3225,7 +3225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BinderFlags GetSemanticModelBinderFlags()
         {
-            return IgnoresAccessibility
+            return this.IgnoresAccessibility
                 ? BinderFlags.SemanticModel | BinderFlags.IgnoreAccessibility
                 : BinderFlags.SemanticModel;
         }
@@ -3276,7 +3276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CSharpSyntaxNode catchClause = catchDeclaration.Parent; //Syntax->Binder map is keyed on clause, not decl
             Debug.Assert(catchClause.Kind() == SyntaxKind.CatchClause);
-            Binder enclosingBinder = GetEnclosingBinder(GetAdjustedNodePosition(catchClause));
+            Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(catchClause));
 
             if (enclosingBinder == null)
             {
@@ -3454,7 +3454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // As for BoundCall, pull out stashed candidates if overload resolution failed.
 
                         BoundIndexerAccess indexerAccess = (BoundIndexerAccess)boundNode;
-                        Debug.Assert(indexerAccess.Indexer is not null);
+                        Debug.Assert((object)indexerAccess.Indexer != null);
 
                         resultKind = indexerAccess.ResultKind;
 
@@ -3503,7 +3503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((conversion.ConversionKind == ConversionKind.MethodGroup) && conversion.IsExtensionMethod)
                         {
                             var symbol = conversion.SymbolOpt;
-                            Debug.Assert(symbol is not null);
+                            Debug.Assert((object)symbol != null);
                             symbols = ImmutableArray.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
                             resultKind = conversion.ResultKind;
                         }
@@ -3824,7 +3824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(binaryOperator.Method is null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
+                Debug.Assert((object)binaryOperator.Method == null && binaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
 
                 if (!isDynamic &&
                     (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual) &&
@@ -4745,7 +4745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundCall call)
         {
             var method = call.Method;
-            Debug.Assert(method is not null);
+            Debug.Assert((object)method != null);
 
             if (call.InvokedAsExtensionMethod && method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension)
             {
@@ -4908,7 +4908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected sealed override SyntaxNode RootCore => Root;
+        protected sealed override SyntaxNode RootCore => this.Root;
 
         private SymbolInfo GetSymbolInfoFromNode(SyntaxNode node, CancellationToken cancellationToken)
         {
