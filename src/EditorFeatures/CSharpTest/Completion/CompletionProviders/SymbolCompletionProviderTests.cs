@@ -2253,6 +2253,7 @@ class C
 ";
             await VerifyItemExistsAsync(markup, "ToString");
             await VerifyItemIsAbsentAsync(markup, "GetType");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
             await VerifyItemIsAbsentAsync(markup, "GetHashCode");
         }
 
