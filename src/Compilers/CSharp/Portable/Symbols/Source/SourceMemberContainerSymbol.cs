@@ -2293,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool DoOperatorsPair(MethodSymbol op1, MethodSymbol op2)
+        internal static bool DoOperatorsPair(MethodSymbol op1, MethodSymbol op2)
         {
             if (op1.ParameterCount != op2.ParameterCount)
             {

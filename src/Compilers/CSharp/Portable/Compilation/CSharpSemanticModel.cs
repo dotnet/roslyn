@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/35032: support patterns
                 return new CSharpTypeInfo(
                     pattern.InputType, pattern.NarrowedType, nullability: default, convertedNullability: default,
-                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, ref discardedUseSiteInfo));
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.NarrowedType, isChecked: false, ref discardedUseSiteInfo));
             }
             if (lowestBoundNode is BoundPropertySubpatternMember member)
             {
@@ -2191,7 +2191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // There is a sequence of conversions; we use ClassifyConversionFromExpression to report the most pertinent.
                         var binder = this.GetEnclosingBinder(boundExpr.Syntax.Span.Start);
                         var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref discardedUseSiteInfo);
+                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, isChecked: ((BoundConversion)highestBoundExpr).Checked, ref discardedUseSiteInfo);
                     }
                 }
                 else if (boundNodeForSyntacticParent?.Kind == BoundKind.DelegateCreationExpression)
@@ -2817,7 +2817,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !cdestination.IsErrorType())
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, ref discardedUseSiteInfo);
+
+                    // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, isChecked: false, ref discardedUseSiteInfo);
                 }
             }
 
@@ -2868,7 +2870,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bnode != null && !destination.IsErrorType())
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, ref discardedUseSiteInfo, forCast: true);
+
+                    // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, isChecked: false, ref discardedUseSiteInfo, forCast: true);
                 }
             }
 
@@ -3764,7 +3768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)unaryOperator.MethodOpt == null && unaryOperator.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = unaryOperator.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(unaryOperator.Operand.Type.StrippedType(),
-                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: unaryOperator.OperatorKind.IsChecked()),
                                                                                                  unaryOperator.Type.StrippedType(),
                                                                                                  unaryOperator.OperatorKind.IsChecked()));
                 resultKind = unaryOperator.ResultKind;
@@ -3788,7 +3792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
                 symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
-                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
+                                                                                                 OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
                                                                                                  increment.Type.StrippedType(),
                                                                                                  increment.OperatorKind.IsChecked()));
                 resultKind = increment.ResultKind;
@@ -3822,7 +3826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var objectType = binaryOperator.Type.ContainingAssembly.GetSpecialType(SpecialType.System_Object);
 
                     symbols = ImmutableArray.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(objectType,
-                                                                                             OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
+                                                                                             OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked: binaryOperator.OperatorKind.IsChecked()),
                                                                                              objectType,
                                                                                              binaryOperator.Type,
                                                                                              binaryOperator.OperatorKind.IsChecked()));
@@ -3864,7 +3868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return new SynthesizedIntrinsicOperatorSymbol(leftType,
-                                                          OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
+                                                          OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked),
                                                           rightType,
                                                           returnType,
                                                           isChecked);

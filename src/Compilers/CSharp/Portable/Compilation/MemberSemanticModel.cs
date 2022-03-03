@@ -467,7 +467,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, ref discardedUseSiteInfo);
+
+            // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, csdestination, isChecked: false, ref discardedUseSiteInfo);
         }
 
         internal override Conversion ClassifyConversionForCast(
@@ -490,7 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, ref discardedUseSiteInfo, forCast: true);
+
+            // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
+            return binder.Conversions.ClassifyConversionFromExpression(boundExpression, destination, isChecked: false, ref discardedUseSiteInfo, forCast: true);
         }
 
         /// <summary>
