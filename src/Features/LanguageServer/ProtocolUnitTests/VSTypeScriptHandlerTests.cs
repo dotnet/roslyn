@@ -22,6 +22,7 @@ using System.Threading;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
