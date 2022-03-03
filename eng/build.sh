@@ -297,6 +297,12 @@ if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
 fi
 
+if [[ "$restore" == true ]]; then
+  # Install any dotnet workloads specified in global.json
+  # TODO: Call Install-DotNetWorkloads.ps1 instead
+  dotnet workload install macos
+fi
+
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
   MakeBootstrapBuild

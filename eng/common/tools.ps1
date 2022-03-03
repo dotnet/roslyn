@@ -233,13 +233,6 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
   return $global:_DotNetInstallDir = $dotnetRoot
 }
 
-function InitializeDotNetWorkloads()
-{
-  # Install any dotnet workloads specified in global.json
-  $globalJsonPath = Join-Path $RepoRoot 'global.json'
-  & $PSScriptRoot\Install-DotNetWorkloads.ps1 -globalJsonPath $globalJsonPath | Out-Null
-}
-
 function Retry($downloadBlock, $maxRetries = 5) {
   $retries = 1
 
@@ -334,9 +327,6 @@ function InstallDotNet([string] $dotnetRoot,
     try {
       & $installScript @variation
       $installSuccess = $true
-
-      InitializeDotNetWorkloads
-
       break
     }
     catch {

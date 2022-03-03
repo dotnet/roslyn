@@ -231,10 +231,6 @@ function InstallDotNet {
     echo "Attempting to install dotnet from $variationName."
     bash "$install_script" "${variation[@]}" && installSuccess=1
     if [[ "$installSuccess" -eq 1 ]]; then
-      # Install any dotnet workloads specified in global.json
-      # TODO: Call Install-DotNetWorkloads.ps1 instead
-      # TODO: Also do this during repeat restore
-      dotnet workload install macos
       break
     fi
 

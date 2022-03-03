@@ -282,6 +282,8 @@ try {
   $script:bootstrapConfiguration = "Release"
   $bootstrapDir = Make-BootstrapBuild
 
+  InitializeDotNetWorkloads
+
   Run-Test
   exit 0
 }
