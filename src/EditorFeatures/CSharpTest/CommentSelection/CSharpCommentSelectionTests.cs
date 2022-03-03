@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;

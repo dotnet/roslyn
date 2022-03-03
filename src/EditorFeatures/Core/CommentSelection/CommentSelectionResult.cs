@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
