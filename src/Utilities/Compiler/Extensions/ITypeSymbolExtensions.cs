@@ -97,7 +97,7 @@ namespace Analyzer.Utilities.Extensions
             if (!baseTypesOnly && candidateBaseType.TypeKind == TypeKind.Interface)
             {
                 var allInterfaces = symbol.AllInterfaces.OfType<ITypeSymbol>();
-                if (candidateBaseType.OriginalDefinition.Equals(candidateBaseType))
+                if (SymbolEqualityComparer.Default.Equals(candidateBaseType.OriginalDefinition, candidateBaseType))
                 {
                     // Candidate base type is not a constructed generic type, so use original definition for interfaces.
                     allInterfaces = allInterfaces.Select(i => i.OriginalDefinition);
@@ -123,7 +123,7 @@ namespace Analyzer.Utilities.Extensions
 
             while (symbol != null)
             {
-                if (symbol.Equals(candidateBaseType))
+                if (SymbolEqualityComparer.Default.Equals(symbol, candidateBaseType))
                 {
                     return true;
                 }
@@ -160,7 +160,7 @@ namespace Analyzer.Utilities.Extensions
 
             static bool IsInterfaceOrImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)
                 => interfaceType != null &&
-                   (Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
+                   (SymbolEqualityComparer.Default.Equals(type, interfaceType) || type.AllInterfaces.Contains(interfaceType));
         }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     foreach (var attributeClassData in currentAttributeClass.GetAttributes())
                     {
-                        if (!Equals(attributeClassData.AttributeClass, attributeUsageAttribute))
+                        if (!SymbolEqualityComparer.Default.Equals(attributeClassData.AttributeClass, attributeUsageAttribute))
                         {
                             continue;
                         }
@@ -369,9 +369,9 @@ namespace Analyzer.Utilities.Extensions
                 RoslynDebug.Assert(iReadOnlyCollectionOfT != null);
 
                 return type.OriginalDefinition is INamedTypeSymbol originalDefinition &&
-                    (iCollection.Equals(originalDefinition) ||
-                     iCollectionOfT.Equals(originalDefinition) ||
-                     iReadOnlyCollectionOfT.Equals(originalDefinition));
+                    (SymbolEqualityComparer.Default.Equals(iCollection, originalDefinition) ||
+                     SymbolEqualityComparer.Default.Equals(iCollectionOfT, originalDefinition) ||
+                     SymbolEqualityComparer.Default.Equals(iReadOnlyCollectionOfT, originalDefinition));
             }
         }
     }

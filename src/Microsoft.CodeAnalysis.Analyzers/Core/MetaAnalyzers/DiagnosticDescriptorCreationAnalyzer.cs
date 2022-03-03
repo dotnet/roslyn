@@ -405,12 +405,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return creationMethod != null;
 
             bool IsDescriptorConstructor(IMethodSymbol method)
-                => method.ContainingType.Equals(diagnosticDescriptorType);
+                => SymbolEqualityComparer.Default.Equals(method.ContainingType, diagnosticDescriptorType);
 
             // Heuristic to identify helper methods to create DiagnosticDescriptor:
             //  "A method invocation that returns 'DiagnosticDescriptor' and has a first string parameter named 'id'"
             bool IsCreateHelper(IMethodSymbol method)
-                => method.ReturnType.Equals(diagnosticDescriptorType) &&
+                => SymbolEqualityComparer.Default.Equals(method.ReturnType, diagnosticDescriptorType) &&
                     !method.Parameters.IsEmpty &&
                     method.Parameters[0].Name == DiagnosticIdParameterName &&
                     method.Parameters[0].Type.SpecialType == SpecialType.System_String;
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             bool TryGetConstructorCreation([NotNullWhen(true)] out string? nameOfLocalizableResource, [NotNullWhen(true)] out string? resourceFileName)
             {
                 if (operation.WalkDownConversion() is IObjectCreationOperation objectCreation &&
-                    objectCreation.Constructor.ContainingType.Equals(localizableResourceStringType) &&
+                    SymbolEqualityComparer.Default.Equals(objectCreation.Constructor.ContainingType, localizableResourceStringType) &&
                     objectCreation.Arguments.Length >= 3 &&
                     objectCreation.Arguments.GetArgumentForParameterAtIndex(0) is { } firstParamArgument &&
                     firstParamArgument.Parameter.Type.SpecialType == SpecialType.System_String &&
@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 analyzeStringValueCore(argumentValue, argument, argumentValueLocation, operationAnalysisContext.ReportDiagnostic);
             }
             else if (localizableStringsMap != null &&
-                argument.Parameter.Type.Equals(localizableStringType))
+                SymbolEqualityComparer.Default.Equals(argument.Parameter.Type, localizableStringType))
             {
                 RoslynDebug.Assert(resourceDataValueMap != null);
 
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                     case DefaultSeverityParameterName:
                         if (argument.Value is IFieldReferenceOperation fieldReference &&
-                            fieldReference.Field.ContainingType.Equals(diagnosticSeverityType) &&
+                            SymbolEqualityComparer.Default.Equals(fieldReference.Field.ContainingType, diagnosticSeverityType) &&
                             Enum.TryParse(fieldReference.Field.Name, out DiagnosticSeverity parsedSeverity))
                         {
                             defaultSeverity = parsedSeverity;
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     case RuleLevelParameterName:
                         if (ruleLevelType != null &&
                             argument.Value is IFieldReferenceOperation fieldReference2 &&
-                            fieldReference2.Field.ContainingType.Equals(ruleLevelType) &&
+                            SymbolEqualityComparer.Default.Equals(fieldReference2.Field.ContainingType, ruleLevelType) &&
                             Enum.TryParse(fieldReference2.Field.Name, out RuleLevel parsedRuleLevel))
                         {
                             switch (parsedRuleLevel)

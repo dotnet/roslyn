@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             protected bool IsDiagnosticAnalyzer(INamedTypeSymbol type)
             {
-                return type.Equals(DiagnosticAnalyzer);
+                return SymbolEqualityComparer.Default.Equals(type, DiagnosticAnalyzer);
             }
 
             internal void AnalyzeSymbol(SymbolAnalysisContext symbolContext)
