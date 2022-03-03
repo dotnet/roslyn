@@ -10,6 +10,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
         bool ShowItemsFromUnimportedNamespaces)
     {
         internal CompletionOptions ToCompletionOptions()
-            => CompletionOptions.Default with { ShowItemsFromUnimportedNamespaces = ShowItemsFromUnimportedNamespaces };
+            => CompletionOptions.Default with
+            {
+                ShowItemsFromUnimportedNamespaces = ShowItemsFromUnimportedNamespaces,
+                UpdateImportCompletionCacheInBackground = true
+            };
     }
 }

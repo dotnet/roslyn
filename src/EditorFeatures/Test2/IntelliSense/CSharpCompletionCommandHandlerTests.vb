@@ -6719,16 +6719,14 @@ namespace NS2
                 </Workspace>)
 
                 Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
-
-                If populateCache Then
-                    Dim importCompletionService = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
-                    Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None)
-                End If
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 Dim completionService = CType(document.GetLanguageService(Of CompletionService)(), CompletionServiceWithProviders)
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                If populateCache Then
+                    Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None)
+                End If
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -6739,6 +6737,9 @@ namespace NS2
                 Else
                     Await state.AssertCompletionItemsDoNotContainAny("IntegerExtMethod")
                 End If
+
+                ' Make sure any background work would be completed.
+                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None)
             End Using
         End Function
 

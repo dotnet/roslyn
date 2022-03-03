@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Completion
               TypeImportCompletion: options.GetOption(TypeImportCompletionFeatureFlag),
               ProvideDateAndTimeCompletions: options.GetOption(ProvideDateAndTimeCompletions, language),
               ProvideRegexCompletions: options.GetOption(ProvideRegexCompletions, language),
-              ForceExpandedCompletionIndexCreation: options.GetOption(ForceExpandedCompletionIndexCreation));
+              ForceExpandedCompletionIndexCreation: options.GetOption(ForceExpandedCompletionIndexCreation),
+              UpdateImportCompletionCacheInBackground: options.GetOption(UpdateImportCompletionCacheInBackground));
 
         // feature flags
 
@@ -79,6 +80,11 @@ namespace Microsoft.CodeAnalysis.Completion
         // Test-only option
         public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
             = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
+
+        // Set to true to update import completion cache in background if the provider isn't supposed to be triggered in the context.
+        // (cache will alsways be refreshed when provider is triggered)
+        public static readonly Option2<bool> UpdateImportCompletionCacheInBackground
+            = new(nameof(CompletionOptions), nameof(UpdateImportCompletionCacheInBackground), defaultValue: false);
 
         // Embedded languages:
 

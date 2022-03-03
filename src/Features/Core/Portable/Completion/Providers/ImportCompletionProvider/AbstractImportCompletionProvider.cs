@@ -46,10 +46,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = completionContext.Document;
 
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
+
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
-                // Trigger a backgound task to warm up cache and return immediately.
-                WarmUpCacheInBackground(document);
+                // Queue a backgound task to warm up cache and return immediately if this is not the context to trigger this provider.
+                // `ForceExpandedCompletionIndexCreation` and `UpdateImportCompletionCacheInBackground` are both test only options to
+                // make test behavior deterministic.
+                var options = completionContext.CompletionOptions;
+                if (options.UpdateImportCompletionCacheInBackground && !options.ForceExpandedCompletionIndexCreation)
+                    WarmUpCacheInBackground(document);
+
                 return;
             }
 
