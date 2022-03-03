@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     members.AddRange(factory.CreateMemberDelegatingConstructor(
                         _semanticDocument.SemanticModel,
-                        DetermineName(), null, parameters.ToImmutable(),
+                        DetermineName(), null, parameters.ToImmutable(), Accessibility.Public,
                         parameterToExistingFieldMap.ToImmutable(),
                         parameterToNewFieldMap.ToImmutable(),
                         addNullChecks: false,
