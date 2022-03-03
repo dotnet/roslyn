@@ -11,17 +11,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 {
     internal class JsonEmbeddedLanguage : IEmbeddedLanguageFeatures
     {
-        public IEmbeddedLanguageClassifier? Classifier { get; }
-
         // No document-highlights for embedded json currently.
         public IDocumentHighlightsService? DocumentHighlightsService => null;
 
         // No completion for embedded json currently.
         public EmbeddedLanguageCompletionProvider? CompletionProvider => null;
-
-        public JsonEmbeddedLanguage(EmbeddedLanguageInfo info)
-        {
-            Classifier = new JsonEmbeddedLanguageClassifier(info);
-        }
     }
 }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             // Move the fallback classifier to the end if it exists.
             var classifierList = ExtensionOrderer.Order(classifiers).Where(c => c.Metadata.Language == this.Language).ToList();
-            var fallbackClassifier = classifierList.FirstOrDefault(c => c.Metadata.Name == WellKnownEmbeddedLanguageClassifierNames.Fallback);
+            var fallbackClassifier = classifierList.FirstOrDefault(c => c.Metadata.Name == PredefinedEmbeddedLanguageClassifierNames.Fallback);
             if (fallbackClassifier != null)
             {
                 classifierList.Remove(fallbackClassifier);

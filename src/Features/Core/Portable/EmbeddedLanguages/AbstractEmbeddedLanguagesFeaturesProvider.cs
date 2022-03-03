@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageFeatures(info),
                 new RegexEmbeddedLanguage(this, info),
-                new JsonEmbeddedLanguage(info),
-                new FallbackEmbeddedLanguage(info));
+                new JsonEmbeddedLanguage());
         }
 
         /// <summary>Escapes <paramref name="text"/> appropriately so it can be inserted into 

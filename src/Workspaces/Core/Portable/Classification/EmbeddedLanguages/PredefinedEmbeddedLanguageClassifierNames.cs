@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal static class WellKnownEmbeddedLanguageClassifierNames
+    internal static class PredefinedEmbeddedLanguageClassifierNames
     {
         /// <summary>
         /// A special built-in classifier for classifying escapes in strings and character literals if no other embedded
