@@ -299,6 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics,
                     boundAttribute.ConstructorExpanded,
                     ref hasErrors);
+                // Arguments and parameters length are only required to match when the attribute doesn't have errors.
+                Debug.Assert(rewrittenArguments.Length == attributeConstructor.ParameterCount);
             }
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -317,7 +319,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<int> makeSourceIndices()
             {
-                Debug.Assert(attributeConstructor.ParameterCount == rewrittenArguments.Length || hasErrors);
                 var lengthAfterRewriting = rewrittenArguments.Length;
                 if (lengthAfterRewriting == 0 || hasErrors)
                 {

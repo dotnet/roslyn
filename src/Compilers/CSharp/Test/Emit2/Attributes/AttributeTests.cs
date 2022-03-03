@@ -598,17 +598,17 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestComplexOrderedAttributeArguments()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 
 sealed class MarkAttribute : Attribute
 {
-    public MarkAttribute(bool a, bool b, bool c)
+    public MarkAttribute(int a, int b, int c)
     {
     }
 }
 
-[Mark(b: true, c: true, a: false)]
+[Mark(b: 0, c: 1, a: 2)]
 static class Program
 {
     public static void Main()
@@ -622,15 +622,15 @@ static class Program
             Assert.Equal(new[] { 2, 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
 
             var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
-            Assert.Equal("a: false", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
-            Assert.Equal("b: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
-            Assert.Equal("c: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
+            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
         }
 
         [Fact]
         public void TestBadParamsCtor()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var comp = CreateCompilation(@"
 using System;
 
 class AAttribute : Attribute
@@ -655,12 +655,7 @@ class Program
             Assert.Equal("AAttribute..ctor(params System.Int32[] args)", attributeData.AttributeConstructor.ToTestDisplayString());
             Assert.Equal(1, attributeData.AttributeConstructor.ParameterCount);
             Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Select(arg => arg.Value));
-#if DEBUG
-            var root = comp.SyntaxTrees.Single().GetRoot();
-            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Single();
-            // Asserts in debug mode.
-            Assert.Throws<InvalidOperationException>(() => attributeData.GetAttributeArgumentSyntax(0, attrSyntax));
-#endif
+            // `SourceAttributeData.GetAttributeArgumentSyntax` asserts in debug mode when the attributeData has errors, so we don't test it here.
         }
 
         [Fact]
