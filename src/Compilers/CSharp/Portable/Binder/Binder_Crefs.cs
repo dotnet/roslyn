@@ -262,10 +262,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Symbol> BindConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             const int arity = 0;
+            bool isChecked = syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword);
 
-            string memberName = syntax.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
-                ? WellKnownMemberNames.ImplicitConversionName
-                : WellKnownMemberNames.ExplicitConversionName;
+            string memberName;
+
+            if (syntax.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword)
+            {
+                if (isChecked)
+                {
+                    // checked form is not supported
+                    ambiguityWinner = null;
+                    return ImmutableArray<Symbol>.Empty;
+                }
+
+                memberName = WellKnownMemberNames.ImplicitConversionName;
+            }
+            else if (isChecked)
+            {
+                memberName = WellKnownMemberNames.CheckedExplicitConversionName;
+            }
+            else
+            {
+                memberName = WellKnownMemberNames.ExplicitConversionName;
+            }
 
             ImmutableArray<Symbol> sortedSymbols = ComputeSortedCrefMembers(syntax, containerOpt, memberName, arity, syntax.Parameters != null, diagnostics);
 

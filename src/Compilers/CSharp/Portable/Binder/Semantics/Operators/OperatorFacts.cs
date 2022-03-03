@@ -159,7 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ImplicitKeyword:
                     return WellKnownMemberNames.ImplicitConversionName;
                 default:
-                    return WellKnownMemberNames.ExplicitConversionName;
+                    return declaration.CheckedKeyword?.Kind == SyntaxKind.CheckedKeyword ?
+                                WellKnownMemberNames.CheckedExplicitConversionName :
+                                WellKnownMemberNames.ExplicitConversionName;
             }
         }
 

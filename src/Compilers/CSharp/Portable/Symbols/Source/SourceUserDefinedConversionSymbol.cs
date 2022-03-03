@@ -25,6 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = syntax.Type.Location;
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
+            if (name == WellKnownMemberNames.CheckedExplicitConversionName)
+            {
+                MessageID.IDS_FeatureCheckedUserDefinedOperators.CheckFeatureAvailability(diagnostics, syntax, syntax.CheckedKeyword.GetLocation());
+            }
+            else if (syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword))
+            {
+                diagnostics.Add(ErrorCode.ERR_ImplicitConversionOperatorCantBeChecked, syntax.CheckedKeyword.GetLocation());
+            }
+
             var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
 
             TypeSymbol explicitInterfaceType;

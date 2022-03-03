@@ -2047,6 +2047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StringMustStartWithQuoteCharacter = 9009,
 
         ERR_OperatorCantBeChecked = 9150, // PROTOTYPE(CheckedUserDefinedOperators) : pack numbers
+        ERR_ImplicitConversionOperatorCantBeChecked = 9151,
 
         #endregion
 

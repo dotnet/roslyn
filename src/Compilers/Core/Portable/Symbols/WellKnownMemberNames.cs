@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis
         public const string ExplicitConversionName = "op_Explicit";
 
         /// <summary>
+        /// The name assigned to a chacked explicit (narrowing) conversion.
+        /// </summary>
+        public const string CheckedExplicitConversionName = "op_CheckedExplicit";
+
+        /// <summary>
         /// The name assigned to the Addition operator.
         /// </summary>
         public const string AdditionOperatorName = "op_Addition";

@@ -659,8 +659,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // "System.IntPtr.explicit operator System.IntPtr(int)"
 
+                bool isChecked = false;
+
                 if (operatorName == WellKnownMemberNames.ExplicitConversionName)
                 {
+                    AddKeyword(SyntaxKind.ExplicitKeyword);
+                }
+                else if (operatorName == WellKnownMemberNames.CheckedExplicitConversionName)
+                {
+                    isChecked = true;
                     AddKeyword(SyntaxKind.ExplicitKeyword);
                 }
                 else if (operatorName == WellKnownMemberNames.ImplicitConversionName)
@@ -676,6 +683,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
                 AddKeyword(SyntaxKind.OperatorKeyword);
                 AddSpace();
+
+                if (isChecked)
+                {
+                    AddKeyword(SyntaxKind.CheckedKeyword);
+                    AddSpace();
+                }
+
                 AddReturnType(symbol);
             }
         }
