@@ -21,10 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEmbeddedLanguageClassificationService(
             [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> classifiers)
-            : base(classifiers, CSharpSyntaxKinds.Instance)
+            : base(classifiers, CSharpSyntaxKinds.Instance, LanguageNames.CSharp)
         {
         }
-
-        protected override string Language => LanguageNames.CSharp;
     }
 }

@@ -24,10 +24,11 @@ namespace Microsoft.CodeAnalysis.Classification
 
         protected AbstractEmbeddedLanguageClassificationService(
             IEnumerable<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> classifiers,
-            ISyntaxKinds syntaxKinds)
+            ISyntaxKinds syntaxKinds,
+            string languageName)
         {
             // Move the fallback classifier to the end if it exists.
-            var classifierList = ExtensionOrderer.Order(classifiers).Where(c => c.Metadata.Language == this.Language).ToList();
+            var classifierList = ExtensionOrderer.Order(classifiers).Where(c => c.Metadata.Language == languageName).ToList();
             var fallbackClassifier = classifierList.FirstOrDefault(c => c.Metadata.Name == PredefinedEmbeddedLanguageClassifierNames.Fallback);
             if (fallbackClassifier != null)
             {
@@ -47,8 +48,6 @@ namespace Microsoft.CodeAnalysis.Classification
             if (syntaxKinds.MultiLineRawStringLiteralToken != null)
                 _syntaxTokenKinds.Add(syntaxKinds.MultiLineRawStringLiteralToken.Value);
         }
-
-        protected abstract string Language { get; }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
             Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)

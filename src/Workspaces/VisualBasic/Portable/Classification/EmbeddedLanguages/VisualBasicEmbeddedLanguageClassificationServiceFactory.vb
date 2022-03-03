@@ -16,9 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
                 <ImportMany> classifiers As IEnumerable(Of Lazy(Of IEmbeddedLanguageClassifier, OrderableLanguageMetadata)))
-            MyBase.New(classifiers, VisualBasicSyntaxKinds.Instance)
+            MyBase.New(classifiers, VisualBasicSyntaxKinds.Instance, LanguageNames.VisualBasic)
         End Sub
-
-        Protected Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
     End Class
 End Namespace
