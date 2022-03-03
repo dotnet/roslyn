@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 TaggerEventSources.OnTextChanged(subjectBuffer),
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCodeLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForDeclarationLevelConstructs),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptions.Metadata.CollapseRegionsWhenCollapsingToDefinitions));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions));
         }
 
         protected sealed override async Task ProduceTagsAsync(
@@ -143,8 +143,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                 if (outliningService == null)
                     return;
 
+                var options = GlobalOptions.GetBlockStructureOptions(document.Project);
                 var blockStructure = await outliningService.GetBlockStructureAsync(
-                    documentSnapshotSpan.Document, cancellationToken).ConfigureAwait(false);
+                    documentSnapshotSpan.Document, options, cancellationToken).ConfigureAwait(false);
 
                 ProcessSpans(
                     context, documentSnapshotSpan.SnapshotSpan, outliningService,

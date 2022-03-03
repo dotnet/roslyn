@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return true;
             }
 
-            foreach (var child in operation.Children)
+            foreach (var child in operation.ChildOperations)
             {
                 if (ReferencesLocalVariable(child, variable))
                 {

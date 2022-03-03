@@ -4,12 +4,13 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
     internal interface ISupportsNavigation
     {
         bool CanNavigateTo();
-        Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken);
+        Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken);
     }
 }

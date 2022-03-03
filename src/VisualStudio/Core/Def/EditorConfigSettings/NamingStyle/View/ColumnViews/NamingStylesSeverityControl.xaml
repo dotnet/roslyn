@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View.NamingStylesSeverityControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:namingStyleViewModel="clr-namespace:Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel" 
+             d:DataContext="{d:DesignInstance Type=namingStyleViewModel:NamingStylesSeverityViewModel}"
+             mc:Ignorable="d" 
+             x:ClassModifier="internal">
+    <Grid x:Name="RootGrid">
+        <ComboBox x:Name="SeverityComboBox"
+                  ItemsSource="{Binding Severities}"
+                  SelectedValue="{Binding SelectedSeverityValue}"
+                  ToolTip="{Binding SeverityToolTip}"
+                  AutomationProperties.Name="{Binding SeverityAutomationName}" 
+                  SelectionChanged="SeverityComboBox_SelectionChanged" />
+    </Grid>
+</UserControl>

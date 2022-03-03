@@ -1022,11 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
-            var receiverRefKind = receiver?.GetRefKind();
-            uint receiverValEscapeScope = method.RequiresInstanceReceiver && receiver != null
-                ? receiverRefKind?.IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
-                : Binder.ExternalScope;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver?.Type, receiverValEscapeScope);
+            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver);
 
             var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             var argsToParams = methodResult.Result.ArgsToParamsOpt;
@@ -2029,12 +2025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodsBuilder.Free();
 
             MemberResolutionResult<FunctionPointerMethodSymbol> methodResult = overloadResolutionResult.ValidResult;
-            CoerceArguments(
-                methodResult,
-                analyzedArguments.Arguments,
-                diagnostics,
-                receiverType: null,
-                receiverEscapeScope: Binder.ExternalScope);
+            CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics, receiver: null);
 
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();

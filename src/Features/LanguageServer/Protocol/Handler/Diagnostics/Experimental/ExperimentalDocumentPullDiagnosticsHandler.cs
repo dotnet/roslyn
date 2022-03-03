@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
@@ -20,19 +21,19 @@ using DocumentDiagnosticReport = SumType<FullDocumentDiagnosticReport, Unchanged
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 using DocumentDiagnosticPartialReport = SumType<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>, DocumentDiagnosticPartialResult>;
 
+[Method(ExperimentalMethods.TextDocumentDiagnostic)]
 internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
     public ExperimentalDocumentPullDiagnosticsHandler(
+        WellKnownLspServerKinds serverKind,
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService)
-        : base(diagnosticService)
+        : base(serverKind, diagnosticService)
     {
         _analyzerService = analyzerService;
     }
-
-    public override string Method => ExperimentalMethods.TextDocumentDiagnostic;
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
@@ -62,7 +63,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return null;
     }
 
-    protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
         // We are intentionally getting diagnostics for the up to date LSP snapshot instead of from the IDiagnosticService
         // as the solution crawler does not run in VSCode.  When the solution crawler is removed from VS, the VS LSP diagnostics
@@ -70,9 +71,9 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
     }
 
-    protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return DocumentPullDiagnosticHandler.GetRequestedDocument(context);
+        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetRequestedDocument(context));
     }
 
     protected override ImmutableArray<PreviousResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)

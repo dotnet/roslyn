@@ -4214,7 +4214,7 @@ class Program
         Console.WriteLine(a is nameof);
     }
 }
-class nameof { }
+class @nameof { }
 ";
             var expectedOutput =
 @"True
@@ -4449,7 +4449,7 @@ public class C
             // pattern)
             var source =
 @"
-public class var {}
+public class @var {}
 unsafe public class Typ
 {
     public static void Main(int* a, var* c, Typ* e)
@@ -6221,7 +6221,7 @@ unsafe public class C {
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
+            var comp = CompileAndVerify(compilation, expectedOutput: "ok", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -6517,7 +6517,10 @@ False
 False";
             var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.Fails);
+            // PEVerify:
+            // [ : Program::Main][mdToken=0x6000001][offset 0x00000002] Unmanaged pointers are not a verifiable type.
+            // [ : Program::Main][mdToken= 0x6000001][offset 0x00000002] Unable to resolve token.
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
         }
 
         [Fact]

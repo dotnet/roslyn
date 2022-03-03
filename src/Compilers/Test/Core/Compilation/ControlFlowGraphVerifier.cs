@@ -1995,6 +1995,7 @@ endRegion:
                 case OperationKind.InterpolatedStringAppendInvalid:
                 case OperationKind.SlicePattern:
                 case OperationKind.ListPattern:
+                case OperationKind.ImplicitIndexerReference:
                     return true;
             }
 

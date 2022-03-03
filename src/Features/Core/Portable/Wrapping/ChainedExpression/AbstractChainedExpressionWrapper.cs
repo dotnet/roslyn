@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -71,22 +69,21 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
         /// </summary>
         protected abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
 
-        public sealed override async Task<ICodeActionComputer> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode node, CancellationToken cancellationToken)
+        public sealed override async Task<ICodeActionComputer?> TryCreateComputerAsync(
+            Document document, int position, SyntaxNode node, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
+            if (containsSyntaxError)
+                return null;
+
             // We have to be on a chain part.  If not, there's nothing to do here at all.
             if (!IsDecomposableChainPart(node))
-            {
                 return null;
-            }
 
             // Has to be the topmost chain part.  If we're not on the topmost, then just
             // bail out here.  Our caller will continue walking upwards until it hits the 
             // topmost node.
             if (IsDecomposableChainPart(node.Parent))
-            {
                 return null;
-            }
 
             // We're at the top of something that looks like it could be part of a chained
             // expression.  Break it into the individual chunks.  We need to have at least
@@ -96,9 +93,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             // wrap when we have <c>this.Goo(...).Bar(...)</c>.
             var chunks = GetChainChunks(node);
             if (chunks.Length <= 1)
-            {
                 return null;
-            }
 
             // If any of these chunk parts are unformattable, then we don't want to offer anything
             // here as we may make formatting worse for this construct.
@@ -107,15 +102,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 var unformattable = await ContainsUnformattableContentAsync(
                     document, chunk, cancellationToken).ConfigureAwait(false);
                 if (unformattable)
-                {
                     return null;
-                }
             }
 
             // Looks good.  Create the action computer which will actually determine
             // the set of wrapping options to provide.
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new CallExpressionCodeActionComputer(
                 this, document, sourceText, options, chunks, cancellationToken);
         }
@@ -246,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             return result.ToImmutable();
         }
 
-        private bool IsDecomposableChainPart(SyntaxNode node)
+        private bool IsDecomposableChainPart(SyntaxNode? node)
         {
             // This is the effective set of language constructs that can 'chain' 
             // off of a call <c>.M(...)</c>.  They are:
@@ -295,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                         continue;
                     }
 
-                    var currentNode = nodeOrToken.AsNode();
+                    var currentNode = nodeOrToken.AsNode()!;
                     if (!IsDecomposableChainPart(currentNode))
                     {
                         // We've hit some node that can't be decomposed further (like an argument list, or name node).

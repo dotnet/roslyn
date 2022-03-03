@@ -77,6 +77,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             var document = e.Solution.GetDocument(e.DocumentId);
 
+            // If we couldn't find a normal document, and all features are enabled for source generated documents,
+            // attempt to locate a matching source generated document in the project.
+            if (document is null
+                && e.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true }
+                && e.Solution.GetProject(e.DocumentId.ProjectId) is { } project)
+            {
+                document = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentAsync(e.DocumentId, CancellationToken.None).AsTask());
+            }
+
             // Open documents *should* always have their SourceText available, but we cannot guarantee
             // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's
             // a small risk that between calling .IsOpen the file may then close, which then would
@@ -101,10 +110,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
+            // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
+            // executed on content which was produced by a source generator but is not yet reflected in an open text
+            // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
+            // triggers a text changed event) to ensure diagnostics are positioned correctly.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService));
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
+                TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
         protected internal abstract bool IsEnabled { get; }
@@ -151,8 +165,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             var suppressedDiagnosticsSpans = (NormalizedSnapshotSpanCollection?)null;
             buffer?.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.SuppressDiagnosticsSpansKey, out suppressedDiagnosticsSpans);
 
+            var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
             var buckets = _diagnosticService.GetPushDiagnosticBuckets(
-                workspace, document.Project.Id, document.Id, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken);
+                workspace, document.Project.Id, document.Id, diagnosticMode, cancellationToken);
 
             foreach (var bucket in buckets)
             {
@@ -170,11 +186,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
             try
             {
+                var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
                 var id = bucket.Id;
                 var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, id,
                     includeSuppressedDiagnostics: false,
-                    diagnosticMode: InternalDiagnosticsOptions.NormalDiagnosticMode,
+                    diagnosticMode,
                     cancellationToken).ConfigureAwait(false);
 
                 var isLiveUpdate = id is ISupportLiveUpdate;

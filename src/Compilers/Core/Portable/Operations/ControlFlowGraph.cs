@@ -178,19 +178,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
 
-            try
-            {
-                ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
-                Debug.Assert(controlFlowGraph.OriginalOperation == operation);
-                return controlFlowGraph;
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
-                Debug.Assert(false, "\n" + e.ToString());
-            }
-
-            return null;
+            ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
+            Debug.Assert(controlFlowGraph.OriginalOperation == operation);
+            return controlFlowGraph;
         }
 
         /// <summary>

@@ -4106,7 +4106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ErrorCode noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
                 constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
-                return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, type: null, hasErrors: constantValue?.IsBad == true);
+                return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, hasErrors: constantValue?.IsBad == true);
             }
 
             TypeSymbol type;

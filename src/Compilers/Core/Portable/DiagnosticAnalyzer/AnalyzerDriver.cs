@@ -2697,10 +2697,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return GetOperationsToAnalyze(operationBlocksToAnalyze);
                 }
-                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (ex is InsufficientExecutionStackException)
                 {
-                    // the exception filter will short-circuit if `ex` is `InsufficientExecutionStackException` (from OperationWalker)
-                    // and no non-fatal-watson will be logged as a result.
                     var diagnostic = AnalyzerExecutor.CreateDriverExceptionDiagnostic(ex);
                     var analyzer = this.Analyzers[0];
 
@@ -2865,12 +2863,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Func<SyntaxNode, bool>? additionalFilter = semanticModel.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-
             bool shouldAddNode(SyntaxNode node) => (descendantDeclsToSkip == null || !descendantDeclsToSkip.Contains(node)) && (additionalFilter is null || additionalFilter(node));
             var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
                 if (shouldAddNode(node) &&
+                    !semanticModel.ShouldSkipSyntaxNodeAnalysis(node, declaredSymbol) &&
                     (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
                 {
                     nodeBuilder.Add(node);

@@ -9,17 +9,17 @@
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">スタック トレース エクスプローラー</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
         <source>ShowStackTraceExplorerCommandName</source>
-        <target state="new">ShowStackTraceExplorerCommandName</target>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
         <source>ShowStackTraceExplorer</source>
-        <target state="new">ShowStackTraceExplorer</target>
+        <target state="translated">ShowStackTraceExplorer</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
@@ -65,6 +65,21 @@
       <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
         <source>Entire Solution</source>
         <target state="translated">ソリューション全体</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="new">&amp;None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="new">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
@@ -529,7 +544,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|ButtonText">
         <source>Track Value Source</source>
-        <target state="translated">トラック値のソース</target>
+        <target state="translated">値のソースの追跡</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|CommandName">
@@ -539,7 +554,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ShowValueTracking</source>
-        <target state="needs-review-translation">ViewEditorConfigSettings</target>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

@@ -64,6 +64,8 @@ try {
   Write-Host "Building Roslyn"
   Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
 
+  Subst-TempDir
+
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
@@ -73,7 +75,7 @@ try {
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
-  Exec-Console dotnet "tool run dotnet-format . --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --check -f"
+  Exec-Console dotnet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 
   exit 0
@@ -90,5 +92,7 @@ finally {
     Remove-ItemProperty -Path $key -Name 'DumpCount'
     Remove-ItemProperty -Path $key -Name 'DumpFolder'
   }
+
+  Unsubst-TempDir
   Pop-Location
 }

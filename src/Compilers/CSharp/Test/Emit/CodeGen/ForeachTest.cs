@@ -477,10 +477,10 @@ class Test
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestReadOnlySpanString()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var comp = CreateCompilation(@"
 using System;
 
 class Test
@@ -495,7 +495,7 @@ class Test
     }
 }
 
-", TestOptions.ReleaseExe);
+", targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: "hello", verify: Verification.Passes).VerifyIL("Test.Main", @"
 {
@@ -504,7 +504,7 @@ class Test
   .locals init (System.ReadOnlySpan<char> V_0,
                 int V_1)
   IL_0000:  ldstr      ""hello""
-  IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.0
   IL_000c:  stloc.1

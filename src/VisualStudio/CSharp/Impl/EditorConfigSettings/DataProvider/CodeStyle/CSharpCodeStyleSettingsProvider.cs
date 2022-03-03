@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -103,6 +103,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: CSharpVSResources.Prefer_null_check_over_type_check,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferParameterNullChecking,
+                description: CSharpVSResources.Prefer_parameter_null_checking,
+                editorConfigOptions: editorConfigOptions,
+                visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
@@ -132,6 +136,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 valueDescriptions: new[] { CSharpVSResources.Block_scoped, CSharpVSResources.File_scoped },
                 editorConfigOptions: editorConfigOptions, visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
 
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferMethodGroupConversion,
+                description: ServicesVSResources.Prefer_method_group_conversion,
+                editorConfigOptions: editorConfigOptions,
+                visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

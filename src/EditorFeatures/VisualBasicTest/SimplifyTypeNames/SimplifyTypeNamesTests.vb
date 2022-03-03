@@ -977,7 +977,7 @@ End Namespace")
         Public Async Function TestSimplifyTypeInScriptCode() As Task
             Await TestAsync(
 "Imports System
-[|System.Console.WriteLine(0)|]",
+[|System.Console|].WriteLine(0)",
 "Imports System
 Console.WriteLine(0)",
         parseOptions:=TestOptions.Script)

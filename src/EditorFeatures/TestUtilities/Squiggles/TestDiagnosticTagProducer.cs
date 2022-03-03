@@ -22,24 +22,25 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
-    internal sealed class TestDiagnosticTagProducer<TProvider>
-        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
+    internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
+        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<TTag>
+        where TTag : class, ITag
     {
-        internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<IErrorTag>>)> GetDiagnosticsAndErrorSpans(
+        internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
             TestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
         {
-            return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider>(workspace, analyzerMap);
+            return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
         }
 
-        internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<TTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, DiagnosticsUpdatedArgs updateArgs)
         {
             var globalOptions = workspace.GetService<IGlobalOptionService>();
             var source = new TestDiagnosticUpdateSource(globalOptions);
 
-            using var wrapper = new DiagnosticTaggerWrapper<TProvider, IErrorTag>(workspace, updateSource: source);
+            using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, updateSource: source);
 
-            var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
+            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
             using var disposable = (IDisposable)tagger;
 
             source.RaiseDiagnosticsUpdated(updateArgs);
@@ -58,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 id: "test",
                 category: "test",
                 message: "test",
-                enuMessageForBingSearch: "test",
                 severity: DiagnosticSeverity.Error,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true,

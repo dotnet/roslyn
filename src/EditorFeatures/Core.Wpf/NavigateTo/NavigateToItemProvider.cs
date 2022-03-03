@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 kinds,
                 _threadingContext.DisposalToken);
 
-            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token);
+            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token).ReportNonFatalErrorUnlessCancelledAsync(_cancellationTokenSource.Token);
         }
     }
 }

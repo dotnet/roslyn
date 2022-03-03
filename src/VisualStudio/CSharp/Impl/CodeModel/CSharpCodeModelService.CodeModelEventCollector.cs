@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
             }
 
-            private IReadOnlyList<MemberDeclarationSyntax> GetValidMembers(SyntaxNode node)
+            private static IReadOnlyList<MemberDeclarationSyntax> GetValidMembers(SyntaxNode node)
             {
                 return CSharpCodeModelService
                     .GetChildMemberNodes(node)
@@ -708,10 +708,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return false;
             }
 
-            private bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
+            private static bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
                 => oldMember.GetModifierFlags() == newMember.GetModifierFlags();
 
-            private bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)
+            private static bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)
                 => oldParameter.GetParameterFlags() == newParameter.GetParameterFlags();
 
             private bool CompareNames(NameSyntax oldName, NameSyntax newName)
@@ -826,7 +826,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return false;
             }
 
-            private TypeSyntax GetReturnType(BaseMethodDeclarationSyntax method)
+            private static TypeSyntax GetReturnType(BaseMethodDeclarationSyntax method)
             {
                 if (method is MethodDeclarationSyntax methodDecl)
                 {
@@ -968,7 +968,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            private void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
+            private static void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
             {
                 if (parent is BaseFieldDeclarationSyntax baseField)
                 {

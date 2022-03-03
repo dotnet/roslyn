@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
     /// we no longer reference VS icon types.
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.WorkspaceSymbolName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspaceSymbolsHandler)), Shared]
+    [Method(Methods.WorkspaceSymbolName)]
     internal class WorkspaceSymbolsHandler : AbstractStatelessRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
         private static readonly IImmutableSet<string> s_supportedKinds =
@@ -51,8 +51,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigateTo);
             _threadingContext = threadingContext;
         }
-
-        public override string Method => Methods.WorkspaceSymbolName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -98,7 +96,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (location == null)
                     return;
 
-                Contract.ThrowIfNull(location);
                 _progress.Report(new VSSymbolInformation
                 {
                     Name = result.Name,

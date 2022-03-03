@@ -1877,12 +1877,15 @@ class C
                 // (1,22): error CS1513: } expected
                 // class c { int this[ }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 22),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,19): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -1983,12 +1986,15 @@ class C
                 // (1,21): error CS1056: Unexpected character '$'
                 // class c { int this[ $ ] { } }
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("$").WithLocation(1, 21),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ $ ] { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,23): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ $ ] { } }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(1, 23),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ $ ] { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -2074,12 +2080,15 @@ class C
                 // (1,21): error CS1513: } expected
                 // class c { int this[ public void m() { } }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 21),
-                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15),
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,19): error CS1551: Indexers must have at least one parameter
                 // class c { int this[ public void m() { } }
-                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "[").WithLocation(1, 19),
+                // (1,15): error CS0548: 'c.this': property or indexer must have at least one accessor
+                // class c { int this[ public void m() { } }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "this").WithArguments("c.this").WithLocation(1, 15));
         }
 
         [Fact]
@@ -3913,6 +3922,9 @@ class C
                 // (1,31): error CS1026: ) expected
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),
+                // (1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c { void m() { fixed(t v; } }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed(t v;").WithLocation(1, 22),

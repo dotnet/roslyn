@@ -49,27 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            return (await GetCodeRefactoringsAsync(workspace, parameters)).FirstOrDefault();
-        }
-
-        private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
             var provider = CreateCodeRefactoringProvider(workspace, parameters);
-            return SpecializedCollections.SingletonEnumerable(
-                await GetCodeRefactoringAsync(provider, workspace));
-        }
 
-        private static async Task<CodeRefactoring> GetCodeRefactoringAsync(
-            CodeRefactoringProvider provider,
-            TestWorkspace workspace)
-        {
             var documentsWithSelections = workspace.Documents.Where(d => !d.IsLinkFile && d.SelectedSpans.Count == 1);
             Debug.Assert(documentsWithSelections.Count() == 1, "One document must have a single span annotation");
             var span = documentsWithSelections.Single().SelectedSpans.Single();
             var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
             var document = workspace.CurrentSolution.GetDocument(documentsWithSelections.Single().Id);
-            var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), isBlocking: false, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), parameters.codeActionOptions, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
 
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
