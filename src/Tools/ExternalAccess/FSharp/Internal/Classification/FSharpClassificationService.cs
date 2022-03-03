@@ -71,5 +71,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Classification
             // not currently supported by F#.
             return new();
         }
+
+        public Task AddEmbeddedLanguageClassificationsAsync(Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

@@ -220,9 +220,9 @@
       "version": "4.2.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "rel/d17.2",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.2p1]"
+      "insertionTitlePrefix": "[d17.2p2]"
     },
     "main": {
       "nugetKind": [
@@ -234,8 +234,21 @@
       "channels": [],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.2p2]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.2p3]"
+    },
+    "release/dev17.3": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "4.3.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.3p1]"
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",

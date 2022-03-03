@@ -28,7 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly ProjectId _projectId;
         private readonly string _sortText;
 
-        public CallHierarchyItem(ISymbol symbol, ProjectId projectId, IEnumerable<AbstractCallFinder> finders, Func<ImageSource> glyphCreator, CallHierarchyProvider provider, IEnumerable<Location> callsites, Workspace workspace)
+        public CallHierarchyItem(
+            ISymbol symbol,
+            ProjectId projectId,
+            IEnumerable<AbstractCallFinder> finders,
+            Func<ImageSource> glyphCreator,
+            CallHierarchyProvider provider,
+            IEnumerable<Location> callsites,
+            Workspace workspace)
         {
             _symbolId = symbol.GetSymbolKey();
             _projectId = projectId;
@@ -38,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _glyphCreator = glyphCreator;
             _name = symbol.ToDisplayString(MemberNameFormat);
             _provider = provider;
-            _callsites = callsites.Select(l => new CallHierarchyDetail(l, workspace));
+            _callsites = callsites.Select(l => new CallHierarchyDetail(provider.ThreadingContext, l, workspace));
             _sortText = symbol.ToDisplayString();
             _workspace = workspace;
         }
@@ -132,7 +139,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         public void NavigateTo()
         {
             // Navigating to an item is not cancellable.
-            _provider.NavigateTo(_symbolId, _workspace.CurrentSolution.GetProject(_projectId), CancellationToken.None);
+            _provider.ThreadingContext.JoinableTaskFactory.Run(() =>
+                _provider.NavigateToAsync(_symbolId, _workspace.CurrentSolution.GetProject(_projectId), CancellationToken.None));
         }
 
         public void StartSearch(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)
