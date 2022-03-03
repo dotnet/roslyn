@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-
     internal abstract class AbstractFallbackEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         private readonly EmbeddedLanguageInfo _info;
