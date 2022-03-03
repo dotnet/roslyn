@@ -9449,7 +9449,9 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             // should not contain RUDE_EDIT_INSERT_AROUND
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -9478,7 +9480,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -9660,7 +9664,9 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             // should not contain RUDE_EDIT_INSERT_AROUND
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -9749,7 +9755,9 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]

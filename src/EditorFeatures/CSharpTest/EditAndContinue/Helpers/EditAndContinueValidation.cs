@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Differencing;
@@ -23,6 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                editScript,
                ActiveStatementsDescription.Empty,
                capabilities: null,
+               expectedDiagnostics);
+        }
+
+        internal static void VerifyRudeDiagnostics(
+            this EditScript<SyntaxNode> editScript,
+            RudeEditDiagnosticDescription[] expectedDiagnostics,
+            EditAndContinueCapabilities capabilities)
+        {
+            VerifySemanticDiagnostics(
+               editScript,
+               ActiveStatementsDescription.Empty,
+               capabilities,
                expectedDiagnostics);
         }
 
@@ -69,28 +82,46 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             this EditScript<SyntaxNode> editScript,
             SequencePointUpdates[] lineEdits,
             SemanticEditDescription[]? semanticEdits = null,
-            RudeEditDiagnosticDescription[]? diagnostics = null)
+            RudeEditDiagnosticDescription[]? diagnostics = null,
+            EditAndContinueCapabilities? capabilities = null)
         {
             new CSharpEditAndContinueTestHelpers().VerifyLineEdits(
                 editScript,
                 lineEdits,
                 semanticEdits,
-                diagnostics);
+                diagnostics,
+                capabilities);
         }
 
         internal static void VerifySemanticDiagnostics(
             this EditScript<SyntaxNode> editScript,
             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
-            VerifySemantics(
-                new[] { editScript },
-                new[] { new DocumentAnalysisResultsDescription(diagnostics: expectedDiagnostics) });
+            VerifySemanticDiagnostics(editScript, expectedDiagnostics, capabilities: null);
         }
 
         internal static void VerifySemanticDiagnostics(
-                    this EditScript<SyntaxNode> editScript,
-                    ActiveStatementsDescription activeStatements,
-                    params RudeEditDiagnosticDescription[] expectedDiagnostics)
+            this EditScript<SyntaxNode> editScript,
+            EditAndContinueCapabilities capabilities)
+        {
+            VerifySemanticDiagnostics(editScript, Array.Empty<RudeEditDiagnosticDescription>(), capabilities);
+        }
+
+        internal static void VerifySemanticDiagnostics(
+            this EditScript<SyntaxNode> editScript,
+            RudeEditDiagnosticDescription[] expectedDiagnostics,
+            EditAndContinueCapabilities? capabilities)
+        {
+            VerifySemantics(
+                new[] { editScript },
+                new[] { new DocumentAnalysisResultsDescription(diagnostics: expectedDiagnostics) },
+                capabilities: capabilities);
+        }
+
+        internal static void VerifySemanticDiagnostics(
+             this EditScript<SyntaxNode> editScript,
+             ActiveStatementsDescription activeStatements,
+             params RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
             VerifySemanticDiagnostics(editScript, activeStatements, capabilities: null, expectedDiagnostics);
         }
@@ -110,12 +141,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static void VerifySemanticDiagnostics(
             this EditScript<SyntaxNode> editScript,
             TargetFramework[] targetFrameworks,
-            params RudeEditDiagnosticDescription[] expectedDiagnostics)
+            EditAndContinueCapabilities? capabilities = null)
+        {
+            VerifySemantics(
+                new[] { editScript },
+                new[] { new DocumentAnalysisResultsDescription(diagnostics: Array.Empty<RudeEditDiagnosticDescription>()) },
+                targetFrameworks,
+                capabilities);
+        }
+
+        internal static void VerifySemanticDiagnostics(
+            this EditScript<SyntaxNode> editScript,
+            TargetFramework[] targetFrameworks,
+            RudeEditDiagnosticDescription[] expectedDiagnostics,
+            EditAndContinueCapabilities? capabilities = null)
         {
             VerifySemantics(
                 new[] { editScript },
                 new[] { new DocumentAnalysisResultsDescription(diagnostics: expectedDiagnostics) },
-                targetFrameworks: targetFrameworks);
+                targetFrameworks,
+                capabilities);
         }
 
         internal static void VerifySemantics(
@@ -128,6 +173,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 new[] { editScript },
                 new[] { new DocumentAnalysisResultsDescription(activeStatements, semanticEdits: expectedSemanticEdits) },
                 capabilities: capabilities);
+        }
+
+        internal static void VerifySemantics(
+            this EditScript<SyntaxNode> editScript,
+            SemanticEditDescription[] expectedSemanticEdits,
+            EditAndContinueCapabilities capabilities)
+        {
+            VerifySemantics(editScript, ActiveStatementsDescription.Empty, expectedSemanticEdits, capabilities);
         }
 
         internal static void VerifySemantics(

@@ -44,9 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Friend Sub VerifyLineEdits(editScript As EditScript(Of SyntaxNode),
                                    lineEdits As SequencePointUpdates(),
                                    Optional semanticEdits As SemanticEditDescription() = Nothing,
-                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing)
+                                   Optional diagnostics As RudeEditDiagnosticDescription() = Nothing,
+                                   Optional capabilities As EditAndContinueCapabilities? = Nothing)
             Dim validator = New VisualBasicEditAndContinueTestHelpers()
-            validator.VerifyLineEdits(editScript, lineEdits, semanticEdits, diagnostics)
+            validator.VerifyLineEdits(editScript, lineEdits, semanticEdits, diagnostics, capabilities)
         End Sub
 
         <Extension>

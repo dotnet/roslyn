@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -1986,14 +1987,17 @@ foreach (var (a, b) in e1) { }
                 "Update [a]@22 -> [[A]a]@35");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.parameter));
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.parameter)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             GetTopEdits(edits).VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -2117,7 +2121,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2151,7 +2156,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2814,9 +2820,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                activeStatements: ActiveStatementsDescription.Empty,
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a", CSharpFeaturesResources.lambda));
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a", CSharpFeaturesResources.lambda) },
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities);
         }
 
         [Fact]
@@ -2850,9 +2855,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                activeStatements: ActiveStatementsDescription.Empty,
-                capabilities,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda));
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda) },
+                capabilities);
         }
 
         [Fact]
@@ -2879,16 +2883,13 @@ class C
     }
 }
 ";
-            var capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.NewTypeDefinition;
-
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                activeStatements: ActiveStatementsDescription.Empty,
-                capabilities,
                 // TODO: https://github.com/dotnet/roslyn/issues/52759
                 // This is incorrect, there should be no rude edit reported
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda));
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5231,7 +5232,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -5268,7 +5270,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -5305,7 +5308,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -5838,9 +5842,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                activeStatements: ActiveStatementsDescription.Empty,
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "M", FeaturesResources.local_function));
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "M", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
@@ -6032,7 +6035,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -7209,7 +7213,8 @@ class C
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -7253,7 +7258,8 @@ class C
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -7413,7 +7419,8 @@ interface I
 
             // Get top edits so we can validate rude edits
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7429,7 +7436,8 @@ interface I
 
             // Get top edits so we can validate rude edits
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7485,8 +7493,12 @@ interface I
             edits.VerifyEdits("Update [[return: A]void L() { }]@2 -> [[A]void L() { }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7500,8 +7512,12 @@ interface I
             edits.VerifyEdits("Update [[A]void L() { }]@2 -> [[return: A]void L() { }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7516,7 +7532,8 @@ interface I
                 "Update [int L() { return 1; }]@2 -> [[return: A]int L() { return 1; }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7531,7 +7548,8 @@ interface I
                 "Update [[return: A]int L() { return 1; }]@2 -> [int L() { return 1; }]@2");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7559,7 +7577,8 @@ interface I
                 "Update [int i]@9 -> [[A]int i]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.parameter));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7574,7 +7593,8 @@ interface I
                 "Update [[A]int i]@9 -> [int i]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.parameter));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7602,7 +7622,8 @@ interface I
                 "Update [T]@9 -> [[A] T]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.type_parameter));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.type_parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7617,7 +7638,8 @@ interface I
                 "Update [[A] T]@9 -> [T]@9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.type_parameter));
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.type_parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -9149,7 +9171,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
@@ -9319,7 +9342,7 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore },
-                Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute"));
+                new[] { Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute") });
         }
 
         [Fact]
@@ -9350,7 +9373,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore });
+                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
@@ -9908,7 +9932,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -9935,7 +9960,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             // ok to add awaits if there were none before and no active statements
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -10134,7 +10160,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                targetFrameworks: new[] { TargetFramework.MinimalAsync });
+                targetFrameworks: new[] { TargetFramework.MinimalAsync },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
