@@ -7,6 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,7 +20,7 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
     [Export(typeof(IBraceCompletionSessionProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]

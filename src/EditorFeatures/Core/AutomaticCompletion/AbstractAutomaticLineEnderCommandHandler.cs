@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
@@ -15,7 +16,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
     internal abstract class AbstractAutomaticLineEnderCommandHandler :
         IChainedCommandHandler<AutomaticLineEnderCommandArgs>
