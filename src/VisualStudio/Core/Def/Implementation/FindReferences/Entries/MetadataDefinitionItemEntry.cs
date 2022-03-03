@@ -47,7 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
             {
-                // Only activate the tab if requested
                 var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
                     Presenter._workspace, cancellationToken).ConfigureAwait(false);
                 if (location != null)
