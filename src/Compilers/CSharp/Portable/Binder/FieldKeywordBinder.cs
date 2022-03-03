@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal FieldKeywordBinder(MethodSymbol accessor, Binder next)
             : base(next)
         {
-            RoslynDebug.Assert(accessor is SourcePropertyAccessorSymbol);
             _accessor = (SourcePropertyAccessorSymbol)accessor;
         }
 
