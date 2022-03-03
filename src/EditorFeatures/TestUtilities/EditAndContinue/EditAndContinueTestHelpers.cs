@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             Net6RuntimeCapabilities;
 
         public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
-        public abstract SyntaxNode FindNode(SyntaxNode root, TextSpan span);
+
         public abstract ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method);
         public abstract string LanguageName { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        private void VerifySemanticEdits(
+        private static void VerifySemanticEdits(
             ImmutableArray<SemanticEditDescription> expectedSemanticEdits,
             ImmutableArray<SemanticEditInfo> actualSemanticEdits,
             Compilation oldCompilation,
@@ -315,7 +315,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
-        private void VerifySyntaxMap(
+        public static SyntaxNode FindNode(SyntaxNode root, TextSpan span)
+        {
+            var result = root.FindToken(span.Start).Parent!;
+            while (result.Span != span)
+            {
+                result = result.Parent!;
+            }
+
+            return result;
+        }
+
+        private static void VerifySyntaxMap(
             SyntaxNode oldRoot,
             SyntaxNode newRoot,
             IEnumerable<KeyValuePair<TextSpan, TextSpan>> expectedSyntaxMap,
