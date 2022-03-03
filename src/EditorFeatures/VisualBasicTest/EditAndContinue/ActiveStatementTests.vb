@@ -5087,7 +5087,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifySemanticDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5115,7 +5117,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifySemanticDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5230,7 +5234,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifySemanticDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5347,7 +5353,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifySemanticDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
