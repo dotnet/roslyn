@@ -4,9 +4,10 @@
 
 #nullable disable
 
+using Microsoft;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     internal class BraceHighlightTag : TextMarkerTag
     {
