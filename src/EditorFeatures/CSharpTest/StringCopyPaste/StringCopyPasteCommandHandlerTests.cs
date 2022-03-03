@@ -183,5 +183,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 @"var x = ""\t$$""",
                 afterUndo: "var x = \"\t$$\"");
         }
+
+        [WpfFact]
+        public void TestPasteSingleQuoteIntoNormalString()
+        {
+            TestPasteOnly(
+                pasteText: "'",
+                @"var x = ""$$""",
+                @"var x = ""'$$""",
+                afterUndo: "var x = \"$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteDoubleQuoteIntoNormalString()
+        {
+            TestPasteOnly(
+                pasteText: "\"",
+                @"var x = ""$$""",
+                @"var x = ""\""$$""",
+                afterUndo: "var x = \"\"$$\"");
+        }
     }
 }
