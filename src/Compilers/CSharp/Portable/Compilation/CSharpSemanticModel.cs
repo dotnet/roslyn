@@ -238,8 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
             }
 
-            binder = new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
-            return binder;
+            return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
         private Binder GetSpeculativeBinderForAttribute(int position, AttributeSyntax attribute)
