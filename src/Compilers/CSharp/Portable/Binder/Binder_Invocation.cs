@@ -1196,7 +1196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // CS7067: Attribute constructor parameter '{0}' is optional, but no default parameter value was specified.
                 diagnostics.Add(ErrorCode.ERR_BadAttributeParamDefaultArgument, syntax.Location, parameter.Name);
-                defaultValue = BadExpression(syntax).MakeCompilerGenerated();
             }
             else if (parameter.IsMarshalAsObject)
             {

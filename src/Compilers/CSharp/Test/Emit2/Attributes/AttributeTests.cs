@@ -595,6 +595,42 @@ static class Program
         }
 
         [Fact]
+        public void TestBadParamsCtor()
+        {
+            var comp = CreateCompilationWithMscorlib46(@"
+using System;
+
+class AAttribute : Attribute
+{
+    private AAttribute(params int[] args) { }
+}
+
+[A(1, 2, 3)]
+class Program
+{
+}", options: TestOptions.DebugDll);
+
+            comp.VerifyDiagnostics(
+                // (9,2): error CS0122: 'AAttribute.AAttribute(params int[])' is inaccessible due to its protection level
+                // [A(1, 2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAccess, "A(1, 2, 3)").WithArguments("AAttribute.AAttribute(params int[])").WithLocation(9, 2));
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
+            Assert.True(attributeData.HasErrors);
+            Assert.Equal("AAttribute..ctor(params System.Int32[] args)", attributeData.AttributeConstructor.ToTestDisplayString());
+            Assert.Equal(1, attributeData.AttributeConstructor.ParameterCount);
+            Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Select(arg => arg.Value));
+#if DEBUG
+            var root = comp.SyntaxTrees.Single().GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Single();
+            // Asserts in debug mode.
+            Assert.Throws<InvalidOperationException>(() => attributeData.GetAttributeArgumentSyntax(0, attrSyntax));
+#endif
+        }
+
+        [Fact]
         public void TestCallWithOptionalParametersInsideAttribute()
         {
             var source = @"

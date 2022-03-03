@@ -172,7 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder attributeArgumentBinder = this.WithAdditionalFlags(BinderFlags.AttributeArgument);
             AnalyzedAttributeArguments analyzedArguments = attributeArgumentBinder.BindAttributeArguments(argumentListOpt, attributeTypeForBinding, diagnostics);
 
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             ImmutableArray<int> argsToParamsOpt = default;
             bool expanded = false;
             BitVector defaultArguments = default;
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments.ConstructorArguments,
                     attributeTypeForBinding.Name,
                     node.Location,
-                    attributeType.IsErrorType(),
+                    suppressResultDiagnostics: attributeType.IsErrorType(),
                     diagnostics,
                     out var memberResolutionResult,
                     out var candidateConstructors,
@@ -202,11 +201,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!found)
                 {
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     resultKind = resultKind.WorseResultKind(
                         memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
                             LookupResultKind.Inaccessible :
                             LookupResultKind.OverloadResolutionFailure);
                     boundConstructorArguments = BuildArgumentsForErrorRecovery(analyzedArguments.ConstructorArguments, candidateConstructors);
+                    diagnostics.Add(node, useSiteInfo);
                 }
                 else
                 {
@@ -232,7 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(boundConstructorArguments.All(a => !a.NeedsToBeConverted()));
-            diagnostics.Add(node, useSiteInfo);
 
             ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(attributeConstructor.ParameterCount == rewrittenArguments.Length || hasErrors);
                 var lengthAfterRewriting = rewrittenArguments.Length;
-                if (lengthAfterRewriting == 0)
+                if (lengthAfterRewriting == 0 || hasErrors)
                 {
                     return default;
                 }
@@ -722,11 +722,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var paramArray = parameters[^1];
                 Debug.Assert(paramArray.IsParams);
-                reorderedArguments[^1] = GetParamArrayArgument(paramArray, constructorArgsArray, constructorArgumentNamesOpt, argumentsCount, currentArgumentIndex: argumentsCount, this.Conversions, endOfParamsArrayIndex: out _);
+                reorderedArguments[^1] = new TypedConstant(paramArray.Type, ImmutableArray<TypedConstant>.Empty);
             }
 
             Debug.Assert(hasErrors || reorderedArguments.All(arg => arg.Kind != TypedConstantKind.Error));
-            return reorderedArguments.AsImmutableOrNull();
+            return reorderedArguments.AsImmutable();
         }
 
         // This should eventually be moved to initial binding.
