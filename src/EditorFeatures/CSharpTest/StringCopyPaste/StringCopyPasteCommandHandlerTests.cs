@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -66,12 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 }
             }
 
-            private void TestCopyPasteWorker(string markup, string expectedMarkup, string? pasteText)
+            public void TestCopyPaste(string expectedMarkup, string? pasteText, string afterUndoMarkup)
             {
-                using var state = CreateTestState(markup);
-                var workspace = state.Workspace;
+                var workspace = this.Workspace;
 
-                var copyDocument = state.Workspace.Documents.FirstOrDefault(d => d.AnnotatedSpans.ContainsKey("Copy"));
+                var copyDocument = this.Workspace.Documents.FirstOrDefault(d => d.AnnotatedSpans.ContainsKey("Copy"));
                 if (copyDocument != null)
                 {
                     Assert.Null(pasteText);
@@ -80,7 +80,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                     SetSelection(copyDocument, copySpans, out var copyTextView, out var copyTextBuffer);
 
                     _commandHandler.ExecuteCommand(
-                        new CopyCommandArgs(copyTextView, copyTextBuffer), () => EditorOperations.CopySelection(), TestCommandExecutionContext.Create());
+                        new CopyCommandArgs(copyTextView, copyTextBuffer), () =>
+                        {
+                            var copyEditorOperations = GetService<IEditorOperationsFactoryService>().GetEditorOperations(copyTextView);
+                            Assert.True(copyEditorOperations.CopySelection());
+                        }, TestCommandExecutionContext.Create());
                 }
                 else
                 {
@@ -88,41 +92,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                     Assert.NotNull(pasteText);
                 }
 
-                var pasteDocument = state.Workspace.Documents.Single(d => d.AnnotatedSpans.ContainsKey("Paste"));
-                var pasteSpans = pasteDocument.AnnotatedSpans["Paste"];
-                SetSelection(pasteDocument, pasteSpans, out var pasteTextView, out var pasteTextBuffer);
-
                 if (pasteText == null)
                 {
                     // if the user didn't supply text to paste, then just paste in what we put in the clipboard above.
                     _commandHandler.ExecuteCommand(
-                        new PasteCommandArgs(pasteTextView, pasteTextBuffer), () => EditorOperations.Paste(), TestCommandExecutionContext.Create());
+                        new PasteCommandArgs(this.TextView, this.SubjectBuffer), () => EditorOperations.Paste(), TestCommandExecutionContext.Create());
                 }
                 else
                 {
                     // otherwise, this is a test of text coming in from another source.  Do the edit manually.
                     _commandHandler.ExecuteCommand(
-                        new PasteCommandArgs(pasteTextView, pasteTextBuffer), () =>
+                        new PasteCommandArgs(this.TextView, this.SubjectBuffer), () =>
                         {
                             EditorOperations.ReplaceSelection(pasteText);
                         }, TestCommandExecutionContext.Create());
                 }
 
-                MarkupTestFile.GetPosition(expectedMarkup, out var expected, out int caretPosition);
-                var finalText = pasteTextBuffer.CurrentSnapshot.GetText();
+                {
+                    MarkupTestFile.GetPosition(expectedMarkup, out var expected, out int caretPosition);
+                    var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
 
-                Assert.Equal(expected, finalText);
-                Assert.Equal(caretPosition, pasteTextView.Caret.Position.BufferPosition.Position);
-            }
+                    Assert.Equal(expected, finalText);
+                    Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
+                }
 
-            public void TestCopyPaste(string code, string expected)
-            {
-                TestCopyPasteWorker(code, expected, pasteText: null);
-            }
+                this.SendUndo();
 
-            public void TestPasteOnly(string code, string expected, string pasteText)
-            {
-                TestCopyPasteWorker(code, expected, pasteText);
+                {
+                    MarkupTestFile.GetPosition(afterUndoMarkup, out var expected, out int caretPosition);
+                    var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
+
+                    Assert.Equal(expected, finalText);
+                    Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
+                }
             }
 
             private static void SetSelection(
@@ -138,15 +140,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             }
         }
 
-        [WpfFact]
-        public void TestTypeQuoteEmptyFile()
+        private static void TestCopyPaste(string markup, string expectedMarkup, string afterUndo)
         {
-            using var testState = RawStringLiteralTestState.CreateTestState(
-@"$$");
+            using var state = StringCopyPasteTestState.CreateTestState(markup);
 
-            testState.SendTypeChar('"');
-            testState.AssertCodeIs(
-@"""$$");
+            state.TestCopyPaste(expectedMarkup, pasteText: null, afterUndo);
+        }
+
+        private static void TestPasteOnly(string pasteText, string markup, string expectedMarkup, string afterUndo)
+        {
+            using var state = StringCopyPasteTestState.CreateTestState(markup);
+
+            state.TestCopyPaste(expectedMarkup, pasteText, afterUndo);
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalString()
+        {
+            TestPasteOnly(
+                pasteText: "\n",
+                @"var x = ""$$""",
+                @"var x = ""\n$$""",
+                afterUndo: "var x = \"\n$$\"");
         }
     }
 }

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
             var escapedTextChanges = GetEscapedTextChanges(
-                tokenBeforePaste, snapshotAfterPaste.Version.Changes);
+                tokenBeforePaste, snapshotBeforePaste.Version.Changes);
 
             var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
             var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
+            transaction.Complete();
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChanges(SyntaxToken token, INormalizedTextChangeCollection changes)
