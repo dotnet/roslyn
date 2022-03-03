@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                         else
                         {
-                            if (key1.Symbol == null || !Equals(key1.Symbol, key2.Symbol))
+                            if (key1.Symbol == null || !SymbolEqualityComparer.Default.Equals(key1.Symbol, key2.Symbol))
                             {
                                 // PERF: Do not add a new key-value pair to the resultMap for unrelated entities or non-symbol based entities.
                                 continue;

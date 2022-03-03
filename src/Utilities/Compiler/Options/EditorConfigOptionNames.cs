@@ -215,5 +215,10 @@ namespace Analyzer.Utilities
         /// String option to configure names of method symbols (separated by '|') that accepting parameter with IEnumerable type and return a new IEnumerable type, like 'Select' and 'Where'.
         /// </summary>
         public const string LinqChainMethods = "linq_chain_methods";
+
+        /// <summary>
+        /// String option to configure names of additional "None" enum case (separated by '|') for CA1008.
+        /// </summary>
+        public const string AdditionalEnumNoneNames = "additional_enum_none_names";
     }
 }

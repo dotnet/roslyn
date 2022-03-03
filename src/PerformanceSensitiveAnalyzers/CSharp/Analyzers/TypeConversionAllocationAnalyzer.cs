@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string MethodGroupAllocationRuleId = "HAA0603";
         public const string ReadonlyMethodGroupAllocationRuleId = "HAA0604";
 
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new(
+        internal static readonly DiagnosticDescriptor ValueTypeToReferenceTypeConversionRule = new(
             ValueTypeToReferenceTypeConversionRuleId,
             CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeConversionRuleTitle)),
             CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeConversionRuleMessage)),
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor DelegateOnStructInstanceRule = new(
+        internal static readonly DiagnosticDescriptor DelegateOnStructInstanceRule = new(
             DelegateOnStructInstanceRuleId,
             CreateLocalizableResourceString(nameof(DelegateOnStructInstanceRuleTitle)),
             CreateLocalizableResourceString(nameof(DelegateOnStructInstanceRuleMessage)),
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor MethodGroupAllocationRule = new(
+        internal static readonly DiagnosticDescriptor MethodGroupAllocationRule = new(
             MethodGroupAllocationRuleId,
             CreateLocalizableResourceString(nameof(MethodGroupAllocationRuleTitle)),
             CreateLocalizableResourceString(nameof(MethodGroupAllocationRuleMessage)),
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new(
+        internal static readonly DiagnosticDescriptor ReadonlyMethodGroupAllocationRule = new(
             ReadonlyMethodGroupAllocationRuleId,
             CreateLocalizableResourceString(nameof(ReadonlyMethodGroupAllocationRuleTitle)),
             CreateLocalizableResourceString(nameof(ReadonlyMethodGroupAllocationRuleMessage)),
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(ValueTypeToReferenceTypeConversionRule, DelegateOnStructInstanceRule, MethodGroupAllocationRule, ReadonlyMethodGroupAllocationRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(
             SyntaxKind.SimpleAssignmentExpression,
             SyntaxKind.ReturnStatement,
             SyntaxKind.YieldReturnStatement,

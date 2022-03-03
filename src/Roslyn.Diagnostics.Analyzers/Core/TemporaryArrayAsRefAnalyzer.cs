@@ -15,7 +15,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class TemporaryArrayAsRefAnalyzer : DiagnosticAnalyzer
     {
-        internal static DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.TemporaryArrayAsRefRuleId,
             CreateLocalizableResourceString(nameof(TemporaryArrayAsRefTitle)),
             CreateLocalizableResourceString(nameof(TemporaryArrayAsRefMessage)),

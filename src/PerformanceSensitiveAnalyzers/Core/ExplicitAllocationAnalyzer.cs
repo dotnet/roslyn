@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         private static readonly LocalizableString s_localizablAnonymousObjectCreationRuleTitleAndMessage = CreateLocalizableResourceString(nameof(AnonymousNewObjectRuleTitleAndMessage));
         private static readonly LocalizableString s_localizableLetCauseRuleTitleAndMessage = CreateLocalizableResourceString(nameof(LetCauseRuleTitleAndMessage));
 
-        internal static DiagnosticDescriptor ArrayCreationRule = new(
+        internal static readonly DiagnosticDescriptor ArrayCreationRule = new(
             ArrayCreationRuleId,
             s_localizableArrayCreationRuleTitleAndMessage,
             s_localizableArrayCreationRuleTitleAndMessage,
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor ObjectCreationRule = new(
+        internal static readonly DiagnosticDescriptor ObjectCreationRule = new(
             ObjectCreationRuleId,
             s_localizableObjectCreationRuleTitleAndMessage,
             s_localizableObjectCreationRuleTitleAndMessage,
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        internal static DiagnosticDescriptor AnonymousObjectCreationRule = new(
+        internal static readonly DiagnosticDescriptor AnonymousObjectCreationRule = new(
             AnonymousObjectCreationRuleId,
             s_localizablAnonymousObjectCreationRuleTitleAndMessage,
             s_localizablAnonymousObjectCreationRuleTitleAndMessage,
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/bb397696.aspx");
 
-        internal static DiagnosticDescriptor LetCauseRule = new(
+        internal static readonly DiagnosticDescriptor LetCauseRule = new(
             LetCauseRuleId,
             s_localizableLetCauseRuleTitleAndMessage,
             s_localizableLetCauseRuleTitleAndMessage,
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
             AnonymousObjectCreationRule,
             LetCauseRule);
 
-        protected override ImmutableArray<OperationKind> Operations => ImmutableArray.Create(
+        protected override ImmutableArray<OperationKind> Operations { get; } = ImmutableArray.Create(
             OperationKind.ArrayCreation,
             OperationKind.ObjectCreation,
             OperationKind.AnonymousObjectCreation,

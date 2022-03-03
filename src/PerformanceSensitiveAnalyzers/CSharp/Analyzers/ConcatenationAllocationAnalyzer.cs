@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
         public const string StringConcatenationAllocationRuleId = "HAA0201";
         public const string ValueTypeToReferenceTypeInAStringConcatenationRuleId = "HAA0202";
 
-        internal static DiagnosticDescriptor StringConcatenationAllocationRule = new(
+        internal static readonly DiagnosticDescriptor StringConcatenationAllocationRule = new(
             StringConcatenationAllocationRuleId,
             CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleTitle)),
             CreateLocalizableResourceString(nameof(StringConcatenationAllocationRuleMessage)),
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
             isEnabledByDefault: true,
             helpLinkUri: "http://msdn.microsoft.com/en-us/library/2839d5h5(v=vs.110).aspx");
 
-        internal static DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
+        internal static readonly DiagnosticDescriptor ValueTypeToReferenceTypeInAStringConcatenationRule = new(
             ValueTypeToReferenceTypeInAStringConcatenationRuleId,
             CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleTitle)),
             CreateLocalizableResourceString(nameof(ValueTypeToReferenceTypeInAStringConcatenationRuleMessage)),
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(StringConcatenationAllocationRule, ValueTypeToReferenceTypeInAStringConcatenationRule);
 
-        protected override ImmutableArray<SyntaxKind> Expressions => ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression);
+        protected override ImmutableArray<SyntaxKind> Expressions { get; } = ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression);
 
         private static readonly object[] EmptyMessageArgs = Array.Empty<object>();
 

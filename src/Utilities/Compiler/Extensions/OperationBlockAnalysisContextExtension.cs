@@ -53,10 +53,16 @@ namespace Analyzer.Utilities.Extensions
                     descendants[0] is IThrowOperation throwOperation &&
                     throwOperation.GetThrownExceptionType() is ITypeSymbol createdExceptionType)
                 {
-                    if (Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException), createdExceptionType.OriginalDefinition) ||
-                        Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException), createdExceptionType.OriginalDefinition) ||
+                    if (SymbolEqualityComparer.Default.Equals(
+                            context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotImplementedException),
+                            createdExceptionType.OriginalDefinition) ||
+                        SymbolEqualityComparer.Default.Equals(
+                            context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNotSupportedException),
+                            createdExceptionType.OriginalDefinition) ||
                         (checkPlatformNotSupported &&
-                        Equals(context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemPlatformNotSupportedException), createdExceptionType.OriginalDefinition)))
+                        SymbolEqualityComparer.Default.Equals(
+                            context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemPlatformNotSupportedException),
+                            createdExceptionType.OriginalDefinition)))
                     {
                         return true;
                     }

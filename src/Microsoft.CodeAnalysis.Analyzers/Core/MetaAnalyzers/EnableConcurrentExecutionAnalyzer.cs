@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 IParameterSymbol? analysisContextParameter = null;
                 foreach (var parameter in method.Parameters)
                 {
-                    if (!Equals(parameter.Type, analysisContext))
+                    if (!SymbolEqualityComparer.Default.Equals(parameter.Type, analysisContext))
                     {
                         continue;
                     }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
 
                 var parameterReference = (IParameterReferenceOperation)invocation.Instance;
-                if (!Equals(parameterReference.Parameter, _analysisContextParameter))
+                if (!SymbolEqualityComparer.Default.Equals(parameterReference.Parameter, _analysisContextParameter))
                 {
                     return;
                 }
