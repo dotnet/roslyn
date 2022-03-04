@@ -228,6 +228,80 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
         #endregion
 
+        #region Paste from external source into normal interpolated string
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalInterpolatedString1()
+        {
+            TestPasteOnly(
+                pasteText: "\n",
+                @"var x = $""$$""",
+                @"var x = $""\n$$""",
+                afterUndo: "var x = $\"\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalInterpolatedString2()
+        {
+            TestPasteOnly(
+                pasteText: "\r\n",
+                @"var x = $""$$""",
+                @"var x = $""\r\n$$""",
+                afterUndo: "var x = $\"\r\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTabIntoNormalInterpolatedString1()
+        {
+            TestPasteOnly(
+                pasteText: "\t",
+                @"var x = $""$$""",
+                @"var x = $""\t$$""",
+                afterUndo: "var x = $\"\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalSingleQuoteIntoNormalInterpolatedString()
+        {
+            TestPasteOnly(
+                pasteText: "'",
+                @"var x = $""$$""",
+                @"var x = $""'$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalDoubleQuoteIntoNormalInterpolatedString()
+        {
+            TestPasteOnly(
+                pasteText: "\"",
+                @"var x = $""$$""",
+                @"var x = $""\""$$""",
+                afterUndo: "var x = $\"\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalComplexStringIntoNormalInterpolatedString()
+        {
+            TestPasteOnly(
+                pasteText: "\t\"\"\t",
+                @"var x = $""$$""",
+                @"var x = $""\t\""\""\t$$""",
+                afterUndo: "var x = $\"\t\"\"\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoNormalInterpolatedString()
+        {
+            TestPasteOnly(
+                pasteText: "abc",
+                @"var x = $""$$""",
+                @"var x = $""abc$$""",
+                afterUndo: @"var x = $""$$""");
+        }
+
+        #endregion
+
         #region Paste from external source into verbatim string
 
         [WpfFact]
@@ -299,6 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 @"var x = @""abc$$""",
                 afterUndo: @"var x = @""$$""");
         }
+
         #endregion
     }
 }

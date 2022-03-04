@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -392,10 +393,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 case SyntaxKind.InterpolatedStringTextToken:
                     return IsContainedWithinInterpolatedTextToken(token, selectedSpan);
 
+                case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedRawStringEndToken:
+                    return IsContainedWithinInterpolatedString(token, selectedSpan);
+
                 default:
                     // We hit some non-string token.  Don't do anything special on paste here.
                     return false;
             }
+        }
+
+        private static bool IsContainedWithinInterpolatedString(SyntaxToken delimiterToken, TextSpan selectedSpan)
+        {
+            // if we have `$"goo$$"`, then we're inside the string token (as long as the selection ends at the start of the delimiter).
+            var interpolationExpression = delimiterToken.Parent as InterpolatedStringExpressionSyntax;
+            if (interpolationExpression is null)
+                return false;
+
+
         }
 
         private static bool IsContainedWithStringLiteralToken(SyntaxToken token, SourceText text, TextSpan selectedSpan)
