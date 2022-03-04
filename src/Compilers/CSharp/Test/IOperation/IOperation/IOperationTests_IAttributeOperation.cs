@@ -53,6 +53,79 @@ IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
         }
 
         [Fact]
+        public void TestCallerMemberName_Class()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute([CallerMemberName] string callerName = """")
+    {
+        Console.WriteLine(callerName);
+    }
+}
+
+[/*<bind>*/My/*</bind>*/]
+class Test
+{
+}
+";
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String callerName = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: callerName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestCallerMemberName_Method()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute([CallerMemberName] string callerName = """")
+    {
+        Console.WriteLine(callerName);
+    }
+}
+
+class Test
+{
+    [/*<bind>*/My/*</bind>*/]
+    public void M() { }
+}
+";
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String callerName = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: callerName) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M"", IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void TestNonExistingAttribute()
         {
             string source = @"
@@ -558,6 +631,7 @@ class A : CodeAccessSecurityAttribute
                 // class A : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(5, 7)
             };
+            // Can we get this to produce IInvalidOperation?
             string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'A')
   IObjectCreationOperation (Constructor: A..ctor([System.Security.Permissions.SecurityAction a = (System.Security.Permissions.SecurityAction)0])) (OperationKind.ObjectCreation, Type: A, IsInvalid, IsImplicit) (Syntax: 'A')
