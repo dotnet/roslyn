@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
     {
-
         // These are the error codes of the compiler warnings. 
         // Keep the ids the same so that de-duplication against compiler errors
         // works in the error list (after a build).
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -300,6 +300,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // given compilation must be from given project.
             Contract.ThrowIfFalse(project.TryGetCompilation(out var compilation2));
             Contract.ThrowIfFalse(compilation1 == compilation2);
+        }
+
+        /// <summary>
+        /// Return true if the given <paramref name="analyzer"/> is not suppressed for the given project.
+        /// NOTE: This API is intended to be used only for performance optimization.
+        /// </summary>
+        public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            var options = project.CompilationOptions;
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            {
+                return true;
+            }
+
+            // Check if user has disabled analyzer execution for this project or via options.
+            if (!project.State.RunAnalyzers || SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.None)
+            {
+                return false;
+            }
+
+            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
+            //       on this code path, which returns true if analyzer is suppressed through compilation options.
+            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
+            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
+            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
+            return true;
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(

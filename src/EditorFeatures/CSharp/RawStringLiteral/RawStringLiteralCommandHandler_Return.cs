@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
 
             var position = caret.Value.Position;
             var currentSnapshot = subjectBuffer.CurrentSnapshot;
+            if (position >= currentSnapshot.Length)
+                return false;
+
             if (currentSnapshot[position] != '"')
                 return false;
 
@@ -55,14 +58,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
 
             for (int i = position, n = currentSnapshot.Length; i < n; i++)
             {
-                if (currentSnapshot[i] == '"')
-                    quotesAfter++;
+                if (currentSnapshot[i] != '"')
+                    break;
+
+                quotesAfter++;
             }
 
             for (var i = position - 1; i >= 0; i--)
             {
-                if (currentSnapshot[i] == '"')
-                    quotesBefore++;
+                if (currentSnapshot[i] != '"')
+                    break;
+
+                quotesBefore++;
             }
 
             if (quotesAfter != quotesBefore)

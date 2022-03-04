@@ -46,10 +46,17 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                 enforcementLevel: ReportDiagnostic.Hidden));
 
         /// <summary>
-        /// Standard name rules for name suggestion/completion utilities.
+        /// Standard name rules for name suggestion/completion utilities. These are fallback rules that run if a user
+        /// hasn't provided any other naming rule matching the scenario.
         /// </summary>
-        internal static readonly ImmutableArray<NamingRule> CompletionOfferingRules = ImmutableArray.Create(
-            CreateCamelCaseFieldsAndParametersRule(),
+        internal static readonly ImmutableArray<NamingRule> CompletionFallbackRules = ImmutableArray.Create(
+            CreateCamelCaseFieldsAndParametersRule());
+
+        /// <summary>
+        /// Standard name rules for name suggestion/completion utilities. These are supplementary rules that run in
+        /// addition to any other rules defined by the user in order to provide additional valid suggestions.
+        /// </summary>
+        internal static readonly ImmutableArray<NamingRule> CompletionSupplementaryRules = ImmutableArray.Create(
             CreateEndWithAsyncRule(),
             CreateGetAsyncRule(),
             CreateMethodStartsWithGetRule());

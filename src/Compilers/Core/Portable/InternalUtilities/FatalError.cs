@@ -9,11 +9,6 @@ using System.Reflection;
 using System.Threading;
 using Roslyn.Utilities;
 
-#if NET20
-// Some APIs referenced by documentation comments are not available on .NET Framework 2.0.
-#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
-#endif
-
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FatalError
@@ -57,11 +52,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             s_handler = value;
         }
 
-        // In the result provider, we aren't copying our handler to somewhere else, so we don't
-        // need this method. It's too much of a challenge to shared code to work in
-        // old versions of the runtime since APIs changed over time.
-#if !NET20 && !NETSTANDARD1_3 
-
         /// <summary>
         /// Copies the handler in this instance to the linked copy of this type in this other assembly.
         /// </summary>
@@ -84,8 +74,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 targetHandlerProperty.SetValue(obj: null, value: null);
             }
         }
-
-#endif
 
         /// <summary>
         /// Use in an exception filter to report an error without catching the exception.
@@ -241,12 +229,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 return;
             }
 
-#if !NET20
             if (exception is AggregateException aggregate && aggregate.InnerExceptions.Count == 1 && aggregate.InnerExceptions[0].Data[s_reportedMarker] != null)
             {
                 return;
             }
-#endif
 
             if (!exception.Data.IsReadOnly)
             {

@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var fixAllState = GetFixAllState(
                 fixAllProvider, diagnostics, fixer, testDriver, document,
-                scope.Value, equivalenceKey);
+                scope.Value, equivalenceKey, _ => options);
             var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
             var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
 
@@ -235,7 +235,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestDiagnosticAnalyzerDriver testDriver,
             Document document,
             FixAllScope scope,
-            string equivalenceKey)
+            string equivalenceKey,
+            CodeActionOptionsProvider optionsProvider)
         {
             Assert.NotEmpty(diagnostics);
 
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // Bulk fixing diagnostics in selected scope.                    
                 var diagnosticsToFix = ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create(document, diagnostics.ToImmutableArray())));
-                return FixAllState.Create(fixAllProvider, diagnosticsToFix, fixer, equivalenceKey);
+                return FixAllState.Create(fixAllProvider, diagnosticsToFix, fixer, equivalenceKey, optionsProvider);
             }
 
             var diagnostic = diagnostics.First();
@@ -251,8 +252,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(testDriver, diagnosticIds);
 
             return diagnostic.Location.IsInSource
-                ? new FixAllState(fixAllProvider, document, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
-                : new FixAllState(fixAllProvider, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider);
+                ? new FixAllState(fixAllProvider, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider)
+                : new FixAllState(fixAllProvider, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider);
         }
 
         private protected Task TestActionCountInAllFixesAsync(

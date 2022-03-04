@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AssemblyAttributeTests : CSharpTestBase
     {
-        private readonly string _netModuleName = GetUniqueName() + ".netmodule";
-
         [Fact]
         public void VersionAttribute()
         {
@@ -300,7 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
 
-            CompileAndVerify(comp, verify: Verification.Fails, symbolValidator: m =>
+            // PEVerify:
+            // Warning: Invalid locale string.
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify, symbolValidator: m =>
             {
                 var utf8 = new System.Text.UTF8Encoding(false, false);
                 Assert.Equal(utf8.GetString(utf8.GetBytes("\uD800")), m.ContainingAssembly.Identity.CultureName);
@@ -543,7 +543,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
+            // ILVerify: Assembly or module not found: hash_module
             CompileAndVerify(compilation,
+                verify: Verification.FailsILVerify,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -572,7 +574,9 @@ class Program
 }
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
+            // ILVerify: Assembly or module not found: hash_module
             CompileAndVerify(compilation,
+                verify: Verification.FailsILVerify,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -602,6 +606,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
+                verify: Verification.FailsILVerify,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -631,6 +636,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module });
 
             CompileAndVerify(compilation,
+                verify: Verification.FailsILVerify,
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
@@ -761,6 +767,7 @@ class Program
 ", options: TestOptions.ReleaseDll, references: new[] { hash_module_Comp.EmitToImageReference() });
 
             CompileAndVerify(compilation,
+                verify: Verification.FailsILVerify,
                 validator: (peAssembly) =>
                 {
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();

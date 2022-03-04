@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -50,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private readonly IThreadingContext _threadingContext;
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
         private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
+        private readonly IGlobalOptionService _globalOptions;
 
         private const string ExternalProjectName = "ExternalDocuments";
 
@@ -89,8 +91,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
+            _globalOptions = globalOptions;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(serviceProvider, this, globalOptions, diagnosticService, tableManagerProvider);
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(threadingContext, serviceProvider, this, globalOptions, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
@@ -523,7 +526,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         private void StartSolutionCrawler()
-            => DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+        {
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+            }
+        }
 
         private void StopSolutionCrawler()
             => DiagnosticProvider.Disable(this);

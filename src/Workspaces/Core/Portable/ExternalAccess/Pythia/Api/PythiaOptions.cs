@@ -13,19 +13,21 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
+    [Obsolete("Use PythiaGlobalOptions instead")]
     internal static class PythiaOptions
     {
         public const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
-        public static readonly Option2<bool> ShowDebugInfo = new(
+        public static readonly Option<bool> ShowDebugInfo = new(
             "InternalFeatureOnOffOptions", nameof(ShowDebugInfo), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ShowDebugInfo)));
 
-        public static readonly Option2<bool> RemoveRecommendationLimit = new(
+        public static readonly Option<bool> RemoveRecommendationLimit = new(
             "InternalFeatureOnOffOptions", nameof(RemoveRecommendationLimit), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(RemoveRecommendationLimit)));
     }
 
+    [Obsolete("Use PythiaGlobalOptions instead")]
     [ExportSolutionOptionProvider, Shared]
     internal class PythiaOptionsProvider : IOptionProvider
     {

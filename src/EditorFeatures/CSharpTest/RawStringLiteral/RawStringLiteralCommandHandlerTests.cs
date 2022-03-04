@@ -4,9 +4,7 @@
 
 using System.Linq;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
@@ -121,6 +119,105 @@ $${|VirtualSpaces-4:|}
         }
 
         [WpfFact]
+        public void TestReturnInSixQuotesMoreQuotesLaterOn()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$"""""";
+Console.WriteLine(""Goo"");");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = """"""
+$${|VirtualSpaces-4:|}
+    """""";
+Console.WriteLine(""Goo"");");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument1()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(""""""$$""""""");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(""""""
+$${|VirtualSpaces-4:|}
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument2()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(""""""$$"""""")");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(""""""
+$${|VirtualSpaces-4:|}
+    """""")");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument3()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(""""""$$"""""");");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(""""""
+$${|VirtualSpaces-4:|}
+    """""");");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument4()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(
+    """"""$$""""""");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(
+    """"""
+$${|VirtualSpaces-4:|}
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument5()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(
+    """"""$$"""""")");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(
+    """"""
+$${|VirtualSpaces-4:|}
+    """""")");
+        }
+
+        [WpfFact]
+        public void TestReturnInSixQuotesAsArgument6()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = WriteLine(
+    """"""$$"""""");");
+
+            testState.SendReturn(handled: true);
+            testState.AssertCodeIs(
+@"var v = WriteLine(
+    """"""
+$${|VirtualSpaces-4:|}
+    """""");");
+        }
+
+        [WpfFact]
         public void TestReturnInSixQuotesWithSemicolonAfter_Interpolated()
         {
             using var testState = RawStringLiteralTestState.CreateTestState(
@@ -142,6 +239,24 @@ $${|VirtualSpaces-4:|}
             testState.SendReturn(handled: false);
             testState.AssertCodeIs(
 @"var v = $""""""""$$""""");
+        }
+
+        [WpfFact]
+        public void TestReturnEndOfFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$");
+
+            testState.SendReturn(handled: false);
+        }
+
+        [WpfFact]
+        public void TestReturnInEmptyFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"$$");
+
+            testState.SendReturn(handled: false);
         }
 
         #endregion
@@ -345,5 +460,16 @@ $${|VirtualSpaces-4:|}
         }
 
         #endregion
+
+        [WpfFact]
+        public void TestTypeQuoteEmptyFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"""$$");
+        }
     }
 }

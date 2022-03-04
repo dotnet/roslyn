@@ -347,15 +347,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IEnumerable<string> expectedActionSet,
             TestParameters parameters = default)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
 
-                var actualActionSet = actions.Select(a => a.Title);
-                Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
-                    "Expected: " + string.Join(", ", expectedActionSet) +
-                    "\nActual: " + string.Join(", ", actualActionSet));
-            }
+            var actualActionSet = actions.Select(a => a.Title);
+            Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
+                "Expected: " + string.Join(", ", expectedActionSet) +
+                "\nActual: " + string.Join(", ", actualActionSet));
         }
 
         protected async Task TestActionCountAsync(
@@ -378,6 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             OptionsCollection options = null,
+            CodeActionOptions? codeActionOptions = null,
             object fixProviderData = null,
             ParseOptions parseOptions = null,
             string title = null,
@@ -385,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index,
-                new TestParameters(parseOptions, compilationOptions, options, CodeActionOptions.Default, fixProviderData, index, priority, title: title, testHost: testHost));
+                new TestParameters(parseOptions, compilationOptions, options, codeActionOptions ?? CodeActionOptions.Default, fixProviderData, index, priority, title: title, testHost: testHost));
         }
 
         internal Task TestInRegularAndScript1Async(

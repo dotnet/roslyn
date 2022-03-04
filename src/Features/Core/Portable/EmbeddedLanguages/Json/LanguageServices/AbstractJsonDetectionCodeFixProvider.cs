@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public void Fix(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var stringLiteral = diagnostic.Location.FindToken(cancellationToken);
-            Debug.Assert(_info.SyntaxFacts.SyntaxKinds.StringLiteralToken == stringLiteral.RawKind);
+            Debug.Assert(_info.IsAnyStringLiteral(stringLiteral.RawKind));
 
             var commentContents = diagnostic.Properties.ContainsKey(AbstractJsonDetectionAnalyzer.StrictKey)
                 ? "lang=json,strict"
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Enable_JSON_editor_features, createChangedDocument, nameof(FeaturesResources.Enable_JSON_editor_features))
+                : base(FeaturesResources.Enable_all_JSON_editor_features, createChangedDocument, nameof(FeaturesResources.Enable_all_JSON_editor_features))
             {
             }
         }

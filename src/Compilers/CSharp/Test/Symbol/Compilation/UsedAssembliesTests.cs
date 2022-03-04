@@ -32,7 +32,7 @@ interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1);
+            CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             Assert.Empty(comp1.GetUsedAssemblyReferences());
 
@@ -53,7 +53,7 @@ public interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1);
+            CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             var source2 =
 @"
@@ -411,7 +411,7 @@ public interface I1
 }
 ";
             var comp1 = CreateEmptyCompilation(source);
-            CompileAndVerify(comp1);
+            CompileAndVerify(comp1, verify: Verification.FailsILVerify);
 
             var source2 =
 @"

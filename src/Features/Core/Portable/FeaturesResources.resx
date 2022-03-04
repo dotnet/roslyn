@@ -3082,6 +3082,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Property_name_must_be_a_string" xml:space="preserve">
     <value>Property name must be a string</value>
   </data>
+  <data name="Property_name_must_be_followed_by_a_colon" xml:space="preserve">
+    <value>Property name must be followed by a ':'</value>
+  </data>
   <data name="Strings_must_start_with_double_quote_not_single_quote" xml:space="preserve">
     <value>Strings must start with " not '</value>
   </data>
@@ -3100,13 +3103,112 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Probable_JSON_string_detected" xml:space="preserve">
     <value>Probable JSON string detected</value>
   </data>
-  <data name="Enable_JSON_editor_features" xml:space="preserve">
-    <value>Enable JSON editor features</value>
+  <data name="Enable_all_JSON_editor_features" xml:space="preserve">
+    <value>Enable all JSON editor features</value>
   </data>
   <data name="Invalid_regex_pattern" xml:space="preserve">
     <value>Invalid regex pattern</value>
   </data>
   <data name="Invalid_JSON_pattern" xml:space="preserve">
     <value>Invalid JSON pattern</value>
+  </data>
+  <data name="Unwrap_initializer" xml:space="preserve">
+    <value>Unwrap initializer</value>
+  </data>
+  <data name="Wrap_initializer" xml:space="preserve">
+    <value>Wrap initializer</value>
+  </data>
+  <data name="Wrap_long_initializer" xml:space="preserve">
+    <value>Wrap long initializer</value>
+  </data>
+  <data name="Indent_all_elements" xml:space="preserve">
+    <value>Indent all elements</value>
+  </data>
+  <data name="Unwrap_all_elements" xml:space="preserve">
+    <value>Unwrap all elements</value>
+  </data>
+  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
+    <value>Cannot navigate to the symbol under the caret.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
+  </data>
+  <data name="_0_implementations" xml:space="preserve">
+    <value>'{0}' implementations</value>
+  </data>
+  <data name="_0_references" xml:space="preserve">
+    <value>'{0}' references</value>
+  </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
+  </data>
+  <data name="Apply_auto_property_preferences" xml:space="preserve">
+    <value>Apply auto property preferences</value>
+  </data>
+  <data name="Apply_blank_line_preferences_experimental" xml:space="preserve">
+    <value>Apply blank line preferences (experimental)</value>
+  </data>
+  <data name="Apply_coalesce_expression_preferences" xml:space="preserve">
+    <value>Apply coalesce expression preferences</value>
+  </data>
+  <data name="Apply_compound_assignment_preferences" xml:space="preserve">
+    <value>Apply compound assignment preferences</value>
+  </data>
+  <data name="Apply_inferred_anonymous_type_member_names_preferences" xml:space="preserve">
+    <value>Apply inferred anonymous type member names preferences</value>
+  </data>
+  <data name="Apply_language_framework_type_preferences" xml:space="preserve">
+    <value>Apply language/framework type preferences</value>
+  </data>
+  <data name="Apply_namespace_matches_folder_preferences" xml:space="preserve">
+    <value>Apply namespace matches folde preferences</value>
+  </data>
+  <data name="Apply_null_checking_preferences" xml:space="preserve">
+    <value>Apply null checking preferences</value>
+  </data>
+  <data name="Apply_null_propagation_preferences" xml:space="preserve">
+    <value>Apply null propagation preferences</value>
+  </data>
+  <data name="Apply_object_initializer_preferences" xml:space="preserve">
+    <value>Apply object initializer preferences</value>
+  </data>
+  <data name="Apply_simplify_boolean_expression_preferences" xml:space="preserve">
+    <value>Apply simplify boolean expression preferences</value>
+  </data>
+  <data name="Apply_string_interpolation_preferences" xml:space="preserve">
+    <value>Apply string interpolation preferences</value>
+  </data>
+  <data name="Apply_tuple_name_preferences" xml:space="preserve">
+    <value>Apply tuple name preferences</value>
+  </data>
+  <data name="Remove_unused_suppressions" xml:space="preserve">
+    <value>Remove unused suppressions</value>
+  </data>
+  <data name="Apply_parentheses_preferences" xml:space="preserve">
+    <value>Apply parentheses preferences</value>
+  </data>
+  <data name="Apply_statement_after_block_preferences_experimental" xml:space="preserve">
+    <value>Apply statement after block preferences (experimental)</value>
+  </data>
+  <data name="Apply_unused_value_preferences" xml:space="preserve">
+    <value>Apply unused value preferences</value>
+  </data>
+  <data name="Remove_unused_parameters" xml:space="preserve">
+    <value>Remove unused parameters</value>
+  </data>
+  <data name="Apply_conditional_expression_preferences" xml:space="preserve">
+    <value>Apply conditional expression preferences</value>
+  </data>
+  <data name="Apply_using_directive_placement_preferences" xml:space="preserve">
+    <value>Apply using directive placement preferences</value>
+  </data>
+  <data name="Remove_unnecessary_Imports_or_usings" xml:space="preserve">
+    <value>Remove unnecessary Imports or usings</value>
+  </data>
+  <data name="Sort_Imports_or_usings" xml:space="preserve">
+    <value>Sort Imports or usings</value>
   </data>
 </root>

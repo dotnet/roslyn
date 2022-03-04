@@ -4,13 +4,14 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Navigation;
+using System;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
 {
+    [Obsolete]
     internal static class FSharpNavigationOptions
     {
-        public static Option<bool> PreferProvisionalTab { get; } = (Option<bool>)NavigationOptions.PreferProvisionalTab;
+        public static Option<bool> PreferProvisionalTab { get; } = new("NavigationOptions", "PreferProvisionalTab", defaultValue: false);
     }
 }
