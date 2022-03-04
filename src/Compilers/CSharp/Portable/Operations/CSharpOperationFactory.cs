@@ -481,11 +481,11 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
-            var isImplicit = boundAttribute.WasCompilerGenerated;
+            var isAttributeImplicit = boundAttribute.WasCompilerGenerated;
             if (boundAttribute.HasErrors)
             {
                 var invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit: true);
-                return new AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isImplicit);
+                return new AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit);
             }
 
             ObjectOrCollectionInitializerOperation? initializer = null;
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValue, isImplicit: true);
-            return new AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isImplicit);
+            return new AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)
