@@ -601,13 +601,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: node);
                     }
 
-                    constantValue = expression.ConstantValue;
+                    convertedExpression = BindToNaturalType(expression, diagnostics);
+
+                    constantValue = convertedExpression.ConstantValue;
                     if (constantValue == ConstantValue.Null)
                     {
-                        diagnostics.Add(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, expression.Syntax.Location, inputType);
+                        diagnostics.Add(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, convertedExpression.Syntax.Location, inputType);
                     }
-
-                    return expression;
+                    return convertedExpression;
                 }
 
                 // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
