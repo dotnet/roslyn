@@ -155,7 +155,9 @@ class Class
         public async Task TestDeconstructionDeclaration_UndeterminedType()
         {
             await TestInRegularAndScript1Async(
-@"class Class
+@"using System;
+
+class Class
 {
     void Method()
     {
@@ -166,7 +168,7 @@ class Class
 {
     private void Deconstruct(out object x, out object y)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     void Method()

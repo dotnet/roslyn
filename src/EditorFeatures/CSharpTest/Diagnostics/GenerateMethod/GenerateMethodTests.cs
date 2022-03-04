@@ -7793,7 +7793,9 @@ class Class
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
-@"class Class
+@"using System;
+
+class Class
 {
     void Method()
     {
@@ -7809,7 +7811,7 @@ class Class
 
     private void Undefined(out object c)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }");
         }
