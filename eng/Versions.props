@@ -24,7 +24,7 @@
     <MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22122.4</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.127-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
-    <CodeStyleAnalyzerVersion>4.0.1</CodeStyleAnalyzerVersion>
+    <CodeStyleAnalyzerVersion>4.1.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
     <VisualStudioEditorNewPackagesVersion>17.0.487</VisualStudioEditorNewPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
