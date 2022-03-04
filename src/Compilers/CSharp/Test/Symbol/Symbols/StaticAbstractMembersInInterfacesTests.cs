@@ -17619,7 +17619,7 @@ public partial class C2 : C1, I1<C2>
 }
 ";
 
-            string matchingOp = isChecked ?  op : MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
