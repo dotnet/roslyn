@@ -1679,8 +1679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)uniqueSymbol != null)
                 {
-                    // This name mapped to something unique.
-                    // with a costly lookup. Just add it straight to the results.
+                    // This name mapped to something unique.  We don't need to proceed
+                    // with a costly lookup.  Just add it straight to the results.
                     results.Add(RemapSymbolIfNecessary(uniqueSymbol).GetPublicSymbol());
                 }
                 else
