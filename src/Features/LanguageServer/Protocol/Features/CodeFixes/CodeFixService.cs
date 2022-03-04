@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                 document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            diagnostics = diagnostics.WhereAsArray(d => d.Severity.GreaterThanOrEqualTo(minimumSeverity));
+            diagnostics = diagnostics.WhereAsArray(d => d.Severity.IsMoreSevereThanOrEqualTo(minimumSeverity));
             if (!diagnostics.Any())
                 return null;
 
