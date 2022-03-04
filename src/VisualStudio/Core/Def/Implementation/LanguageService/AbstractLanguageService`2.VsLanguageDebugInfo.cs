@@ -217,8 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                     var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
                                         solution, pszName, cancellationToken).ConfigureAwait(false);
                                     var debugNames = await breakpoints.SelectAsArrayAsync(
-                                        async bp => await CreateDebugNameAsync(
-                                            bp, solution, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+                                        bp => CreateDebugNameAsync(bp, solution, cancellationToken)).ConfigureAwait(false);
 
                                     enumName = new VsEnumDebugName(debugNames);
                                 }
@@ -231,7 +230,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            private async Task<IVsDebugName> CreateDebugNameAsync(
+            private async ValueTask<IVsDebugName> CreateDebugNameAsync(
                 BreakpointResolutionResult breakpoint, Solution solution, CancellationToken cancellationToken)
             {
                 var document = breakpoint.Document;
