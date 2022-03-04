@@ -435,6 +435,14 @@ namespace Analyzer.Utilities
             Compilation compilation)
             => options.GetSymbolNamesWithValueOption<Unit>(EditorConfigOptionNames.LinqChainMethods, rule, tree, compilation, static name => new SymbolNamesWithValueOption<Unit>.NameParts(name, Unit.Default), namePrefix: "M:");
 
+        public static bool GetAssumeMethodEnumeratesArgumentsOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            SyntaxTree tree,
+            Compilation compilation,
+            bool defaultValue)
+            => options.GetBoolOptionValue(EditorConfigOptionNames.AssumeMethodEnumeratesArguments, rule, tree, compilation, defaultValue);
+
         private static SymbolNamesWithValueOption<TValue> GetSymbolNamesWithValueOption<TValue>(
             this AnalyzerOptions options,
             string optionName,

@@ -217,6 +217,12 @@ namespace Analyzer.Utilities
         public const string LinqChainMethods = "linq_chain_methods";
 
         /// <summary>
+        /// Boolean option to configure the assumption that IEnumerable type arguments would be enumerated by method invocation or not.
+        /// It does not affect linq_chain_methods.
+        /// </summary>
+        public const string AssumeMethodEnumeratesArguments = "assume_method_enumerates_arguments";
+
+        /// <summary>
         /// String option to configure names of additional "None" enum case (separated by '|') for CA1008.
         /// </summary>
         public const string AdditionalEnumNoneNames = "additional_enum_none_names";
