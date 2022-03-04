@@ -2813,7 +2813,8 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
 
             Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
             Assert.Equal(3, op.Info.MoveNextArguments.Length);
-            Assert.True(op.Info.DisposeArguments.IsDefaultOrEmpty);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+            Assert.Null(op.Info.PatternDisposeMethod);
 
             VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
@@ -2925,6 +2926,9 @@ struct AsyncEnumerator
             Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
             Assert.Equal(2, op.Info.MoveNextArguments.Length);
             Assert.Equal(2, op.Info.DisposeArguments.Length);
+
+            Assert.Equal("System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync([System.String s = null], [System.Int32 line = 0])", op.Info.PatternDisposeMethod.ToTestDisplayString());
+
             VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
