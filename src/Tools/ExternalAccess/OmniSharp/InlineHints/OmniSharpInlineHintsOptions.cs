@@ -17,24 +17,24 @@ internal readonly record struct OmniSharpInlineHintsOptions(
                SymbolDescriptionOptions.Default);
 }
 internal readonly record struct OmniSharpInlineParameterHintsOptions(
-    bool EnabledForParameters = false,
-    bool ForLiteralParameters = true,
-    bool ForIndexerParameters = true,
-    bool ForObjectCreationParameters = true,
-    bool ForOtherParameters = false,
-    bool SuppressForParametersThatDifferOnlyBySuffix = true,
-    bool SuppressForParametersThatMatchMethodIntent = true,
-    bool SuppressForParametersThatMatchArgumentName = true)
+    bool EnabledForParameters,
+    bool ForLiteralParameters,
+    bool ForIndexerParameters,
+    bool ForObjectCreationParameters,
+    bool ForOtherParameters,
+    bool SuppressForParametersThatDifferOnlyBySuffix,
+    bool SuppressForParametersThatMatchMethodIntent,
+    bool SuppressForParametersThatMatchArgumentName)
 {
     internal InlineParameterHintsOptions ToInlineParameterHintsOptions()
         => new(EnabledForParameters, ForLiteralParameters, ForIndexerParameters, ForObjectCreationParameters, ForOtherParameters, SuppressForParametersThatDifferOnlyBySuffix, SuppressForParametersThatMatchMethodIntent, SuppressForParametersThatMatchArgumentName);
 }
 
 internal readonly record struct OmniSharpInlineTypeHintsOptions(
-    bool EnabledForTypes = false,
-    bool ForImplicitVariableTypes = true,
-    bool ForLambdaParameterTypes = true,
-    bool ForImplicitObjectCreation = true)
+    bool EnabledForTypes,
+    bool ForImplicitVariableTypes,
+    bool ForLambdaParameterTypes,
+    bool ForImplicitObjectCreation)
 {
     internal InlineTypeHintsOptions ToInlineTypeHintsOptions()
         => new(EnabledForTypes, ForImplicitVariableTypes, ForLambdaParameterTypes, ForImplicitObjectCreation);
