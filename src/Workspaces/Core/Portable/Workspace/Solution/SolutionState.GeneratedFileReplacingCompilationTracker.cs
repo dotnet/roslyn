@@ -186,6 +186,11 @@ namespace Microsoft.CodeAnalysis
                     return UnderlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
                 }
             }
+
+            public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

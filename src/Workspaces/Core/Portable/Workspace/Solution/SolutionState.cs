@@ -1837,6 +1837,13 @@ namespace Microsoft.CodeAnalysis
                 : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
         }
 
+        public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(ProjectState project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? GetCompilationTracker(project.Id).GetSourceGeneratorDiagnosticsAsync(this, cancellationToken)
+                : new(ImmutableArray<Diagnostic>.Empty);
+        }
+
         /// <summary>
         /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
         /// </summary>
