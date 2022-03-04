@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
 
                         // Any other high priority documents
-                        foreach (var documentId in _higherPriorityDocumentsNotProcessed.Keys)
+                        foreach (var (documentId, _) in _higherPriorityDocumentsNotProcessed)
                         {
                             yield return documentId;
                         }
