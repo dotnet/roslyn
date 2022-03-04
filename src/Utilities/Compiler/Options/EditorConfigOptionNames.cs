@@ -206,6 +206,17 @@ namespace Analyzer.Utilities
         public const string ExcludeOrDefaultMethods = "exclude_ordefault_methods";
 
         /// <summary>
+        /// String option to configure names of method symbols (separated by '|') that marks all of the parameters with IEnumerable type
+        /// would be enumerated.
+        /// </summary>
+        public const string EnumerationMethods = "enumeration_methods";
+
+        /// <summary>
+        /// String option to configure names of method symbols (separated by '|') that accepting parameter with IEnumerable type and return a new IEnumerable type, like 'Select' and 'Where'.
+        /// </summary>
+        public const string LinqChainMethods = "linq_chain_methods";
+
+        /// <summary>
         /// String option to configure names of additional "None" enum case (separated by '|') for CA1008.
         /// </summary>
         public const string AdditionalEnumNoneNames = "additional_enum_none_names";
