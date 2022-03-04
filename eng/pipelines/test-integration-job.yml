@@ -35,7 +35,7 @@ steps:
       testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml
       mergeTestResults: true
       testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }}'
-    condition: always()
+    condition: succeededOrFailed()
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
@@ -44,7 +44,7 @@ steps:
       ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
-    condition: not(succeeded())
+    condition: failed()
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Screenshots and Test Attachments
@@ -53,4 +53,4 @@ steps:
       ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
       publishLocation: Container
     continueOnError: true
-    condition: not(succeeded())
+    condition: failed()
