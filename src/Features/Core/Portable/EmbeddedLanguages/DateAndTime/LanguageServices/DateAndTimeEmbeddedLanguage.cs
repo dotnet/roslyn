@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
         public readonly EmbeddedLanguageInfo Info;
 
         // We don't currently expose a classifier for Date/Time literals.  However, one could always be added in the future.
-        public ISyntaxClassifier? Classifier => null;
+        public IEmbeddedLanguageClassifier? Classifier => null;
 
         public DateAndTimeEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
