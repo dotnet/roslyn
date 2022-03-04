@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
                     //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
                     //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
-                    //  3. Operations with OperationKind.None which are not operation root nodes.
+                    //  3. Operations with OperationKind.None.
                     symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid, OperationKind.None,
                         OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
 
