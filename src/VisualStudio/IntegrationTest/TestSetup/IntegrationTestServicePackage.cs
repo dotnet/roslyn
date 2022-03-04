@@ -5,6 +5,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
@@ -32,6 +33,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
             var svsUserNotificationsService = new Guid("153FA24E-5B64-4447-964E-FF57B2491A43");
             await ((AsyncServiceProvider)AsyncServiceProvider.GlobalProvider).QueryServiceAsync(svsUserNotificationsService);
+            await GetServiceAsync(typeof(SVsExtensionManager));
 
             IntegrationTestServiceCommands.Initialize(this);
         }
