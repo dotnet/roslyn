@@ -44,9 +44,11 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             CancellationToken cancellationToken)
         {
             // add one item for the code fixers we get from nuget, we'll do last
+            var thirdPartyDiagnosticIdsAndTitles = ImmutableArray<(string diagnosticId, string? title)>.Empty;
             if (enabledDiagnostics.RunThirdPartyFixers)
             {
-                progressTracker.AddItems(1);
+                thirdPartyDiagnosticIdsAndTitles = await GetThirdPartyDiagnosticIdsAndTitlesAsync(document, cancellationToken).ConfigureAwait(false);
+                progressTracker.AddItems(thirdPartyDiagnosticIdsAndTitles.Length);
             }
 
             // add one item for the 'format' action
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             if (enabledDiagnostics.RunThirdPartyFixers)
             {
                 document = await ApplyThirdPartyCodeFixesAsync(
-                    document, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    document, thirdPartyDiagnosticIdsAndTitles, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
             }
 
@@ -180,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
         }
 
-        private async Task<Document> ApplyThirdPartyCodeFixesAsync(Document document, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<(string diagnosticId, string? title)>> GetThirdPartyDiagnosticIdsAndTitlesAsync(Document document, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var range = new TextSpan(0, tree.Length);
@@ -194,33 +196,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             // ensure more than just known diagnostics were returned
             if (!diagnostics.Any())
             {
-                return document;
+                return ImmutableArray<(string diagnosticId, string? title)>.Empty;
             }
 
-            var distinctDiagnostics = diagnostics.SelectAsArray(static d => d.Id).Distinct();
-
-            // ensure progress is reported for each third party code fix
-            progressTracker.AddItems(distinctDiagnostics.Length);
-            foreach (var diagnosticId in distinctDiagnostics)
-            {
-                using (progressTracker.ItemCompletedScope(diagnosticId))
-                {
-                    // Apply codefixes for diagnostics with a severity of warning or higher
-                    var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                        document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
-
-                    // If changes were made to the solution snap shot outside the current document discard the changes.
-                    // The assumption here is that if we are applying a third party code fix to a document it only affects the document.
-                    // Symbol renames and other complex refactorings we do not want to include in code cleanup.
-                    // We can revisit this if we get feedback to the contrary
-                    if (!ChangesMadeOutsideDocument(document, updatedDocument))
-                    {
-                        document = updatedDocument;
-                    }
-                }
-            }
-
-            return document;
+            return diagnostics.SelectAsArray(static d => (d.Id, d.Title)).Distinct();
 
             static bool IsCompilerDiagnostic(string errorId)
             {
@@ -236,6 +215,35 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 return false;
             }
+        }
+
+        private async Task<Document> ApplyThirdPartyCodeFixesAsync(
+            Document document,
+            ImmutableArray<(string diagnosticId, string? title)> diagnosticIds,
+            IProgressTracker progressTracker,
+            CodeActionOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
+        {
+            foreach (var (diagnosticId, title) in diagnosticIds)
+            {
+                progressTracker.Description = string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId);
+                // Apply codefixes for diagnostics with a severity of warning or higher
+                var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
+                    document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                // If changes were made to the solution snap shot outside the current document discard the changes.
+                // The assumption here is that if we are applying a third party code fix to a document it only affects the document.
+                // Symbol renames and other complex refactorings we do not want to include in code cleanup.
+                // We can revisit this if we get feedback to the contrary
+                if (!ChangesMadeOutsideDocument(document, updatedDocument))
+                {
+                    document = updatedDocument;
+                }
+
+                progressTracker.ItemCompleted();
+            }
+
+            return document;
 
             static bool ChangesMadeOutsideDocument(Document currentDocument, Document updatedDocument)
             {
