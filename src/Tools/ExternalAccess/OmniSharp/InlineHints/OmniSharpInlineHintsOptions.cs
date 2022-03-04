@@ -16,8 +16,6 @@ internal readonly record struct OmniSharpInlineHintsOptions(
                TypeOptions.ToInlineTypeHintsOptions(),
                SymbolDescriptionOptions.Default);
 }
-
-
 internal readonly record struct OmniSharpInlineParameterHintsOptions(
     bool EnabledForParameters = false,
     bool ForLiteralParameters = true,
