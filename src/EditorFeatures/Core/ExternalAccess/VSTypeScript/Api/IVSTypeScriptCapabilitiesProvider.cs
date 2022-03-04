@@ -4,7 +4,7 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 internal interface IVSTypeScriptCapabilitiesProvider
 {
     /// <summary>

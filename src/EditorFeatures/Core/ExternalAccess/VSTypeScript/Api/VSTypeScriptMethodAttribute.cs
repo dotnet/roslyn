@@ -6,7 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]

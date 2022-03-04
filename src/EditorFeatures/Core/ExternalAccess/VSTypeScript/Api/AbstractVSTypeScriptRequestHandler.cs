@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 /// <summary>
 /// Request handler type exposed to typescript.
@@ -28,14 +28,20 @@ internal abstract class AbstractVSTypeScriptRequestHandler<TRequestType, TRespon
             return null;
         }
 
-        return new VSTextDocumentIdentifier
+        var textDocumentIdentifier = new VSTextDocumentIdentifier
         {
             Uri = typeScriptIdentifier.Value.Uri,
-            ProjectContext = new VSProjectContext
-            {
-                Id = typeScriptIdentifier.Value.ProjectId,
-            }
         };
+
+        if (typeScriptIdentifier.Value.ProjectId != null)
+        {
+            textDocumentIdentifier.ProjectContext = new VSProjectContext
+            {
+                Id = typeScriptIdentifier.Value.ProjectId
+            };
+        }
+
+        return textDocumentIdentifier;
     }
 
     Task<TResponseType> IRequestHandler<TRequestType, TResponseType>.HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
@@ -57,7 +63,7 @@ internal record struct TypeScriptRequestContext(Solution? Solution, Document? Do
 /// <summary>
 /// Custom type containing information in a <see cref="VSProjectContext"/> to avoid coupling LSP protocol versions.
 /// </summary>
-internal record struct TypeScriptTextDocumentIdentifier(Uri Uri, string ProjectId);
+internal record struct TypeScriptTextDocumentIdentifier(Uri Uri, string? ProjectId);
 
 internal interface IVSTypeScriptRequestHandler
 {

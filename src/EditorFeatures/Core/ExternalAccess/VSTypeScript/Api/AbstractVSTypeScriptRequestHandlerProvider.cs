@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 internal abstract class AbstractVSTypeScriptRequestHandlerProvider : IRequestHandlerProvider
 {

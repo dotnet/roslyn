@@ -7,7 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript.Api;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
 internal class ExportTypeScriptLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 
-namespace Microsoft.CodeAnalysis.Editor.ExternalAccess.VSTypeScript;
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [Shared]
 [ExportLspRequestHandlerProvider(ProtocolConstants.TypeScriptLanguageContract, typeof(DidCloseHandler))]
