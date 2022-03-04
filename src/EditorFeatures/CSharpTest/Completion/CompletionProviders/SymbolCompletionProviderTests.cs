@@ -2258,6 +2258,27 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35178, "https://github.com/dotnet/roslyn/issues/35178")]
+        public async Task RefStructMembersHasMethodsForNameof()
+        {
+            var markup = @"
+ref struct Test {}
+class C
+{
+    void M()
+    {
+        var test = new Test();
+        _ = nameof(test.$$);
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyItemExistsAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         public async Task AfterStaticLocalFunction_TypeOnly()
         {

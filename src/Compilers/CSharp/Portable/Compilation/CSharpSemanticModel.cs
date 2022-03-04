@@ -1679,13 +1679,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)uniqueSymbol != null)
                 {
-                    //If container type is "ref struct" then we should not include methods from object and ValueType that are not overriden,
-                    //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
-                    if (container is TypeSymbol { IsRefLikeType: true } && uniqueSymbol.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
-                    {
-                        return;
-                    }
-
                     // This name mapped to something unique.
                     // with a costly lookup. Just add it straight to the results.
                     results.Add(RemapSymbolIfNecessary(uniqueSymbol).GetPublicSymbol());
@@ -1760,13 +1753,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var symbol in lookupResult.Symbols)
                     {
-                        //If container type is "ref struct" then we should not include methods from object and ValueType that are not overriden,
-                        //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
-                        if (container is TypeSymbol { IsRefLikeType: true } && symbol.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
-                        {
-                            continue;
-                        }
-
                         results.Add(RemapSymbolIfNecessary(symbol).GetPublicSymbol());
                     }
                 }
