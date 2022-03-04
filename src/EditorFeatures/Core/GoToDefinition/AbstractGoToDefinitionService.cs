@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
             return service.GetLocationForPositionAsync(
-                workspace, document.Id, position, virtualSpace: 0, cancellationToken);
+                workspace, document.Id, position, virtualSpace: 0,
+                new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken);
         }
 
         public async Task<INavigableLocation?> FindDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)

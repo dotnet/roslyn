@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -12,13 +13,16 @@ namespace Microsoft.CodeAnalysis.Navigation
 {
     internal sealed class DefaultSymbolNavigationService : ISymbolNavigationService
     {
-        public Task<INavigableLocation?> GetNavigableLocationAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
-            => SpecializedTasks.Null<INavigableLocation>();
+        public Task<bool> TryNavigateToSymbolAsync(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
         public Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
-        public Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationSymbolLocationAsync(DefinitionItem definitionItem, CancellationToken cancellationToken)
-            => Task.FromResult<(string filePath, LinePosition linePosition)?>(null);
+        public Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationSymbolLocationAsync(
+            DefinitionItem definitionItem, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<(string filePath, LinePosition linePosition)?>(null);
+        }
     }
 }

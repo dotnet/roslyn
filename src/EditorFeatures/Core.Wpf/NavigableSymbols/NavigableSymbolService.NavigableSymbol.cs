@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         _definitions,
                         cancellationToken).ConfigureAwait(false);
                     if (location != null)
-                        await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {

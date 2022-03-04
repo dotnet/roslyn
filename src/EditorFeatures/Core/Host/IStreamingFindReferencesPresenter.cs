@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                     definitionsBuilder.Add(item);
             }
 
+            var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true);
             var definitions = definitionsBuilder.ToImmutable();
 
             // See if there's a third party external item we can navigate to.  If so, defer 
@@ -86,9 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                var location = await item.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    return location;
+                return new NavigableLocation(cancellationToken => item.TryNavigateToAsync(workspace, options, cancellationToken));
             }
 
             var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
@@ -101,13 +100,14 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // There was only one location to navigate to.  Just directly go to that location. If we're directly
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
-                return await nonExternalItems[0].GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+                return new NavigableLocation(cancellationToken =>
+                    nonExternalItems[0].TryNavigateToAsync(workspace, options, cancellationToken));
             }
 
             if (presenter == null)
                 return null;
 
-            return new NavigableLocation(async (options, cancellationToken) =>
+            return new NavigableLocation(async cancellationToken =>
             {
                 // Can only navigate or present items on UI thread.
                 await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

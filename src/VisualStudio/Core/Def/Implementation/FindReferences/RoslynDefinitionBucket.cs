@@ -67,13 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public bool CanNavigateTo()
                 => true;
 
-            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-            {
-                var location = await DefinitionItem.GetNavigableLocationAsync(
-                    _presenter._workspace, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
-            }
+            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
+                => DefinitionItem.TryNavigateToAsync(_presenter._workspace, options, cancellationToken);
 
             public override bool TryGetValue(string key, out object? content)
             {

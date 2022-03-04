@@ -41,11 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
             return result.ParsedFrames.SelectAsArray(p => new UnitTestingParsedFrameWrapper(p));
         }
 
-        public async Task<bool> TryNavigateToAsync(Workspace workspace, UnitTestingDefinitionItemWrapper definitionItem, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-        {
-            var location = await definitionItem.UnderlyingObject.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
-            return location != null &&
-                await location.NavigateToAsync(new NavigationOptions(showInPreviewTab, activateTab), cancellationToken).ConfigureAwait(false);
-        }
+        public Task<bool> TryNavigateToAsync(Workspace workspace, UnitTestingDefinitionItemWrapper definitionItem, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            => definitionItem.UnderlyingObject.TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
     }
 }
