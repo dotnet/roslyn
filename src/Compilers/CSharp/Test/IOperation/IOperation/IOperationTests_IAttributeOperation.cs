@@ -434,7 +434,11 @@ class Boom : System.Attribute
             string expectedOperationTree = @"
 IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Boom')
   IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Boom')
-    Children(0)
+    Children(1):
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'Boom')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Operand:
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'Boom')
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -487,6 +491,15 @@ class MyAttribute : Attribute
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Type opt = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: opt) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Type, Constant: null, IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -546,7 +559,18 @@ class A : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(5, 7)
             };
             string expectedOperationTree = @"
-
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'A')
+  IObjectCreationOperation (Constructor: A..ctor([System.Security.Permissions.SecurityAction a = (System.Security.Permissions.SecurityAction)0])) (OperationKind.ObjectCreation, Type: A, IsInvalid, IsImplicit) (Syntax: 'A')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: 'A')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Security.Permissions.SecurityAction, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'A')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'A')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

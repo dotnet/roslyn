@@ -479,101 +479,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundUnconvertedAddressOf.WasCompilerGenerated);
         }
 
-        private bool TryGetAttributeData(BoundAttribute boundAttribute, [NotNullWhen(returnValue: true)] out AttributeData? data)
-        {
-            if (boundAttribute.Constructor is null ||
-                boundAttribute.Syntax.Parent?.Parent is not { } attributedDeclaration)
-            {
-                data = null;
-                return false;
-            }
-
-            ISymbol? attributedSymbol = null;
-            if (attributedDeclaration.IsKind(SyntaxKind.CompilationUnit))
-            {
-                if (boundAttribute.Syntax.Parent is AttributeListSyntax { Target.Identifier: var targetToken })
-                {
-                    if (targetToken.IsKind(SyntaxKind.AssemblyKeyword))
-                    {
-                        attributedSymbol = _semanticModel.Compilation.Assembly;
-                    }
-                    else if (targetToken.IsKind(SyntaxKind.ModuleKeyword))
-                    {
-                        attributedSymbol = _semanticModel.Compilation.SourceModule;
-                    }
-                }
-            }
-            else
-            {
-                if (attributedDeclaration is BaseFieldDeclarationSyntax baseFieldDeclarationSyntax)
-                {
-                    if (baseFieldDeclarationSyntax.Declaration.Variables.Count == 0)
-                    {
-                        data = null;
-                        return false;
-                    }
-
-                    attributedDeclaration = baseFieldDeclarationSyntax.Declaration.Variables[0];
-                }
-
-                var model = _semanticModel.Compilation.GetSemanticModel(boundAttribute.SyntaxTree!);
-                attributedSymbol = model.GetDeclaredSymbol(attributedDeclaration);
-            }
-
-            if (attributedSymbol is null)
-            {
-                data = null;
-                return false;
-            }
-
-            var attributes = attributedSymbol.GetAttributes();
-            foreach (var attribute in attributes)
-            {
-                if (attribute.ApplicationSyntaxReference?.GetSyntax() == boundAttribute.Syntax)
-                {
-                    data = attribute;
-                    return true;
-                }
-            }
-
-            data = null;
-            return false;
-        }
-
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
             var isImplicit = boundAttribute.WasCompilerGenerated;
-            var constructor = boundAttribute.Constructor!;
-            if (!TryGetAttributeData(boundAttribute, out var attributeData) ||
-                attributeData.ConstructorArguments.Length != constructor.ParameterCount)
+            if (boundAttribute.HasErrors)
             {
                 var invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit: true);
                 return new AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isImplicit);
-            }
-
-            var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(constructor.ParameterCount);
-            var seenParameters = ImmutableHashSet.CreateBuilder<ParameterSymbol>();
-
-            for (int i = 0; i < boundAttribute.ConstructorArguments.Length; i++)
-            {
-                int parameterIndex = boundAttribute.ConstructorArgumentsToParamsOpt.IsDefaultOrEmpty switch
-                {
-                    true => i,
-                    false => boundAttribute.ConstructorArgumentsToParamsOpt[i],
-                };
-
-                var parameter = constructor.Parameters[parameterIndex];
-                seenParameters.Add(parameter);
-                builder.Add(CreateArgumentOperation(ArgumentKind.Explicit, parameter.GetPublicSymbol(), boundAttribute.ConstructorArguments[i]));
-            }
-
-            foreach (var parameter in constructor.Parameters)
-            {
-                if (!seenParameters.Contains(parameter))
-                {
-                    var typedConstant = attributeData.CommonConstructorArguments[parameter.Ordinal];
-                    builder.Add(CreateArgumentOperation(ArgumentKind.DefaultValue, parameter.GetPublicSymbol(), new BoundLiteral(boundAttribute.Syntax, ConstantValue.Create(typedConstant.Value!, typedConstant.Type!.SpecialType), parameter.Type) { WasCompilerGenerated = true }));
-                }
             }
 
             ObjectOrCollectionInitializerOperation? initializer = null;
@@ -583,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 initializer = new ObjectOrCollectionInitializerOperation(namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), isImplicit: true);
             }
 
-            var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, builder.ToImmutable(), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValue, isImplicit: true);
+            var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, DeriveArguments(boundAttribute), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValue, isImplicit: true);
             return new AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isImplicit);
         }
 

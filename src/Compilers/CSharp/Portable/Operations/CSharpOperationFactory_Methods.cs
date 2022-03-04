@@ -237,6 +237,15 @@ namespace Microsoft.CodeAnalysis.Operations
                                                objectCreation.Expanded,
                                                objectCreation.Syntax);
                     }
+                case BoundKind.Attribute:
+                    var attribute = (BoundAttribute)containingExpression;
+                    Debug.Assert(attribute.Constructor is not null);
+                    return DeriveArguments(attribute.Constructor,
+                                           attribute.ConstructorArguments,
+                                           attribute.ConstructorArgumentsToParamsOpt,
+                                           attribute.ConstructorDefaultArguments,
+                                           attribute.ConstructorExpanded,
+                                           attribute.Syntax);
                 case BoundKind.Call:
                     {
                         var boundCall = (BoundCall)containingExpression;
