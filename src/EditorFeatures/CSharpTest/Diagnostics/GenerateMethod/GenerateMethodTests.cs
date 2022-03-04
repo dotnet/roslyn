@@ -7793,16 +7793,16 @@ class Class
         public async Task TestOutVariableDeclaration_ImplicitlyTyped()
         {
             await TestInRegularAndScriptAsync(
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
         [|Undefined|](out var c);
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     void Method()
     {

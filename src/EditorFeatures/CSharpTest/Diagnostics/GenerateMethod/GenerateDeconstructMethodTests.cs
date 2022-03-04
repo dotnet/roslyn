@@ -155,16 +155,16 @@ class Class
         public async Task TestDeconstructionDeclaration_UndeterminedType()
         {
             await TestInRegularAndScript1Async(
-@"using System;
-
-class Class
+@"class Class
 {
     void Method()
     {
         (var x, var y) = [|this|];
     }
 }",
-@"class Class
+@"using System;
+
+class Class
 {
     private void Deconstruct(out object x, out object y)
     {
