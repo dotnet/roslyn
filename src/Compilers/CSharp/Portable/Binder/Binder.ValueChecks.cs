@@ -2997,8 +2997,14 @@ moreArguments:
                     var parameter = ((BoundParameter)expr).ParameterSymbol;
                     // params Span<T> value cannot be returned since that would
                     // prevent sharing repeated allocations at the call-site.
-                    if (parameter.IsParams && !parameter.Type.IsSZArray())
+                    if (parameter.IsParams &&
+                        parameter.Ordinal == parameter.ContainingSymbol.GetParameterCount() - 1 &&
+                        !parameter.Type.IsSZArray())
                     {
+                        // PROTOTYPE: Consider reporting the error where the params method is called rather
+                        // than on the definition. That would allow calling this method with an explicit Span<T>
+                        // without an error. That's also important because changing the method defintion between
+                        // params and non-params is not a binary breaking change.
                         Error(diagnostics, ErrorCode.ERR_EscapeParamsSpan, node, expr.Syntax);
                         return false;
                     }

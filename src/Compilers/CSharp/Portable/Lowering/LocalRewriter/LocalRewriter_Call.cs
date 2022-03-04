@@ -1174,18 +1174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             spanGetItem = spanGetItem.AsMember(spanType);
             spanToReadOnlySpanOperator = spanToReadOnlySpanOperator?.AsMember(spanType);
 
-            // PROTOTYPE: Test use-site diagnostics.
-            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
-            var conversion = compilation.Conversions.ClassifyImplicitConversionFromType(spanType, paramArrayType, ref useSiteInfo);
-            conversion.MarkUnderlyingConversionsCheckedRecursive();
-            diagnostics.Add(syntax, useSiteInfo);
-
-            if (!conversion.IsValid)
-            {
-                diagnostics.Add(ErrorCode.ERR_NoImplicitConv, syntax.Location, spanType, paramArrayType);
-                return BadExpression(syntax, paramArrayType, ImmutableArray<BoundExpression>.Empty);
-            }
-
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             var span = new BoundObjectCreationExpression(syntax, spanConstructor, ImmutableArray.Create<BoundExpression>(array)) { WasCompilerGenerated = true };
             var temp = new BoundLocal(
