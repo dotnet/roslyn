@@ -5,13 +5,11 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     [Export(typeof(IEnumSettingViewModelFactory)), Shared]
     internal class TabSizeViewModelFactory : IEnumSettingViewModelFactory

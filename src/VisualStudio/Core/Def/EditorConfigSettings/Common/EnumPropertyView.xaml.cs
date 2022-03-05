@@ -5,9 +5,8 @@
 using System.Windows.Automation;
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
-
     /// <summary>
     /// Interaction logic for EnumPropertyView.xaml
     /// </summary>

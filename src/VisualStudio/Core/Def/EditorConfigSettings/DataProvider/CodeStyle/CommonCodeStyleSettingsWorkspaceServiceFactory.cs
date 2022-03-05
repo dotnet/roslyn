@@ -4,11 +4,10 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeStyle
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceSettingsProviderFactory<CodeStyleSetting>)), Shared]
     internal class CommonCodeStyleSettingsWorkspaceServiceFactory : IWorkspaceServiceFactory

@@ -4,7 +4,7 @@
 
 using System.Windows.Controls;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     /// <summary>
     /// Interaction logic for CodeStyleValueControl.xaml

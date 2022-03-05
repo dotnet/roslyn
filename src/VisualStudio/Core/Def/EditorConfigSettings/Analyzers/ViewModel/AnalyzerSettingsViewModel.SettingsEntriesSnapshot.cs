@@ -4,11 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
         AnalyzerSetting,

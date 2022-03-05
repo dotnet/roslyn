@@ -5,7 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class CombinedOptionsProviderFactory<T> : ISettingsProviderFactory<T>
     {

@@ -6,10 +6,9 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.EditorConfig;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class AnalyzerSetting
     {

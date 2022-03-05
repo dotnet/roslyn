@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal static class EnumerableExtensions
     {

@@ -5,16 +5,15 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View.ColumnDefinitions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
-    using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.NamingStyle;
+    using static Microsoft.CodeAnalysis.EditorConfigSettings.ColumnDefinitions.NamingStyle;
 
     [Export(typeof(ITableColumnDefinition))]
     [Name(Style)]

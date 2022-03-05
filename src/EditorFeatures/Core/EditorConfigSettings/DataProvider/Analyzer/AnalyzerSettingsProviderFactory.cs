@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyzer
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class AnalyzerSettingsProviderFactory : IWorkspaceSettingsProviderFactory<AnalyzerSetting>
     {

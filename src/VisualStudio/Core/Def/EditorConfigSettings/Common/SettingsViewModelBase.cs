@@ -5,13 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract partial class SettingsViewModelBase<T, TSnapshotFactory, TEntriesSnapshot> : IWpfSettingsEditorViewModel, ITableDataSource
         where TSnapshotFactory : SettingsSnapshotFactoryBase<T, TEntriesSnapshot>

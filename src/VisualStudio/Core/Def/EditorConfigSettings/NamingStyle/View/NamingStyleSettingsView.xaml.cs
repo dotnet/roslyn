@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     /// <summary>
     /// Interaction logic for NamingStyleSettingsView.xaml

@@ -5,9 +5,9 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class NamingStylesStyleViewModel : NotifyPropertyChangedBase
     {

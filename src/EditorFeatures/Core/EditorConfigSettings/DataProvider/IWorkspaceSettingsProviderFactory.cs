@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal interface IWorkspaceSettingsProviderFactory<TData> : ISettingsProviderFactory<TData>, IWorkspaceService
     {

@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal interface IWpfSettingsEditorViewModel : ISettingsEditorViewModel
     {
