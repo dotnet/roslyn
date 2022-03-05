@@ -6,7 +6,6 @@ Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
-Imports Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
