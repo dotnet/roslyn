@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.Expression);
-            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod));
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel));
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)

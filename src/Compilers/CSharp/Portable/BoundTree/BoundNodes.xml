@@ -1118,8 +1118,6 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow" />
     <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
-    <!-- Equality method to be used when dispatching on a non-integral type such as string. -->
-    <Field Name="EqualityMethod" Type="MethodSymbol?" />
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
