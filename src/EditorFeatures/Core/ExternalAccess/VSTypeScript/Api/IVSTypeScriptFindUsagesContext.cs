@@ -70,8 +70,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
                 => _navigator.CanNavigateToAsync(workspace, cancellationToken);
 
+#pragma warning disable CS0672 // Member overrides obsolete member
             public override Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
                 => _navigator.TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
+#pragma warning restore CS0672 // Member overrides obsolete member
         }
 
         internal readonly DefinitionItem UnderlyingObject;
@@ -110,8 +112,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
             => UnderlyingObject.CanNavigateToAsync(workspace, cancellationToken);
 
+#pragma warning disable CS0612 // Type or member is obsolete
         public Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
             => UnderlyingObject.TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
+#pragma warning restore CS0612 // Type or member is obsolete
     }
 
     internal sealed class VSTypeScriptSourceReferenceItem

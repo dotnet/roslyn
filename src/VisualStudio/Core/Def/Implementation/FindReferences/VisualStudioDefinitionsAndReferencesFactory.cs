@@ -117,6 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
                 => SpecializedTasks.True;
 
+            [Obsolete]
             public override async Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
