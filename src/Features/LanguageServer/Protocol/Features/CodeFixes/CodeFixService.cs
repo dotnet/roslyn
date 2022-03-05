@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
-                includeSuppressionFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
+                includeSuppressionFixes, true, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
 
             if (diagnostics.IsEmpty)
                 yield break;

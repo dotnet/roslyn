@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// none of its reported diagnostics should be included in the result.
         /// </para>
         /// </summary>
-        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
+        Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan? range, Func<string, bool>? shouldIncludeDiagnostic, bool includeSuppressedDiagnostics = false, bool includeCompilerDiagnostics = true, CodeActionRequestPriority priority = CodeActionRequestPriority.None, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
     }
 
     internal static class IDiagnosticAnalyzerServiceExtensions
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Func<string, bool>? shouldIncludeDiagnostic = diagnosticId != null ? id => id == diagnosticId : null;
             return service.GetDiagnosticsForSpanAsync(document, range, shouldIncludeDiagnostic,
-                includeSuppressedDiagnostics, priority, addOperationScope, cancellationToken);
+                includeSuppressedDiagnostics, true, priority, addOperationScope, cancellationToken);
         }
     }
 }

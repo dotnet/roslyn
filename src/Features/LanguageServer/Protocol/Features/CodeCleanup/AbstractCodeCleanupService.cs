@@ -189,7 +189,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             // Compute diagnostics for everything that is not an IDE analyzer
             var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
-                shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId) || IsCompilerDiagnostic(diagnosticId)),
+                shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
+                includeCompilerDiagnostics: false,
                 includeSuppressedDiagnostics: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false));
 
@@ -200,21 +201,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
 
             return diagnostics.SelectAsArray(static d => (d.Id, d.Title)).Distinct();
-
-            static bool IsCompilerDiagnostic(string errorId)
-            {
-                if (!string.IsNullOrEmpty(errorId) && errorId.Length > 2)
-                {
-                    var prefix = errorId[..2];
-                    if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var suffix = errorId[2..];
-                        return int.TryParse(suffix, out _);
-                    }
-                }
-
-                return false;
-            }
         }
 
         private async Task<Document> ApplyThirdPartyCodeFixesAsync(
