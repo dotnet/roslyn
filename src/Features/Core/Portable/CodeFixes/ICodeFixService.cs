@@ -17,10 +17,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal interface ICodeFixService
     {
         IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(Document document, TextSpan textSpan, CodeActionRequestPriority priority, CodeActionOptions options, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Similar to <see cref="StreamFixesAsync"/> except that instead of streaming all results, this ends with the
+        /// first.  This will also attempt to return a fix for an error first, but will fall back to any fix if that
+        /// does not succeed.
+        /// </summary>
+        Task<FirstFixResult> GetMostSevereFixAsync(Document document, TextSpan range, CodeActionRequestPriority priority, CodeActionOptions options, CancellationToken cancellationToken);
+
         Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan textSpan, string diagnosticId, CodeActionOptions options, CancellationToken cancellationToken);
         Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken);
         CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
-        Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(Document document, TextSpan range, CodeActionOptions options, CancellationToken cancellationToken);
     }
 
     internal static class ICodeFixServiceExtensions

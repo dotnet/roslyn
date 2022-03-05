@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,6 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new EmbeddedLanguageClassificationService(languageServices.GetRequiredService<IEmbeddedLanguagesProvider>());
+            => new EmbeddedLanguageClassificationService(languageServices.GetRequiredService<IEmbeddedLanguagesProvider>(), CSharpSyntaxKinds.Instance);
     }
 }

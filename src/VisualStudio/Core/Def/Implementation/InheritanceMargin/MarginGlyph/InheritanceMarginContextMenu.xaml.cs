@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -76,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 ImmutableArray.Create<DefinitionItem>(rehydrated),
                 cancellationToken).ConfigureAwait(false);
             if (location != null)
-                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
         private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)

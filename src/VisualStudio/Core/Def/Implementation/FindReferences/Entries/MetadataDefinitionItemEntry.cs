@@ -45,9 +45,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public bool CanNavigateTo()
                 => true;
 
-            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-                => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
-                    Presenter._workspace, options, cancellationToken); // Only activate the tab if requested
+            public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
+            {
+                var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
+                    Presenter._workspace, cancellationToken).ConfigureAwait(false);
+                if (location != null)
+                    await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
+            }
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts

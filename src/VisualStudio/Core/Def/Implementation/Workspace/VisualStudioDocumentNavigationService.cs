@@ -58,35 +58,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _sourceGeneratedFileManager = sourceGeneratedFileManager;
         }
 
-        public async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<bool> CanNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
             documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
             if (!IsSecondaryBuffer(workspace, documentId))
-            {
                 return true;
-            }
 
             var document = workspace.CurrentSolution.GetRequiredDocument(documentId);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
-            if (boundedTextSpan != textSpan)
-            {
-                try
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
-                catch (ArgumentOutOfRangeException e) when (FatalError.ReportAndCatch(e))
-                {
-                }
-
-                return false;
-            }
-
-            var vsTextSpan = text.GetVsTextSpanForSpan(textSpan);
-
+            var vsTextSpan = GetVsTextSpan(text, textSpan, allowInvalidSpan);
             return await CanMapFromSecondaryBufferToPrimaryBufferAsync(
                 workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
@@ -142,43 +125,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 workspace, documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<INavigableLocation?> GetLocationForSpanAsync(
-            Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> GetLocationForSpanAsync(
+            Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
-            return GetNavigableLocationAsync(workspace,
+            if (!await this.CanNavigateToSpanAsync(workspace, documentId, textSpan, allowInvalidSpan, cancellationToken).ConfigureAwait(false))
+                return null;
+
+            return await GetNavigableLocationAsync(workspace,
                 documentId,
                 _ => Task.FromResult(textSpan),
                 text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
-                options,
-                cancellationToken);
-
-            static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan, bool allowInvalidSpan)
-            {
-                var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
-                if (boundedTextSpan != textSpan && !allowInvalidSpan)
-                {
-                    try
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
-                    catch (ArgumentOutOfRangeException e) when (FatalError.ReportAndCatch(e))
-                    {
-                    }
-                }
-
-                return text.GetVsTextSpanForSpan(boundedTextSpan);
-            }
+                cancellationToken).ConfigureAwait(false);
         }
 
-        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(
-            Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(
+            Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
         {
-            return GetNavigableLocationAsync(workspace,
+            if (!await this.CanNavigateToLineAndOffsetAsync(workspace, documentId, lineNumber, offset, cancellationToken).ConfigureAwait(false))
+                return null;
+
+            return await GetNavigableLocationAsync(workspace,
                 documentId,
                 document => GetTextSpanFromLineAndOffsetAsync(document, lineNumber, offset, cancellationToken),
                 text => GetVsTextSpan(text, lineNumber, offset),
-                options,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             static async Task<TextSpan> GetTextSpanFromLineAndOffsetAsync(Document document, int lineNumber, int offset, CancellationToken cancellationToken)
             {
@@ -194,15 +164,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        public Task<INavigableLocation?> GetLocationForPositionAsync(
-            Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> GetLocationForPositionAsync(
+            Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
-            return GetNavigableLocationAsync(workspace,
+            if (!await this.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false))
+                return null;
+
+            return await GetNavigableLocationAsync(workspace,
                 documentId,
                 document => GetTextSpanFromPositionAsync(document, position, virtualSpace, cancellationToken),
                 text => GetVsTextSpan(text, position, virtualSpace),
-                options,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             static async Task<TextSpan> GetTextSpanFromPositionAsync(Document document, int position, int virtualSpace, CancellationToken cancellationToken)
             {
@@ -238,7 +210,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
             Func<SourceText, VsTextSpan> getVsTextSpan,
-            NavigationOptions options,
             CancellationToken cancellationToken)
         {
             var callback = await GetNavigationCallbackAsync(
@@ -246,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (callback == null)
                 return null;
 
-            return new NavigableLocation(async cancellationToken =>
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 using (OpenNewDocumentStateScope(options))
@@ -421,6 +392,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private static int GetPositionWithinDocumentBounds(int position, int documentLength)
             => Math.Min(documentLength, Math.Max(position, 0));
+
+        private static VsTextSpan GetVsTextSpan(SourceText text, TextSpan textSpan, bool allowInvalidSpan)
+        {
+            var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
+            if (boundedTextSpan != textSpan && !allowInvalidSpan)
+            {
+                try
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                catch (ArgumentOutOfRangeException e) when (FatalError.ReportAndCatch(e))
+                {
+                }
+            }
+
+            return text.GetVsTextSpanForSpan(boundedTextSpan);
+        }
 
         /// <summary>
         /// It is unclear why, but we are sometimes asked to navigate to a <see cref="TextSpan"/>

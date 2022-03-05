@@ -3,14 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
@@ -20,12 +19,21 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
 
         private readonly HashSet<int> _syntaxTokenKinds = new();
 
-        public EmbeddedLanguageClassificationService(IEmbeddedLanguagesProvider languagesProvider)
+        public EmbeddedLanguageClassificationService(
+            IEmbeddedLanguagesProvider languagesProvider,
+            ISyntaxKinds syntaxKinds)
         {
             _languagesProvider = languagesProvider;
-            _syntaxTokenKinds.AddRange(
-                languagesProvider.Languages.Where(p => p.Classifier != null)
-                                           .SelectMany(p => p.Classifier.SyntaxTokenKinds));
+
+            _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
+            _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
+            _syntaxTokenKinds.Add(syntaxKinds.InterpolatedStringTextToken);
+
+            if (syntaxKinds.SingleLineRawStringLiteralToken != null)
+                _syntaxTokenKinds.Add(syntaxKinds.SingleLineRawStringLiteralToken.Value);
+
+            if (syntaxKinds.MultiLineRawStringLiteralToken != null)
+                _syntaxTokenKinds.Add(syntaxKinds.MultiLineRawStringLiteralToken.Value);
         }
 
         public async Task AddEmbeddedLanguageClassificationsAsync(
@@ -39,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(_languagesProvider, _syntaxTokenKinds, semanticModel, textSpan, options, result);
-            worker.Recurse(root, cancellationToken);
+            var worker = new Worker(_languagesProvider, _syntaxTokenKinds, semanticModel, textSpan, options, result, cancellationToken);
+            worker.Recurse(root);
         }
 
         private ref struct Worker
@@ -51,63 +59,66 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
             private readonly TextSpan _textSpan;
             private readonly ClassificationOptions _options;
             private readonly ArrayBuilder<ClassifiedSpan> _result;
+            private readonly CancellationToken _cancellationToken;
 
             public Worker(
-                IEmbeddedLanguagesProvider _languagesProvider,
-                HashSet<int> _syntaxTokenKinds,
+                IEmbeddedLanguagesProvider languagesProvider,
+                HashSet<int> syntaxTokenKinds,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
                 ClassificationOptions options,
-                ArrayBuilder<ClassifiedSpan> result)
+                ArrayBuilder<ClassifiedSpan> result,
+                CancellationToken cancellationToken)
             {
-                this._languagesProvider = _languagesProvider;
-                this._syntaxTokenKinds = _syntaxTokenKinds;
+                _languagesProvider = languagesProvider;
+                _syntaxTokenKinds = syntaxTokenKinds;
                 _semanticModel = semanticModel;
                 _textSpan = textSpan;
                 _options = options;
                 _result = result;
+                _cancellationToken = cancellationToken;
             }
 
-            public void Recurse(
-                SyntaxNode node,
-                CancellationToken cancellationToken)
+            public void Recurse(SyntaxNode node)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                _cancellationToken.ThrowIfCancellationRequested();
                 if (node.Span.IntersectsWith(_textSpan))
                 {
                     foreach (var child in node.ChildNodesAndTokens())
                     {
                         if (child.IsNode)
                         {
-                            Recurse(child.AsNode()!, cancellationToken);
+                            Recurse(child.AsNode()!);
                         }
                         else
                         {
-                            ProcessToken(child.AsToken(), cancellationToken);
+                            ProcessToken(child.AsToken());
                         }
                     }
                 }
             }
 
-            private void ProcessToken(SyntaxToken token, CancellationToken cancellationToken)
+            private void ProcessToken(SyntaxToken token)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                ProcessTriviaList(token.LeadingTrivia, cancellationToken);
-                ClassifyToken(token, cancellationToken);
-                ProcessTriviaList(token.TrailingTrivia, cancellationToken);
+                _cancellationToken.ThrowIfCancellationRequested();
+                ProcessTriviaList(token.LeadingTrivia);
+                ClassifyToken(token);
+                ProcessTriviaList(token.TrailingTrivia);
             }
 
-            private readonly void ClassifyToken(SyntaxToken token, CancellationToken cancellationToken)
+            private readonly void ClassifyToken(SyntaxToken token)
             {
                 if (token.Span.IntersectsWith(_textSpan) && _syntaxTokenKinds.Contains(token.RawKind))
                 {
+                    var context = new EmbeddedLanguageClassifierContext(
+                        _semanticModel, token, _options, _result, _cancellationToken);
                     foreach (var language in _languagesProvider.Languages)
                     {
                         var classifier = language.Classifier;
                         if (classifier != null)
                         {
                             var count = _result.Count;
-                            classifier.AddClassifications(token, _semanticModel, _options, _result, cancellationToken);
+                            classifier.RegisterClassifications(context);
                             if (_result.Count != count)
                             {
                                 // This classifier added values.  No need to check the other ones.
@@ -118,16 +129,16 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
                 }
             }
 
-            private void ProcessTriviaList(SyntaxTriviaList triviaList, CancellationToken cancellationToken)
+            private void ProcessTriviaList(SyntaxTriviaList triviaList)
             {
                 foreach (var trivia in triviaList)
-                    ProcessTrivia(trivia, cancellationToken);
+                    ProcessTrivia(trivia);
             }
 
-            private void ProcessTrivia(SyntaxTrivia trivia, CancellationToken cancellationToken)
+            private void ProcessTrivia(SyntaxTrivia trivia)
             {
                 if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
-                    Recurse(trivia.GetStructure()!, cancellationToken);
+                    Recurse(trivia.GetStructure()!);
             }
         }
     }

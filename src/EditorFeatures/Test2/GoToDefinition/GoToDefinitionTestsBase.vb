@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim defLocation = Await goToDefService.FindDefinitionLocationAsync(document, cursorPosition, CancellationToken.None)
                 Dim actualResult = defLocation IsNot Nothing AndAlso
-                    Await defLocation.NavigateToAsync(CancellationToken.None)
+                    Await defLocation.NavigateToAsync(NavigationOptions.Default, CancellationToken.None)
                 Assert.Equal(expectedResult, actualResult)
 
                 Dim expectedLocations As New List(Of FilePathAndSpan)

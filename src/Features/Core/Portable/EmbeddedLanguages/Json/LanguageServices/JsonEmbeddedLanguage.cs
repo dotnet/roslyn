@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 {
     internal class JsonEmbeddedLanguage : IEmbeddedLanguageFeatures
     {
-        public ISyntaxClassifier Classifier { get; }
+        public IEmbeddedLanguageClassifier? Classifier { get; }
 
         // No document-highlights for embedded json currently.
         public IDocumentHighlightsService? DocumentHighlightsService => null;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         public JsonEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
-            Classifier = new JsonEmbeddedClassifier(info);
+            Classifier = new JsonEmbeddedLanguageClassifier(info);
         }
     }
 }

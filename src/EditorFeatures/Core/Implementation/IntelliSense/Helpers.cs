@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -221,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                     var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                         symbol, solution, threadingContext, streamingPresenter, cancellationToken).ConfigureAwait(false);
                     if (location != null)
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                        await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -10,8 +9,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 {
-    using System.Collections.Immutable;
-    using Microsoft.CodeAnalysis.Classification.Classifiers;
     using static EmbeddedSyntaxHelpers;
 
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
@@ -20,54 +17,48 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// <summary>
     /// Classifier impl for embedded json strings.
     /// </summary>
-    internal class JsonEmbeddedClassifier : AbstractSyntaxClassifier
+    internal class JsonEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         private static readonly ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
         private readonly EmbeddedLanguageInfo _info;
 
-        public override ImmutableArray<int> SyntaxTokenKinds { get; }
-
-        public JsonEmbeddedClassifier(EmbeddedLanguageInfo info)
+        public JsonEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-            SyntaxTokenKinds = info.AllStringLiteralKinds;
         }
 
-        public override void AddClassifications(
-            SyntaxToken token,
-            SemanticModel semanticModel,
-            ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+        public void RegisterClassifications(EmbeddedLanguageClassifierContext context)
         {
+            var token = context.SyntaxToken;
             if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
 
-            if (!options.ColorizeJsonPatterns)
+            if (!context.Options.ColorizeJsonPatterns)
                 return;
 
+            var semanticModel = context.SemanticModel;
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
 
             // We do support json classification in strings that look very likely to be json, even if we aren't 100%
             // certain if it truly is json.
-            var tree = detector.TryParseString(token, semanticModel, includeProbableStrings: true, cancellationToken);
+            var tree = detector.TryParseString(token, semanticModel, includeProbableStrings: true, context.CancellationToken);
             if (tree == null)
                 return;
 
             var visitor = s_visitorPool.Allocate();
             try
             {
-                visitor.Result = result;
-                AddClassifications(tree.Root, visitor, result);
+                visitor.Context = context;
+                AddClassifications(tree.Root, visitor, context);
             }
             finally
             {
-                visitor.Result = null;
+                visitor.Context = default;
                 s_visitorPool.Free(visitor);
             }
         }
 
-        private static void AddClassifications(JsonNode node, Visitor visitor, ArrayBuilder<ClassifiedSpan> result)
+        private static void AddClassifications(JsonNode node, Visitor visitor, EmbeddedLanguageClassifierContext context)
         {
             node.Accept(visitor);
 
@@ -75,42 +66,41 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             {
                 if (child.IsNode)
                 {
-                    AddClassifications(child.Node, visitor, result);
+                    AddClassifications(child.Node, visitor, context);
                 }
                 else
                 {
-                    AddTriviaClassifications(child.Token, result);
+                    AddTriviaClassifications(child.Token, context);
                 }
             }
         }
 
-        private static void AddTriviaClassifications(JsonToken token, ArrayBuilder<ClassifiedSpan> result)
+        private static void AddTriviaClassifications(JsonToken token, EmbeddedLanguageClassifierContext context)
         {
             foreach (var trivia in token.LeadingTrivia)
-                AddTriviaClassifications(trivia, result);
+                AddTriviaClassifications(trivia, context);
 
             foreach (var trivia in token.TrailingTrivia)
-                AddTriviaClassifications(trivia, result);
+                AddTriviaClassifications(trivia, context);
         }
 
-        private static void AddTriviaClassifications(JsonTrivia trivia, ArrayBuilder<ClassifiedSpan> result)
+        private static void AddTriviaClassifications(JsonTrivia trivia, EmbeddedLanguageClassifierContext context)
         {
             if (trivia.Kind is JsonKind.MultiLineCommentTrivia or JsonKind.SingleLineCommentTrivia &&
                 trivia.VirtualChars.Length > 0)
             {
-                result.Add(new ClassifiedSpan(
-                    ClassificationTypeNames.JsonComment, GetSpan(trivia.VirtualChars)));
+                context.AddClassification(ClassificationTypeNames.JsonComment, GetSpan(trivia.VirtualChars));
             }
         }
 
         private class Visitor : IJsonNodeVisitor
         {
-            public ArrayBuilder<ClassifiedSpan>? Result;
+            public EmbeddedLanguageClassifierContext Context;
 
             private void AddClassification(JsonToken token, string typeName)
             {
                 if (!token.IsMissing)
-                    Result!.Add(new ClassifiedSpan(typeName, token.GetSpan()));
+                    Context.AddClassification(typeName, token.GetSpan());
             }
 
             public void Visit(JsonCompilationUnit node)
