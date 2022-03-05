@@ -7117,5 +7117,536 @@ class Program
                 //         async static void B4<await>() { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(23, 30));
         }
+
+        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        public void TypeParameterScope_NotInAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(nameof(TParameter))] // 1
+        void local<TParameter>() { }
+    }
+
+    [My(nameof(TParameter))] // 2
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0103: The name 'TParameter' does not exist in the current context
+                //         [My(nameof(TParameter))] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(8, 20),
+                // (12,16): error CS0103: The name 'TParameter' does not exist in the current context
+                //     [My(nameof(TParameter))] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_NotInAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(TParameter)] // 1
+        void local<TParameter>() { }
+    }
+
+    [My(TParameter)] // 2
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(object o) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'TParameter' does not exist in the current context
+                //         [My(TParameter)] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(8, 13),
+                // (12,9): error CS0103: The name 'TParameter' does not exist in the current context
+                //     [My(TParameter)] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_NotInAttributeTypeArgument()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My<T>] // 1
+        void local<T>() { }
+    }
+
+    [My<T>] // 2
+    void M2<T>() { }
+}
+
+public class MyAttribute<T> : System.Attribute
+{
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                //         [My<T>] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(8, 13),
+                // (12,9): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My<T>] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_NotAsAttributeType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<System.Attribute>();
+
+        [T] // 1
+        void local<T>() where T : System.Attribute { }
+    }
+
+    [T] // 2
+    void M2<T>() where T : System.Attribute { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,10): error CS0246: The type or namespace name 'TAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         [T] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("TAttribute").WithLocation(8, 10),
+                // (8,10): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                //         [T] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(8, 10),
+                // (12,6): error CS0246: The type or namespace name 'TAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [T] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("TAttribute").WithLocation(12, 6),
+                // (12,6): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
+                //     [T] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(12, 6)
+                );
+        }
+
+        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
+        public void TypeParameterScope_InParameterAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(TParameter)] int i) => throw null;
+    }
+
+    void M2<TParameter>([My(TParameter)] int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            // TParameter unexpectedly was found in local function case
+            // Tracked by https://github.com/dotnet/roslyn/issues/60110
+            comp.VerifyDiagnostics(
+                // (8,36): error CS0119: 'TParameter' is a type, which is not valid in the given context
+                //         void local<TParameter>([My(TParameter)] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type").WithLocation(8, 36),
+                // (11,29): error CS0103: The name 'TParameter' does not exist in the current context
+                //     void M2<TParameter>([My(TParameter)] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(11, 29)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_InParameterAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(nameof(TParameter))] int i) => throw null;
+    }
+
+    void M2<TParameter>([My(nameof(TParameter))] int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterScope_AsParameterAttributeType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<System.Attribute>(0);
+
+        void local<TParameter>([TParameter] int i) where TParameter : System.Attribute => throw null;
+    }
+
+    void M2<TParameter>([TParameter] int i) where TParameter : System.Attribute => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,33): error CS0616: 'TParameter' is not an attribute class
+                //         void local<TParameter>([TParameter] int i) where TParameter : System.Attribute => throw null;
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(8, 33),
+                // (11,26): error CS0616: 'TParameter' is not an attribute class
+                //     void M2<TParameter>([TParameter] int i) where TParameter : System.Attribute => throw null;
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(11, 26)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_InReturnType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        TParameter local<TParameter>() => throw null;
+    }
+
+    TParameter M2<TParameter>() => throw null;
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterScope_InParameterType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(null);
+
+        void local<TParameter>(TParameter p) => throw null;
+    }
+
+    void M2<TParameter>(TParameter p) => throw null;
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterScope_NotInAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(0);
+
+        [My(nameof(parameter))] // 1
+        void local(int parameter) { }
+    }
+
+    [My(nameof(parameter))] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0103: The name 'parameter' does not exist in the current context
+                //         [My(nameof(parameter))] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 20),
+                // (12,16): error CS0103: The name 'parameter' does not exist in the current context
+                //     [My(nameof(parameter))] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(0);
+
+        [My(parameter)] // 1
+        void local(int parameter) { }
+    }
+
+    [My(parameter)] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(object o) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0103: The name 'parameter' does not exist in the current context
+                //         [My(parameter)] // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 13),
+                // (12,9): error CS0103: The name 'parameter' does not exist in the current context
+                //     [My(parameter)] // 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInAttributeTypeArgument()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(0);
+
+        [My<parameter>] // 1
+        void local(int parameter) { }
+    }
+
+    [My<parameter>] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute<T> : System.Attribute
+{
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         [My<parameter>] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 13),
+                // (12,9): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My<parameter>] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotAsAttributeType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(null);
+
+        [parameter] // 1
+        void local(System.Attribute parameter) { }
+    }
+
+    [parameter] // 2
+    void M2(System.Attribute parameter) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,10): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         [parameter] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(8, 10),
+                // (8,10): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         [parameter] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 10),
+                // (12,6): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [parameter] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(12, 6),
+                // (12,6): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [parameter] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 6)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInParameterAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(0);
+
+        void local([My(parameter)] int parameter) => throw null;
+    }
+
+    void M2([My(parameter)] int parameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0103: The name 'parameter' does not exist in the current context
+                //         void local([My(parameter)] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 24),
+                // (11,17): error CS0103: The name 'parameter' does not exist in the current context
+                //     void M2([My(parameter)] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInParameterAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(0);
+
+        void local([My(nameof(parameter))] int parameter) => throw null;
+    }
+
+    void M2([My(nameof(parameter))] int parameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,31): error CS0103: The name 'parameter' does not exist in the current context
+                //         void local([My(nameof(parameter))] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 31),
+                // (11,24): error CS0103: The name 'parameter' does not exist in the current context
+                //     void M2([My(nameof(parameter))] int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 24)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotAsParameterAttributeType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(null);
+
+        void local([parameter] System.Attribute parameter) => throw null;
+    }
+
+    void M2([parameter] System.Attribute parameter) => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         void local([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(8, 21),
+                // (8,21): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         void local([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 21),
+                // (11,14): error CS0246: The type or namespace name 'parameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameterAttribute").WithLocation(11, 14),
+                // (11,14): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2([parameter] System.Attribute parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 14)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInReturnType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(0);
+
+        parameter local(int parameter) => throw null;
+    }
+
+    parameter M2(int parameter) => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         parameter local(int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 9),
+                // (11,5): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     parameter M2(int parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 5)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInParameterType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local(null);
+
+        void local(parameter parameter) => throw null;
+    }
+
+    void M2<TParameter>(parameter parameter) => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         void local(parameter parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 20),
+                // (11,25): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2<TParameter>(parameter parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 25)
+                );
+        }
     }
 }
