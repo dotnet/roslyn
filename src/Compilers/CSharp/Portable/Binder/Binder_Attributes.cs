@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, Symbol? attributedMember, BindingDiagnosticBag diagnostics)
         {
-            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, GetAttributedMember(attributedMember), diagnostics);
+            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, getAttributedMember(attributedMember), diagnostics);
 
-            static Symbol? GetAttributedMember(Symbol? symbol)
+            static Symbol? getAttributedMember(Symbol? symbol)
             {
                 for (; symbol is not null; symbol = symbol.ContainingSymbol)
                 {
