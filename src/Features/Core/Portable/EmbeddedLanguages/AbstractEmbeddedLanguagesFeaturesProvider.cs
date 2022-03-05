@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     {
         public override ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
-        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
+        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info)
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageFeatures(info),

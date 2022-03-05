@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     {
         public virtual ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
-        protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
+        protected AbstractEmbeddedLanguagesProvider()
         {
             Languages = ImmutableArray<IEmbeddedLanguage>.Empty;
         }
