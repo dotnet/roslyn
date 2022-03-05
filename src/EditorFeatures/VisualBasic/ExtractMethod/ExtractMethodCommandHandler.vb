@@ -6,6 +6,7 @@ Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Operations
