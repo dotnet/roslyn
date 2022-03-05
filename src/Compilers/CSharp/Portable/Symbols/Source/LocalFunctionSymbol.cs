@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
 
             var parameters = ParameterHelpers.MakeParameters(
-                _withTypeParamsBinder ?? _binder,
+                ParameterBinder,
                 this,
                 this.Syntax.ParameterList,
                 arglistToken: out arglistToken,
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
-            TypeWithAnnotations returnType = (_withTypeParamsBinder ?? _binder).BindType(returnTypeSyntax.SkipRef(), diagnostics);
+            TypeWithAnnotations returnType = ParameterBinder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
             var compilation = DeclaringCompilation;
 
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var syntax = Syntax;
                 var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
                 var constraints = this.MakeTypeParameterConstraintTypes(
-                    _withTypeParamsBinder ?? _binder,
+                    ParameterBinder,
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = Syntax;
                 var constraints = this.MakeTypeParameterConstraintKinds(
-                    _withTypeParamsBinder ?? _binder,
+                    ParameterBinder,
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses);
