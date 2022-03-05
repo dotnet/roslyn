@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Microsoft;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.BraceMatching
