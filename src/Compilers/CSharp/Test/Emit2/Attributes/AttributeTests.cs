@@ -714,12 +714,16 @@ class C
             Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value);
 
             var operation = semanticModel.GetOperation(attrSyntax);
-            // note: this operation tree should contain a constant string "M0" instead of null.
-            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
             VerifyOperationTree(comp, operation, @"
-IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
-  Children(1):
-      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ");
         }
 
@@ -752,12 +756,16 @@ class C
             Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
 
             var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
-            // note: this operation tree should contain a constant string "M0" instead of null.
-            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
             VerifyOperationTree(comp, speculativeOperation, @"
-IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
-  Children(1):
-      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'Attr()')
+  IObjectCreationOperation (Constructor: Attr..ctor([System.String s = null])) (OperationKind.ObjectCreation, Type: Attr, IsImplicit) (Syntax: 'Attr()')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'Attr()')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""M0"", IsImplicit) (Syntax: 'Attr()')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ");
         }
 

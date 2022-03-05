@@ -53,13 +53,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
 
-            var attributedMember = GetAttributedMemberFromNode(syntax, parentSemanticModel);
+            var attributedMember = GetAttributedMemberFromPosition(position, parentSemanticModel);
             return new AttributeSemanticModel(syntax, attributeType, attributedMember: attributedMember, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
         }
 
         private static Symbol? GetAttributedMemberFromNode(AttributeSyntax syntax, SemanticModel model)
         {
             if (syntax.Parent.IsKind(SyntaxKind.AttributeList) && syntax.Parent.Parent is { } attributedNode)
+            {
+                return model.GetDeclaredSymbolForNode(attributedNode).GetSymbol();
+            }
+
+            return null;
+        }
+
+        private static Symbol? GetAttributedMemberFromPosition(int position, SemanticModel model)
+        {
+            var attributedNode = model.SyntaxTree.GetRoot().FindToken(position).Parent;
+            while (attributedNode is AttributeListSyntax or AttributeSyntax or AttributeArgumentListSyntax or AttributeArgumentSyntax)
+            {
+                attributedNode = attributedNode.Parent;
+            }
+
+            if (attributedNode is not null)
             {
                 return model.GetDeclaredSymbolForNode(attributedNode).GetSymbol();
             }
