@@ -8187,7 +8187,8 @@ ref struct S
 }";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: @"True
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"True
 False
 False
 False")
@@ -9537,7 +9538,8 @@ ref struct S
 }";
             var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: @"True
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: @"True
 False
 False
 False")
