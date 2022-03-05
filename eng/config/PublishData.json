@@ -220,7 +220,8 @@
       "version": "4.2.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.2",
+      "insertionCreateDraftPR": true,
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.2p2]"
     },
@@ -234,7 +235,7 @@
       "channels": [],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.2p3]"
     },
     "release/dev17.3": {
