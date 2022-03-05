@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     throughType = semanticModel.GetTypeInfo(throughExpression, cancellationToken).Type;
                 }
 
-                var includeInstance = !throughExpression.IsKind(SyntaxKind.IdentifierName) ||
+                var includeInstance = !throughExpression.IsKind(SyntaxKind.IdentifierName) && !throughExpression.IsKind(SyntaxKind.PredefinedType) && !throughExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
                     semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(s => s is not INamedTypeSymbol) ||
-                    (!(throughSymbol is INamespaceOrTypeSymbol) && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(s => s is not INamedTypeSymbol));
+                    (throughSymbol is not INamespaceOrTypeSymbol && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(s => s is not INamedTypeSymbol));
 
                 var includeStatic = throughSymbol is INamedTypeSymbol ||
                     (throughExpression.IsKind(SyntaxKind.IdentifierName) &&
