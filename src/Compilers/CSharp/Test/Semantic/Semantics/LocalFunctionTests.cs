@@ -7117,5 +7117,38 @@ class Program
                 //         async static void B4<await>() { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "await").WithArguments("await").WithLocation(23, 30));
         }
+
+        [Fact]
+        public void TypeParameterScope()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(nameof(TParameter))] // works, but why?
+        void local<TParameter>() { }
+    }
+    
+    [My(nameof(TParameter))] // error CS0103: The name 'TParameter' does not exist in the current context
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0103: The name 'TParameter' does not exist in the current context
+                //         [My(nameof(TParameter))] // works, but why?
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(8, 20),
+                // (12,16): error CS0103: The name 'TParameter' does not exist in the current context
+                //     [My(nameof(TParameter))] // error CS0103: The name 'TParameter' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 16)
+            );
+        }
     }
 }
