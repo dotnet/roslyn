@@ -322,15 +322,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition(string? expectedNavigateWindowName)
-        {
-            _editorInProc.GoToDefinition();
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
-        }
-
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();
 
