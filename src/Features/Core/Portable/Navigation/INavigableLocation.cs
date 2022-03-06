@@ -17,20 +17,20 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// allow final clients to call this from a non-UI thread while allowing the navigation to jump to the UI
         /// thread.
         /// </summary>
-        Task<bool> NavigateToAsync(CancellationToken cancellationToken);
+        Task<bool> NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken);
     }
 
     internal class NavigableLocation : INavigableLocation
     {
-        private readonly Func<CancellationToken, Task<bool>> _callback;
+        private readonly Func<NavigationOptions, CancellationToken, Task<bool>> _callback;
 
-        public NavigableLocation(Func<CancellationToken, Task<bool>> callback)
+        public NavigableLocation(Func<NavigationOptions, CancellationToken, Task<bool>> callback)
             => _callback = callback;
 
-        public Task<bool> NavigateToAsync(CancellationToken cancellationToken)
+        public Task<bool> NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return _callback(cancellationToken);
+            return _callback(options, cancellationToken);
         }
 
         public static class TestAccessor
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Navigation
 #pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
             {
                 return Task.FromResult<INavigableLocation?>(
-                    new NavigableLocation(c => value ? SpecializedTasks.True : SpecializedTasks.False));
+                    new NavigableLocation((_, _) => value ? SpecializedTasks.True : SpecializedTasks.False));
             }
         }
     }

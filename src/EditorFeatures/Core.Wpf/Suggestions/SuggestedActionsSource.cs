@@ -417,27 +417,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CodeActionOptions options,
                 CancellationToken cancellationToken)
             {
-                if (state.Target.Owner._codeFixService != null &&
-                    state.Target.SubjectBuffer.SupportsCodeFixes())
+                foreach (var order in Orderings)
                 {
-                    var result = await state.Target.Owner._codeFixService.GetMostSevereFixableDiagnosticAsync(
-                            document, range.Span.ToTextSpan(), options, cancellationToken).ConfigureAwait(false);
+                    var priority = TryGetPriority(order);
+                    Contract.ThrowIfNull(priority);
 
-                    if (result.HasFix)
-                    {
-                        Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                        return GetFixCategory(result.Diagnostic.Severity);
-                    }
-
-                    if (result.PartialResult)
-                    {
-                        // reset solution version number so that we can raise suggested action changed event
-                        Volatile.Write(ref state.Target.LastSolutionVersionReported, InvalidSolutionVersion);
-                        return null;
-                    }
+                    var result = await GetFixLevelAsync(priority.Value).ConfigureAwait(false);
+                    if (result != null)
+                        return result;
                 }
 
                 return null;
+
+                async Task<string?> GetFixLevelAsync(CodeActionRequestPriority priority)
+                {
+                    if (state.Target.Owner._codeFixService != null &&
+                        state.Target.SubjectBuffer.SupportsCodeFixes())
+                    {
+                        var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
+                            document, range.Span.ToTextSpan(), priority, options, cancellationToken).ConfigureAwait(false);
+
+                        if (result.HasFix)
+                        {
+                            Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
+                            return GetFixCategory(result.CodeFixCollection.FirstDiagnostic.Severity);
+                        }
+
+                        if (!result.UpToDate)
+                        {
+                            // reset solution version number so that we can raise suggested action changed event
+                            Volatile.Write(ref state.Target.LastSolutionVersionReported, InvalidSolutionVersion);
+                            return null;
+                        }
+                    }
+
+                    return null;
+                }
             }
 
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(

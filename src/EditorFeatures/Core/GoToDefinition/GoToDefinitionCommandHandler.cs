@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                     .ReportNonFatalErrorAsync()
                     .CompletesAsyncOperation(token);
             }
-            else
+            else if (service != null)
             {
                 bool succeeded;
                 using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
@@ -103,6 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                     context.OperationContext.TakeOwnership();
                     ReportFailure(document);
                 }
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             return true;
@@ -139,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
                 // causing ourselves to self-cancel.
                 backgroundIndicator.CancelOnFocusLost = false;
-                succeeded = location != null && await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                succeeded = await location.NavigateToAsync(
+                    _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
             }
 
             if (!succeeded)

@@ -64,16 +64,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
+            Document document,
+            TextSpan range,
+            Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeSuppressedDiagnostics = false,
+            CodeActionRequestPriority priority = CodeActionRequestPriority.None,
+            CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, shouldIncludeDiagnostic: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                return Task.Run(async () =>
+                {
+                    using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
+                    var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
+                        document, range, diagnostics, shouldIncludeDiagnostic,
+                        includeSuppressedDiagnostics, priority, blockForData: false,
+                        addOperationScope: null, cancellationToken).ConfigureAwait(false);
+                    return (diagnostics.ToImmutable(), upToDate);
+                }, cancellationToken);
             }
 
-            return SpecializedTasks.False;
+            return Task.FromResult((ImmutableArray<DiagnosticData>.Empty, upToDate: false));
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(

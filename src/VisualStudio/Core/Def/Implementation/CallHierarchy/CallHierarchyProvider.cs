@@ -148,8 +148,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
 
             var location = await symbolNavigationService.GetNavigableLocationAsync(
-                resolution.Symbol, project, options, cancellationToken).ConfigureAwait(false);
-            await location.NavigateToAsync(this.ThreadingContext, cancellationToken).ConfigureAwait(false);
+                resolution.Symbol, project, cancellationToken).ConfigureAwait(false);
+            await location.NavigateToAsync(this.ThreadingContext, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

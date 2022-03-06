@@ -82,8 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             if (canNavigate)
             {
                 var location = await definition.GetNavigableLocationAsync(
-                    _workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
-                await location.NavigateToAsync(_threadingContext, cancellationToken).ConfigureAwait(false);
+                    _workspace, cancellationToken).ConfigureAwait(false);
+                await location.NavigateToAsync(
+                    _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
             }
         }
 

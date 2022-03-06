@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
-        public async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public async Task<INavigableLocation?> GetLocationForSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             if (workspace is not InteractiveWindowWorkspace interactiveWorkspace)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 return null;
             }
 
-            return new NavigableLocation(async cancellationToken =>
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -87,10 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             });
         }
 
-        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+        public Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
             => SpecializedTasks.Null<INavigableLocation>();
 
-        public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+        public Task<INavigableLocation?> GetLocationForPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
             => SpecializedTasks.Null<INavigableLocation>();
     }
 }

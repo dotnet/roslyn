@@ -11,49 +11,47 @@ namespace Microsoft.CodeAnalysis.Navigation
 {
     internal static class INavigableLocationExtensions
     {
-        public static async Task<bool> NavigateToAsync(this INavigableLocation? location, IThreadingContext threadingContext, CancellationToken cancellationToken)
+        public static async Task<bool> NavigateToAsync(
+            this INavigableLocation? location, IThreadingContext threadingContext, NavigationOptions options, CancellationToken cancellationToken)
         {
             if (location == null)
                 return false;
 
+            // This switch is currently unnecessary.  Howevver, it helps support a future where location.NavigateTo becomes
+            // async and must be on the UI thread.
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            return await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
         }
     }
 
     internal static class IDocumentNavigationServiceExtensions
     {
-        private static Task<bool> SwitchToMainThreadAndNavigateAsync(IThreadingContext threadingContext, INavigableLocation? location, CancellationToken cancellationToken)
-        {
-            return location.NavigateToAsync(threadingContext, cancellationToken);
-        }
-
         public static async Task<bool> TryNavigateToSpanAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
-            var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+            var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, allowInvalidSpan, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToSpanAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
         {
-            var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, options, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+            var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToSpanAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToPositionAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
-            var location = await service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace, options, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+            var location = await service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToPositionAsync(
@@ -61,15 +59,15 @@ namespace Microsoft.CodeAnalysis.Navigation
         {
             var location = await service.GetLocationForPositionAsync(
                 workspace, documentId, position, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToLineAndOffsetAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForLineAndOffsetAsync(
-                workspace, documentId, lineNumber, offset, options, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, cancellationToken).ConfigureAwait(false);
+                workspace, documentId, lineNumber, offset, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }
