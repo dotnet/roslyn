@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor;
+namespace Microsoft.CodeAnalysis.GoToDefinition;
 
 internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
     where TLanguageService : class, ILanguageService
