@@ -5,19 +5,16 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View.ColumnDefinitions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
-    using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.NamingStyle;
-
     [Export(typeof(ITableColumnDefinition))]
-    [Name(Severity)]
+    [Name(ColumnDefinitions.NamingStyle.Severity)]
     internal class NamingStylesSeverityColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
@@ -26,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
         {
         }
 
-        public override string Name => Severity;
+        public override string Name => ColumnDefinitions.NamingStyle.Severity;
         public override string DisplayName => ServicesVSResources.Severity;
         public override bool IsFilterable => false;
         public override bool IsSortable => false;
@@ -34,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingSty
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
         {
-            if (!entry.TryGetValue(Severity, out NamingStyleSetting setting))
+            if (!entry.TryGetValue(ColumnDefinitions.NamingStyle.Severity, out NamingStyleSetting setting))
             {
                 content = null;
                 return false;

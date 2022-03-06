@@ -6,10 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal partial class SettingsAggregator : ISettingsAggregator
     {

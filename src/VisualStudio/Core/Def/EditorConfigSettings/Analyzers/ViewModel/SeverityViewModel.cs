@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class SeverityViewModel
     {

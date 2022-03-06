@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using NamingStylesParser = Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConfigNamingStylesParser;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal static class SourceTextExtensions
     {

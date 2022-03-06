@@ -6,7 +6,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
+namespace Microsoft.VisualStudio.LanguageServices
 {
     internal static class ServiceProviderExtensions
     {

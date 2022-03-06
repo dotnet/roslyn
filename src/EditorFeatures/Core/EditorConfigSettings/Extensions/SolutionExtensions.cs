@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal static class SolutionExtensions
     {

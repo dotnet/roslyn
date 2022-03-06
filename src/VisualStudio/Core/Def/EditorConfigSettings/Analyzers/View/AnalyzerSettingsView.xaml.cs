@@ -4,14 +4,10 @@
 
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     /// <summary>
     /// Interaction logic for AnalyzerSettingsView.xaml

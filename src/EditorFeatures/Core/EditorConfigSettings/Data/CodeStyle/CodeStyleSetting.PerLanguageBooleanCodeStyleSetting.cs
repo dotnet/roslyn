@@ -4,11 +4,10 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.OLE.Interop;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract partial class CodeStyleSetting
     {

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract class SettingsUpdaterBase<TOption, TValue> : ISettingUpdater<TOption, TValue>
     {

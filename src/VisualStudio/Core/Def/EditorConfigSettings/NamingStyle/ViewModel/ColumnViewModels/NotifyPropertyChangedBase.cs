@@ -4,7 +4,7 @@
 
 using System.ComponentModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract class NotifyPropertyChangedBase : INotifyPropertyChanged
     {

@@ -8,12 +8,11 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     [Export(typeof(IEnumSettingViewModelFactory)), Shared]
     internal class OperatorPlacementWhenWrappingViewModelFactory : IEnumSettingViewModelFactory

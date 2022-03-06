@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     /// <summary>
     /// Interaction logic for WhitespaceValueSettingControl.xaml

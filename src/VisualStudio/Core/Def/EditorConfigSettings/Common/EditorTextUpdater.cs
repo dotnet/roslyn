@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class EditorTextUpdater
     {

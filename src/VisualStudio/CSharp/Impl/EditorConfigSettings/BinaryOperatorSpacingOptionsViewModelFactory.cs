@@ -5,12 +5,11 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
 {
     [Export(typeof(IEnumSettingViewModelFactory)), Shared]
     internal class BinaryOperatorSpacingOptionsViewModelFactory : IEnumSettingViewModelFactory

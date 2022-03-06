@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Windows.Controls;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     /// <summary>
     /// Interaction logic for NamingStylesStyleControl.xaml

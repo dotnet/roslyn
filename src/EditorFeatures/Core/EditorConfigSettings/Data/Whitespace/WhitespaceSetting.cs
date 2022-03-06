@@ -4,10 +4,9 @@
 
 using System;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract class WhitespaceSetting
     {

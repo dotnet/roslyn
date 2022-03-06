@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal interface ISettingUpdater<TSetting, TValue>
     {

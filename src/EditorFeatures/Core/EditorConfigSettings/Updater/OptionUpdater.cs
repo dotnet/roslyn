@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
-
     internal class OptionUpdater : SettingsUpdaterBase<IOption2, object>
     {
         public OptionUpdater(Workspace workspace, string editorconfigPath)

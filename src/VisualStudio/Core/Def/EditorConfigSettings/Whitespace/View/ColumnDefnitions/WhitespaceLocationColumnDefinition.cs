@@ -5,14 +5,14 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Whitespace;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View.ColumnDefnitions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     [Export(typeof(ITableColumnDefinition))]
-    [Name(Location)]
+    [Name(ColumnDefinitions.Whitespace.Location)]
     internal class WhitespaceLocationColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
         {
         }
 
-        public override string Name => Location;
+        public override string Name => ColumnDefinitions.Whitespace.Location;
         public override string DisplayName => ServicesVSResources.Location;
         public override double MinWidth => 350;
         public override bool DefaultVisible => true;

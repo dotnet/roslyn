@@ -6,14 +6,13 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
-{
-    internal static class EditAndContinueErrorTypeDefinition
-    {
-        public const string Name = "Edit and Continue";
+namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-        [Export(typeof(ErrorTypeDefinition))]
-        [Name(Name)]
-        internal static ErrorTypeDefinition? Definition;
-    }
+internal static class EditAndContinueErrorTypeDefinition
+{
+    public const string Name = "Edit and Continue";
+
+    [Export(typeof(ErrorTypeDefinition))]
+    [Name(Name)]
+    internal static ErrorTypeDefinition? Definition;
 }

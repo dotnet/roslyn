@@ -5,8 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract class EnumSettingViewModel<T> : IEnumSettingViewModel
         where T : Enum

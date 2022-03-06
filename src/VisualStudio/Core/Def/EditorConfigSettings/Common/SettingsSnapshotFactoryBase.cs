@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract class SettingsSnapshotFactoryBase<T, TEntriesSnapshot> : TableEntriesSnapshotFactoryBase
         where TEntriesSnapshot : SettingsEntriesSnapshotBase<T>

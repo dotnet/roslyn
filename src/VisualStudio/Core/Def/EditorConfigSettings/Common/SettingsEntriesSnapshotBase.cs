@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal abstract class SettingsEntriesSnapshotBase<T> : WpfTableEntriesSnapshotBase
     {

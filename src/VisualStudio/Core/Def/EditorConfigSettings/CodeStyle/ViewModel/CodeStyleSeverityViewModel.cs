@@ -4,9 +4,9 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class CodeStyleSeverityViewModel
     {

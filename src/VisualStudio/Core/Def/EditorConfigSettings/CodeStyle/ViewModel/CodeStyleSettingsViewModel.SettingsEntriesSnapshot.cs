@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal partial class CodeStyleSettingsViewModel
     {

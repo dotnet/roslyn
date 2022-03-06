@@ -5,14 +5,14 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.CodeStyle;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.ColumnDefinitions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     [Export(typeof(ITableColumnDefinition))]
-    [Name(Location)]
+    [Name(ColumnDefinitions.CodeStyle.Location)]
     internal class CodeStyleLocationColumnDefinition : TableColumnDefinitionBase
     {
         [ImportingConstructor]
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         {
         }
 
-        public override string Name => Location;
+        public override string Name => ColumnDefinitions.CodeStyle.Location;
         public override string DisplayName => ServicesVSResources.Location;
         public override double MinWidth => 350;
         public override bool DefaultVisible => true;

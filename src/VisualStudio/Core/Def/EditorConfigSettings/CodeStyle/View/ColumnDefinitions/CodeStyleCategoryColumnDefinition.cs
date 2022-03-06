@@ -6,11 +6,12 @@ using System;
 using System.ComponentModel.Composition;
 using System.Windows;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.CodeStyle;
+using static Microsoft.CodeAnalysis.EditorConfigSettings.ColumnDefinitions.CodeStyle;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.ColumnDefinitions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     [Export(typeof(IDefaultColumnGroup))]
     [Name(nameof(CodeStyleCategoryGroupingSet))]    // Required, name of the default group

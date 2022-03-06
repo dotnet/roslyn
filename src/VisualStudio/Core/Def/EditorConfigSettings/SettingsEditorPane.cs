@@ -5,21 +5,11 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -27,7 +17,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TextManager.Interop;
 using static Microsoft.VisualStudio.VSConstants;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal sealed partial class SettingsEditorPane : WindowPane, IOleComponent, IVsDeferredDocView, IVsLinkedUndoClient
     {

@@ -5,11 +5,12 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Analyzer;
+using static Microsoft.CodeAnalysis.EditorConfigSettings.ColumnDefinitions.Analyzer;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View.ColumnDefinitions
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
 
     [Export(typeof(ITableColumnDefinition))]

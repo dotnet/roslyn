@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.ComponentModel;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.VisualStudio.LanguageServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal class NamingStylesLocationViewModel : NotifyPropertyChangedBase
     {

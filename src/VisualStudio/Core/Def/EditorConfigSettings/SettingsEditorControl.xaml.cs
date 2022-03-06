@@ -9,12 +9,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     /// <summary>
     /// Interaction logic for SettingsEditorControl.xaml

@@ -5,10 +5,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
+using Microsoft.VisualStudio.LanguageServices.CSharp;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.CSharp.EditorConfigSettings
 {
     internal class BinaryOperatorSpacingOptionsViewModel : EnumSettingViewModel<BinaryOperatorSpacingOptions>
     {

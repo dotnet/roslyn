@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+using Microsoft.CodeAnalysis.EditorConfigSettings;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
-
     internal partial class AnalyzerSettingsViewModel : SettingsViewModelBase<
         AnalyzerSetting,
         AnalyzerSettingsViewModel.SettingsSnapshotFactory,

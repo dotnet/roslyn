@@ -7,7 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
 
     [ExportWorkspaceServiceFactory(typeof(ISettingsAggregator), ServiceLayer.Default), Shared]

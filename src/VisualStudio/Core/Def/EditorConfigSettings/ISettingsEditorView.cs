@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.EditorConfigSettings
 {
     internal interface ISettingsEditorView
     {
