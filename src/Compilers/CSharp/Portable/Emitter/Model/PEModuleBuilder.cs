@@ -1810,6 +1810,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert((object?)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowFunctionName)!.GetInternalSymbol() == internalSymbol.ThrowMethod);
             return internalSymbol;
         }
+
+        /// <summary>
+        /// Creates the ThrowSwitchExpressionException helper if needed.
+        /// </summary>
+        internal MethodSymbol EnsureThrowSwitchExpressionExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        {
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var throwSwitchExpressionAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName);
+            if (throwSwitchExpressionAdapter is not null)
+            {
+                return (MethodSymbol)throwSwitchExpressionAdapter.GetInternalSymbol()!;
+            }
+
+            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+            TypeSymbol unmatchedValueType = factory.SpecialType(SpecialType.System_Object);
+            var sourceModule = SourceModule;
+
+            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedThrowSwitchExpressionExceptionMethod(sourceModule, privateImplClass, returnType, unmatchedValueType).GetCciAdapter());
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName)!.GetInternalSymbol()!;
+        }
+
+        /// <summary>
+        /// Creates the ThrowSwitchExpressionException helper if needed.
+        /// </summary>
+        internal MethodSymbol EnsureThrowSwitchExpressionExceptionParameterlessExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        {
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var throwSwitchExpressionAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName);
+            if (throwSwitchExpressionAdapter is not null)
+            {
+                return (MethodSymbol)throwSwitchExpressionAdapter.GetInternalSymbol()!;
+            }
+
+            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+            var sourceModule = SourceModule;
+
+            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedParameterlessThrowMethod(
+                sourceModule,
+                privateImplClass,
+                returnType,
+                PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
+                WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor).GetCciAdapter());
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName)!.GetInternalSymbol()!;
+        }
+
+        /// <summary>
+        /// Creates the ThrowInvalidOperationException helper if needed.
+        /// </summary>
+        internal MethodSymbol EnsureThrowInvalidOperationExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        {
+            var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
+            var throwAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName);
+            if (throwAdapter is not null)
+            {
+                return (MethodSymbol)throwAdapter.GetInternalSymbol()!;
+            }
+
+            TypeSymbol returnType = factory.SpecialType(SpecialType.System_Void);
+            var sourceModule = SourceModule;
+
+            // use add-then-get pattern to ensure the symbol exists, and then ensure we use the single "canonical" instance added by whichever thread won the race.
+            privateImplClass.TryAddSynthesizedMethod(new SynthesizedParameterlessThrowMethod(
+                sourceModule,
+                privateImplClass,
+                returnType,
+                PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName,
+                WellKnownMember.System_InvalidOperationException__ctor).GetCciAdapter());
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName)!.GetInternalSymbol()!;
+        }
 #nullable disable
 
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetAdditionalTopLevelTypeDefinitions(EmitContext context)
