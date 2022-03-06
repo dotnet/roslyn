@@ -298,10 +298,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             if (navigationOperation != null && workspace.CanOpenDocuments)
             {
                 var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-                var location = await navigationService.GetLocationForPositionAsync(
-                    workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                await navigationService.TryNavigateToPositionAsync(
+                    this.ThreadingContext, workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
