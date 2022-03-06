@@ -26,37 +26,32 @@ namespace Microsoft.CodeAnalysis.Navigation
 
     internal static class IDocumentNavigationServiceExtensions
     {
-        private static Task<bool> SwitchToMainThreadAndNavigateAsync(IThreadingContext threadingContext, INavigableLocation? location, NavigationOptions options, CancellationToken cancellationToken)
-        {
-            return location.NavigateToAsync(threadingContext, options, cancellationToken);
-        }
-
         public static async Task<bool> TryNavigateToSpanAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, allowInvalidSpan, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, options, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToSpanAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, options, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToSpanAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForSpanAsync(workspace, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToPositionAsync(
             this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
             var location = await service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, options, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToPositionAsync(
@@ -64,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         {
             var location = await service.GetLocationForPositionAsync(
                 workspace, documentId, position, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<bool> TryNavigateToLineAndOffsetAsync(
@@ -72,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         {
             var location = await service.GetLocationForLineAndOffsetAsync(
                 workspace, documentId, lineNumber, offset, cancellationToken).ConfigureAwait(false);
-            return await SwitchToMainThreadAndNavigateAsync(threadingContext, location, options, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }
