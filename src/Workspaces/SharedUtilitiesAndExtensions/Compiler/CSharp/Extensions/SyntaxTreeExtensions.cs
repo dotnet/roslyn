@@ -370,16 +370,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var sourceText = token.SyntaxTree!.GetText(cancellationToken);
                 var startDelimeterLength = 0;
                 var endDelimeterLength = 0;
-                for (int i = token.SpanStart, n = token.Span.End; i < n; position++)
+                for (int i = token.SpanStart, n = token.Span.End; i < n; i++)
                 {
-                    if (sourceText[i] == '"')
-                        startDelimeterLength++;
+                    if (sourceText[i] != '"')
+                        break;
+
+                    startDelimeterLength++;
                 }
 
                 for (int i = token.Span.End - 1, n = token.Span.Start; i >= n; i--)
                 {
-                    if (sourceText[i] == '"')
-                        endDelimeterLength++;
+                    if (sourceText[i] != '"')
+                        break;
+
+                    endDelimeterLength++;
                 }
 
                 return token.Span.Length == startDelimeterLength ||

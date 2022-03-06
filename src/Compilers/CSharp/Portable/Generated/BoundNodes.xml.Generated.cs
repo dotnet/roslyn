@@ -6211,7 +6211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAttribute : BoundExpression
     {
-        public BoundAttribute(SyntaxNode syntax, MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundAttribute(SyntaxNode syntax, MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, BitVector constructorDefaultArguments, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Attribute, syntax, type, hasErrors || constructorArguments.HasErrors() || namedArguments.HasErrors())
         {
 
@@ -6224,6 +6224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstructorArgumentNamesOpt = constructorArgumentNamesOpt;
             this.ConstructorArgumentsToParamsOpt = constructorArgumentsToParamsOpt;
             this.ConstructorExpanded = constructorExpanded;
+            this.ConstructorDefaultArguments = constructorDefaultArguments;
             this.NamedArguments = namedArguments;
             this._ResultKind = resultKind;
         }
@@ -6241,6 +6242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ConstructorExpanded { get; }
 
+        public BitVector ConstructorDefaultArguments { get; }
+
         public ImmutableArray<BoundAssignmentOperator> NamedArguments { get; }
 
         private readonly LookupResultKind _ResultKind;
@@ -6248,11 +6251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAttribute(this);
 
-        public BoundAttribute Update(MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type)
+        public BoundAttribute Update(MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, BitVector constructorDefaultArguments, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || constructorDefaultArguments != this.ConstructorDefaultArguments || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAttribute(this.Syntax, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, namedArguments, resultKind, type, this.HasErrors);
+                var result = new BoundAttribute(this.Syntax, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, constructorDefaultArguments, namedArguments, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11546,7 +11549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> constructorArguments = this.VisitList(node.ConstructorArguments);
             ImmutableArray<BoundAssignmentOperator> namedArguments = this.VisitList(node.NamedArguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, namedArguments, node.ResultKind, type);
+            return node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, type);
         }
         public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
@@ -13610,12 +13613,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, namedArguments, node.ResultKind, infoAndType.Type!);
+                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, namedArguments, node.ResultKind, node.Type);
+                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, node.Type);
             }
             return updatedNode;
         }
@@ -15905,6 +15908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("constructorArgumentNamesOpt", node.ConstructorArgumentNamesOpt, null),
             new TreeDumperNode("constructorArgumentsToParamsOpt", node.ConstructorArgumentsToParamsOpt, null),
             new TreeDumperNode("constructorExpanded", node.ConstructorExpanded, null),
+            new TreeDumperNode("constructorDefaultArguments", node.ConstructorDefaultArguments, null),
             new TreeDumperNode("namedArguments", null, from x in node.NamedArguments select Visit(x, null)),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),

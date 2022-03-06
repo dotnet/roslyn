@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Navigation
 {
     internal sealed class DefaultSymbolNavigationService : ISymbolNavigationService
     {
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
-            => false;
+        public Task<bool> TryNavigateToSymbolAsync(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
         public Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
             => SpecializedTasks.False;

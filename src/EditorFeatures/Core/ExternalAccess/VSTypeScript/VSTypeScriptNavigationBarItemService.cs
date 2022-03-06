@@ -22,16 +22,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
     [ExportLanguageService(typeof(INavigationBarItemService), InternalLanguageNames.TypeScript), Shared]
     internal class VSTypeScriptNavigationBarItemService : INavigationBarItemService
     {
-        private readonly IThreadingContext _threadingContext;
         private readonly IVSTypeScriptNavigationBarItemService _service;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VSTypeScriptNavigationBarItemService(
-            IThreadingContext threadingContext,
             IVSTypeScriptNavigationBarItemService service)
         {
-            _threadingContext = threadingContext;
             _service = service;
         }
 
@@ -50,11 +47,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         {
             // Spans.First() is safe here as we filtered out any items with no spans above in ConvertItems.
             var navigationSpan = item.GetCurrentItemSpan(textVersion, item.Spans.First());
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var workspace = document.Project.Solution.Workspace;
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            navigationService.TryNavigateToPosition(workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken);
+            await navigationService.TryNavigateToPositionAsync(
+                workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
 
             return true;
         }
