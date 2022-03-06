@@ -43,17 +43,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var bracePair = node.GetBracePair();
 
-            // don't put block indentation operation if the block only contains lambda expression body block
-            if (node.IsLambdaBodyBlock() || !bracePair.IsValidBracketOrBracePair())
+            if (!_options.Indentation.HasFlag(IndentationPlacement.Braces) || !bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }
 
-            if (_options.Indentation.HasFlag(IndentationPlacement.Braces))
+            AddIndentBlockOperation(list, bracePair.openBrace, bracePair.openBrace, bracePair.openBrace.Span);
+
+            // don't indent closing brace, because it is aligned with opening brace
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock())
             {
-                AddIndentBlockOperation(list, bracePair.openBrace, bracePair.openBrace, bracePair.openBrace.Span);
-                AddIndentBlockOperation(list, bracePair.closeBrace, bracePair.closeBrace, bracePair.closeBrace.Span);
+                return;
             }
+
+            AddIndentBlockOperation(list, bracePair.closeBrace, bracePair.closeBrace, bracePair.closeBrace.Span);
         }
     }
 }

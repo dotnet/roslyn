@@ -10805,5 +10805,44 @@ var s = $""""""{s,0: x }""""""
 var s = $""""""{s, 0 : x }""""""
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task AnonymousMethodIntendBraces_01()
+        {
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { IndentBraces, true },
+                { NewLinesForBracesInAnonymousMethods, true }
+            };
+
+            var code = @"
+delegate () {
+}";
+            var expected = @"
+delegate ()
+    {
+    }";
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task AnonymousMethodIntendBraces_02()
+        {
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { IndentBraces, true },
+                { NewLinesForBracesInAnonymousMethods, true }
+            };
+
+            var code = @"
+delegate () 
+        {
+}";
+            var expected = @"
+delegate ()
+        {
+        }";
+            await AssertFormatAsync(expected, code, changedOptionSet: options);
+        }
     }
 }
