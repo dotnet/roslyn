@@ -77,6 +77,10 @@ public class Test
 
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
             VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null, null$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
@@ -320,6 +324,10 @@ public class Test
 
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
             VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null, null$$)", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(';');
@@ -419,6 +427,10 @@ public class Test
 
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
             VisualStudio.Editor.Verify.CurrentLineText("object.Equals$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$", assertCaretPosition: true);
 
             VisualStudio.Editor.SendKeys(VirtualKey.Tab);
             VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
