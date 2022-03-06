@@ -4517,11 +4517,6 @@ tryAgain:
                         this.GetExpectedTokenError(expected: SyntaxKind.ExclamationExclamationToken, actual: firstExclamation.Kind));
                 }
             }
-            else if (this.CurrentToken.Kind is SyntaxKind.ExclamationExclamationToken)
-            {
-                // This is reachable for incremental parsing.
-                exclamationExclamationToken = EatToken();
-            }
 
             if (exclamationExclamationToken != null)
                 exclamationExclamationToken = CheckFeatureAvailability(exclamationExclamationToken, MessageID.IDS_ParameterNullChecking);
