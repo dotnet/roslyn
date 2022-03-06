@@ -208,7 +208,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
-            var defaultAccess = isInterface && isPartial && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && !isPartial && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            // | isInterface | isPartial | isExplicitInterfaceImplementation |
+            // |-------------|-----------|-----------------------------------|
+            // |    false    |   false   |              false                |    => private
+            // |    false    |   false   |              true                 |    => private
+            // |    false    |   true    |              false                |    => private
+            // |    false    |   true    |              true                 |    => private
+            // |    true     |   false   |              false                |    => public  => None (see code path below which sets defaultAccess to DeclarationModifiers.None)
+            // |    true     |   false   |              true                 |    => private
+            // |    true     |   true    |              false                |    => private => None (see code path below which sets defaultAccess to DeclarationModifiers.None)
+            // |    true     |   true    |              true                 |    => private
+
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
