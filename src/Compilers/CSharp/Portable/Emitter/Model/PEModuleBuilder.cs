@@ -1854,7 +1854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 returnType,
                 PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
                 WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor).GetCciAdapter());
-            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName)!.GetInternalSymbol()!;
+            return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName)!.GetInternalSymbol()!;
         }
 
         /// <summary>
