@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return await SourceSpans[0].CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+            public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
                     return null;
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
                         var navigationService = workspace.Services.GetRequiredService<ISymbolNavigationService>();
                         return await navigationService.GetNavigableLocationAsync(
-                            symbol, project, options with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
+                            symbol, project, cancellationToken).ConfigureAwait(false);
                     }
 
                     return null;
                 }
 
-                return await SourceSpans[0].GetNavigableLocationAsync(options, cancellationToken).ConfigureAwait(false);
+                return await SourceSpans[0].GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
             }
 
             public DetachedDefinitionItem Detach()

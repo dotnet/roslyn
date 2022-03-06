@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var location = await navigationService.GetLocationForPositionAsync(
                     workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
                 if (location != null)
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     var location = await navigationService.GetLocationForPositionAsync(
                         workspace, documentId, navigationToken.Value.SpanStart, cancellationToken).ConfigureAwait(false);
                     if (location != null)
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                        await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                     return;
                 }
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                                 editorWorkspace, documentId, resolvedRenameToken.Span, cancellationToken).ConfigureAwait(false);
 
                             if (location != null &&
-                                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false))
+                                await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false))
                             {
                                 var openDocument = workspace.CurrentSolution.GetRequiredDocument(documentId);
                                 var openRoot = await openDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

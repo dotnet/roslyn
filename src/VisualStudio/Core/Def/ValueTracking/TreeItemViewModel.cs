@@ -116,9 +116,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             this.ThreadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var location = await navigationService.GetLocationForLineAndOffsetAsync(
-                    Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken).ConfigureAwait(false);
+                    Workspace, DocumentId, LineSpan.Start, 0, ThreadingContext.DisposalToken).ConfigureAwait(false);
                 if (location != null)
-                    await location.NavigateToAsync(ThreadingContext.DisposalToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(options, ThreadingContext.DisposalToken).ConfigureAwait(false);
             });
         }
 

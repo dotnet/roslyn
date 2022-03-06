@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -17,6 +14,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         /// <summary>
         /// A optional classifier that can produce <see cref="ClassifiedSpan"/>s for an embedded language string.
         /// </summary>
-        ISyntaxClassifier Classifier { get; }
+        IEmbeddedLanguageClassifier? Classifier { get; }
     }
 }

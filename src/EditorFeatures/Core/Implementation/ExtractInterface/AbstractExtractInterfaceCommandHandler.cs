@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                     var location = await navigationService.GetLocationForPositionAsync(
                         workspace, result.NavigationDocumentId, 0, CancellationToken.None).ConfigureAwait(false);
                     if (location != null)
-                        await location.NavigateToAsync(CancellationToken.None).ConfigureAwait(false);
+                        await location.NavigateToAsync(NavigationOptions.Default, CancellationToken.None).ConfigureAwait(false);
                 });
 
                 return true;

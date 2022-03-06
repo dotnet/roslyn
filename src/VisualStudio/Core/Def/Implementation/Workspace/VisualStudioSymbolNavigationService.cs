@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public async Task<INavigableLocation?> GetNavigableLocationAsync(
-            ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
+            ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
             {
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
                     return await navigationService.GetLocationForSpanAsync(
                         editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan,
-                        options, allowInvalidSpan: false, cancellationToken).ConfigureAwait(false);
+                        allowInvalidSpan: false, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 if (navInfo != null)
                 {
                     var navigationTool = IServiceProviderExtensions.GetService<SVsObjBrowser, IVsNavigationTool>(_serviceProvider);
-                    return new NavigableLocation(async cancellationToken =>
+                    return new NavigableLocation(async (options, cancellationToken) =>
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
@@ -120,17 +120,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            return await GetNavigableLocationForMetadataAsync(project, symbol, options, cancellationToken).ConfigureAwait(false);
+            return await GetNavigableLocationForMetadataAsync(project, symbol, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
-            Project project, ISymbol symbol, NavigationOptions options, CancellationToken cancellationToken)
+            Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
             var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
 
             var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
 
-            return new NavigableLocation(async cancellationToken =>
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -170,10 +170,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         editorWorkspace,
                         openedDocument.Id,
                         result.IdentifierLocation.SourceSpan,
-                        options with { PreferProvisionalTab = true },
                         cancellationToken).ConfigureAwait(false);
                     return location != null &&
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                        await location.NavigateToAsync(options with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
                 }
 
                 return true;

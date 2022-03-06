@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Immutable;
-using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -23,29 +18,28 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// <summary>
     /// Classifier impl for embedded regex strings.
     /// </summary>
-    internal sealed class RegexSyntaxClassifier : AbstractSyntaxClassifier
+    internal sealed class RegexEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         private static readonly ObjectPool<Visitor> s_visitorPool = SharedPools.Default<Visitor>();
 
         private readonly EmbeddedLanguageInfo _info;
 
-        public override ImmutableArray<int> SyntaxTokenKinds { get; }
-
-        public RegexSyntaxClassifier(EmbeddedLanguageInfo info)
+        public RegexEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-            SyntaxTokenKinds = _info.AllStringLiteralKinds;
         }
 
-        public override void AddClassifications(
-            SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
-            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public void RegisterClassifications(EmbeddedLanguageClassifierContext context)
         {
+            var token = context.SyntaxToken;
             if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
 
-            if (!options.ColorizeRegexPatterns)
+            if (!context.Options.ColorizeRegexPatterns)
                 return;
+
+            var semanticModel = context.SemanticModel;
+            var cancellationToken = context.CancellationToken;
 
             var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
             var tree = detector.TryParseString(token, semanticModel, cancellationToken);
@@ -55,17 +49,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var visitor = s_visitorPool.Allocate();
             try
             {
-                visitor.Result = result;
-                AddClassifications(tree.Root, visitor, result);
+                visitor.Context = context;
+                AddClassifications(tree.Root, visitor, context);
             }
             finally
             {
-                visitor.Result = null;
+                visitor.Context = default;
                 s_visitorPool.Free(visitor);
             }
         }
 
-        private static void AddClassifications(RegexNode node, Visitor visitor, ArrayBuilder<ClassifiedSpan> result)
+        private static void AddClassifications(RegexNode node, Visitor visitor, EmbeddedLanguageClassifierContext context)
         {
             node.Accept(visitor);
 
@@ -73,43 +67,38 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             {
                 if (child.IsNode)
                 {
-                    AddClassifications(child.Node, visitor, result);
+                    AddClassifications(child.Node, visitor, context);
                 }
                 else
                 {
-                    AddTriviaClassifications(child.Token, result);
+                    AddTriviaClassifications(child.Token, context);
                 }
             }
         }
 
-        private static void AddTriviaClassifications(RegexToken token, ArrayBuilder<ClassifiedSpan> result)
+        private static void AddTriviaClassifications(RegexToken token, EmbeddedLanguageClassifierContext context)
         {
             foreach (var trivia in token.LeadingTrivia)
-            {
-                AddTriviaClassifications(trivia, result);
-            }
+                AddTriviaClassifications(trivia, context);
         }
 
-        private static void AddTriviaClassifications(RegexTrivia trivia, ArrayBuilder<ClassifiedSpan> result)
+        private static void AddTriviaClassifications(RegexTrivia trivia, EmbeddedLanguageClassifierContext context)
         {
             if (trivia.Kind == RegexKind.CommentTrivia &&
                 trivia.VirtualChars.Length > 0)
             {
-                result.Add(new ClassifiedSpan(
-                    ClassificationTypeNames.RegexComment, GetSpan(trivia.VirtualChars)));
+                context.AddClassification(ClassificationTypeNames.RegexComment, GetSpan(trivia.VirtualChars));
             }
         }
 
         private class Visitor : IRegexNodeVisitor
         {
-            public ArrayBuilder<ClassifiedSpan> Result;
+            public EmbeddedLanguageClassifierContext Context;
 
             private void AddClassification(RegexToken token, string typeName)
             {
                 if (!token.IsMissing)
-                {
-                    Result.Add(new ClassifiedSpan(typeName, token.GetSpan()));
-                }
+                    Context.AddClassification(typeName, token.GetSpan());
             }
 
             private void ClassifyWholeNode(RegexNode node, string typeName)
@@ -309,10 +298,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             {
                 // The .NET parser just interprets the [ of the node, and skips the rest. So
                 // classify the end part as a comment.
-                Result.Add(new ClassifiedSpan(node.TextToken.VirtualChars[0].Span, ClassificationTypeNames.RegexText));
-                Result.Add(new ClassifiedSpan(
-                    GetSpan(node.TextToken.VirtualChars[1], node.TextToken.VirtualChars.Last()),
-                    ClassificationTypeNames.RegexComment));
+                Context.AddClassification(ClassificationTypeNames.RegexText, node.TextToken.VirtualChars[0].Span);
+                Context.AddClassification(
+                    ClassificationTypeNames.RegexComment,
+                    GetSpan(node.TextToken.VirtualChars[1], node.TextToken.VirtualChars.Last()));
             }
 
             public void Visit(RegexAlternationNode node)

@@ -84,9 +84,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             if (canNavigate)
             {
                 var location = await definition.GetNavigableLocationAsync(
-                    _workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
+                    _workspace, cancellationToken).ConfigureAwait(false);
                 if (location != null)
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -141,9 +141,9 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     var location = await navigationService.GetLocationForLineAndOffsetAsync(
-                        _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
+                        _workspace, document.Id, lineNumber - 1, offset: 0, cancellationToken).ConfigureAwait(false);
                     if (location != null)
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                        await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))

@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var location = await service.GetLocationForSpanAsync(
-                    workspace, documentId, textSpan, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
+                    workspace, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                 return location != null &&
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var location = await service.GetLocationForPositionAsync(
-                    workspace, documentId, lineNumber, offset, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
+                    workspace, documentId, lineNumber, offset, cancellationToken).ConfigureAwait(false);
                 return location != null &&
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var location = await service.GetLocationForPositionAsync(
-                    workspace, documentId, position, virtualSpace, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
+                    workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
                 return location != null &&
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken).ConfigureAwait(false);
             });
         }
     }

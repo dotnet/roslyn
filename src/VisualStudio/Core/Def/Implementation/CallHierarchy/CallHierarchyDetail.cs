@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
                     var location = await navigator.GetLocationForSpanAsync(
-                        _workspace, document.Id, _span, options, CancellationToken.None).ConfigureAwait(false);
+                        _workspace, document.Id, _span, CancellationToken.None).ConfigureAwait(false);
                     if (location != null)
-                        await location.NavigateToAsync(CancellationToken.None).ConfigureAwait(false);
+                        await location.NavigateToAsync(options, CancellationToken.None).ConfigureAwait(false);
                 });
             }
         }

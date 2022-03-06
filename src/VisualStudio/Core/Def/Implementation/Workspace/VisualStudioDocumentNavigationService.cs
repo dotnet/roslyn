@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public async Task<INavigableLocation?> GetLocationForSpanAsync(
-            Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
+            Workspace workspace, DocumentId documentId, TextSpan textSpan, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             if (!await this.CanNavigateToSpanAsync(workspace, documentId, textSpan, allowInvalidSpan, cancellationToken).ConfigureAwait(false))
                 return null;
@@ -135,12 +135,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 documentId,
                 _ => Task.FromResult(textSpan),
                 text => GetVsTextSpan(text, textSpan, allowInvalidSpan),
-                options,
                 cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<INavigableLocation?> GetLocationForLineAndOffsetAsync(
-            Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
+            Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
         {
             if (!await this.CanNavigateToLineAndOffsetAsync(workspace, documentId, lineNumber, offset, cancellationToken).ConfigureAwait(false))
                 return null;
@@ -149,7 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 documentId,
                 document => GetTextSpanFromLineAndOffsetAsync(document, lineNumber, offset, cancellationToken),
                 text => GetVsTextSpan(text, lineNumber, offset),
-                options,
                 cancellationToken).ConfigureAwait(false);
 
             static async Task<TextSpan> GetTextSpanFromLineAndOffsetAsync(Document document, int lineNumber, int offset, CancellationToken cancellationToken)
@@ -167,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public async Task<INavigableLocation?> GetLocationForPositionAsync(
-            Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+            Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             if (!await this.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false))
                 return null;
@@ -176,7 +174,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 documentId,
                 document => GetTextSpanFromPositionAsync(document, position, virtualSpace, cancellationToken),
                 text => GetVsTextSpan(text, position, virtualSpace),
-                options,
                 cancellationToken).ConfigureAwait(false);
 
             static async Task<TextSpan> GetTextSpanFromPositionAsync(Document document, int position, int virtualSpace, CancellationToken cancellationToken)
@@ -213,7 +210,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             DocumentId documentId,
             Func<Document, Task<TextSpan>> getTextSpanForMappingAsync,
             Func<SourceText, VsTextSpan> getVsTextSpan,
-            NavigationOptions options,
             CancellationToken cancellationToken)
         {
             var callback = await GetNavigationCallbackAsync(
@@ -221,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (callback == null)
                 return null;
 
-            return new NavigableLocation(async cancellationToken =>
+            return new NavigableLocation(async (options, cancellationToken) =>
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 using (OpenNewDocumentStateScope(options))

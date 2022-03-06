@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
             var location = await navigationService.GetLocationForPositionAsync(
-                workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
 
             if (location != null)
             {
-                await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                 return;
             }
             else

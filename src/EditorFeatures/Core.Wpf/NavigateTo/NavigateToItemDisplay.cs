@@ -123,11 +123,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     workspace,
                     document.Id,
                     _searchResult.NavigableItem.SourceSpan,
-                    NavigationOptions.Default,
                     allowInvalidSpan: _searchResult.NavigableItem.IsStale,
                     CancellationToken.None).ConfigureAwait(false);
                 if (location != null)
-                    await location.NavigateToAsync(CancellationToken.None).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default, CancellationToken.None).ConfigureAwait(false);
             });
         }
 

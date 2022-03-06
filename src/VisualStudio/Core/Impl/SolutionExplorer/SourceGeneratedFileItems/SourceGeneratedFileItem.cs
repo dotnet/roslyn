@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                             var location = await documentNavigationService.GetLocationForPositionAsync(
                                 item.Workspace, item.DocumentId, position: 0, CancellationToken.None).ConfigureAwait(false);
                             didNavigate |= location != null &&
-                                await location.NavigateToAsync(CancellationToken.None).ConfigureAwait(false);
+                                await location.NavigateToAsync(NavigationOptions.Default, CancellationToken.None).ConfigureAwait(false);
                         }
                     }
 

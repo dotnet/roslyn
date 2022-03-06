@@ -310,10 +310,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
-                    options,
                     cancellationToken).ConfigureAwait(false);
                 if (location != null)
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
             }
         }
     }

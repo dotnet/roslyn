@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -87,7 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 {
                     var location = await asyncService.FindDefinitionLocationAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
                     var success = location != null &&
-                        await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                        await location.NavigateToAsync(
+                            new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
 
                     if (success)
                         return;
