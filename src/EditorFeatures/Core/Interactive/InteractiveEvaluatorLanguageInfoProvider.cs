@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal abstract class InteractiveEvaluatorLanguageInfoProvider
     {

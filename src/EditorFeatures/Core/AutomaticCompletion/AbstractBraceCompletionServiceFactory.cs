@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
     internal abstract class AbstractBraceCompletionServiceFactory : ForegroundThreadAffinitizedObject, IBraceCompletionServiceFactory
     {

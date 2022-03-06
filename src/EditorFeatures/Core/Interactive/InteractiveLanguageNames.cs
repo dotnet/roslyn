@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.Interactive;
 
-namespace Microsoft.CodeAnalysis.Interactive
+internal class InteractiveLanguageNames
 {
-    internal class InteractiveLanguageNames
-    {
-        public const string InteractiveCommand = "Interactive Command";
-    }
+    public const string InteractiveCommand = "Interactive Command";
 }

@@ -6,11 +6,11 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeRefactorings
+namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Editor), Shared]
     internal class EditorLayerCodeActionHelpersService : IWorkspaceServiceFactory

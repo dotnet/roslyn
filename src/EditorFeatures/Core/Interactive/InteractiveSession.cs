@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
