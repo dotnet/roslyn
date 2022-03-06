@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 var location = await navigationService.GetLocationForPositionAsync(
                     workspace, navigationOperation.DocumentId, navigationOperation.Position, cancellationToken).ConfigureAwait(false);
                 if (location != null)
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                 return;
             }
 

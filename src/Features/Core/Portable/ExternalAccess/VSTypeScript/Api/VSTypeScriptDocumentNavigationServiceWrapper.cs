@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             return _threadingProvider.Service.Run(async () =>
             {
                 var location = await obj.GetLocationForPositionAsync(
-                    workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                    workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
                 return location != null &&
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             return _threadingProvider.Service.Run(async () =>
             {
                 var location = await obj.GetLocationForPositionAsync(
-                    workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                    workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
                 return location != null &&
-                    await location.NavigateToAsync(cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
             });
         }
     }

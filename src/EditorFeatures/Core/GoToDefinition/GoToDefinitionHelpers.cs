@@ -113,10 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             var location = await GetDefinitionLocationAsync(
                 symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
-            if (location == null)
-                return false;
-
-            return await location.NavigateToAsync(threadingContext, cancellationToken).ConfigureAwait(false);
+            return await location.NavigateToAsync(
+                threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<INavigableLocation> GetDefinitionLocationAsync(

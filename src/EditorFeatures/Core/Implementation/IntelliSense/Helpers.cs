@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 {
                     var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
                         symbol, solution, threadingContext, streamingPresenter, cancellationToken).ConfigureAwait(false);
-                    await location.NavigateToAsync(threadingContext, cancellationToken).ConfigureAwait(false);
+                    await location.NavigateToAsync(threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

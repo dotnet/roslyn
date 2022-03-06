@@ -52,10 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public async Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
             {
-                // Only activate the tab if requested
                 var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
-                    Presenter._workspace, options, cancellationToken).ConfigureAwait(false);
-                await location.NavigateToAsync(_threadingContext, cancellationToken).ConfigureAwait(false);
+                    Presenter._workspace, cancellationToken).ConfigureAwait(false);
+                await location.NavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
             }
 
             protected override IList<Inline> CreateLineTextInlines()
