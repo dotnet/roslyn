@@ -7,10 +7,6 @@
 docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
-# Notify docs team for new breaking change documentation
-docs/compilers/CSharp @dotnet/docs
-docs/compilers/Visual\ Basic @dotnet/docs
-
 eng/ @dotnet/roslyn-infrastructure
 scripts/ @dotnet/roslyn-infrastructure
 
@@ -44,3 +40,5 @@ src/Compilers/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Workspaces/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
+
+src/Tools/ExternalAccess/OmniSharp*/ @333fred @joerobich
