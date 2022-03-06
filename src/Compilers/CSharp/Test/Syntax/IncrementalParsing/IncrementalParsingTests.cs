@@ -28,12 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
-        private SyntaxTree Parse6(string text)
+        private SyntaxTree Parse(string text, LanguageVersion languageVersion)
         {
-            var options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6);
+            var options = new CSharpParseOptions(languageVersion: languageVersion);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
+
+        private SyntaxTree Parse6(string text)
+            => Parse(text, LanguageVersion.CSharp6);
+
+        private SyntaxTree ParsePreview(string text)
+            => Parse(text, LanguageVersion.Preview);
 
         [Fact]
         public void TestChangeClassNameWithNonMatchingMethod()
@@ -49,6 +55,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
                             SyntaxKind.IdentifierToken);
+        }
+
+        [Fact]
+        public void Test()
+        {
+            var text = @"#nullable enable
+
+public class C {
+    public void M(string? x  !!) { // no error.
+    }
+}";
+            var oldTree = this.ParsePreview(text);
+            var newTree = oldTree.WithReplaceFirst("?", "");
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+
+            // following assert fails.
+            // newTree has "error CS1003: Syntax error, ',' expected"
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs);
         }
 
         [Fact]
@@ -432,7 +459,6 @@ class C { void c() { } }
                             SyntaxKind.IdentifierName,
                             SyntaxKind.SemicolonToken);
         }
-
         #region "Regression"
 
 #if false
