@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind() == SyntaxKind.Attribute)
             {
                 var attribute = (AttributeSyntax)node;
-                return binder.BindAttribute(attribute, AttributeType, diagnostics);
+                // note: we should find the attributed member before binding the attribute as part of https://github.com/dotnet/roslyn/issues/53618
+                return binder.BindAttribute(attribute, AttributeType, attributedMember: null, diagnostics);
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {
