@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SynthesizedParameterlessThrowMethod : SynthesizedGlobalMethodSymbol
     {
-        private readonly WellKnownMember _exceptionConstructor;
+        private readonly MethodSymbol _exceptionConstructor;
 
-        internal SynthesizedParameterlessThrowMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, string synthesizedMethodName, WellKnownMember exceptionConstructor)
+        internal SynthesizedParameterlessThrowMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, TypeSymbol returnType, string synthesizedMethodName, MethodSymbol exceptionConstructor)
             : base(containingModule, privateImplType, returnType, synthesizedMethodName)
         {
             _exceptionConstructor = exceptionConstructor;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var body = F.Block(
                         ImmutableArray<LocalSymbol>.Empty,
-                        F.Throw(F.New(F.WellKnownMethod(_exceptionConstructor), ImmutableArray<BoundExpression>.Empty)));
+                        F.Throw(F.New(_exceptionConstructor, ImmutableArray<BoundExpression>.Empty)));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 F.CloseMethod(body);

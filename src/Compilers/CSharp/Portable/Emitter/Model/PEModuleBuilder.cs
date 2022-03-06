@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 privateImplClass,
                 returnType,
                 PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName,
-                WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor).GetCciAdapter());
+                factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor)).GetCciAdapter());
             return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName)!.GetInternalSymbol()!;
         }
 
@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 privateImplClass,
                 returnType,
                 PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName,
-                WellKnownMember.System_InvalidOperationException__ctor).GetCciAdapter());
+                factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor)).GetCciAdapter());
             return (MethodSymbol)privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName)!.GetInternalSymbol()!;
         }
 #nullable disable
