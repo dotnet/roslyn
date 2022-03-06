@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Throws a <see cref="System.Runtime.CompilerServices.SwitchExpressionException" /> with the given 'unmatchedValue'.
+    /// Throws a 'System.Runtime.CompilerServices.SwitchExpressionException' with the given 'unmatchedValue'.
     /// </summary>
     internal sealed class SynthesizedThrowSwitchExpressionExceptionMethod : SynthesizedGlobalMethodSymbol
     {
