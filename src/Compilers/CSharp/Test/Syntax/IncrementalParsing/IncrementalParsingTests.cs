@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Test()
+        public void TestExclamationExclamation()
         {
             var text = @"#nullable enable
 
@@ -69,13 +69,17 @@ public class C {
             var oldTree = this.ParsePreview(text);
             var newTree = oldTree.WithReplaceFirst("?", "");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-
-            // following assert fails.
-            // newTree has "error CS1003: Syntax error, ',' expected"
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
-            TestDiffsInOrder(diffs);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.MethodDeclaration,
+                            SyntaxKind.ParameterList,
+                            SyntaxKind.Parameter,
+                            SyntaxKind.PredefinedType,
+                            SyntaxKind.StringKeyword);
         }
 
         [Fact]
