@@ -5,6 +5,7 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 
