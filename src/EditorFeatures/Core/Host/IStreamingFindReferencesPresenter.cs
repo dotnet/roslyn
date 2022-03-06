@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             var location = await presenter.GetStreamingLocationAsync(
                 threadingContext, workspace, title, items, cancellationToken).ConfigureAwait(false);
             return await location.NavigateToAsync(
-                threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
