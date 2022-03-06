@@ -7239,10 +7239,16 @@ class C<T> where T : struct? {}
             EOF();
         }
 
-        [Fact]
-        public void TestMethodDeclarationNullValidation()
+        [Theory]
+        [InlineData("!!", false)]
+        [InlineData("  !!", false)]
+        [InlineData("!!", true)]
+        [InlineData("  !!", true)]
+        [WorkItem(59580, "https://github.com/dotnet/roslyn/issues/59580")]
+        public void TestMethodDeclarationNullValidation(string exclamationExclamationToken, bool isTypeNullable)
         {
-            UsingStatement(@"void M(string name!!) { }", options: TestOptions.RegularPreview);
+            string type = isTypeNullable ? "string?" : "string";
+            UsingStatement($@"void M({type} name{exclamationExclamationToken}) {{ }}", options: TestOptions.RegularPreview);
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7255,9 +7261,17 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.OpenParenToken);
                     N(SyntaxKind.Parameter);
                     {
+                        if (isTypeNullable)
+                        {
+                            N(SyntaxKind.NullableType);
+                        }
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.StringKeyword);
+                            if (isTypeNullable)
+                            {
+                                N(SyntaxKind.QuestionToken);
+                            }
                         }
                         N(SyntaxKind.IdentifierToken, "name");
                         N(SyntaxKind.ExclamationExclamationToken);
@@ -7270,6 +7284,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
