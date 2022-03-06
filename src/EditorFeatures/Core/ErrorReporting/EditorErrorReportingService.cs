@@ -3,14 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Extensions;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal class EditorErrorReportingService : IErrorReportingService
+    [ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Editor), Shared]
+    internal sealed class EditorErrorReportingService : IErrorReportingService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public EditorErrorReportingService()
+        {
+        }
+
         public string HostDisplayName => "host";
 
         public void ShowDetailedErrorInfo(Exception exception)

@@ -4,19 +4,10 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Extensions
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
-    internal interface IInfoBarService : IWorkspaceService
-    {
-        /// <summary>
-        /// Show global info bar
-        /// </summary>
-        void ShowInfoBar(string message, params InfoBarUI[] items);
-    }
-
     internal struct InfoBarUI
     {
         public readonly string? Title;

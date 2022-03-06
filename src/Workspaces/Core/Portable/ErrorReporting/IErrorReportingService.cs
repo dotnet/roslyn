@@ -6,7 +6,7 @@ using System;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Telemetry;
 
-namespace Microsoft.CodeAnalysis.Extensions
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal interface IErrorReportingService : IWorkspaceService
     {

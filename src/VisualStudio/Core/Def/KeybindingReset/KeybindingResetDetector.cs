@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
         private readonly IGlobalOptionService _globalOptions;
         private readonly System.IServiceProvider _serviceProvider;
-        private readonly VisualStudioInfoBarService _infoBarService;
+        private readonly VisualStudioInfoBar _infoBarService;
 
         // All mutable fields are UI-thread affinitized
 
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
         public KeybindingResetDetector(
             IThreadingContext threadingContext,
             IGlobalOptionService globalOptions,
-            VisualStudioInfoBarService infoBarService,
+            VisualStudioInfoBar infoBarService,
             SVsServiceProvider serviceProvider)
             : base(threadingContext)
         {
