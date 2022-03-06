@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -38,6 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     internal sealed class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource, IDisposable
     {
         private readonly Workspace _workspace;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly IGlobalOperationNotificationService _notificationService;
         private readonly CancellationToken _disposalToken;
@@ -72,12 +74,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private ImmutableArray<DiagnosticData> _lastBuiltResult = ImmutableArray<DiagnosticData>.Empty;
 
         public ExternalErrorDiagnosticUpdateSource(
+            IGlobalOptionService globalOptions,
             VisualStudioWorkspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
-            : this(workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
+            : this(globalOptions, workspace, diagnosticService, listenerProvider.GetListener(FeatureAttribute.ErrorList), threadingContext.DisposalToken)
         {
             registrationService.Register(this);
         }
@@ -86,6 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         /// internal for testing
         /// </summary>
         internal ExternalErrorDiagnosticUpdateSource(
+            IGlobalOptionService globalOptions,
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
             IAsynchronousOperationListener listener,
@@ -95,6 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _postBuildAndErrorListRefreshTaskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _disposalToken = disposalToken;
+            _globalOptions = globalOptions;
 
             _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
@@ -301,8 +306,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     // user might have built solution before workspace fires its first event yet (which is when solution crawler is initialized)
                     // here we give initializeLazily: false so that solution crawler is fully initialized when we do de-dup live and build errors,
                     // otherwise, we will think none of error we have here belong to live errors since diagnostic service is not initialized yet.
-                    var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                    registrationService.EnsureRegistration(_workspace, initializeLazily: false);
+                    if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                    {
+                        var registrationService = (SolutionCrawlerRegistrationService)_workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+                        registrationService.EnsureRegistration(_workspace, initializeLazily: false);
+                    }
 
                     // Mark the status as updated to refresh error list before we invoke 'SyncBuildErrorsAndReportAsync', which can take some time to complete.
                     OnBuildProgressChanged(inProgressState, BuildProgress.Updated);

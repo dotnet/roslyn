@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.CodeAnalysis.Shared;
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal sealed class InteractiveSupportsFeatureService
     {
