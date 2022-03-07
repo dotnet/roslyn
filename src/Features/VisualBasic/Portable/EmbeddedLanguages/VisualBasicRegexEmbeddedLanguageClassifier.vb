@@ -10,7 +10,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     <ExtensionOrder(Before:=PredefinedEmbeddedLanguageClassifierNames.Json)>
-    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic, "Regex", "Regexp"), [Shared]>
+    <ExportEmbeddedLanguageClassifierInternal(
+        PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic, True, "Regex", "Regexp"), [Shared]>
     Friend Class VisualBasicRegexEmbeddedLanguageClassifier
         Inherits AbstractRegexEmbeddedLanguageClassifier
 

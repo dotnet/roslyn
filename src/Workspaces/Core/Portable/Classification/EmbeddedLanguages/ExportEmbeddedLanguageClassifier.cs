@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Classification
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportEmbeddedLanguageClassifierAttribute : ExportAttribute
+    internal class ExportEmbeddedLanguageClassifierAttribute : ExportAttribute
     {
         /// <summary>
         /// Name of the classifier.
@@ -42,6 +43,26 @@ namespace Microsoft.CodeAnalysis.Classification
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Language = language ?? throw new ArgumentNullException(nameof(language));
             Identifiers = identifiers.ToImmutableArray();
+        }
+    }
+
+    /// <summary>
+    /// Internal version of ExportEmbeddedLanguageClassifierAttribute.  Used so we can allow regex/json to still light
+    /// up on legacy APIs not using the new [StringSyntax] attribute the runtime added.  For public extensions that's
+    /// the only mechanism we support.
+    /// </summary>
+    [MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class)]
+    internal sealed class ExportEmbeddedLanguageClassifierInternalAttribute : ExportEmbeddedLanguageClassifierAttribute
+    {
+        /// <inheritdoc cref="EmbeddedLanguageMetadata.SupportsUnannotatedAPIs"/>
+        public bool SupportsUnannotatedAPIs { get; }
+
+        public ExportEmbeddedLanguageClassifierInternalAttribute(
+            string name, string language, bool supportsUnannotatedAPIs, params string[] identifiers)
+            : base(name, language, identifiers)
+        {
+            SupportsUnannotatedAPIs = supportsUnannotatedAPIs;
         }
     }
 }

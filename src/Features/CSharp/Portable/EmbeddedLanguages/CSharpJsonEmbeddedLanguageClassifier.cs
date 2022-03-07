@@ -11,7 +11,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Json, LanguageNames.CSharp, "Json"), Shared]
+    [ExportEmbeddedLanguageClassifierInternal(
+        PredefinedEmbeddedLanguageClassifierNames.Json, LanguageNames.CSharp, supportsUnannotatedAPIs: true, "Json"), Shared]
     internal class CSharpJsonEmbeddedLanguageClassifier : AbstractJsonEmbeddedLanguageClassifier
     {
         [ImportingConstructor]
