@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Classification
 
             foreach (var classifier in classifiers)
             {
-                if (classifier.Metadata.Identifier != null)
-                    _identifierToClassifiers.MultiAdd(classifier.Metadata.Identifier, classifier);
+                foreach (var identifier in classifier.Metadata.Identifiers)
+                    _identifierToClassifiers.MultiAdd(identifier, classifier);
             }
 
             _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
@@ -157,5 +157,4 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
     }
-
 }

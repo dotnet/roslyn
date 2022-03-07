@@ -4,13 +4,13 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
-    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic, "Regex"), [Shared]>
+    <ExtensionOrder(Before:=PredefinedEmbeddedLanguageClassifierNames.Json)>
+    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic, "Regex", "Regexp"), [Shared]>
     Friend Class VisualBasicRegexEmbeddedLanguageClassifier
         Inherits AbstractRegexEmbeddedLanguageClassifier
 

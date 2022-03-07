@@ -10,18 +10,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     internal class EmbeddedLanguageMetadata : OrderableLanguageMetadata
     {
-        public string? Identifier { get; }
+        public IEnumerable<string> Identifiers { get; }
 
         public EmbeddedLanguageMetadata(IDictionary<string, object> data)
             : base(data)
         {
-            this.Identifier = (string)data.GetValueOrDefault("Identifier");
+            this.Identifiers = ((IReadOnlyDictionary<string, object>)data).GetEnumerableMetadata<string>("Identifiers").WhereNotNull();
         }
 
-        public EmbeddedLanguageMetadata(string name, string language, string? identifier, IEnumerable<string> after, IEnumerable<string> before)
+        public EmbeddedLanguageMetadata(string name, string language, IEnumerable<string> identifiers, IEnumerable<string> after, IEnumerable<string> before)
             : base(name, language, after, before)
         {
-            this.Identifier = identifier;
+            this.Identifiers = identifiers;
         }
     }
 }

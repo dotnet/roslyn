@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 
 namespace Microsoft.CodeAnalysis.Classification
@@ -25,21 +26,22 @@ namespace Microsoft.CodeAnalysis.Classification
         public string Language { get; }
 
         /// <summary>
-        /// Identifier in code (or StringSyntaxAttribute) used to identify an embedded language string. For example
+        /// Identifiers in code (or StringSyntaxAttribute) used to identify an embedded language string. For example
         /// <c>Regex</c> or <c>Json</c>.
         /// </summary>
         /// <remarks>This can be used to find usages of an embedded language using a comment marker like <c>//
         /// lang=regex</c> or passed to a symbol annotated with <c>[StringSyntaxAttribyte("Regex")]</c>.  The identifier
         /// is case sensitive for the StringSyntaxAttribute, and case insensitive for the comment.
         /// </remarks>
-        public string? Identifier { get; }
+        public ImmutableArray<string> Identifiers { get; }
 
-        public ExportEmbeddedLanguageClassifierAttribute(string name, string language, string? identifier)
+        public ExportEmbeddedLanguageClassifierAttribute(
+            string name, string language, params string[] identifiers)
             : base(typeof(IEmbeddedLanguageClassifier))
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Language = language ?? throw new ArgumentNullException(nameof(language));
-            Identifier = identifier;
+            Identifiers = identifiers.ToImmutableArray();
         }
     }
 }
