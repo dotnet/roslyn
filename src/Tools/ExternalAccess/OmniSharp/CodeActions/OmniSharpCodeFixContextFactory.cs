@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
 
         public static FixAllContext CreateFixAllContext(
             Document? document,
+            TextSpan? triggerSpan,
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
@@ -45,10 +46,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             CancellationToken cancellationToken)
             => new(new FixAllState(
                     fixAllProvider: null,
+                    triggerSpan,
                     document,
                     project,
                     codeFixProvider,
                     scope,
+                    fixAllSpan: null,
                     codeActionEquivalenceKey,
                     diagnosticIds,
                     fixAllDiagnosticProvider,

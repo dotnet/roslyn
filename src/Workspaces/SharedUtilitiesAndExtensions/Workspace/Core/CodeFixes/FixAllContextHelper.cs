@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -28,7 +31,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
     internal static class FixAllContextHelper
     {
-        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+        public static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+            FixAllContext fixAllContext, TextSpan? triggerSpan, ImmutableArray<TextSpan> fixAllSpans)
         {
             var cancellationToken = fixAllContext.CancellationToken;
 
@@ -46,6 +50,48 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     {
                         var documentDiagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                         return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty.SetItem(document, documentDiagnostics);
+                    }
+
+                    break;
+
+                case FixAllScope.ContainingMember or FixAllScope.ContainingType:
+                    if (document != null && !await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        if (!fixAllSpans.IsEmpty)
+                        {
+                            // We are processing a span-based FixAllContext created for a partial declaration.
+                            var documentDiagnostics = ImmutableArray<Diagnostic>.Empty;
+                            foreach (var fixAllSpan in fixAllSpans)
+                            {
+                                documentDiagnostics = documentDiagnostics.AddRange(await fixAllContext.GetDocumentSpanDiagnosticsAsync(
+                                    document, fixAllSpan).ConfigureAwait(false));
+                            }
+
+                            return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty.SetItem(document, documentDiagnostics);
+                        }
+                        else if (triggerSpan.HasValue)
+                        {
+                            // We need to compute diagnostics for each of the containing member/type and its partial declarations
+                            // using the trigger span.
+                            var documentsAndSpans = await GetDocumentsAndSpansForContainingMemberOrTypeAsync(document,
+                                fixAllContext.Scope, triggerSpan.Value, fixAllContext.CancellationToken).ConfigureAwait(false);
+                            var unused = PooledDictionary<Document, ImmutableArray<Diagnostic>>.GetInstance(out var builder);
+                            foreach (var (documentToFix, spans) in documentsAndSpans)
+                            {
+                                foreach (var span in spans)
+                                {
+                                    var documentDiagnostics = await fixAllContext.GetDocumentSpanDiagnosticsAsync(documentToFix, span).ConfigureAwait(false);
+                                    if (builder.TryGetValue(documentToFix, out var existingDiagnostics))
+                                    {
+                                        documentDiagnostics = existingDiagnostics.AddRange(documentDiagnostics);
+                                    }
+
+                                    builder[documentToFix] = documentDiagnostics;
+                                }
+                            }
+
+                            return builder.ToImmutableDictionary();
+                        }
                     }
 
                     break;
@@ -137,8 +183,90 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllScope.Document => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerDocument!.Name),
                 FixAllScope.Project => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_1, diagnosticId, triggerProject.Name),
                 FixAllScope.Solution => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Solution, diagnosticId),
+                FixAllScope.ContainingMember => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Containing_Member, diagnosticId),
+                FixAllScope.ContainingType => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Containing_Type, diagnosticId),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllScope),
             };
+        }
+
+        public static async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetDocumentsAndSpansForContainingMemberOrTypeAsync(
+            Document document, FixAllScope fixAllScope, TextSpan triggerSpan, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
+
+            var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllScope, triggerSpan, cancellationToken).ConfigureAwait(false);
+            if (decl == null)
+                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+
+            if (fixAllScope == FixAllScope.ContainingMember)
+            {
+                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
+                    .SetItem(document, ImmutableArray.Create(decl.FullSpan));
+            }
+            else
+            {
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var symbol = semanticModel.GetDeclaredSymbol(decl, cancellationToken);
+                if (symbol?.DeclaringSyntaxReferences.Length > 1)
+                {
+                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    _ = PooledDictionary<Document, ImmutableArray<TextSpan>>.GetInstance(out var builder);
+                    foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                    {
+                        var documentForLocation = document.Project.GetDocument(syntaxRef.SyntaxTree);
+                        if (documentForLocation == null)
+                            continue;
+                        var root = await syntaxRef.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                        var partialDeclSpan = syntaxFacts.GetContainingTypeDeclaration(root, syntaxRef.Span.Start)!.FullSpan;
+                        if (builder.TryGetValue(documentForLocation, out var spans))
+                        {
+                            builder[documentForLocation] = spans.Add(partialDeclSpan);
+                        }
+                        else
+                        {
+                            builder[documentForLocation] = ImmutableArray.Create(partialDeclSpan);
+                        }
+                    }
+
+                    return builder.ToImmutableDictionary();
+                }
+                else
+                {
+                    return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
+                    .SetItem(document, ImmutableArray.Create(decl.FullSpan));
+                }
+            }
+        }
+
+        public static async Task<SyntaxNode?> GetContainingMemberOrTypeDeclarationAsync(
+            Document document,
+            FixAllScope fixAllScope,
+            TextSpan triggerSpan,
+            CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            var startContainer = fixAllScope == FixAllScope.ContainingMember
+                ? syntaxFacts.GetContainingMemberDeclaration(root, triggerSpan.Start)
+                : syntaxFacts.GetContainingTypeDeclaration(root, triggerSpan.Start);
+
+            if (fixAllScope == FixAllScope.ContainingMember && !syntaxFacts.IsMethodLevelMember(startContainer))
+                return null;
+
+            if (triggerSpan.IsEmpty || startContainer == null)
+                return startContainer;
+
+            var endContainer = fixAllScope == FixAllScope.ContainingMember
+                ? syntaxFacts.GetContainingMemberDeclaration(root, triggerSpan.End)
+                : syntaxFacts.GetContainingTypeDeclaration(root, triggerSpan.End);
+
+            if (startContainer == endContainer)
+                return startContainer;
+
+            return null;
         }
     }
 }

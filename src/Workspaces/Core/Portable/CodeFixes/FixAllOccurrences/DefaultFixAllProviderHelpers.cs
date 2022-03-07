@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,13 +24,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public static async Task<CodeAction?> GetFixAsync(
             string title, FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
         {
-            Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.Solution);
-
             var solution = fixAllContext.Scope switch
             {
                 FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.ContainingMember or FixAllScope.ContainingType
+                    => await GetContainingMemberOrTypeFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
             };
 
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return CodeAction.Create(
                 title, c => Task.FromResult(solution));
 
-#pragma warning disable RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
+#pragma warning restore RS0005 // Do not use generic 'CodeAction.Create' to create 'CodeAction'
         }
 
         private static Task<Solution?> GetDocumentFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
@@ -73,6 +74,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixAllContextsAsync(
                 fixAllContext,
                 sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithDocumentAndProject(document: null, p)));
+        }
+
+        private static async Task<Solution?> GetContainingMemberOrTypeFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
+        {
+            Contract.ThrowIfNull(fixAllContext.Document);
+
+            if (!fixAllContext.State.TriggerSpan.HasValue)
+                return null;
+
+            var documentsAndSpansToFix = await FixAllContextHelper.GetDocumentsAndSpansForContainingMemberOrTypeAsync(
+                fixAllContext.Document, fixAllContext.Scope,
+                fixAllContext.State.TriggerSpan.Value, fixAllContext.CancellationToken).ConfigureAwait(false);
+            if (documentsAndSpansToFix.IsEmpty)
+                return null;
+
+            var fixAllContexts = documentsAndSpansToFix.SelectAsArray(
+                (documentAndSpans) => fixAllContext.WithDocumentAndProject(documentAndSpans.Key, documentAndSpans.Key.Project)
+                                                  .WithFixAllSpans(documentAndSpans.Value));
+            return await fixAllContextsAsync(fixAllContext, fixAllContexts).ConfigureAwait(false);
         }
     }
 }

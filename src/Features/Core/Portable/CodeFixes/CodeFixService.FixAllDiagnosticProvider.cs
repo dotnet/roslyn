@@ -8,12 +8,13 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal partial class CodeFixService
     {
-        private class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
+        private class FixAllDiagnosticProvider : FixAllContext.SpanBasedDiagnosticProvider
         {
             private readonly CodeFixService _codeFixService;
             private readonly ImmutableHashSet<string>? _diagnosticIds;
@@ -31,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
                 => _codeFixService.GetDocumentDiagnosticsAsync(document, _diagnosticIds, _includeSuppressedDiagnostics, cancellationToken);
+
+            public override Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
+                => _codeFixService.GetDocumentSpanDiagnosticsAsync(document, fixAllSpan, _diagnosticIds, _includeSuppressedDiagnostics, cancellationToken);
 
             public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
                 => _codeFixService.GetProjectDiagnosticsAsync(project, true, _diagnosticIds, _includeSuppressedDiagnostics, cancellationToken);

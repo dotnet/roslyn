@@ -118,10 +118,12 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
             return new FixAllContext(
                 new FixAllState(
                     fixAllProvider: null,
+                    triggerSpan: firstDiagnostic.Location.SourceSpan,
                     document,
                     document.Project,
                     codeFixProvider,
                     FixAllScope.Solution,
+                    fixAllSpans: default,
                     codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
                     diagnosticIds: codeFixProvider.FixableDiagnosticIds,
                     fixAllDiagnosticProvider: diagnosticProvider,

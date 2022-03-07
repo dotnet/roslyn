@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -28,24 +29,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllScope Scope { get; }
         public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
+        // Note: TriggerSpan can be null from the back-compat public constructor of FixAllContext.
+        public TextSpan? TriggerSpan { get; }
+
+        /// <summary>
+        /// Optional fix all spans to be fixed within the document. Can be null
+        /// if fixing the entire document, project or solution.
+        /// If non-null, <see cref="Document"/> must also be non-null.
+        /// </summary>
+        public ImmutableArray<TextSpan> FixAllSpans { get; }
+
         internal FixAllState(
             FixAllProvider? fixAllProvider,
+            TextSpan? triggerSpan,
             Document? document,
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
+            ImmutableArray<TextSpan> fixAllSpans,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             CodeActionOptionsProvider codeActionOptionsProvider)
         {
             Debug.Assert(document == null || document.Project == project);
+            Debug.Assert(fixAllSpans.IsDefaultOrEmpty || document != null);
+
+            // We need trigger span for span based fix all scopes, i.e. FixAllScope.ContainingMember and FixAllScope.ContainingType
+            Debug.Assert(triggerSpan.HasValue || scope is not FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
             FixAllProvider = fixAllProvider;
+            TriggerSpan = triggerSpan;
             Document = document;
             Project = project;
             CodeFixProvider = codeFixProvider;
             Scope = scope;
+            FixAllSpans = fixAllSpans.NullToEmpty();
             CodeActionEquivalenceKey = codeActionEquivalenceKey;
             DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
             DiagnosticProvider = fixAllDiagnosticProvider;
@@ -64,29 +83,37 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllState WithDocumentAndProject(Document? document, Project project)
             => With(documentAndProject: (document, project));
 
+        public FixAllState WithFixAllSpans(ImmutableArray<TextSpan> fixAllSpans)
+            => With(fixAllSpans: fixAllSpans);
+
         public FixAllState With(
             Optional<(Document? document, Project project)> documentAndProject = default,
             Optional<FixAllScope> scope = default,
-            Optional<string?> codeActionEquivalenceKey = default)
+            Optional<string?> codeActionEquivalenceKey = default,
+            Optional<ImmutableArray<TextSpan>> fixAllSpans = default)
         {
             var (newDocument, newProject) = documentAndProject.HasValue ? documentAndProject.Value : (Document, Project);
             var newScope = scope.HasValue ? scope.Value : Scope;
             var newCodeActionEquivalenceKey = codeActionEquivalenceKey.HasValue ? codeActionEquivalenceKey.Value : CodeActionEquivalenceKey;
+            var newFixAllSpans = fixAllSpans.HasValue ? fixAllSpans.Value.NullToEmpty() : FixAllSpans;
 
             if (newDocument == Document &&
                 newProject == Project &&
                 newScope == Scope &&
-                newCodeActionEquivalenceKey == CodeActionEquivalenceKey)
+                newCodeActionEquivalenceKey == CodeActionEquivalenceKey &&
+                newFixAllSpans.SetEquals(FixAllSpans))
             {
                 return this;
             }
 
             return new FixAllState(
                 FixAllProvider,
+                TriggerSpan,
                 newDocument,
                 newProject,
                 CodeFixProvider,
                 newScope,
+                newFixAllSpans,
                 newCodeActionEquivalenceKey,
                 DiagnosticIds,
                 DiagnosticProvider,
@@ -103,14 +130,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CodeActionOptionsProvider codeActionOptionsProvider)
         {
             var triggerDocument = diagnosticsToFix.First().Key;
+            var triggerSpan = diagnosticsToFix.First().Value.FirstOrDefault()?.Location.SourceSpan;
             var diagnosticIds = GetDiagnosticsIds(diagnosticsToFix.Values);
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
+                triggerSpan,
                 triggerDocument,
                 triggerDocument.Project,
                 codeFixProvider,
                 FixAllScope.Custom,
+                fixAllSpans: default,
                 codeActionEquivalenceKey,
                 diagnosticIds,
                 diagnosticProvider,
@@ -129,10 +159,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var diagnosticProvider = new FixMultipleDiagnosticProvider(diagnosticsToFix);
             return new FixAllState(
                 fixAllProvider,
+                triggerSpan: null,
                 document: null,
                 triggerProject,
                 codeFixProvider,
                 FixAllScope.Custom,
+                fixAllSpans: default,
                 codeActionEquivalenceKey,
                 diagnosticIds,
                 diagnosticProvider,

@@ -30,8 +30,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </remarks>
     public abstract class DocumentBasedFixAllProvider : FixAllProvider
     {
+        private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
+
         protected DocumentBasedFixAllProvider()
         {
+            _supportedFixAllScopes = base.GetSupportedFixAllScopes().ToImmutableArray();
+        }
+
+        protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
+        {
+            _supportedFixAllScopes = supportedFixAllScopes;
         }
 
         /// <summary>
@@ -58,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
         public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-            => base.GetSupportedFixAllScopes();
+            => _supportedFixAllScopes;
 
         public sealed override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             => DefaultFixAllProviderHelpers.GetFixAsync(
@@ -78,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var currentSolution = solution;
             foreach (var fixAllContext in fixAllContexts)
             {
-                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project);
+                Contract.ThrowIfFalse(fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project
+                    or FixAllScope.ContainingMember or FixAllScope.ContainingType);
                 currentSolution = await FixSingleContextAsync(currentSolution, fixAllContext, progressTracker).ConfigureAwait(false);
             }
 
@@ -106,9 +115,26 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             using var _ = progressTracker.ItemCompletedScope();
 
-            return fixAllContext.Document != null
-                ? await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false)
-                : await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
+            if (fixAllContext.Document != null)
+            {
+                if (fixAllContext.State.FixAllSpans.IsEmpty)
+                {
+                    return await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                }
+                else
+                {
+                    var diagnostics = ImmutableArray<Diagnostic>.Empty;
+                    foreach (var fixAllSpan in fixAllContext.State.FixAllSpans)
+                    {
+                        diagnostics = diagnostics.AddRange(await fixAllContext.GetDocumentSpanDiagnosticsAsync(
+                            fixAllContext.Document, fixAllSpan).ConfigureAwait(false));
+                    }
+
+                    return diagnostics;
+                }
+            }
+
+            return await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false);
         }
 
         /// <summary>

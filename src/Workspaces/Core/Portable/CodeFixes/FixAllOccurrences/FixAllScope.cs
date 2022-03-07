@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         Document,
         Project,
         Solution,
-        Custom
+        Custom,
+        ContainingMember,
+        ContainingType,
     }
 }

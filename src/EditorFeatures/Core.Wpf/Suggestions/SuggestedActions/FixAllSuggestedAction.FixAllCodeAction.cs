@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     FixAllScope.Document => FeaturesResources.Document,
                     FixAllScope.Project => FeaturesResources.Project,
                     FixAllScope.Solution => FeaturesResources.Solution,
+                    FixAllScope.ContainingMember => FeaturesResources.Containing_Member,
+                    FixAllScope.ContainingType => FeaturesResources.Containing_Type,
                     _ => throw new NotSupportedException(),
                 };
 

@@ -707,10 +707,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 fixAllState = new FixAllState(
                     fixAllProviderInfo.FixAllProvider,
+                    fixesSpan,
                     document,
                     document.Project,
                     codeFixProvider,
                     FixAllScope.Document,
+                    fixAllSpans: default,
                     fixes[0].Action.EquivalenceKey,
                     diagnosticIds,
                     diagnosticProvider,
@@ -754,6 +756,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Contract.ThrowIfNull(document);
             var solution = document.Project.Solution;
             var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
+            return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan span, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Contract.ThrowIfNull(document);
+            Func<DiagnosticId, bool> shouldIncludeDiagnostic = id => diagnosticIds == null || diagnosticIds.Contains(id);
+            var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(document, span, shouldIncludeDiagnostic, includeSuppressedDiagnostics, cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }

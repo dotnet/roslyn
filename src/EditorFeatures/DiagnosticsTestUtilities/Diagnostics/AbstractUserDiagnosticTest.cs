@@ -161,6 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 "FixAllInDocument" => FixAllScope.Document,
                 "FixAllInProject" => FixAllScope.Project,
                 "FixAllInSolution" => FixAllScope.Solution,
+                "FixAllInContainingMember" => FixAllScope.ContainingMember,
+                "FixAllInContainingType" => FixAllScope.ContainingType,
                 "FixAllInSelection" => FixAllScope.Custom,
                 _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
             };
@@ -182,6 +184,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var scope = GetFixAllScope(annotation);
+
+            if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
+            {
+                var containingNode = await FixAllContextHelper.GetContainingMemberOrTypeDeclarationAsync(
+                    document, scope.Value, span, CancellationToken.None).ConfigureAwait(false);
+                if (containingNode is null)
+                {
+                    return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
+                }
+            }
 
             var intersectingDiagnostics = diagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(span))
                                                      .ToImmutableArray();
@@ -248,12 +260,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var diagnostic = diagnostics.First();
+            var triggerSpan = diagnostic.Location.SourceSpan;
             var diagnosticIds = ImmutableHashSet.Create(diagnostic.Id);
             var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(testDriver, diagnosticIds);
 
             return diagnostic.Location.IsInSource
-                ? new FixAllState(fixAllProvider, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider)
-                : new FixAllState(fixAllProvider, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider);
+                ? new FixAllState(fixAllProvider, triggerSpan, document, document.Project, fixer, scope, fixAllSpans: default, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider)
+                : new FixAllState(fixAllProvider, triggerSpan: null, document: null, document.Project, fixer, scope, fixAllSpans: default, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider);
         }
 
         private protected Task TestActionCountInAllFixesAsync(
