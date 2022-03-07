@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     /// <summary>
     /// Helps match patterns of the form: language=name,option1,option2,option3

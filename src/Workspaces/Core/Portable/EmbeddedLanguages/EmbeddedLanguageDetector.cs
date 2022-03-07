@@ -8,11 +8,10 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     internal readonly struct EmbeddedLanguageDetector
     {

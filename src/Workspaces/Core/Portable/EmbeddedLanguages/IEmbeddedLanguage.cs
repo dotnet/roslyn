@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Classification;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     /// <summary>
     /// Services related to a specific embedded language.
