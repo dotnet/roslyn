@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     {
         IRazorLanguageServerTarget CreateLanguageServer(JsonRpc jsonRpc, IRazorCapabilitiesProvider capabilitiesProvider);
 
-        public DocumentInfo CreateDocumentInfo(
+        DocumentInfo CreateDocumentInfo(
             DocumentId id,
             string name,
             IReadOnlyList<string>? folders = null,
