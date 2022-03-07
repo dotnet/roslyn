@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
             static void NoMatchWorker(string value)
             {
                 var detector = new EmbeddedLanguageCommentDetector(JsonLanguageDetector.LanguageIdentifiers);
-                Assert.False(detector.TryMatch(value, out _, out _));
+                Assert.False(detector.TryMatch(value, out _, out var stringOptions) &&
+                    EmbeddedLanguageCommentOptions<JsonOptions>.TryGetOptions(stringOptions, out _));
             }
         }
 

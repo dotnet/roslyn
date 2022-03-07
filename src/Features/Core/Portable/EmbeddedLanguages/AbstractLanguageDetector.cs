@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 if (syntaxFacts.IsLiteralExpression(token.Parent) &&
                     syntaxFacts.IsArgument(token.Parent.Parent))
                 {
-                    options = GetOptionsFromSiblingArgument(token.Parent.Parent, semanticModel, cancellationToken) ?? default;
+                    options = GetOptionsFromSiblingArgument(token.Parent.Parent, semanticModel, cancellationToken) ??
+                              GetStringSyntaxDefaultOptions();
                 }
 
                 return true;
