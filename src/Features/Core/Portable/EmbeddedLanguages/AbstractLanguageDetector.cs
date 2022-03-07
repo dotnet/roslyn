@@ -78,8 +78,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 // If we weren't on a comment, then we were on an API with StringSyntaxAttribute on it.  Attempt to grab
                 // API specific options for the client to use.
                 var syntaxFacts = Info.SyntaxFacts;
-                if (syntaxFacts.IsArgument(token.Parent))
-                    options = GetOptionsFromSiblingArgument(token.Parent, semanticModel, cancellationToken) ?? default;
+                if (syntaxFacts.IsLiteralExpression(token.Parent) &&
+                    syntaxFacts.IsArgument(token.Parent.Parent))
+                {
+                    options = GetOptionsFromSiblingArgument(token.Parent.Parent, semanticModel, cancellationToken) ?? default;
+                }
+
                 return true;
             }
             else

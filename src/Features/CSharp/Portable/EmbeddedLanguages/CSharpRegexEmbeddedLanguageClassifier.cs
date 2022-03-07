@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
+    [ExtensionOrder(Before = PredefinedEmbeddedLanguageClassifierNames.Json)]
     [ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.CSharp), Shared]
     internal class CSharpRegexEmbeddedLanguageClassifier : AbstractRegexEmbeddedLanguageClassifier
     {
