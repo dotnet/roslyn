@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
         private sealed class ClassificationVerifier : ForegroundThreadAffinitizedObject
         {
             private readonly IServiceProvider _serviceProvider;
-            private readonly ImmutableDictionary<ColorSchemes.ColorSchemeName, ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
+            private readonly ImmutableDictionary<ColorSchemeName, ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
 
             private static readonly Guid TextEditorMEFItemsColorCategory = new("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 
             private ImmutableArray<string> Classifications { get; }
 
-            public ClassificationVerifier(IThreadingContext threadingContext, IServiceProvider serviceProvider, ImmutableDictionary<ColorSchemes.ColorSchemeName, ColorScheme> colorSchemes)
+            public ClassificationVerifier(IThreadingContext threadingContext, IServiceProvider serviceProvider, ImmutableDictionary<ColorSchemeName, ColorScheme> colorSchemes)
                 : base(threadingContext)
             {
                 _serviceProvider = serviceProvider;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
             /// <summary>
             /// Determines if any Classification foreground colors have been customized in Fonts and Colors.
             /// </summary>
-            public bool AreForegroundColorsCustomized(ColorSchemes.ColorSchemeName schemeName, Guid themeId)
+            public bool AreForegroundColorsCustomized(ColorSchemeName schemeName, Guid themeId)
             {
                 AssertIsForeground();
 
