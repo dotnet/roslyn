@@ -80,14 +80,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             if (definition is null)
                 return;
 
-            var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (canNavigate)
-            {
-                var location = await definition.GetNavigableLocationAsync(
-                    _workspace, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
-            }
+            var location = await definition.GetNavigableLocationAsync(
+                _workspace, cancellationToken).ConfigureAwait(false);
+            if (location != null)
+                await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
         }
 
         public void NavigateToSymbol()

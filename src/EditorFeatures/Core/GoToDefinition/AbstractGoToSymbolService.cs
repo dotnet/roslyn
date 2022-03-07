@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             foreach (var definition in definitions)
             {
-                if (await definition.CanNavigateToAsync(solution.Workspace, cancellationToken).ConfigureAwait(false))
+                var location = await definition.GetNavigableLocationAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (location != null)
                     context.AddItem(WellKnownSymbolTypes.Definition, definition);
             }
 

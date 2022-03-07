@@ -68,20 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             if (items.IsDefaultOrEmpty)
                 return null;
 
-            using var _ = ArrayBuilder<DefinitionItem>.GetInstance(out var definitionsBuilder);
-            foreach (var item in items)
-            {
-                // Ignore any definitions that we can't navigate to.
-                if (await item.CanNavigateToAsync(workspace, cancellationToken).ConfigureAwait(false))
-                    definitionsBuilder.Add(item);
-            }
-
-            var definitions = definitionsBuilder.ToImmutable();
-
             // See if there's a third party external item we can navigate to.  If so, defer 
             // to that item and finish.
-            var externalItems = definitions.WhereAsArray(d => d.IsExternal);
-            foreach (var item in externalItems)
+            foreach (var item in items.WhereAsArray(d => d.IsExternal))
             {
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
@@ -91,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                     return location;
             }
 
-            var nonExternalItems = definitions.WhereAsArray(d => !d.IsExternal);
+            var nonExternalItems = items.WhereAsArray(d => !d.IsExternal);
             if (nonExternalItems.Length == 0)
                 return null;
 
