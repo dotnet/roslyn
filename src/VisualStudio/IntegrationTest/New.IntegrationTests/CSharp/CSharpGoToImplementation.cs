@@ -26,9 +26,12 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task SimpleGoToImplementation()
+        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [CombinatorialData]
+        public async Task SimpleGoToImplementation(bool asyncNavigation)
         {
+            await TestServices.Editor.ConfigureAsyncNavigation(asyncNavigation ? AsyncNavigationKind.Asynchronous : AsyncNavigationKind.Synchronous, HangMitigatingCancellationToken);
+
             var project = ProjectName;
             await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);
@@ -46,9 +49,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
             string identifierWithCaret;
-            var activeCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            if (activeCaption == $"FileImplementation.cs{dirtyModifier}")
+            if (!asyncNavigation)
             {
                 // The navigation completed synchronously; no further action necessary
                 identifierWithCaret = "Implementation$$";
@@ -56,7 +57,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             else
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
-                Assert.Equal($"'IGoo' implementations - Entire solution", activeCaption);
+                Assert.Equal($"'IGoo' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
                 var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
                 AssertEx.EqualOrDiff(
                     $"<unknown>: class Implementation : IGoo",
@@ -71,14 +72,18 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
                 identifierWithCaret = "$$Implementation";
             }
 
+            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
             Assert.Equal($"FileImplementation.cs{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync($@"class {identifierWithCaret}", assertCaretPosition: true, HangMitigatingCancellationToken);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public async Task GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
+        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [CombinatorialData]
+        public async Task GoToImplementationOpensProvisionalTabIfDocumentNotOpen(bool asyncNavigation)
         {
+            await TestServices.Editor.ConfigureAsyncNavigation(asyncNavigation ? AsyncNavigationKind.Asynchronous : AsyncNavigationKind.Synchronous, HangMitigatingCancellationToken);
+
             var project = ProjectName;
             await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);
@@ -98,8 +103,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
             string identifierWithCaret;
-            var activeCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            if (activeCaption == $"FileImplementation.cs")
+            if (!asyncNavigation)
             {
                 // The navigation completed synchronously; no further action necessary
                 identifierWithCaret = "Implementation$$";
@@ -107,7 +111,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             else
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
-                Assert.Equal($"'IBar' implementations - Entire solution", activeCaption);
+                Assert.Equal($"'IBar' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
                 var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
                 AssertEx.EqualOrDiff(
                     $"<unknown>: class Implementation : IBar",
@@ -127,9 +131,12 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             Assert.True(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact]
-        public async Task GoToImplementationFromMetadataAsSource()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task GoToImplementationFromMetadataAsSource(bool asyncNavigation)
         {
+            await TestServices.Editor.ConfigureAsyncNavigation(asyncNavigation ? AsyncNavigationKind.Asynchronous : AsyncNavigationKind.Synchronous, HangMitigatingCancellationToken);
+
             var project = ProjectName;
             await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);
@@ -149,9 +156,7 @@ class Implementation : IDisposable
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
             string identifierWithCaret;
-            var activeCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            if (activeCaption == $"FileImplementation.cs{dirtyModifier}")
+            if (!asyncNavigation)
             {
                 // The navigation completed synchronously; no further action necessary
                 identifierWithCaret = "Implementation$$";
@@ -159,7 +164,7 @@ class Implementation : IDisposable
             else
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
-                Assert.Equal($"'IDisposable' implementations - Entire solution", activeCaption);
+                Assert.Equal($"'IDisposable' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
                 var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
                 // This test includes results from metadata on this path, so filter those out
@@ -178,13 +183,17 @@ class Implementation : IDisposable
                 identifierWithCaret = "$$Implementation";
             }
 
+            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
             Assert.Equal($"FileImplementation.cs{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync($@"class {identifierWithCaret} : IDisposable", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
-        [IdeFact]
-        public async Task GoToImplementationFromSourceAndMetadata()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task GoToImplementationFromSourceAndMetadata(bool asyncNavigation)
         {
+            await TestServices.Editor.ConfigureAsyncNavigation(asyncNavigation ? AsyncNavigationKind.Asynchronous : AsyncNavigationKind.Synchronous, HangMitigatingCancellationToken);
+
             var project = ProjectName;
             await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.cs", HangMitigatingCancellationToken);

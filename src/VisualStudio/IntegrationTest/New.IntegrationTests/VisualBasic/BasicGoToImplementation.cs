@@ -24,9 +24,12 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
         {
         }
 
-        [IdeFact]
-        public async Task SimpleGoToImplementation()
+        [IdeTheory]
+        [CombinatorialData]
+        public async Task SimpleGoToImplementation(bool asyncNavigation)
         {
+            await TestServices.Editor.ConfigureAsyncNavigation(asyncNavigation ? AsyncNavigationKind.Asynchronous : AsyncNavigationKind.Synchronous, HangMitigatingCancellationToken);
+
             var project = ProjectName;
             await TestServices.SolutionExplorer.AddFileAsync(project, "FileImplementation.vb", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(project, "FileImplementation.vb", HangMitigatingCancellationToken);
@@ -43,9 +46,7 @@ End Interface", HangMitigatingCancellationToken);
             await TestServices.Editor.GoToImplementationAsync(HangMitigatingCancellationToken);
 
             string identifierWithCaret;
-            var activeCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
-            if (activeCaption == $"FileImplementation.vb{dirtyModifier}")
+            if (!asyncNavigation)
             {
                 // The navigation completed synchronously; no further action necessary
                 identifierWithCaret = "Implementation$$";
@@ -53,7 +54,7 @@ End Interface", HangMitigatingCancellationToken);
             else
             {
                 // The navigation completed asynchronously, so navigate to the first item in the results list
-                Assert.Equal($"'IGoo' implementations - Entire solution", activeCaption);
+                Assert.Equal($"'IGoo' implementations - Entire solution", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
                 var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
                 AssertEx.EqualOrDiff(
                     $"<unknown>: Class Implementation",
@@ -68,6 +69,7 @@ End Interface", HangMitigatingCancellationToken);
                 identifierWithCaret = "$$Implementation";
             }
 
+            var dirtyModifier = await TestServices.Editor.GetDirtyIndicatorAsync(HangMitigatingCancellationToken);
             Assert.Equal($"FileImplementation.vb{dirtyModifier}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync($@"Class {identifierWithCaret}", assertCaretPosition: true);
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
