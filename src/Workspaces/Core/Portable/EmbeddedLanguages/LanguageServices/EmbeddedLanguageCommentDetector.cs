@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     {
         private readonly Regex _regex;
 
-        public EmbeddedLanguageCommentDetector(string[] identifiers)
+        public EmbeddedLanguageCommentDetector(ImmutableArray<string> identifiers)
         {
             var namePortion = string.Join("|", identifiers.Select(n => $"({Regex.Escape(n)})"));
             _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*(?<identifier>{namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",

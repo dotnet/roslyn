@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
     /// </summary>
     internal sealed class DateAndTimeLanguageDetector : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree>
     {
+        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("date", "time", "datetime", "DateTimeFormat");
+
         private const string FormatName = "format";
 
         /// <summary>
@@ -29,13 +31,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, DateAndTimeLanguageDetector> s_compilationToDetector = new();
 
-        /// <summary>
-        /// Helps match patterns of the form: language=date (or `time` or `datetime`)
-        /// 
-        /// All matching is case insensitive.
-        /// </summary>
-        private static readonly LanguageCommentDetector<DateAndTimeOptions> s_languageCommentDetector = new("date", "time", "datetime");
-
         private readonly INamedTypeSymbol? _dateTimeType;
         private readonly INamedTypeSymbol? _dateTimeOffsetType;
 
@@ -43,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
             EmbeddedLanguageInfo info,
             INamedTypeSymbol? dateTimeType,
             INamedTypeSymbol? dateTimeOffsetType)
-            : base("DateTimeFormat", info, s_languageCommentDetector)
+            : base(info, LanguageIdentifiers)
         {
             _dateTimeType = dateTimeType;
             _dateTimeOffsetType = dateTimeOffsetType;

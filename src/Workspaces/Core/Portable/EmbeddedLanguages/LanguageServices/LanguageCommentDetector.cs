@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         private readonly EmbeddedLanguageCommentDetector _detector;
 
-        public LanguageCommentDetector(params string[] languageNames)
+        public LanguageCommentDetector(ImmutableArray<string> languageIdentifiers)
         {
-            _detector = new EmbeddedLanguageCommentDetector(languageNames);
+            _detector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
         }
 
         public bool TryMatch(string text, out TOptions options)

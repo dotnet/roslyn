@@ -5,6 +5,7 @@
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Xunit;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
@@ -21,10 +22,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void MatchWorker(string value, RegexOptions? expectedOptions)
             {
-                Assert.True(RegexLanguageDetector.TestAccessor.TryMatch(value, out var actualOptions));
+                var detector = new EmbeddedLanguageCommentDetector(RegexLanguageDetector.LanguageIdentifiers);
+                Assert.True(detector.TryMatch(value, out _, out var captures));
 
                 if (expectedOptions != null)
+                {
+                    Assert.True(LanguageCommentDetector<RegexOptions>.TryGetOptions(captures!, out var actualOptions));
                     Assert.Equal(expectedOptions.Value, actualOptions);
+                }
             }
         }
 
@@ -39,7 +44,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.RegularExpressions.
 
             static void NoMatchWorker(string value)
             {
-                Assert.False(RegexLanguageDetector.TestAccessor.TryMatch(value, out _));
+                var detector = new EmbeddedLanguageCommentDetector(RegexLanguageDetector.LanguageIdentifiers);
+                Assert.False(detector.TryMatch(value, out _, out _));
             }
         }
 
