@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,20 +21,17 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         private readonly HashSet<int> _syntaxTokenKinds = new();
         private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _classifiers;
+        private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
 
         protected AbstractEmbeddedLanguageClassificationService(
             IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers,
+            IEmbeddedLanguageClassifier fallbackClassifier,
             ISyntaxKinds syntaxKinds,
             string languageName)
         {
-            // Move the fallback classifier to the end if it exists.
+            _fallbackClassifier = fallbackClassifier;
+
             var classifierList = ExtensionOrderer.Order(classifiers).Where(c => c.Metadata.Language == languageName).ToList();
-            var fallbackClassifier = classifierList.FirstOrDefault(c => c.Metadata.Name == PredefinedEmbeddedLanguageClassifierNames.Fallback);
-            if (fallbackClassifier != null)
-            {
-                classifierList.Remove(fallbackClassifier);
-                classifierList.Add(fallbackClassifier);
-            }
 
             _classifiers = classifierList.ToImmutableArray();
 
@@ -61,13 +57,14 @@ namespace Microsoft.CodeAnalysis.Classification
             SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(_classifiers, _syntaxTokenKinds, semanticModel, textSpan, options, result, cancellationToken);
+            var worker = new Worker(_classifiers, _fallbackClassifier, _syntaxTokenKinds, semanticModel, textSpan, options, result, cancellationToken);
             worker.Recurse(root);
         }
 
         private ref struct Worker
         {
             private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _classifiers;
+            private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
             private readonly HashSet<int> _syntaxTokenKinds;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
@@ -77,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public Worker(
                 ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers,
+                IEmbeddedLanguageClassifier fallbackClassifier,
                 HashSet<int> syntaxTokenKinds,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
@@ -85,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 CancellationToken cancellationToken)
             {
                 _classifiers = classifiers;
+                _fallbackClassifier = fallbackClassifier;
                 _syntaxTokenKinds = syntaxTokenKinds;
                 _semanticModel = semanticModel;
                 _textSpan = textSpan;
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 ProcessTriviaList(token.TrailingTrivia);
             }
 
-            private readonly void ClassifyToken(SyntaxToken token)
+            private void ClassifyToken(SyntaxToken token)
             {
                 if (token.Span.IntersectsWith(_textSpan) && _syntaxTokenKinds.Contains(token.RawKind))
                 {
@@ -128,18 +127,20 @@ namespace Microsoft.CodeAnalysis.Classification
                         _semanticModel, token, _options, _result, _cancellationToken);
                     foreach (var classifier in _classifiers)
                     {
-                        if (classifier != null)
-                        {
-                            var count = _result.Count;
-                            classifier.Value.RegisterClassifications(context);
-                            if (_result.Count != count)
-                            {
-                                // This classifier added values.  No need to check the other ones.
-                                return;
-                            }
-                        }
+                        // This classifier added values.  No need to check the other ones.
+                        if (TryClassify(classifier.Value, context))
+                            return;
                     }
+
+                    TryClassify(_fallbackClassifier, context);
                 }
+            }
+
+            private bool TryClassify(IEmbeddedLanguageClassifier classifier, EmbeddedLanguageClassificationContext context)
+            {
+                var count = _result.Count;
+                classifier.RegisterClassifications(context);
+                return _result.Count != count;
             }
 
             private void ProcessTriviaList(SyntaxTriviaList triviaList)
