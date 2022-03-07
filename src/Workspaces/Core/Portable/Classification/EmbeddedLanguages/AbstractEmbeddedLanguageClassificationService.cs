@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Classification
         private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
 
         private readonly Dictionary<string, List<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new();
+        private readonly EmbeddedLangaugeDetector _detector;
 
         protected AbstractEmbeddedLanguageClassificationService(
             IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers,
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 foreach (var identifier in classifier.Metadata.Identifiers)
                     _identifierToClassifiers.MultiAdd(identifier, classifier);
             }
+
+            _detector = new EmbeddedLanguageDetector()
 
             _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
             _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
