@@ -15,12 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial struct Blender
     {
-#if DEBUG
-        internal
-#else
-        private
-#endif
-        struct Reader
+        internal struct Reader
         {
             private readonly Lexer _lexer;
             private Cursor _oldTreeCursor;
@@ -304,12 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // any token that was fabricated by the parser
-#if DEBUG
-            internal
-#else
-            private
-#endif
-            static bool IsFabricatedToken(SyntaxKind kind)
+            internal static bool IsFabricatedToken(SyntaxKind kind)
             {
                 switch (kind)
                 {
