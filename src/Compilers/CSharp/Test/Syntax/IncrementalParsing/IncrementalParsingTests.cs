@@ -463,6 +463,7 @@ class C { void c() { } }
                             SyntaxKind.IdentifierName,
                             SyntaxKind.SemicolonToken);
         }
+
         #region "Regression"
 
 #if false
