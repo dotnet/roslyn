@@ -19,28 +19,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// <para/>
     /// Option names are the values from the TOptions enum.
     /// </summary>
-    internal struct LanguageCommentDetector<TOptions> where TOptions : struct, Enum
+    internal static class EmbeddedLanguageCommentOptions<TOptions> where TOptions : struct, Enum
     {
         private static readonly Dictionary<string, TOptions> s_nameToOption =
             typeof(TOptions).GetTypeInfo().DeclaredFields
                 .Where(f => f.FieldType == typeof(TOptions))
                 .ToDictionary(f => f.Name, f => (TOptions)f.GetValue(null)!, StringComparer.OrdinalIgnoreCase);
-
-        private readonly EmbeddedLanguageCommentDetector _detector;
-
-        public LanguageCommentDetector(ImmutableArray<string> languageIdentifiers)
-        {
-            _detector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
-        }
-
-        public bool TryMatch(string text, out TOptions options)
-        {
-            options = default;
-            if (!_detector.TryMatch(text, out _, out var captures))
-                return false;
-
-            return TryGetOptions(captures, out options);
-        }
 
         public static bool TryGetOptions(IEnumerable<string> captures, out TOptions options)
         {

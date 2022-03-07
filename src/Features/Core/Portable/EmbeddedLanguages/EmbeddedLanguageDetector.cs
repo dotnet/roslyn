@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -20,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         private readonly EmbeddedLanguageCommentDetector _commentDetector;
 
         public EmbeddedLanguageDetector(
-            string[] languageIdentifiers,
-            EmbeddedLanguageInfo info)
+            EmbeddedLanguageInfo info,
+            ImmutableArray<string> languageIdentifiers)
         {
             Info = info;
             LanguageIdentifiers = new HashSet<string>(languageIdentifiers, StringComparer.OrdinalIgnoreCase);

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             ImmutableArray<string> languageIdentifiers)
         {
             Info = info;
-            _detector = new EmbeddedLanguageDetector(languageIdentifiers, info);
+            _detector = new EmbeddedLanguageDetector(info, languageIdentifiers);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 // If we got string-options back, then we were on a comment string (e.g. `// lang=regex,option1,option2`).
                 // Attempt to convert the string options to actual options requested.
                 if (stringOptions != null)
-                    return LanguageCommentDetector<TOptions>.TryGetOptions(stringOptions, out options);
+                    return EmbeddedLanguageCommentOptions<TOptions>.TryGetOptions(stringOptions, out options);
 
                 // If we weren't on a comment, then we were on an API with StringSyntaxAttribute on it.  Attempt to grab
                 // API specific options for the client to use.

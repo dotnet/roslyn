@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServic
 
                 if (expectedOptions != null)
                 {
-                    Assert.True(LanguageCommentDetector<JsonOptions>.TryGetOptions(captures!, out var actualOptions));
+                    Assert.True(EmbeddedLanguageCommentOptions<JsonOptions>.TryGetOptions(captures!, out var actualOptions));
                     Assert.Equal(expectedOptions.Value, actualOptions);
                 }
             }
