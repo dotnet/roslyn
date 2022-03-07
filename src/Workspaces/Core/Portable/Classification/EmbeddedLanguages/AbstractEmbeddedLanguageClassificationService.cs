@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,10 +21,10 @@ namespace Microsoft.CodeAnalysis.Classification
     internal abstract class AbstractEmbeddedLanguageClassificationService : IEmbeddedLanguageClassificationService
     {
         private readonly HashSet<int> _syntaxTokenKinds = new();
-        private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> _classifiers;
+        private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _classifiers;
 
         protected AbstractEmbeddedLanguageClassificationService(
-            IEnumerable<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> classifiers,
+            IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers,
             ISyntaxKinds syntaxKinds,
             string languageName)
         {
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private ref struct Worker
         {
-            private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> _classifiers;
+            private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _classifiers;
             private readonly HashSet<int> _syntaxTokenKinds;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly CancellationToken _cancellationToken;
 
             public Worker(
-                ImmutableArray<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> classifiers,
+                ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers,
                 HashSet<int> syntaxTokenKinds,
                 SemanticModel semanticModel,
                 TextSpan textSpan,

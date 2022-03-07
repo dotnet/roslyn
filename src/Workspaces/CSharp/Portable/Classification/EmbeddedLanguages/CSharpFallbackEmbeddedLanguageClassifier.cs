@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    [ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Fallback, LanguageNames.CSharp), Shared]
+    [ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Fallback, LanguageNames.CSharp, identifier: null), Shared]
     internal class CSharpFallbackEmbeddedLanguageClassifier : AbstractFallbackEmbeddedLanguageClassifier
     {
         [ImportingConstructor]

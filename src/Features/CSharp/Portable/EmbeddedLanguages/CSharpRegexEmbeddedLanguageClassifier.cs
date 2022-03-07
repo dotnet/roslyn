@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
-    [ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.CSharp), Shared]
+    [ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.CSharp, "Regex"), Shared]
     internal class CSharpRegexEmbeddedLanguageClassifier : AbstractRegexEmbeddedLanguageClassifier
     {
         [ImportingConstructor]

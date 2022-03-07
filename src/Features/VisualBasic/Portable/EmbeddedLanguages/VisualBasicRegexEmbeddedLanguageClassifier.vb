@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
-    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic), [Shared]>
+    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.VisualBasic, "Regex"), [Shared]>
     Friend Class VisualBasicRegexEmbeddedLanguageClassifier
         Inherits AbstractRegexEmbeddedLanguageClassifier
 

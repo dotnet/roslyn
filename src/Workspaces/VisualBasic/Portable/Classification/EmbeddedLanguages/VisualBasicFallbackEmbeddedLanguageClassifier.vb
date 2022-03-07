@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Fallback, LanguageNames.VisualBasic), [Shared]>
+    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Fallback, LanguageNames.VisualBasic, Nothing), [Shared]>
     Friend Class VisualBasicFallbackEmbeddedLanguageClassifier
         Inherits AbstractFallbackEmbeddedLanguageClassifier
 
