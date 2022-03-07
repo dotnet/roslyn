@@ -18,23 +18,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// <para/>
     /// Option names are the values from the TOptions enum.
     /// </summary>
-    internal struct LanguageCommentDetector
+    internal struct EmbeddedLanguageCommentDetector
     {
         private readonly Regex _regex;
 
-        public LanguageCommentDetector(string[] languageNames)
+        public EmbeddedLanguageCommentDetector(string[] identifiers)
         {
-            var namePortion = string.Join("|", languageNames.Select(n => $"({Regex.Escape(n)})"));
-            _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*({namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
+            var namePortion = string.Join("|", identifiers.Select(n => $"({Regex.Escape(n)})"));
+            _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*(?<identifier>{namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
                 RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
-        public bool TryMatch(string text, [NotNullWhen(true)] out IEnumerable<string>? options)
+        public bool TryMatch(
+            string text,
+            [NotNullWhen(true)] out string? identifier,
+            [NotNullWhen(true)] out IEnumerable<string>? options)
         {
             var match = _regex.Match(text);
+            identifier = null;
             options = null;
             if (!match.Success)
                 return false;
+
+            identifier = match.Groups["identifier"].Value;
 
             var optionGroup = match.Groups["option"];
 #if NETCOREAPP
@@ -62,17 +68,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
                 .Where(f => f.FieldType == typeof(TOptions))
                 .ToDictionary(f => f.Name, f => (TOptions)f.GetValue(null)!, StringComparer.OrdinalIgnoreCase);
 
-        private readonly LanguageCommentDetector _detector;
+        private readonly EmbeddedLanguageCommentDetector _detector;
 
         public LanguageCommentDetector(params string[] languageNames)
         {
-            _detector = new LanguageCommentDetector(languageNames);
+            _detector = new EmbeddedLanguageCommentDetector(languageNames);
         }
 
         public bool TryMatch(string text, out TOptions options)
         {
             options = default;
-            if (!_detector.TryMatch(text, out var captures))
+            if (!_detector.TryMatch(text, out _, out var captures))
                 return false;
 
             foreach (var capture in captures)
