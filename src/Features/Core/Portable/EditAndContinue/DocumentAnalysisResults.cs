@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public ImmutableArray<SequencePointUpdates> LineEdits { get; }
 
         /// <summary>
-        /// Capabilities that are required for the updated made in this document.
+        /// Capabilities that are required for the updates made in this document.
         /// <see cref="EditAndContinueCapabilities.None"/> if the document does not have valid changes.
         /// </summary>
         public EditAndContinueCapabilities RequiredCapabilities { get; }
