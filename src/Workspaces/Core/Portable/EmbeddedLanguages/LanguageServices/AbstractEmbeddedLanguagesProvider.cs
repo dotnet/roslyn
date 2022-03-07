@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     {
         public virtual ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
-        protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
+        protected AbstractEmbeddedLanguagesProvider()
         {
-            Languages = ImmutableArray.Create<IEmbeddedLanguage>(new FallbackEmbeddedLanguage(info));
+            Languages = ImmutableArray<IEmbeddedLanguage>.Empty;
         }
     }
 }

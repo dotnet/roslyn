@@ -17,13 +17,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     {
         public override ImmutableArray<IEmbeddedLanguage> Languages { get; }
 
-        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
+        protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info)
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageFeatures(info),
                 new RegexEmbeddedLanguage(this, info),
-                new JsonEmbeddedLanguage(info),
-                new FallbackEmbeddedLanguage(info));
+                new JsonEmbeddedLanguage());
         }
 
         /// <summary>Escapes <paramref name="text"/> appropriately so it can be inserted into 
