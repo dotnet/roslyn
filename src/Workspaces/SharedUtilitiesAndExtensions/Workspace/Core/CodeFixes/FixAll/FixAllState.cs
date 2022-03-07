@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public TextSpan? TriggerSpan { get; }
 
         /// <summary>
-        /// Optional fix all spans to be fixed within the document. Can be null
+        /// Optional fix all spans to be fixed within the document. Can be empty
         /// if fixing the entire document, project or solution.
-        /// If non-null, <see cref="Document"/> must also be non-null.
+        /// If non-empty, <see cref="Document"/> must be non-null.
         /// </summary>
         public ImmutableArray<TextSpan> FixAllSpans { get; }
 
