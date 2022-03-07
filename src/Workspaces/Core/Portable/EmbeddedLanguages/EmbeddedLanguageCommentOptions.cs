@@ -4,48 +4,35 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     /// <summary>
     /// Helps match patterns of the form: language=name,option1,option2,option3
-    /// 
+    /// <para/>
     /// All matching is case insensitive, with spaces allowed between the punctuation. Option values will be or'ed
     /// together to produce final options value.  If an unknown option is encountered, processing will stop with
     /// whatever value has accumulated so far.
-    /// 
+    /// <para/>
     /// Option names are the values from the TOptions enum.
     /// </summary>
-    internal struct LanguageCommentDetector<TOptions> where TOptions : struct, Enum
+    internal static class EmbeddedLanguageCommentOptions<TOptions> where TOptions : struct, Enum
     {
         private static readonly Dictionary<string, TOptions> s_nameToOption =
             typeof(TOptions).GetTypeInfo().DeclaredFields
                 .Where(f => f.FieldType == typeof(TOptions))
                 .ToDictionary(f => f.Name, f => (TOptions)f.GetValue(null)!, StringComparer.OrdinalIgnoreCase);
 
-        private readonly Regex _regex;
-
-        public LanguageCommentDetector(params string[] languageNames)
+        public static bool TryGetOptions(IEnumerable<string> captures, out TOptions options)
         {
-            var namePortion = string.Join("|", languageNames.Select(n => $"({Regex.Escape(n)})"));
-            _regex = new Regex($@"^((//)|(')|(/\*))\s*lang(uage)?\s*=\s*({namePortion})\b((\s*,\s*)(?<option>[a-zA-Z]+))*",
-                RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        }
-
-        public bool TryMatch(string text, out TOptions options)
-        {
-            var match = _regex.Match(text);
             options = default;
-            if (!match.Success)
-                return false;
 
-            var optionGroup = match.Groups["option"];
-            foreach (Capture? capture in optionGroup.Captures)
+            foreach (var capture in captures)
             {
-                if (!s_nameToOption.TryGetValue(capture!.Value, out var specificOption))
+                if (!s_nameToOption.TryGetValue(capture, out var specificOption))
                 {
                     // hit something we don't understand.  bail out.  that will help ensure
                     // users don't have weird behavior just because they misspelled something.

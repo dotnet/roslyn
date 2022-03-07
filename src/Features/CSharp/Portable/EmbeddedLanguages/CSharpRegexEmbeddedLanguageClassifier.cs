@@ -11,6 +11,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
+    // Order regex classification before json classification.  Json lights up on probable-json strings, but we don't
+    // want that to happen for APIs that are certain to be another language like Regex.
+    [ExtensionOrder(Before = PredefinedEmbeddedLanguageClassifierNames.Json)]
     [ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Regex, LanguageNames.CSharp), Shared]
     internal class CSharpRegexEmbeddedLanguageClassifier : AbstractRegexEmbeddedLanguageClassifier
     {
