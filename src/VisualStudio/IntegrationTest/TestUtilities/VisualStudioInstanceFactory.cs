@@ -180,12 +180,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
                 hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
 
-                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
-                if (procDumpInfo != null)
-                {
-                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
-                }
-
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
             }

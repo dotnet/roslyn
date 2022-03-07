@@ -13,7 +13,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -24,6 +23,7 @@ using NuGet.SolutionRestoreManager;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
+using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
@@ -100,6 +100,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var project = await GetProjectAsync(projectName, cancellationToken);
             var projectToReference = await GetProjectAsync(projectToReferenceName, cancellationToken);
             ((VSProject)project.Object).References.AddProject(projectToReference);
+        }
+
+        public async Task AddAnalyzerReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            ((VSProject3)project.Object).AnalyzerReferences.Add(filePath);
         }
 
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
