@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnostic.IsSuppressed)
                     continue;
 
-                var list = aggregatedDiagnostics.MultiAdd(diagnostic.GetTextSpan(), diagnostic);
+                aggregatedDiagnostics.MultiAdd(diagnostic.GetTextSpan(), diagnostic);
             }
 
             if (aggregatedDiagnostics.Count == 0)
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 continue;
                             }
 
-                            var list = mutableMap.MultiAdd(id, fixer);
+                            mutableMap.MultiAdd(id, fixer);
                         }
                     }
 
@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (string.IsNullOrWhiteSpace(id))
                             continue;
 
-                        var list = builder.MultiAdd(id, fixer);
+                        builder.MultiAdd(id, fixer);
                     }
                 }
             }
