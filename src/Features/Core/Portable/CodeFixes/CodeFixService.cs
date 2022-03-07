@@ -185,8 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnostic.IsSuppressed)
                     continue;
 
-                var list = aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), static _ => new List<DiagnosticData>());
-                list.Add(diagnostic);
+                var list = aggregatedDiagnostics.MultiAdd(diagnostic.GetTextSpan(), diagnostic);
             }
 
             if (aggregatedDiagnostics.Count == 0)
@@ -494,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         continue;
 
                     allFixers.Add(fixer);
-                    fixerToRangesAndDiagnostics.GetOrAdd(fixer, static _ => new()).Add((range, diagnostics));
+                    fixerToRangesAndDiagnostics.MultiAdd(fixer, (range, diagnostics));
                 }
             }
         }
@@ -929,8 +928,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 continue;
                             }
 
-                            var list = mutableMap.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
-                            list.Add(fixer);
+                            var list = mutableMap.MultiAdd(id, fixer);
                         }
                     }
 
@@ -1023,8 +1021,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (string.IsNullOrWhiteSpace(id))
                             continue;
 
-                        var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
-                        list.Add(fixer);
+                        var list = builder.MultiAdd(id, fixer);
                     }
                 }
             }
