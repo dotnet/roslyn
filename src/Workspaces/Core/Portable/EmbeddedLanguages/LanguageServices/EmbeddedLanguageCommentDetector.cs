@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// <para/>
     /// Option names are the values from the TOptions enum.
     /// </summary>
-    internal struct EmbeddedLanguageCommentDetector
+    internal readonly struct EmbeddedLanguageCommentDetector
     {
         private readonly Regex _regex;
 
