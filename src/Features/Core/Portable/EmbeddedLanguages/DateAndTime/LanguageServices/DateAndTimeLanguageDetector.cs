@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
     /// </summary>
     internal sealed class DateAndTimeLanguageDetector : AbstractLanguageDetector<DateAndTimeOptions, DateTimeTree>
     {
-        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("date", "time", "datetime", "DateTimeFormat");
+        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Date", "Time", "DateTime", "DateTimeFormat");
 
         private const string FormatName = "format";
 
