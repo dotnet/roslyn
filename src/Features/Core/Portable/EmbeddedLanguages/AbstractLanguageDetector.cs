@@ -346,17 +346,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
     {
         protected readonly EmbeddedLanguageInfo Info;
 
-        private readonly string _stringSyntaxAttributeName;
-        private readonly LanguageCommentDetector<TOptions> _commentDetector;
+        private EmbeddedLanguageCommentDetector _commentDetector;
 
         protected AbstractLanguageDetector(
-            string stringSyntaxAttributeName,
-            EmbeddedLanguageInfo info,
-            LanguageCommentDetector<TOptions> commentDetector)
+            string languageIdentifier,
+            EmbeddedLanguageInfo info)
         {
-            _stringSyntaxAttributeName = stringSyntaxAttributeName;
             Info = info;
-            _commentDetector = commentDetector;
+            _commentDetector = new EmbeddedLanguageCommentDetector(new[] { languageIdentifier });
         }
 
         /// <summary>
