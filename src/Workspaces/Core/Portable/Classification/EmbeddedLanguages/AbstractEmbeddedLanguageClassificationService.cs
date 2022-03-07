@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Classification
         private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _classifiers;
         private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
 
-        private readonly Dictionary<string, List<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new();
+        private readonly Dictionary<string, List<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new(StringComparer.OrdinalIgnoreCase);
         private readonly EmbeddedLanguageDetector _detector;
 
         protected AbstractEmbeddedLanguageClassificationService(
@@ -130,11 +130,16 @@ namespace Microsoft.CodeAnalysis.Classification
                 {
                     var context = new EmbeddedLanguageClassificationContext(
                         _semanticModel, token, _options, _result, _cancellationToken);
-                    foreach (var classifier in _service._classifiers)
+
+                    if (_service._detector.IsEmbeddedLanguageToken(token, _semanticModel, _cancellationToken, out var identifier, out _) &&
+                        _service._identifierToClassifiers.TryGetValue(identifier, out var classifiers))
                     {
-                        // This classifier added values.  No need to check the other ones.
-                        if (TryClassify(classifier.Value, context))
-                            return;
+                        foreach (var classifier in classifiers)
+                        {
+                            // If this classifier added values then need to check the other ones.
+                            if (TryClassify(classifier.Value, context))
+                                return;
+                        }
                     }
 
                     TryClassify(_service._fallbackClassifier, context);
