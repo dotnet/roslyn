@@ -20,11 +20,31 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal abstract class AbstractEmbeddedLanguageClassificationService : IEmbeddedLanguageClassificationService
     {
+        /// <summary>
+        /// The kinds of literal tokens that we want to do embedded language classification for.
+        /// </summary>
         private readonly HashSet<int> _syntaxTokenKinds = new();
+
+        /// <summary>
+        /// Classifiers that can annotated older APIs not updated to use the [StringSyntax] attribute.
+        /// </summary>
         private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _legacyClassifiers;
+
+        /// <summary>
+        /// Finally classifier to run if there is no embedded language in a string.  It will just classify escape sequences.
+        /// </summary>
         private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
 
+        /// <summary>
+        /// Ordered mapping of a lang ID (like 'Json') to all the classifiers that can actually classify that language.
+        /// This allows for multiple classifiers to be available.  The first classifier though that returns
+        /// classifications for a string will 'win' and no other classifiers will contribute.
+        /// </summary>
         private readonly Dictionary<string, ArrayBuilder<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Helper to look at string literals and determine what language they are annotated to take.
+        /// </summary>
         private readonly EmbeddedLanguageDetector _detector;
 
         protected AbstractEmbeddedLanguageClassificationService(
@@ -36,7 +56,10 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             _fallbackClassifier = fallbackClassifier;
 
+            // Order the classifeirs to respect the [Order[ annotations.
             var orderedClassifiers = ExtensionOrderer.Order(allClassifiers).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
+
+            // Grab out the classifiers that handle unannotated literals and APIs.
             _legacyClassifiers = orderedClassifiers.WhereAsArray(c => c.Metadata.SupportsUnannotatedAPIs);
 
             foreach (var classifier in orderedClassifiers)
