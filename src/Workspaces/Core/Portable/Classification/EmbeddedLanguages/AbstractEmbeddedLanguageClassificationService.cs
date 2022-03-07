@@ -157,4 +157,5 @@ namespace Microsoft.CodeAnalysis.Classification
             }
         }
     }
+
 }
