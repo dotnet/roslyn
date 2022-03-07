@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             _commentDetector = new EmbeddedLanguageCommentDetector(languageIdentifiers);
         }
 
+        /// <summary>
+        /// Determines if <paramref name="token"/> is an embedded language token.  If the token is, the specific
+        /// language indicated will be returned in <paramref name="identifier"/>.  If the token was annotated with a
+        /// <c>// lang=id</c> comment, then options present in the comment (e.g. <c>// lang=id,opt1,opt2,...</c> will be
+        /// returned through <paramref name="options"/>.
+        /// </summary>
         public bool IsEmbeddedLanguageToken(
             SyntaxToken token,
             SemanticModel semanticModel,
