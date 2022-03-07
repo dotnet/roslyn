@@ -34,6 +34,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -330,6 +331,30 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
+        }
+
+        public async Task<string[]> GetErrorTagsAsync(CancellationToken cancellationToken)
+            => await GetTagsAsync<IErrorTag>(filter: null, cancellationToken);
+
+        private static string PrintSpan(SnapshotSpan span)
+            => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+
+        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag>? filter, CancellationToken cancellationToken)
+            where TTag : ITag
+        {
+            filter ??= _ => true;
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+
+            var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
+            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
+            var tags = aggregator
+                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
+                .Where(t => filter(t.Tag))
+                .Cast<IMappingTagSpan<ITag>>();
+            return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
