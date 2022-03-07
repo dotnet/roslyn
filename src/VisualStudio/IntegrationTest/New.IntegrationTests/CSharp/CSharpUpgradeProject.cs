@@ -8,9 +8,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
     public class CSharpUpgradeProject : AbstractUpgradeProjectTest

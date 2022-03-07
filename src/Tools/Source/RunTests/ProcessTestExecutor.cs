@@ -75,7 +75,11 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
-            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 15minutes");
+            // The 25 minute timeout accounts for the fact that VSIX deployment and/or experimental hive reset and
+            // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
+            // functionality cannot separate this configuration overhead from the first test which will eventually run.
+            // https://github.com/dotnet/roslyn/issues/59851
+            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 25minutes");
 
             return builder.ToString();
         }

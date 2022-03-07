@@ -2,7 +2,8 @@ This document provides guidance for thinking about language interactions and tes
 
 # General concerns:
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
-- Other external documentation
+- *Ping* for new breaking changes and general ping for partner teams (Bill, Kathleen, Mads, IDE, Razor)
+- Help review external documentation
 - Backward and forward compatibility (interoperation with previous and future compilers, each in both directions)
 - Error handling/recovery (missing libraries, including missing types in mscorlib; errors in parsing, ambiguous lookup, inaccessible lookup, wrong kind of thing found, instance vs static thing found, wrong type for the context, value vs variable)
 - BCL (including mono) and other customer impact
