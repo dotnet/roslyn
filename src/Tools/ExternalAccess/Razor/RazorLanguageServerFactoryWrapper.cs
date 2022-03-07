@@ -71,15 +71,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 => _razorCapabilitiesProvider.GetCapabilities(clientCapabilities);
         }
 
+        /// <summary>
+        /// Test span mapping service provider whose existence is used only to identify documents belonging to Razor.
+        /// </summary>
         private class RazorTestSpanMapperProvider : IDocumentServiceProvider
         {
             TService IDocumentServiceProvider.GetService<TService>()
                 => (TService)(object)new RazorTestSpanMappingService();
         }
 
-        /// <summary>
-        /// Test span mapping service whose existence is used only to identify documents belonging to Razor.
-        /// </summary>
         private class RazorTestSpanMappingService : ISpanMappingService
         {
             public bool SupportsMappingImportDirectives => throw new NotImplementedException();
