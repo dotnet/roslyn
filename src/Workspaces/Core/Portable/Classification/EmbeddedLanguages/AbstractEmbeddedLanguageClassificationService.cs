@@ -57,15 +57,13 @@ namespace Microsoft.CodeAnalysis.Classification
             SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(_classifiers, _fallbackClassifier, _syntaxTokenKinds, semanticModel, textSpan, options, result, cancellationToken);
+            var worker = new Worker(this, semanticModel, textSpan, options, result, cancellationToken);
             worker.Recurse(root);
         }
 
         private ref struct Worker
         {
-            private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _classifiers;
-            private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
-            private readonly HashSet<int> _syntaxTokenKinds;
+            private readonly AbstractEmbeddedLanguageClassificationService _service;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
             private readonly ClassificationOptions _options;
@@ -73,18 +71,14 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly CancellationToken _cancellationToken;
 
             public Worker(
-                ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers,
-                IEmbeddedLanguageClassifier fallbackClassifier,
-                HashSet<int> syntaxTokenKinds,
+                AbstractEmbeddedLanguageClassificationService service,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
                 ClassificationOptions options,
                 ArrayBuilder<ClassifiedSpan> result,
                 CancellationToken cancellationToken)
             {
-                _classifiers = classifiers;
-                _fallbackClassifier = fallbackClassifier;
-                _syntaxTokenKinds = syntaxTokenKinds;
+                _service = service;
                 _semanticModel = semanticModel;
                 _textSpan = textSpan;
                 _options = options;
@@ -121,18 +115,18 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ClassifyToken(SyntaxToken token)
             {
-                if (token.Span.IntersectsWith(_textSpan) && _syntaxTokenKinds.Contains(token.RawKind))
+                if (token.Span.IntersectsWith(_textSpan) && _service._syntaxTokenKinds.Contains(token.RawKind))
                 {
                     var context = new EmbeddedLanguageClassificationContext(
                         _semanticModel, token, _options, _result, _cancellationToken);
-                    foreach (var classifier in _classifiers)
+                    foreach (var classifier in _service._classifiers)
                     {
                         // This classifier added values.  No need to check the other ones.
                         if (TryClassify(classifier.Value, context))
                             return;
                     }
 
-                    TryClassify(_fallbackClassifier, context);
+                    TryClassify(_service._fallbackClassifier, context);
                 }
             }
 
