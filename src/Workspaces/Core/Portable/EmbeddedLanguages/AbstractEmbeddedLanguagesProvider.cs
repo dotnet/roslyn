@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages
 {
     /// <summary>
     /// Abstract implementation of the C# and VB embedded language providers.
