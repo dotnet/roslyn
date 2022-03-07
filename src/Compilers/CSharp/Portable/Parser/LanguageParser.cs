@@ -4528,8 +4528,13 @@ tryAgain:
         /// leading/trailing trivia.  However, if there is trivia between the tokens, then appropriate errors will be
         /// reported that the tokens cannot merge successfully.
         /// </summary>
+        /// <remarks>
+        /// IsFabricatedToken should be updated for tokens whose SyntaxKind is <paramref name="kind"/>.
+        /// </remarks>
         private SyntaxToken? MergeAdjacent(SyntaxToken t1, SyntaxToken t2, SyntaxKind kind)
         {
+            // Make sure we don't reuse the merged token for incremental parsing.
+            Debug.Assert(Blender.Reader.IsFabricatedToken(kind));
             if (NoTriviaBetween(t1, t2))
                 return SyntaxFactory.Token(t1.GetLeadingTrivia(), kind, t2.GetTrailingTrivia());
 
