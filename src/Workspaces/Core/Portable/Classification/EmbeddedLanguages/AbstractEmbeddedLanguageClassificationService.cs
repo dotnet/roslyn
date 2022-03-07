@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Classification
         private readonly ImmutableArray<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> _classifiers;
         private readonly IEmbeddedLanguageClassifier _fallbackClassifier;
 
+        private readonly Dictionary<string, List<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>>> _identifierToClassifiers = new();
+
         protected AbstractEmbeddedLanguageClassificationService(
             IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers,
             IEmbeddedLanguageClassifier fallbackClassifier,
@@ -31,9 +34,13 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             _fallbackClassifier = fallbackClassifier;
 
-            var classifierList = ExtensionOrderer.Order(classifiers).Where(c => c.Metadata.Language == languageName).ToList();
+            _classifiers = ExtensionOrderer.Order(classifiers).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
 
-            _classifiers = classifierList.ToImmutableArray();
+            foreach (var classifier in classifiers)
+            {
+                if (classifier.Metadata.Identifier != null)
+                    _identifierToClassifiers.MultiAdd(classifier.Metadata.Identifier, classifier);
+            }
 
             _syntaxTokenKinds.Add(syntaxKinds.CharacterLiteralToken);
             _syntaxTokenKinds.Add(syntaxKinds.StringLiteralToken);
