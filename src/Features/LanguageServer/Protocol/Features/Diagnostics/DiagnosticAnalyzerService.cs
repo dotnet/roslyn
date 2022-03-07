@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Document document,
             TextSpan? range,
             Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeSuppressedDiagnostics,
             bool includeCompilerDiagnostics,
+            bool includeSuppressedDiagnostics,
             CodeActionRequestPriority priority,
             Func<string, IDisposable?>? addOperationScope,
             CancellationToken cancellationToken)
