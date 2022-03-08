@@ -179,10 +179,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             // Pasting a control character into a normal string literal is normally not desired.  So even if this
             // is legal, we still escape the contents to make the pasted code clear.
-            if (stringExpressionBeforePaste is LiteralExpressionSyntax literal && literal.Token.IsRegularStringLiteral() &&
-                snapshotBeforePaste.Version.Changes.Any(c => ContainsControlCharacter(c.NewText)))
+            if (stringExpressionBeforePaste is LiteralExpressionSyntax literal && literal.Token.IsRegularStringLiteral())
             {
-                return false;
+                if (ContainsControlCharacter(snapshotBeforePaste))
+                    return false;
+            }
+            else if (stringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString &&
+                interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+            {
+                if (ContainsControlCharacter(snapshotBeforePaste))
+                    return false;
             }
 
             // try to find the same token after the paste.  If it's got no errors, and still ends at the same expected
@@ -202,6 +208,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(stringExpressionBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
             var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
             return spanAfterPaste == stringExpressionAfterPaste.Span;
+        }
+
+        private static bool ContainsControlCharacter(ITextSnapshot snapshotBeforePaste)
+        {
+            return snapshotBeforePaste.Version.Changes.Any(c => ContainsControlCharacter(c.NewText));
         }
 
         private static bool ContainsControlCharacter(string newText)
@@ -230,7 +241,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             if (stringExpression is LiteralExpressionSyntax literalExpression)
             {
-                return EscapeForStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), text);
+                if (stringExpression.Kind() == SyntaxKind.StringLiteralExpression)
+                    return EscapeForStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), text);
+
+                throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
+            }
+            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+                    return EscapeForStringLiteral(isVerbatim: false, text);
+
+                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+                    return EscapeForStringLiteral(isVerbatim: true, text);
             }
 
             throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
