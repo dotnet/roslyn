@@ -59,10 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
 
         public int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
+        public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
         public int BaseExpression => (int)SyntaxKind.BaseExpression;
         public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
+        public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;
         public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
         public int? IndexExpression => (int)SyntaxKind.IndexExpression;
         public int InvocationExpression => (int)SyntaxKind.InvocationExpression;

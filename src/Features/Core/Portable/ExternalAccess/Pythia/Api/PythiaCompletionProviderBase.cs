@@ -4,12 +4,12 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
@@ -48,10 +48,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             => RecommendedKeyword.CreateDisplayParts(keyword, toolTip);
 
         public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
+            => SymbolCompletionItem.HasSymbols(item)
+            ? SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken)
+            : Task.FromResult(CommonCompletionItem.GetDescription(item));
 
         public static CompletionDescription GetDescription(CompletionItem item)
             => CommonCompletionItem.GetDescription(item);
+
+        public static bool TryGetInsertionText(CompletionItem item, [NotNullWhen(true)] out string? insertionText)
+            => SymbolCompletionItem.TryGetInsertionText(item, out insertionText);
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
             => base.GetChangeAsync(document, item, commitKey, cancellationToken);

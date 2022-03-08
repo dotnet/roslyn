@@ -239,9 +239,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
 
-        public List<string> GetF1Keyword()
-            => _editorInProc.GetF1Keywords();
-
         public void ExpandTypeNavBar()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
@@ -323,34 +320,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 var end = tag.Substring(comma + 1, close - comma - 1);
                 return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
             }).ToArray();
-        }
-
-        public void GoToDefinition(string? expectedNavigateWindowName)
-        {
-            _editorInProc.GoToDefinition();
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
-        }
-
-        public void GoToImplementation(string? expectedNavigateWindowName)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            _editorInProc.GoToImplementation();
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
-        }
-
-        public void GoToBase(string expectedNavigateWindowName)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            _editorInProc.GoToBase();
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToBase);
-            _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
         }
 
         public void SendExplicitFocus()

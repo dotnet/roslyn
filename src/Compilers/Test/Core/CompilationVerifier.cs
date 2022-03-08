@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
@@ -323,15 +324,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (errorCount > 0)
                 {
-                    return (false, printVerificationResult(result));
+                    var metadataReader = mainModule.GetMetadataReader();
+                    return (false, printVerificationResult(result, metadataReader));
                 }
 
                 return (true, string.Empty);
             }
 
-            static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result)
+            static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result, MetadataReader metadataReader)
             {
-                return string.Join("\r\n", result.Select(r => r.Message + printErrorArguments(r.ErrorArguments)));
+                return string.Join("\r\n", result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
+            }
+
+            static string printMethod(MethodDefinitionHandle method, MetadataReader metadataReader)
+            {
+                if (method.IsNil)
+                {
+                    return "";
+                }
+
+                var methodName = metadataReader.GetString(metadataReader.GetMethodDefinition(method).Name);
+                return $"[{methodName}]: ";
             }
 
             static string printErrorArguments(ILVerify.ErrorArgument[] errorArguments)
@@ -345,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
                 builder.Append(" { ");
-                var x = errorArguments.Select(a => a.Name + " = " + a.Value.ToString()).ToArray();
+                var x = errorArguments.Select(a => printErrorArgument(a)).ToArray();
                 for (int i = 0; i < x.Length; i++)
                 {
                     if (i > 0)
@@ -357,6 +370,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 builder.Append(" }");
 
                 return pooledBuilder.ToStringAndFree();
+            }
+
+            static string printErrorArgument(ILVerify.ErrorArgument errorArgument)
+            {
+                var name = errorArgument.Name;
+
+                string value;
+                if (name == "Offset" && errorArgument.Value is int i)
+                {
+                    value = "0x" + Convert.ToString(i, 16);
+                }
+                else
+                {
+                    value = errorArgument.Value.ToString();
+                }
+
+                return name + " = " + value;
             }
         }
 

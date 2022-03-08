@@ -57,6 +57,11 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     /// </remarks>
     private CancellationTokenSource _cancellationTokenSource = new();
 
+    /// <summary>
+    /// This hook allows for stabilizing the asynchronous nature of this command handler for integration testing.
+    /// </summary>
+    private Func<CancellationToken, Task>? _delayHook;
+
     public AbstractGoToCommandHandler(
         IThreadingContext threadingContext,
         IStreamingFindUsagesPresenter streamingPresenter,
@@ -168,7 +173,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         var findContext = new BufferedFindUsagesContext(_globalOptions);
 
         var cancellationToken = cancellationTokenSource.Token;
-        var delayTask = Task.Delay(TaggerDelay.OnIdle.ComputeTimeDelay(), cancellationToken);
+        var delayTask = DelayAsync(cancellationToken);
         var findTask = Task.Run(() => FindResultsAsync(findContext, document, position, cancellationToken), cancellationToken);
 
         var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
@@ -201,6 +206,16 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // present.  So pop up the presenter to show the user that we're involved in a longer search, without
         // blocking them.
         await PresentResultsInStreamingPresenterAsync(findContext, findTask, cancellationTokenSource).ConfigureAwait(false);
+    }
+
+    private Task DelayAsync(CancellationToken cancellationToken)
+    {
+        if (_delayHook is { } delayHook)
+        {
+            return delayHook(cancellationToken);
+        }
+
+        return Task.Delay(TaggerDelay.OnIdle.ComputeTimeDelay(), cancellationToken);
     }
 
     private async Task PresentResultsInStreamingPresenterAsync(
@@ -259,5 +274,21 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // So we better be able to find it afterwards.
             await FindActionAsync(findContext, document, position, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor
+    {
+        private readonly AbstractGoToCommandHandler<TLanguageService, TCommandArgs> _instance;
+
+        internal TestAccessor(AbstractGoToCommandHandler<TLanguageService, TCommandArgs> instance)
+            => _instance = instance;
+
+        internal ref Func<CancellationToken, Task>? DelayHook
+            => ref _instance._delayHook;
     }
 }

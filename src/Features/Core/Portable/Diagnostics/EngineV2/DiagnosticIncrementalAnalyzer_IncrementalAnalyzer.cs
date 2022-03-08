@@ -84,9 +84,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
                     var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
+                    var logTelemetry = document.Project.Solution.Options.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
                     foreach (var stateSet in nonCachedStateSets)
                     {
-                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, cancellationToken).ConfigureAwait(false);
+                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry, cancellationToken).ConfigureAwait(false);
                         PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
                     }
                 }
@@ -376,12 +377,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
             }
 
-            // include all analyzers if option is on
-            if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
-            {
-                return stateSets.ToList();
-            }
-
             // Compute analyzer config options for computing effective severity.
             // Note that these options are not cached onto the project, so we compute it once upfront. 
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
@@ -444,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(async raiseEvents =>
             {
                 foreach (var stateSet in stateSets)
                 {
@@ -474,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (oldAnalysisResult.IsEmpty && !newAnalysisResult.IsEmpty)
                     {
                         // add new diagnostics
-                        RaiseProjectDiagnosticsCreated(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                        await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
                         continue;
                     }
 
@@ -487,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false, raiseEvents);
 
                     // next update or create new ones
-                    RaiseProjectDiagnosticsCreated(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                    await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
                 }
             });
         }
@@ -537,13 +532,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsCreated(document, stateSet, kind, newItems, raiseEvents);
         }
 
-        private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private async Task RaiseProjectDiagnosticsCreatedAsync(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(newAnalysisResult.DocumentIds != null);
 
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
                 var document = project.GetTextDocument(documentId);
+
+                // If we couldn't find a normal document, and all features are enabled for source generated documents,
+                // attempt to locate a matching source generated document in the project.
+                if (document is null
+                    && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                {
+                    document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                }
+
                 if (document == null)
                 {
                     // it can happen with build synchronization since, in build case, 

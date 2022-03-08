@@ -1103,7 +1103,8 @@ class C
                 semanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1294,7 +1295,8 @@ class C<T>
                 semanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
