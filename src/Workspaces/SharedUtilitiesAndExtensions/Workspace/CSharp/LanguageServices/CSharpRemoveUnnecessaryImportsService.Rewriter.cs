@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             private static void ProcessUsings(
                 SyntaxList<UsingDirectiveSyntax> usings,
                 ISet<UsingDirectiveSyntax> usingsToRemove,
+                bool preserveTriviaFromFirstUsing,
                 out SyntaxList<UsingDirectiveSyntax> finalUsings,
                 out SyntaxTriviaList finalTrivia)
             {
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                         currentUsings[i] = null;
 
                         var leadingTrivia = currentUsing.GetLeadingTrivia();
-                        if (ShouldPreserveTrivia(leadingTrivia))
+                        if (ShouldPreserveTrivia(leadingTrivia) || (i == 0 && preserveTriviaFromFirstUsing))
                         {
                             // This using had trivia we want to preserve.  If we're the last
                             // directive, then copy this trivia out so that our caller can place
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                     return compilationUnit;
                 }
 
-                ProcessUsings(compilationUnit.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
+                ProcessUsings(compilationUnit.Usings, usingsToRemove, preserveTriviaFromFirstUsing: false, out var finalUsings, out var finalTrivia);
 
                 // If there was any left over trivia, then attach it to the next token that
                 // follows the usings.
@@ -162,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 if (usingsToRemove.Count == 0)
                     return namespaceDeclaration;
 
-                ProcessUsings(namespaceDeclaration.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
+                ProcessUsings(namespaceDeclaration.Usings, usingsToRemove, namespaceDeclaration is FileScopedNamespaceDeclarationSyntax, out var finalUsings, out var finalTrivia);
 
                 // If there was any left over trivia, then attach it to the next token that
                 // follows the usings.
