@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             _fallbackClassifier = fallbackClassifier;
 
-            // Order the classifeirs to respect the [Order[ annotations.
+            // Order the classifiers to respect the [Order] annotations.
             var orderedClassifiers = ExtensionOrderer.Order(allClassifiers).Where(c => c.Metadata.Language == languageName).ToImmutableArray();
 
             // Grab out the classifiers that handle unannotated literals and APIs.
