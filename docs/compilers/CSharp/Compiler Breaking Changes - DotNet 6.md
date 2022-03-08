@@ -130,7 +130,9 @@ These are _function_type_conversions_.
     }
     ```
 
-5. <a name="5"></a><a name="roslyn-57925"></a>In Visual Studio 17.0.7, if a `struct` type declaration with no constructors includes initializers for some but not all fields, the compiler will report an error that all fields must be assigned. Earlier builds of 17.0 skipped the _definite assignment analysis_ for the parameterless constructor synthesized by the compiler for a `struct` with field initializers and no constructors, potentially resulting in instances with uninitialized fields. The updated behavior is consistent with the analysis performed for explicitly declared constructors. See [roslyn#57925](https://github.com/dotnet/roslyn/pull/57925).
+5. <a name="5"></a><a name="roslyn-57925"></a>In Visual Studio 17.0.7, if a `struct` type declaration with no constructors includes initializers for some but not all fields, the compiler will report an error that all fields must be assigned.
+
+    Earlier builds of 17.0 skipped _definite assignment analysis_ for the parameterless constructor synthesized by the compiler in this scenario and did not report unassigned fields, potentially resulting in instances with uninitialized fields. The updated analysis and error reporting is consistent with explicitly declared constructors. See [roslyn#57925](https://github.com/dotnet/roslyn/pull/57925).
 
     For instance, the following results in an error:
     ```csharp
@@ -141,10 +143,10 @@ These are _function_type_conversions_.
     }
     ```
 
-    To resolve the errors, either declare a parameterless constructor and assign the fields that do not have initializers, or remove the existing field initializers so the compiler does not synthesize a parameterless constructor.
+    To resolve the errors, declare a parameterless constructor and assign the fields that do not have initializers, or remove the existing field initializers so the compiler does not synthesize a parameterless constructor.
     (For compatibility with Visual Studio 17.1 which requires a `struct` with field initializers to [include an explicitly declared constructor](https://github.com/dotnet/roslyn/blob/main/docs/compilers/CSharp/Compiler%20Breaking%20Changes%20-%20DotNet%207.md#6), avoid adding initializers to the remaining fields without also declaring a constructor.)
 
-    For instance, the error above can be resolved by adding a constructor and assigning `Y`:
+    For instance, the error in the example above can be resolved by adding a constructor and assigning `Y`:
     ```csharp
     struct S
     {
