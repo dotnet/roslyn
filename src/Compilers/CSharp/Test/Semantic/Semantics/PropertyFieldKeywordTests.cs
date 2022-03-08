@@ -1571,7 +1571,7 @@ class C
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
-            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -1628,7 +1628,7 @@ class C
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
-            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 

@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override Symbol? GetSymbolForPossibleFieldKeyword()
+        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword()
         {
             throw ExceptionUtilities.Unreachable;
         }

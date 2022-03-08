@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -60,6 +59,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
             Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
+            Debug.Assert(!(IsSpeculativeSemanticModel && owner is SourcePropertyAccessorSymbol) || hasFieldKeywordBinderInChain(rootBinder));
+
+            static bool hasFieldKeywordBinderInChain(Binder rootBinder)
+            {
+                while (rootBinder is not null)
+                {
+                    if (rootBinder is FieldKeywordBinder)
+                    {
+                        return true;
+                    }
+
+                    rootBinder = rootBinder.Next;
+                }
+
+                return false;
+            }
         }
 
         /// <summary>

@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SourcePropertyAccessorSymbol _accessor;
 
-        internal FieldKeywordBinder(MethodSymbol accessor, Binder next)
+        internal FieldKeywordBinder(SourcePropertyAccessorSymbol accessor, Binder next)
             : base(next)
         {
-            _accessor = (SourcePropertyAccessorSymbol)accessor;
+            _accessor = accessor;
         }
 
-        internal override Symbol? GetSymbolForPossibleFieldKeyword()
+        internal override FieldSymbol? GetSymbolForPossibleFieldKeyword()
         {
             return _accessor.Property.GetOrCreateBackingFieldForFieldKeyword();
         }

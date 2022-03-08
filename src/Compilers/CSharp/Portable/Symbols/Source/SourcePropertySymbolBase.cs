@@ -784,11 +784,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// This is a syntactic check only.
-        /// </summary>
-        internal bool HasAccessorContainingFieldKeyword => _getMethod?.ContainsFieldKeyword == true || _setMethod?.ContainsFieldKeyword == true;
-
         private bool AllowInitializer
         {
             get
