@@ -320,17 +320,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.ElementAccessExpression,
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.MemberBindingExpression,
-                SyntaxKind.ElementBindingExpression) &&
+                SyntaxKind.ElementBindingExpression,
+                // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
+                SyntaxKind.SuppressNullableWarningExpression) &&
                 current.Parent is not ConditionalAccessExpressionSyntax)
             {
                 current = current.Parent;
-
-                // Optional exclamations might follow the conditional operation. For example:
-                // a.b?.$$c!!!!()
-                while (current.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-                {
-                    current = current.Parent;
-                }
             }
 
             // Two cases we have to care about:
