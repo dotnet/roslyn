@@ -2,6 +2,7 @@
   Checks that TODO and PROTOTYPE comments are not present.
 #>
 
+# Verify no PROTOTYPE marker left in main
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
