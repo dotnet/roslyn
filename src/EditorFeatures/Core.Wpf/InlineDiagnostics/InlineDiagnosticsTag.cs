@@ -122,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             ImageThemingUtilities.SetImageBackgroundColor(border, editorBackground);
 
             border.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            view.ViewportWidthChanged += ViewportWidthChangedHandler;
             view.LayoutChanged += View_LayoutChanged;
 
             return new GraphicsResult(border, dispose:
@@ -133,21 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                         hyperlink.RequestNavigate -= HandleRequestNavigate;
                     }
 
-                    view.ViewportWidthChanged -= ViewportWidthChangedHandler;
                     view.LayoutChanged -= View_LayoutChanged;
                 });
-
-            // The tag listens to the width changing to allow the diagnostic UI to move with
-            // the window as it gets moved.
-            // The InlineDiagnosticsAdornmentManager listens to the viewport width
-            // changing to deal with diagnostics intersecting with the text in the editor.
-            void ViewportWidthChangedHandler(object s, EventArgs e)
-            {
-                if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
-                {
-                    Canvas.SetLeft(border, view.ViewportRight - border.DesiredSize.Width);
-                }
-            }
 
             void View_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
             {
