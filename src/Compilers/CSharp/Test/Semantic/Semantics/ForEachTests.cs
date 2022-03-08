@@ -3183,10 +3183,14 @@ ref struct DisposableEnumerator
     public void Dispose() {  }
 }";
 
-            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3,
+                // error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3).WithArguments("using declarations", "8.0").WithLocation(1, 1)
+                );
             var enumeratorInfo = boundNode.EnumeratorInfoOpt;
 
-            Assert.Null(enumeratorInfo.PatternDisposeInfo);
+            Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.PatternDisposeInfo.Method.ToTestDisplayString());
+            Assert.Empty(enumeratorInfo.PatternDisposeInfo.Arguments);
         }
 
         [Fact]

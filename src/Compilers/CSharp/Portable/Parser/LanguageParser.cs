@@ -7848,14 +7848,14 @@ done:;
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
                 this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
             {
-                return this.ParseForEachStatement(attributes, ParseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
+                return this.ParseForEachStatement(attributes, ParseAwaitKeyword(MessageID.None));
             }
             else if (IsPossibleAwaitUsing())
             {
                 if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                 {
                     // `await using Type ...` is handled below in ParseLocalDeclarationStatement
-                    return this.ParseUsingStatement(attributes, ParseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
+                    return this.ParseUsingStatement(attributes, ParseAwaitKeyword(MessageID.None));
                 }
             }
             else if (this.IsPossibleLabeledStatement())

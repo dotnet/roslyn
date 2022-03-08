@@ -93,6 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isExpression = !isUsingDeclaration && syntax.Kind() != SyntaxKind.VariableDeclaration;
             bool hasAwait = awaitKeyword != default;
 
+            // `await using` declarations already report a LangVer error for the same version
+            if (hasAwait && !isUsingDeclaration)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureAsyncUsing, diagnostics, awaitKeyword.GetLocation());
+            }
+
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
 
             TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
