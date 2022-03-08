@@ -8062,6 +8062,78 @@ class C
             await AssertFormatAsync(expected, code);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings14()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{ 42 , -4 :x}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4:x}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings15()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{   42 , -4   }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings16()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{  42 , -4 : x }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4: x }"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
         [WorkItem(1041787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041787")]
         [WorkItem(1151, "https://github.com/dotnet/roslyn/issues/1151")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
