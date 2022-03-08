@@ -36,8 +36,7 @@ namespace Goo;
 
 internal class C
 {
-}
-",
+}",
             options: new[]
             {
                 (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
@@ -188,8 +187,7 @@ namespace Goo
 namespace Goo;
 internal class C
 {
-}
-",
+}",
             options: new (OptionKey, object)[]
             {
                 (new OptionKey(CSharpCodeStyleOptions.NamespaceDeclarations), new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error)),
