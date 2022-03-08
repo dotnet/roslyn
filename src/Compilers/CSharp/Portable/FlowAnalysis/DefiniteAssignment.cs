@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledHashSet<FieldSymbol>? _implicitlyInitializedFieldsOpt;
 
-        private PooledHashSet<FieldSymbol> ImplicitlyInitializedFields => _implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance();
+        private void AddImplicitlyInitializedField(FieldSymbol field) => (_implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance()).Add(field);
 
         /// <summary>
         /// Map from variables that had their addresses taken, to the location of the first corresponding
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         isSuppressed ? ErrorCode.WRN_UnassignedThis : ErrorCode.ERR_UnassignedThis, location, isSuppressed, field);
                                 }
 
-                                this.ImplicitlyInitializedFields.Add(field);
+                                this.AddImplicitlyInitializedField(field);
                             }
                         }
                         reported = true;
@@ -591,20 +591,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(walker._requireOutParamsAssigned);
                         var builder = ArrayBuilder<FieldSymbol>.GetInstance(implicitlyInitializedFields.Count);
-                        // ensure the fields to initialize are ordered deterministically
-                        foreach (var peerMember in member.ContainingType.GetMembers())
+                        foreach (var field in implicitlyInitializedFields)
                         {
-                            if (peerMember switch
-                            {
-                                FieldSymbol f => f,
-                                EventSymbol { AssociatedField: FieldSymbol f } => f,
-                                _ => null
-                            } is { } field && implicitlyInitializedFields.Contains(field))
-                            {
-                                builder.Add(field);
-                            }
+                            builder.Add(field);
                         }
-                        Debug.Assert(builder.Count == implicitlyInitializedFields.Count);
+                        builder.Sort(LexicalOrderSymbolComparer.Instance);
                         implicitlyInitializedFieldsOpt = builder.ToImmutableAndFree();
                     }
 
@@ -1226,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slot == -1 || !State.IsAssigned(slot))
                     {
                         Debug.Assert((object)field.ContainingType == CurrentSymbol.EnclosingThisSymbol().Type);
-                        ImplicitlyInitializedFields.Add(field);
+                        AddImplicitlyInitializedField(field);
                     }
                 }
 
@@ -1269,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // See `FlowDiagnosticTests.AutoPropInitialization5`.
                     if ((object)fieldToInitialize.ContainingType == CurrentSymbol.EnclosingThisSymbol()!.Type)
                     {
-                        ImplicitlyInitializedFields.Add(fieldToInitialize);
+                        AddImplicitlyInitializedField(fieldToInitialize);
                     }
                 }
 
