@@ -12,6 +12,11 @@
         <target state="translated">Seçim, Etkileşimli Pencere'ye kopyalanıyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_to_rename_shift_enter_to_preview">
+        <source>Enter to rename, Shift+Enter to preview</source>
+        <target state="new">Enter to rename, Shift+Enter to preview</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error_performing_rename_0">
         <source>Error performing rename: '{0}'</source>
         <target state="translated">Yeniden adlandırma işlemi gerçekleştirilirken hata oluştu: '{0}'</target>

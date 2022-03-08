@@ -158,15 +158,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, NavigationOptions options, CancellationToken cancellationToken)
+        protected bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, NavigationOptions options, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
-            {
                 return false;
-            }
 
-            return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
+            return this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                navigationService.TryNavigateToLineAndOffsetAsync(
+                    this.ThreadingContext, workspace, documentId, position.Line, position.Character, options, cancellationToken));
         }
 
         protected bool TryNavigateToItem(int index, NavigationOptions options, CancellationToken cancellationToken)

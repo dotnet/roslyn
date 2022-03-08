@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -187,7 +188,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             if (definitions.Length > 0)
             {
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
-                await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                var location = await _streamingPresenter.TryPresentLocationsAsync(
                     _threadingContext,
                     document.Project.Solution.Workspace,
                     title ?? this.DisplayName,

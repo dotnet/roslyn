@@ -362,6 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var abstractsOnly = false;
             var excludeInstance = false;
             var excludeStatic = true;
+            var excludeBaseMethodsForRefStructs = true;
 
             ISymbol? containerSymbol = containerType;
 
@@ -437,10 +438,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             // nameof(X.|
             // Show static and instance members.
+            // Show base methods for "ref struct"s
             if (_context.IsNameOfContext)
             {
                 excludeInstance = false;
                 excludeStatic = false;
+                excludeBaseMethodsForRefStructs = false;
             }
 
             var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
@@ -450,6 +453,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var namedSymbols = excludeStatic
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : (abstractsOnly ? symbols.WhereAsArray(s => s.IsAbstract) : symbols);
+
+            //If container type is "ref struct" then we should exclude methods from object and ValueType that are not overriden
+            //if recomendations are requested not in nameof context,
+            //because calling them produces a compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
+            if (excludeBaseMethodsForRefStructs && containerType is not null && containerType.IsRefLikeType)
+            {
+                namedSymbols = namedSymbols.RemoveAll(s => s.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType);
+            }
 
             // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
             // applicable to it as well.

@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol, EditAndContinueCapabilities capabilities, CancellationToken cancellationToken)
+        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol, EditAndContinueCapabilitiesGrantor capabilities, CancellationToken cancellationToken)
         {
             // Global statements have a declaring syntax reference to the compilation unit itself, which we can just ignore
             // for the purposes of declaration rude edits
@@ -715,8 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else if (oldNode is RecordDeclarationSyntax &&
                      newNode is MethodDeclarationSyntax &&
-                     !capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters) &&
-                     !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)))
+                     !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)) &&
+                     !capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
             {
                 // Explicitly implemented methods must have parameter names that match the compiler generated versions
                 // exactly if the runtime doesn't support updating parameters, otherwise the debugger would show incorrect

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
@@ -19,7 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
             => FlattenActions(actions);
 
         private protected static CodeActionOptions GetIndentionColumn(int column)
-            => new(SymbolSearchOptions.Default, WrappingColumn: column);
+            => new(SymbolSearchOptions.Default,
+                   ImplementTypeOptions.Default,
+                   WrappingColumn: column);
 
         protected Task TestAllWrappingCasesAsync(
             string input,

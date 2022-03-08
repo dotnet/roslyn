@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -101,10 +102,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        public Func<CancellationToken, Task<bool>> GetNavigationCallback(SourceGeneratedDocument document, TextSpan sourceSpan)
         {
-            _foregroundThreadAffintizedObject.AssertIsForeground();
-
             // We will create an file name to represent this generated file; the Visual Studio shell APIs imply you can use a URI,
             // but most URIs are blocked other than file:// and http://; they also get extra handling to attempt to download the file so
             // those aren't really usable anyways.
@@ -130,25 +129,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 File.WriteAllText(temporaryFilePath, "");
             }
 
-            var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
-            var hr = openDocumentService.OpenDocumentViaProject(
-                temporaryFilePath,
-                VSConstants.LOGVIEWID.TextView_guid,
-                out _,
-                out _,
-                out _,
-                out var windowFrame);
-
-            if (ErrorHandler.Succeeded(hr) && windowFrame != null)
+            return async cancellationToken =>
             {
-                windowFrame.Show();
-            }
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                var openDocumentService = _serviceProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                var hr = openDocumentService.OpenDocumentViaProject(
+                    temporaryFilePath,
+                    VSConstants.LOGVIEWID.TextView_guid,
+                    out _,
+                    out _,
+                    out _,
+                    out var windowFrame);
 
-            // We should have the file now, so navigate to the right span
-            if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
-            {
-                openFile.NavigateToSpan(sourceSpan, cancellationToken);
-            }
+                if (ErrorHandler.Succeeded(hr) && windowFrame != null)
+                {
+                    windowFrame.Show();
+                }
+
+                // We should have the file now, so navigate to the right span
+                return _openFiles.TryGetValue(temporaryFilePath, out var openFile) &&
+                    await openFile.NavigateToSpanAsync(sourceSpan, cancellationToken).ConfigureAwait(false);
+            };
         }
 
         public bool TryGetGeneratedFileInformation(
@@ -497,10 +498,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameInfoBarElement = infoBarUI;
             }
 
-            public void NavigateToSpan(TextSpan sourceSpan, CancellationToken cancellationToken)
+            public Task<bool> NavigateToSpanAsync(TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
-                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
+                return _fileManager._visualStudioDocumentNavigationService.NavigateToTextBufferAsync(
+                    _textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
             }
         }
     }

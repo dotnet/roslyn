@@ -817,6 +817,11 @@
         <target state="translated">Nessun overload per '{0}' corrisponde al puntatore a funzione '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedRecord">
+        <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
+        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">I modelli di sezione possono essere usati solo una volta e direttamente all'interno di un modello di elenco.</target>
@@ -910,6 +915,16 @@
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
         <source>No accessible copy constructor found in base type '{0}'.</source>
         <target state="translated">Non è stato trovato alcun costruttore di copia accessibile nel tipo di base '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoEnumConstraint">
+        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
+        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
@@ -1065,6 +1080,11 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">Il metodo parziale '{0}' deve contenere modificatori di accessibilità perché include parametri 'out'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -1490,6 +1510,11 @@
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
         <target state="translated">controllo Null parametro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSpanCharConstantPattern">
+        <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

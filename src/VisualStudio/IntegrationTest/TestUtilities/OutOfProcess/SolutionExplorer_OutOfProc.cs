@@ -131,12 +131,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SaveAll()
             => _inProc.SaveAll();
 
-        public string[] GetProjectReferences(ProjectUtils.Project project)
-            => _inProc.GetProjectReferences(project.Name);
-
-        public string[] GetAssemblyReferences(ProjectUtils.Project project)
-            => _inProc.GetAssemblyReferences(project.Name);
-
         /// <summary>
         /// Selects an item named by the <paramref name="itemName"/> parameter.
         /// Note that this selects the first item of the given name found. In situations where

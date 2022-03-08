@@ -7,12 +7,14 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
@@ -79,6 +81,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
                         (service, cancellationToken) => service.SetSyntaxTreeConfigurationOptionsAsync(syntaxTreeConfigurationService.DisableRecoverableTrees, syntaxTreeConfigurationService.DisableProjectCacheService, syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
+
+                if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
+                {
+                    await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                        (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
 

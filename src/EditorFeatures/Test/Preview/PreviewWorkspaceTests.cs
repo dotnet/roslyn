@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var document = previewWorkspace.CurrentSolution.Projects.First().Documents.Single();
 
             previewWorkspace.OpenDocument(document.Id, (await document.GetTextAsync()).Container);
-            previewWorkspace.EnableDiagnostic();
+            previewWorkspace.EnableSolutionCrawler();
 
             // wait 20 seconds
             taskSource.Task.Wait(20000);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
             // enable preview diagnostics
-            previewWorkspace.EnableDiagnostic();
+            previewWorkspace.EnableSolutionCrawler();
 
             var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             const string AnalyzerCount = "Analyzer Count: ";
@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         private static void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
-            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, previewWorkspace.CurrentSolution);
-            var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var project = previewWorkspace.CurrentSolution.Projects.Single();
+            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, project);
+            var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
             var compilation = project.GetRequiredCompilationAsync(CancellationToken.None).Result;
             var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
             var result = compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;

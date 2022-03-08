@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
@@ -21,11 +22,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
     internal sealed class NavigateToItemDisplay : INavigateToItemDisplay3
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly INavigateToSearchResult _searchResult;
         private ReadOnlyCollection<DescriptionItem> _descriptionItems;
 
-        public NavigateToItemDisplay(INavigateToSearchResult searchResult)
-            => _searchResult = searchResult;
+        public NavigateToItemDisplay(IThreadingContext threadingContext, INavigateToSearchResult searchResult)
+        {
+            _threadingContext = threadingContext;
+            _searchResult = searchResult;
+        }
 
         public string AdditionalInformation => _searchResult.AdditionalInformation;
 
@@ -112,13 +117,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             //
             // TODO: Get the platform to use and pass us an operation context, or create one
             // ourselves.
-            navigationService.TryNavigateToSpan(
-                workspace,
-                document.Id,
-                _searchResult.NavigableItem.SourceSpan,
-                NavigationOptions.Default,
-                allowInvalidSpan: _searchResult.NavigableItem.IsStale,
-                CancellationToken.None);
+            _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                await navigationService.TryNavigateToSpanAsync(
+                    _threadingContext,
+                    workspace,
+                    document.Id,
+                    _searchResult.NavigableItem.SourceSpan,
+                    NavigationOptions.Default,
+                    allowInvalidSpan: _searchResult.NavigableItem.IsStale,
+                    CancellationToken.None).ConfigureAwait(false);
+            });
         }
 
         public int GetProvisionalViewingStatus()
