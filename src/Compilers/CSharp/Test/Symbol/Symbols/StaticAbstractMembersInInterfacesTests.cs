@@ -4602,11 +4602,23 @@ interface I1
         {
             var source1 =
 @"
-interface I1
+partial interface I1
 {
     abstract static " + type + " operator " + op + " " + paramList + @";
 }
 ";
+
+            if (op.StartsWith("checked "))
+            {
+                source1 +=
+@"
+partial interface I1
+{
+    abstract static " + type + " operator " + op.Substring(8) + " " + paramList + @";
+}
+";
+            }
+
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
@@ -4615,16 +4627,17 @@ interface I1
 
             void validate(ModuleSymbol module)
             {
-                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
-
-                Assert.False(m01.IsMetadataNewSlot());
-                Assert.True(m01.IsAbstract);
-                Assert.True(m01.IsMetadataVirtual());
-                Assert.False(m01.IsMetadataFinal);
-                Assert.False(m01.IsVirtual);
-                Assert.False(m01.IsSealed);
-                Assert.True(m01.IsStatic);
-                Assert.False(m01.IsOverride);
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.False(m01.IsMetadataNewSlot());
+                    Assert.True(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.False(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+                }
             }
         }
 
@@ -4711,7 +4724,7 @@ interface I1
 
             bool isChecked = op.StartsWith("checked ");
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator + (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op.Substring(isChecked ? 8 : 0)).WithLocation(4, 31 + type.Length + (isChecked ? 8 : 0))
@@ -15653,17 +15666,33 @@ typeKeyword + @"
 
             var source1 =
 @"
-public interface I1<T> where T : I1<T>
+public partial interface I1<T> where T : I1<T>
 {
     abstract static T operator " + checkedKeyword + op + @"(T x);
 }
 
-" + typeKeyword + @"
+partial " + typeKeyword + @"
     C : I1<C>
 {
     public static C operator " + checkedKeyword + op + @"(C x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static T operator " + op + @"(T x);
+}
+
+partial " + typeKeyword + @"
+    C : I1<C>
+{
+    public static C operator " + op + @"(C x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -15678,9 +15707,9 @@ public interface I1<T> where T : I1<T>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var i1 = c.Interfaces().Single();
-                var m01 = i1.GetMembers().OfType<MethodSymbol>().Single();
+                var m01 = i1.GetMembers(opName).OfType<MethodSymbol>().Single();
 
-                Assert.Equal(1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+                Assert.Equal(isChecked ? 2 : 1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
 
                 var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
 
@@ -15817,7 +15846,7 @@ partial " + typeKeyword + @"
     public static C operator " + checkedKeyword + op + @"(C x, int y) => default;
 }
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -15895,17 +15924,33 @@ partial " + typeKeyword + @"
 
             var source1 =
 @"
-public interface I1
+public partial interface I1
 {
     abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
-" + typeKeyword + @"
+partial " + typeKeyword + @"
     C : I1
 {
     static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+partial " + typeKeyword + @"
+    C : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -15913,7 +15958,7 @@ public interface I1
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
 
             Assert.Equal("default", node.ToString());
             Assert.Equal("I1", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
@@ -15929,10 +15974,10 @@ public interface I1
 
             void validate(ModuleSymbol module)
             {
-                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers(opName).OfType<MethodSymbol>().Single();
                 var c = module.GlobalNamespace.GetTypeMember("C");
 
-                Assert.Equal(1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+                Assert.Equal(isChecked ? 2 : 1, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
 
                 var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
 
@@ -16061,7 +16106,7 @@ partial " + typeKeyword + @"
     static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -16140,16 +16185,31 @@ partial " + typeKeyword + @"
 
             var source1 =
 @"
-public interface I1
+public partial interface I1
 {
     abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
 
-public class C2 : I1
+public partial class C2 : I1
 {
     static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+public partial class C2 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -16180,7 +16240,7 @@ public class C3 : C2, I1
             {
                 var c3 = module.GlobalNamespace.GetTypeMember("C3");
                 Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
-                var m01 = c3.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
 
                 var cM01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
 
@@ -16287,7 +16347,7 @@ public partial class C2 : I1
     static I1 I1.operator " + checkedKeyword + op + @"(I1 x, int y) => default;
 }
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -16927,7 +16987,7 @@ public class C2 : C1, I1<C2>
 {
 }
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -17040,7 +17100,7 @@ public partial class C1
 
             var source1 =
 @"
-class C1 : I1<C1>
+partial class C1 : I1<C1>
 {
     public static C1 operator " + checkedKeyword + op + @"(C1 x) => default;
 }
@@ -17050,6 +17110,16 @@ class C2 : I1<C2>
     static C2 I1<C2>.operator " + checkedKeyword + op + @"(C2 x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+partial class C1 : I1<C1>
+{
+    public static C1 operator " + op + @"(C1 x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -17269,7 +17339,7 @@ class C2 : I1<C2>
     }
 } 
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
             string additionalMethods = "";
 
             if (matchingOp is object)
@@ -17387,7 +17457,7 @@ class C2 : I1<C2>
 
             var source1 =
 @"
-public interface I1
+public partial interface I1
 {
     abstract static I1 operator " + checkedKeyword + op + @"(I1 x);
 }
@@ -17397,6 +17467,21 @@ public partial class C2 : I1
     static I1 I1.operator " + checkedKeyword + op + @"(I1 x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1
+{
+    abstract static I1 operator " + op + @"(I1 x);
+}
+
+public partial class C2 : I1
+{
+    static I1 I1.operator " + op + @"(I1 x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -17534,7 +17619,7 @@ public partial class C2 : C1, I1<C2>
 }
 ";
 
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -17653,7 +17738,7 @@ public partial class C2 : C1
     public static C2 operator " + checkedKeyword + op + @"(C2 x, C1 y) => default;
 }
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -17779,7 +17864,7 @@ public partial class C1<T, U> : I1<C1<T, U>, U>
 }
 ";
 
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -17887,7 +17972,7 @@ public partial class C1<T, U> : I1<C1<T, U>, U>
 " + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
 }
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -17988,7 +18073,7 @@ public class C11<T, U> : C1<T, U>, I1<C11<T, U>, C1<T, U>>
 {
 }
 ";
-            string matchingOp = MatchingBinaryOperator(op);
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
 
             if (matchingOp is object)
             {
@@ -23633,7 +23718,7 @@ public interface I2<T> where T : I2<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)").WithLocation(8, 10),
@@ -23772,7 +23857,7 @@ interface I14<T> : I1<T> where T : I1<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (12,23): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     implicit operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(12, 23 + checkedKeyword.Length),
@@ -23900,7 +23985,7 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation2.VerifyDiagnostics(
+                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21)
@@ -23908,7 +23993,7 @@ typeKeyword + @"
             }
             else
             {
-                compilation2.VerifyDiagnostics(
+                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
@@ -23927,7 +24012,7 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation3.VerifyDiagnostics(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
@@ -23938,7 +24023,7 @@ typeKeyword + @"
             }
             else
             {
-                compilation3.VerifyDiagnostics(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
@@ -23971,13 +24056,13 @@ typeKeyword + @"
 
             var source1 =
 @"
-public interface I1<T> where T : I1<T> 
+public partial interface I1<T> where T : I1<T> 
 {
     abstract static " + op + @" operator " + checkedKeyword + @"int(T x);
 }
 ";
             var source2 =
-typeKeyword + @"
+"partial " + typeKeyword + @"
     Test1: I1<Test1>
 {
     public static " + op + @" operator " + checkedKeyword + @"int(Test1 x) => default;
@@ -23992,7 +24077,7 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.VerifyDiagnostics(
+            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator " + checkedKeyword + "int(Test1)", "I1<Test1>." + op + " operator " + checkedKeyword + "int(Test1)", "Test1").WithLocation(2, 12)
@@ -24002,7 +24087,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.VerifyDiagnostics(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator " + checkedKeyword + "int(Test1)", "I1<Test1>." + op + " operator " + checkedKeyword + "int(Test1)", "Test1").WithLocation(2, 12),
@@ -24046,7 +24131,7 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.VerifyDiagnostics(
+            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (4,40): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static explicit I1<Test1>.operator int(Test1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 40 + checkedKeyword.Length)
@@ -24056,7 +24141,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.VerifyDiagnostics(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (4,40): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static explicit I1<Test1>.operator int(Test1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 40 + checkedKeyword.Length),
@@ -24083,19 +24168,37 @@ typeKeyword + @"
 
             var source1 =
 @"
-public interface I1<T> where T : I1<T>
+public partial interface I1<T> where T : I1<T>
 {
     abstract static " + op + @" operator " + checkedKeyword + @"int(T x);
     abstract static " + op + @" operator " + checkedKeyword + @"long(T x);
 }
 
-" + typeKeyword + @"
+partial " + typeKeyword + @"
     C : I1<C>
 {
     public static " + op + @" operator " + checkedKeyword + @"long(C x) => default;
     public static " + op + @" operator " + checkedKeyword + @"int(C x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+    abstract static " + op + @" operator long(T x);
+}
+
+partial " + typeKeyword + @"
+    C : I1<C>
+{
+    public static " + op + @" operator long(C x) => default;
+    public static " + op + @" operator int(C x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -24110,7 +24213,7 @@ public interface I1<T> where T : I1<T>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var i1 = c.Interfaces().Single();
-                Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+                Assert.Equal(isChecked ? 4 : 2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
 
                 var m01 = i1.GetMembers().OfType<MethodSymbol>().First();
 
@@ -24181,19 +24284,37 @@ public interface I1<T> where T : I1<T>
 
             var source1 =
 @"
-interface I1<T> where T : I1<T>
+partial interface I1<T> where T : I1<T>
 {
     abstract static " + op + @" operator " + checkedKeyword + @"C(T x);
     abstract static " + op + @" operator " + checkedKeyword + @"int(T x);
 }
 
-" + typeKeyword + @"
+partial " + typeKeyword + @"
     C : I1<C>
 {
     static " + op + @" I1<C>.operator " + checkedKeyword + @"int(C x) => int.MaxValue;
     static " + op + @" I1<C>.operator " + checkedKeyword + @"C(C x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+partial interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator C(T x);
+    abstract static " + op + @" operator int(T x);
+}
+
+partial " + typeKeyword + @"
+    C : I1<C>
+{
+    static " + op + @" I1<C>.operator int(C x) => int.MaxValue;
+    static " + op + @" I1<C>.operator C(C x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -24201,7 +24322,7 @@ interface I1<T> where T : I1<T>
 
             var tree = compilation1.SyntaxTrees.Single();
             var model = compilation1.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
 
             Assert.Equal("default", node.ToString());
             Assert.Equal("C", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
@@ -24218,7 +24339,7 @@ interface I1<T> where T : I1<T>
             void validate(ModuleSymbol module)
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
-                Assert.Equal(2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
+                Assert.Equal(isChecked ? 4 : 2, c.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()).Count());
 
                 var m01 = c.Interfaces().Single().GetMembers().OfType<MethodSymbol>().First();
                 var cM01 = (MethodSymbol)c.FindImplementationForInterfaceMember(m01);
@@ -24269,16 +24390,31 @@ interface I1<T> where T : I1<T>
 
             var source1 =
 @"
-public interface I1<T> where T : I1<T>
+public partial interface I1<T> where T : I1<T>
 {
     abstract static " + op + @" operator " + checkedKeyword + @"int(T x);
 }
 
-public class C2 : I1<C2>
+public partial class C2 : I1<C2>
 {
     static " + op + @" I1<C2>.operator " + checkedKeyword + @"int(C2 x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator int(T x);
+}
+
+public partial class C2 : I1<C2>
+{
+    static " + op + @" I1<C2>.operator int(C2 x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -24309,7 +24445,7 @@ public class C3 : C2, I1<C2>
             {
                 var c3 = module.GlobalNamespace.GetTypeMember("C3");
                 Assert.Empty(c3.GetMembers().OfType<MethodSymbol>().Where(m => !m.IsConstructor()));
-                var m01 = c3.Interfaces().Single().GetMembers().OfType<MethodSymbol>().Single();
+                var m01 = c3.Interfaces().Single().GetMembers(opName).OfType<MethodSymbol>().Single();
 
                 var cM01 = (MethodSymbol)c3.FindImplementationForInterfaceMember(m01);
 
@@ -24639,6 +24775,20 @@ public class C2 : C1<C2>, I1<C2>
 {
 }
 ";
+            if (isChecked)
+            {
+                source1 += @"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator C1<T>(T x);
+}
+
+public partial class C1<T>
+{
+    public static " + op + @" operator C1<T>(T x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -24734,7 +24884,7 @@ public class C2 : C1<C2>, I1<C2>
 
             var source1 =
 @"
-class C1 : I1<C1>
+partial class C1 : I1<C1>
 {
     public static " + op + @" operator " + checkedKeyword + @"int(C1 x) => default;
 }
@@ -24744,6 +24894,16 @@ class C2 : I1<C2>
     static " + op + @" I1<C2>.operator " + checkedKeyword + @"int(C2 x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+partial class C1 : I1<C1>
+{
+    public static " + op + @" operator int(C1 x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -24847,11 +25007,32 @@ public partial class C1<T>
     public static " + op + @" operator " + checkedKeyword + @"C1<T>(T x) => default;
 }
 
-public class C2 : C1<C2>, I1<C2>
+public partial class C2 : C1<C2>, I1<C2>
 {
     static " + op + @" I1<C2>.operator " + checkedKeyword + @"C2(int x) => default;
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1<T> where T : I1<T>
+{
+    abstract static " + op + @" operator C1<T>(T x);
+    abstract static " + op + @" operator T(int x);
+}
+
+public partial class C1<T>
+{
+    public static " + op + @" operator C1<T>(T x) => default;
+}
+
+public partial class C2 : C1<C2>, I1<C2>
+{
+    static " + op + @" I1<C2>.operator C2(int x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -24939,17 +25120,32 @@ public class C3 : C2, I1<C2>
 ";
             var source1 =
 @"
-public interface I1<T, U> where T : I1<T, U>
+public partial interface I1<T, U> where T : I1<T, U>
 {
     abstract static " + op + @" operator " + checkedKeyword + @"U(T x);
 }
 
-public class C1<T, U> : I1<C1<T, U>, U>
+public partial class C1<T, U> : I1<C1<T, U>, U>
 {
 " + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1<T, U> where T : I1<T, U>
+{
+    abstract static " + op + @" operator U(T x);
+}
 
+public partial class C1<T, U> : I1<C1<T, U>, U>
+{
+    public static " + op + @" operator U(C1<T, U> x) => default;
+    public static " + op + @" operator int(C1<T, U> x) => default;
+}
+";
+            }
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -25028,16 +25224,33 @@ public class C2 : C1<int, int>, I1<C1<int, int>, int>
 ";
             var source1 =
 @"
-public interface I1<T, U> where T : I1<T, U>
+public partial interface I1<T, U> where T : I1<T, U>
 {
     abstract static " + op + @" operator " + checkedKeyword + @"U(T x);
 }
 
-public class C1<T, U> : I1<C1<T, U>, U>
+public partial class C1<T, U> : I1<C1<T, U>, U>
 {
 " + (genericFirst ? generic + nonGeneric : nonGeneric + generic) + @"
 }
 ";
+            if (isChecked)
+            {
+                source1 +=
+@"
+public partial interface I1<T, U> where T : I1<T, U>
+{
+    abstract static " + op + @" operator U(T x);
+}
+
+public partial class C1<T, U> : I1<C1<T, U>, U>
+{
+    static " + op + @" I1<C1<T, U>, U>.operator U(C1<T, U> x) => default;
+    public static " + op + @" operator int(C1<T, U> x) => default;
+}
+";
+            }
+
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework,
@@ -27357,7 +27570,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator checked --(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator checked " + op + "(C1)").WithLocation(7, 19),
@@ -27398,7 +27611,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator --(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1)").WithLocation(7, 19),
@@ -27482,7 +27695,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator checked -(C1, int)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator checked " + op + "(C1, int)").WithLocation(7, 19),
@@ -27524,7 +27737,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator -(C1, int)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1, int)").WithLocation(7, 19),
@@ -27592,7 +27805,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator checked int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator checked int(C1)").WithLocation(7, 19),
@@ -27630,7 +27843,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator int(C1)").WithLocation(7, 19),
@@ -27668,7 +27881,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator checked int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator checked int(C1)").WithLocation(7, 19),
@@ -27706,7 +27919,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.implicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.implicit operator int(C1)").WithLocation(7, 19),
@@ -27744,7 +27957,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator int(C1)").WithLocation(7, 19),
@@ -27782,7 +27995,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.implicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.implicit operator int(C1)").WithLocation(7, 19),
