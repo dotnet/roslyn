@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     internal sealed class PdbSourceDocumentLoaderService : IPdbSourceDocumentLoaderService
     {
         private const int SourceLinkTimeout = 1000;
-        private const int EasedSourceLinkTimeout = 4000;
+        private const int ExtendedSourceLinkTimeout = 4000;
 
         /// <summary>
         /// Lazy import ISourceLinkService because it can cause debugger 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (sourceDocument.SourceLinkUrl is null || _sourceLinkService.Value is null)
                 return null;
 
-            var timeout = useExtendedTimeout ? EasedSourceLinkTimeout : SourceLinkTimeout;
+            var timeout = useExtendedTimeout ? ExtendedSourceLinkTimeout : SourceLinkTimeout;
 
             // This should ideally be the repo-relative path to the file, and come from SourceLink: https://github.com/dotnet/sourcelink/pull/699
             var relativePath = Path.GetFileName(sourceDocument.FilePath);
