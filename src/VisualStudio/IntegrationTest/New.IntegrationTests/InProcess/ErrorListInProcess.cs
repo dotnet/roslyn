@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -50,24 +49,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var errorItems = await GetErrorItemsAsync(cancellationToken);
-            var list = new List<string>();
-
-            foreach (var item in errorItems)
-            {
-                if (item.GetCategory() > minimumSeverity)
-                {
-                    continue;
-                }
-
-                if (!item.TryGetValue(StandardTableKeyNames.ErrorSource, out ErrorSource itemErrorSource)
-                    || !errorSource.HasFlag(itemErrorSource))
-                {
-                    continue;
-                }
-
-                list.Add(GetMessage(item));
-            }
+            var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
+            var list = errorItems.Select(GetMessage).ToList();
 
             return list
                 .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
@@ -79,19 +62,48 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var items = await GetErrorItemsAsync(cancellationToken);
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
+            ErrorSource errorSource = 0;
+            if (errorList.AreBuildErrorSourceEntriesShown)
+                errorSource |= ErrorSource.Build;
+
+            if (errorList.AreOtherErrorSourceEntriesShown)
+                errorSource |= ErrorSource.Other;
+
+            var minimumSeverity =
+                errorList.AreMessagesShown ? __VSERRORCATEGORY.EC_MESSAGE :
+                errorList.AreWarningsShown ? __VSERRORCATEGORY.EC_WARNING :
+                __VSERRORCATEGORY.EC_ERROR;
+
+            var items = await GetErrorItemsAsync(errorSource, minimumSeverity, cancellationToken);
 
             items[item].NavigateTo(isPreview, shouldActivate);
             return GetMessage(items[item]);
         }
 
-        private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(CancellationToken cancellationToken)
+        private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
             var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
-            return args.AllEntries.ToImmutableArray();
+            return args.AllEntries
+                .Where(item =>
+                {
+                    if (item.GetCategory() > minimumSeverity)
+                    {
+                        return false;
+                    }
+
+                    if (item.GetErrorSource() is not { } itemErrorSource
+                        || !errorSource.HasFlag(itemErrorSource))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                })
+                .ToImmutableArray();
         }
 
         private static string GetMessage(ITableEntryHandle item)
