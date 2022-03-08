@@ -1922,4 +1922,10 @@ Additional information: {1}</value>
   <data name="External_sources" xml:space="preserve">
     <value>External Sources</value>
   </data>
+  <data name="Call_Hierarchy" xml:space="preserve">
+    <value>Call Hierarchy</value>
+  </data>
+  <data name="Navigating" xml:space="preserve">
+    <value>Navigating</value>
+  </data>
 </root>

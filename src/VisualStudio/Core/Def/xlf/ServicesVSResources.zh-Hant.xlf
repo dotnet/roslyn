@@ -167,6 +167,11 @@
         <target state="translated">正在計算相依項...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="new">Call Hierarchy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">呼叫網站值:</target>
@@ -830,6 +835,11 @@
       <trans-unit id="Navigate_to_external_sources">
         <source>Navigate to External Sources</source>
         <target state="translated">瀏覽至外部來源</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="new">Navigating</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">

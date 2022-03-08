@@ -167,6 +167,11 @@
         <target state="translated">Abhängige Objekte werden berechnet...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="new">Call Hierarchy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">Wert der Aufrufsite:</target>
@@ -830,6 +835,11 @@
       <trans-unit id="Navigate_to_external_sources">
         <source>Navigate to External Sources</source>
         <target state="translated">Zu externen Quellen navigieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="new">Navigating</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">

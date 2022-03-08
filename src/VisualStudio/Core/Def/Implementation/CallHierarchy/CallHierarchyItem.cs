@@ -11,7 +11,9 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 {
@@ -29,14 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly string _sortText;
 
         public CallHierarchyItem(
+            CallHierarchyProvider provider,
             ISymbol symbol,
             ProjectId projectId,
             IEnumerable<AbstractCallFinder> finders,
             Func<ImageSource> glyphCreator,
-            CallHierarchyProvider provider,
-            IEnumerable<Location> callsites,
+            ImmutableArray<Location> callsites,
             Workspace workspace)
         {
+            _provider = provider;
             _symbolId = symbol.GetSymbolKey();
             _projectId = projectId;
             _finders = finders;
@@ -44,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _containingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
             _glyphCreator = glyphCreator;
             _name = symbol.ToDisplayString(MemberNameFormat);
-            _provider = provider;
-            _callsites = callsites.Select(l => new CallHierarchyDetail(provider.ThreadingContext, l, workspace));
+            _callsites = callsites.SelectAsArray(loc => new CallHierarchyDetail(provider, loc, workspace));
             _sortText = symbol.ToDisplayString();
             _workspace = workspace;
         }
