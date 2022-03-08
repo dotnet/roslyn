@@ -63,6 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
+            _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+
             // Since we're on the UI thread here anyways, use that as an opportunity to grab the
             // IVsSolution object and solution file path.
             //
@@ -96,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
-
-            _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
+            await _visualStudioWorkspaceImpl.ApplyChangeToWorkspaceAsync(w =>
             {
+                _visualStudioWorkspaceImpl.AddProjectToInternalMaps_NoLock(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
+
                 var projectInfo = ProjectInfo.Create(
                         id,
                         versionStamp,
@@ -129,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     w.OnProjectAdded(projectInfo);
                 }
-            });
+            }).ConfigureAwait(false);
 
             // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
             // This is not cancellable as we have already mutated the solution.
