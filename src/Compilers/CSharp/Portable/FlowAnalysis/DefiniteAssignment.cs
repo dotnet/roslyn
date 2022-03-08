@@ -470,15 +470,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static ErrorCode GetEquivalentWarning(ErrorCode error) => error switch
         {
 #pragma warning disable format
-                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
-                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
-                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
-                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
-                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
-                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
-                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
-                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
-                    _ => error, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
+                ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
+                ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
+                ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
+                ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
+                ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
+                ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
+                ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
+                ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
+                _ => error, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
 #pragma warning restore format
         };
 
