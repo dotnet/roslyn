@@ -83,9 +83,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (!fixAllContext.State.TriggerSpan.HasValue)
                 return null;
 
-            var documentsAndSpansToFix = await FixAllContextHelper.GetDocumentsAndSpansForContainingMemberOrTypeAsync(
-                fixAllContext.Document, fixAllContext.Scope,
-                fixAllContext.State.TriggerSpan.Value, fixAllContext.CancellationToken).ConfigureAwait(false);
+            var spanMappingService = fixAllContext.Document.GetLanguageService<IFixAllSpanMappingService>();
+            if (spanMappingService == null)
+                return null;
+
+            var documentsAndSpansToFix = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
+                fixAllContext.Document, fixAllContext.State.TriggerSpan.Value,
+                fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
             if (documentsAndSpansToFix.IsEmpty)
                 return null;
 

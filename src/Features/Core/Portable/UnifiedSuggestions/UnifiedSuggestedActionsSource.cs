@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -212,14 +213,16 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 return null;
             }
 
+            var document = fixAllState.Document!;
             using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
             foreach (var scope in supportedScopes)
             {
-                if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
+                if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
+                    document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
                 {
-                    var containingMemberOrType = await FixAllContextHelper.GetContainingMemberOrTypeDeclarationAsync(
-                        fixAllState.Document!, scope, firstDiagnostic.Location.SourceSpan, cancellationToken).ConfigureAwait(false);
-                    if (containingMemberOrType == null)
+                    var documentsAndSpans = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
+                        document, firstDiagnostic.Location.SourceSpan, scope, cancellationToken).ConfigureAwait(false);
+                    if (documentsAndSpans.IsEmpty)
                         continue;
                 }
 

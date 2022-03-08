@@ -69,12 +69,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                             return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty.SetItem(document, documentDiagnostics);
                         }
-                        else if (triggerSpan.HasValue)
+                        else if (triggerSpan.HasValue &&
+                            document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
                         {
                             // We need to compute diagnostics for each of the containing member/type and its partial declarations
                             // using the trigger span.
-                            var documentsAndSpans = await GetDocumentsAndSpansForContainingMemberOrTypeAsync(document,
-                                fixAllContext.Scope, triggerSpan.Value, fixAllContext.CancellationToken).ConfigureAwait(false);
+                            var documentsAndSpans = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(document,
+                                triggerSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
                             var unused = PooledDictionary<Document, ImmutableArray<Diagnostic>>.GetInstance(out var builder);
                             foreach (var (documentToFix, spans) in documentsAndSpans)
                             {
@@ -187,86 +188,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllScope.ContainingType => string.Format(WorkspaceExtensionsResources.Fix_all_0_in_Containing_Type, diagnosticId),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllScope),
             };
-        }
-
-        public static async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetDocumentsAndSpansForContainingMemberOrTypeAsync(
-            Document document, FixAllScope fixAllScope, TextSpan triggerSpan, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
-
-            var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllScope, triggerSpan, cancellationToken).ConfigureAwait(false);
-            if (decl == null)
-                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
-
-            if (fixAllScope == FixAllScope.ContainingMember)
-            {
-                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
-                    .SetItem(document, ImmutableArray.Create(decl.FullSpan));
-            }
-            else
-            {
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = semanticModel.GetDeclaredSymbol(decl, cancellationToken);
-                if (symbol?.DeclaringSyntaxReferences.Length > 1)
-                {
-                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    _ = PooledDictionary<Document, ImmutableArray<TextSpan>>.GetInstance(out var builder);
-                    foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
-                    {
-                        var documentForLocation = document.Project.GetDocument(syntaxRef.SyntaxTree);
-                        if (documentForLocation == null)
-                            continue;
-                        var root = await syntaxRef.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-                        var partialDeclSpan = syntaxFacts.GetContainingTypeDeclaration(root, syntaxRef.Span.Start)!.FullSpan;
-                        if (builder.TryGetValue(documentForLocation, out var spans))
-                        {
-                            builder[documentForLocation] = spans.Add(partialDeclSpan);
-                        }
-                        else
-                        {
-                            builder[documentForLocation] = ImmutableArray.Create(partialDeclSpan);
-                        }
-                    }
-
-                    return builder.ToImmutableDictionary();
-                }
-                else
-                {
-                    return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
-                    .SetItem(document, ImmutableArray.Create(decl.FullSpan));
-                }
-            }
-        }
-
-        public static async Task<SyntaxNode?> GetContainingMemberOrTypeDeclarationAsync(
-            Document document,
-            FixAllScope fixAllScope,
-            TextSpan triggerSpan,
-            CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            var startContainer = fixAllScope == FixAllScope.ContainingMember
-                ? syntaxFacts.GetContainingMemberDeclaration(root, triggerSpan.Start)
-                : syntaxFacts.GetContainingTypeDeclaration(root, triggerSpan.Start);
-
-            if (fixAllScope == FixAllScope.ContainingMember && !syntaxFacts.IsMethodLevelMember(startContainer))
-                return null;
-
-            if (triggerSpan.IsEmpty || startContainer == null)
-                return startContainer;
-
-            var endContainer = fixAllScope == FixAllScope.ContainingMember
-                ? syntaxFacts.GetContainingMemberDeclaration(root, triggerSpan.End)
-                : syntaxFacts.GetContainingTypeDeclaration(root, triggerSpan.End);
-
-            if (startContainer == endContainer)
-                return startContainer;
-
-            return null;
         }
     }
 }
