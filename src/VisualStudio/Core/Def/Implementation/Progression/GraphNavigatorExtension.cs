@@ -102,14 +102,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
 
                     // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
-                    var location = await navigationService.GetLocationForLineAndOffsetAsync(
+                    await navigationService.TryNavigateToLineAndOffsetAsync(
+                        this.ThreadingContext,
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
                         sourceLocation.StartPosition.Character,
+                        NavigationOptions.Default,
                         cancellationToken).ConfigureAwait(false);
-                    if (location != null)
-                        await location.NavigateToAsync(NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

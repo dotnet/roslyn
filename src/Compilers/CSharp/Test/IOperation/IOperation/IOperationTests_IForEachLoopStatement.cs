@@ -2713,6 +2713,253 @@ Block[B7] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void CheckForEachLoopOperationInfoArguments()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+	Console.WriteLine(x);
+}
+/*</bind>*/
+
+struct CustomAsyncEnumerable : IAsyncEnumerable<int>
+{
+	public AsyncEnumerator GetAsyncEnumerator([CallerMemberName] string s = default,
+	   [CallerLineNumber] int line = default)
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		Console.WriteLine(""GetAsyncEnumerator"");
+		return new();
+	}
+
+	IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token)
+	{
+		Console.WriteLine(""IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token)"");
+		return GetAsyncEnumerator();
+	}
+}
+
+struct AsyncEnumerator : IAsyncEnumerator<int>
+{
+	private int x;
+	public ValueTask<bool> MoveNextAsync([CallerMemberName] string s = default,
+		[CallerLineNumber] int line = default, int r = 12)
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		return ValueTask.FromResult(x++ < 5);
+	}
+
+	ValueTask<bool> IAsyncEnumerator<int>.MoveNextAsync()
+	{
+		Console.WriteLine(""IAsyncEnumerator<int>.MoveNextAsync()"");
+		return MoveNextAsync();
+	}
+	ValueTask IAsyncDisposable.DisposeAsync()
+	{
+		Console.WriteLine(""IAsyncDisposable.DisposeAsync()"");
+		return DisposeAsync();
+	}
+
+	public int Current => x;
+	
+	public ValueTask DisposeAsync([CallerMemberName] string s = default,
+						[CallerLineNumber] int line = default, int xxx=12, string f = """")
+	{
+		Console.WriteLine($""line: {line}"");
+		Console.WriteLine($""member: {s}"");
+		return ValueTask.CompletedTask;
+	}
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
+            Assert.Equal(3, op.Info.MoveNextArguments.Length);
+            Assert.True(op.Info.DisposeArguments.IsDefault);
+            Assert.Null(op.Info.PatternDisposeMethod);
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 7, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[2], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: r) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 12, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void CheckForEachLoopOperationInfoArguments2()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
+
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+    Console.WriteLine(x);
+}
+/*</bind>*/
+
+ref struct CustomAsyncEnumerable
+{
+    public AsyncEnumerator GetAsyncEnumerator([CallerMemberName] string s = default,
+        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        Console.WriteLine(""GetAsyncEnumerator"");
+        return new();
+    }
+}
+
+struct AsyncEnumerator
+{
+    private int x;
+    public ValueTask<bool> MoveNextAsync([CallerMemberName] string s = default,
+                        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        return ValueTask.FromResult(x++ < 5);
+    }
+
+    public int Current => x;
+
+    public ValueTask DisposeAsync([CallerMemberName] string s = default,
+                        [CallerLineNumber] int line = default)
+    {
+        Console.WriteLine($""line: {line}"");
+        Console.WriteLine($""member: {s}"");
+        return ValueTask.CompletedTask;
+    }
+}
+";
+
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            Assert.Equal(2, op.Info.GetEnumeratorArguments.Length);
+            Assert.Equal(2, op.Info.MoveNextArguments.Length);
+            Assert.Equal(2, op.Info.DisposeArguments.Length);
+
+            Assert.Equal("System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync([System.String s = null], [System.Int32 line = 0])", op.Info.PatternDisposeMethod.ToTestDisplayString());
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.GetEnumeratorArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.MoveNextArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[0], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""<Main>$"", IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+
+            VerifyOperationTree(comp, op.Info.DisposeArguments[1], @"IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: line) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 6, IsImplicit) (Syntax: 'await forea ... }')
+  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ForEachFlow_07()
@@ -5364,7 +5611,11 @@ Block[B0] - Entry
                         (Identity)
                       Operand: 
                         IParameterReferenceOperation: pets (OperationKind.ParameterReference, Type: System.Collections.Generic.IAsyncEnumerable<System.String>) (Syntax: 'pets')
-                  Arguments(0)
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'await forea ... }')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: 'await forea ... }')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
     .try {R2, R3}
@@ -6113,7 +6364,11 @@ Block[B0] - Entry
                               Operand: 
                                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
                           Arguments(0)
-                  Arguments(0)
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: token) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '(C?)null')
+                        IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Threading.CancellationToken, IsImplicit) (Syntax: '(C?)null')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         Next (Regular) Block[B2]
             Entering: {R2} {R3}
     .try {R2, R3}

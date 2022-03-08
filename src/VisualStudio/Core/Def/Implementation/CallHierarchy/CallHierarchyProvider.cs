@@ -149,8 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
             var location = await symbolNavigationService.GetNavigableLocationAsync(
                 resolution.Symbol, project, cancellationToken).ConfigureAwait(false);
-            if (location != null)
-                await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
+            await location.NavigateToAsync(this.ThreadingContext, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }
