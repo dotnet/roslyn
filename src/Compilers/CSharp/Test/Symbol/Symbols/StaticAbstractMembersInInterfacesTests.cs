@@ -6712,7 +6712,13 @@ class Test
     }}
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
@@ -8102,48 +8108,53 @@ class Test
 
         [Theory]
         [CombinatorialData]
-        public void ConsumeAbstractCompoundBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op)
+        public void ConsumeAbstractCompoundBinaryOperator_01([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isChecked)
         {
+            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var source1 =
 @"
 interface I1
 {
-    abstract static I1 operator" + op + @" (I1 x, int y);
+    abstract static I1 operator " + checkedKeyword + op + @" (I1 x, int y);
 
     static void M02(I1 x)
-    {
+    {" + checkedKeyword + @"{
         x " + op + @"= 1;
-    }
+    }}
 
     void M03(I1 y)
-    {
+    {" + checkedKeyword + @"{
         y " + op + @"= 2;
-    }
+    }}
 }
 
 interface I2<T> where T : I2<T>
 {
-    abstract static T operator" + op + @" (T x, int y);
+    abstract static T operator " + checkedKeyword + op + @" (T x, int y);
 }
 
 class Test
 {
     static void MT1(I1 a)
-    {
+    {" + checkedKeyword + @"{
         a " + op + @"= 3;
-    }
+    }}
 
     static void MT2<T>() where T : I2<T>
-    {
+    {" + checkedKeyword + @"{
         _ = (System.Linq.Expressions.Expression<System.Action<T>>)((T b) => (b " + op + @"= 4).ToString());
-    }
+    }}
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.VerifyDiagnostics(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x /= 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + "= 1").WithLocation(8, 9),
@@ -8376,7 +8387,13 @@ partial class Test
 ";
             }
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
@@ -9453,18 +9470,22 @@ IBinaryOperation (BinaryOperatorKind." + opKind + @") (OperatorMethod: I1 I1." +
         }
 
         [Theory]
-        [InlineData("+", "op_Addition", "Add")]
-        [InlineData("-", "op_Subtraction", "Subtract")]
-        [InlineData("*", "op_Multiply", "Multiply")]
-        [InlineData("/", "op_Division", "Divide")]
-        [InlineData("%", "op_Modulus", "Remainder")]
-        [InlineData("&", "op_BitwiseAnd", "And")]
-        [InlineData("|", "op_BitwiseOr", "Or")]
-        [InlineData("^", "op_ExclusiveOr", "ExclusiveOr")]
-        [InlineData("<<", "op_LeftShift", "LeftShift")]
-        [InlineData(">>", "op_RightShift", "RightShift")]
-        public void ConsumeAbstractCompoundBinaryOperator_03(string op, string metadataName, string operatorKind)
+        [CombinatorialData]
+        public void ConsumeAbstractCompoundBinaryOperator_03([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isCheckedOperator, bool isCheckedContext)
         {
+            string metadataName = GetBinaryOperatorName(op, isCheckedOperator, out string checkedKeyword);
+
+            if (metadataName is null)
+            {
+                return;
+            }
+
+            if (isCheckedOperator && !isCheckedContext)
+            {
+                metadataName = BinaryOperatorName(op, isChecked: false);
+            }
+
+            string contextKeyword = isCheckedContext ? " checked " : " unchecked ";
             bool isShiftOperator = op.Length == 2;
 
             var source1 =
@@ -9479,10 +9500,32 @@ public interface I1<T0> where T0 : I1<T0>
     abstract static I1<T0> operator" + op + @" (I1<T0> x, T0 a);
     abstract static T0 operator" + op + @" (T0 x, I1<T0> a);
 ";
+
+                if (isCheckedOperator)
+                {
+                    source1 +=
+@"
+    abstract static int operator checked " + op + @" (int a, T0 x);
+    abstract static I1<T0> operator checked " + op + @" (I1<T0> x, T0 a);
+    abstract static T0 operator checked " + op + @" (T0 x, I1<T0> a);
+"
+    ;
+                }
             }
 
             source1 += @"
     abstract static T0 operator" + op + @" (T0 x, int a);
+";
+            if (isCheckedOperator)
+            {
+                source1 +=
+@"
+    abstract static T0 operator checked " + op + @" (T0 x, int a);
+"
+;
+            }
+
+            source1 += @"
 }
 
 class Test
@@ -9492,40 +9535,46 @@ class Test
             {
                 source1 += @"
     static void M02<T, U>(int a, T x) where T : U where U : I1<T>
-    {
+    {" + contextKeyword + @"{
         a " + op + @"= x;
-    }
+    }}
 
     static void M04<T, U>(int? a, T? y) where T : struct, U where U : I1<T>
-    {
+    {" + contextKeyword + @"{
         a " + op + @"= y;
-    }
+    }}
 
     static void M06<T, U>(I1<T> x, T y) where T : U where U : I1<T>
-    {
+    {" + contextKeyword + @"{
         x " + op + @"= y;
-    }
+    }}
 
     static void M07<T, U>(T x, I1<T> y) where T : U where U : I1<T>
-    {
+    {" + contextKeyword + @"{
         x " + op + @"= y;
-    }
+    }}
 ";
             }
 
             source1 += @"
     static void M03<T, U>(T x) where T : U where U : I1<T>
-    {
+    {" + contextKeyword + @"{
         x " + op + @"= 1;
-    }
+    }}
 
     static void M05<T, U>(T? y) where T : struct, U where U : I1<T>
-    {
+    {" + contextKeyword + @"{
         y " + op + @"= 1;
-    }
+    }}
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
@@ -9536,78 +9585,74 @@ class Test
                 verifier.VerifyIL("Test.M02<T, U>(int, T)",
 @"
 {
-  // Code size       17 (0x11)
+  // Code size       16 (0x10)
   .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldarg.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""int I1<T>." + metadataName + @"(int, T)""
-  IL_000e:  starg.s    V_0
-  IL_0010:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""int I1<T>." + metadataName + @"(int, T)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
 }
 ");
                 verifier.VerifyIL("Test.M04<T, U>(int?, T?)",
 @"
 {
-  // Code size       66 (0x42)
+  // Code size       65 (0x41)
   .maxstack  2
   .locals init (int? V_0,
                 T? V_1,
                 int? V_2)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.0
-  IL_0003:  ldarg.1
-  IL_0004:  stloc.1
-  IL_0005:  ldloca.s   V_0
-  IL_0007:  call       ""readonly bool int?.HasValue.get""
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       ""readonly bool T?.HasValue.get""
-  IL_0013:  and
-  IL_0014:  brtrue.s   IL_0021
-  IL_0016:  ldloca.s   V_2
-  IL_0018:  initobj    ""int?""
-  IL_001e:  ldloc.2
-  IL_001f:  br.s       IL_003f
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""readonly int int?.GetValueOrDefault()""
-  IL_0028:  ldloca.s   V_1
-  IL_002a:  call       ""readonly T T?.GetValueOrDefault()""
-  IL_002f:  constrained. ""T""
-  IL_0035:  call       ""int I1<T>." + metadataName + @"(int, T)""
-  IL_003a:  newobj     ""int?..ctor(int)""
-  IL_003f:  starg.s    V_0
-  IL_0041:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.1
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  call       ""readonly bool int?.HasValue.get""
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""readonly bool T?.HasValue.get""
+  IL_0012:  and
+  IL_0013:  brtrue.s   IL_0020
+  IL_0015:  ldloca.s   V_2
+  IL_0017:  initobj    ""int?""
+  IL_001d:  ldloc.2
+  IL_001e:  br.s       IL_003e
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""readonly int int?.GetValueOrDefault()""
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_002e:  constrained. ""T""
+  IL_0034:  call       ""int I1<T>." + metadataName + @"(int, T)""
+  IL_0039:  newobj     ""int?..ctor(int)""
+  IL_003e:  starg.s    V_0
+  IL_0040:  ret
 }
 ");
                 verifier.VerifyIL("Test.M06<T, U>(I1<T>, T)",
 @"
 {
-  // Code size       17 (0x11)
+  // Code size       16 (0x10)
   .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldarg.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""I1<T> I1<T>." + metadataName + @"(I1<T>, T)""
-  IL_000e:  starg.s    V_0
-  IL_0010:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""I1<T> I1<T>." + metadataName + @"(I1<T>, T)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
 }
 ");
 
                 verifier.VerifyIL("Test.M07<T, U>(T, I1<T>)",
 @"
 {
-  // Code size       17 (0x11)
+  // Code size       16 (0x10)
   .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldarg.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
-  IL_000e:  starg.s    V_0
-  IL_0010:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T, I1<T>)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
 }
 ");
             }
@@ -9615,43 +9660,41 @@ class Test
             verifier.VerifyIL("Test.M03<T, U>(T)",
 @"
 {
-  // Code size       17 (0x11)
+  // Code size       16 (0x10)
   .maxstack  2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.1
-  IL_0003:  constrained. ""T""
-  IL_0009:  call       ""T I1<T>." + metadataName + @"(T, int)""
-  IL_000e:  starg.s    V_0
-  IL_0010:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  constrained. ""T""
+  IL_0008:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_000d:  starg.s    V_0
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("Test.M05<T, U>(T?)",
 @"
 {
-  // Code size       50 (0x32)
+  // Code size       49 (0x31)
   .maxstack  2
   .locals init (T? V_0,
                 T? V_1)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  stloc.0
-  IL_0003:  ldloca.s   V_0
-  IL_0005:  call       ""readonly bool T?.HasValue.get""
-  IL_000a:  brtrue.s   IL_0017
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  initobj    ""T?""
-  IL_0014:  ldloc.1
-  IL_0015:  br.s       IL_002f
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""readonly T T?.GetValueOrDefault()""
-  IL_001e:  ldc.i4.1
-  IL_001f:  constrained. ""T""
-  IL_0025:  call       ""T I1<T>." + metadataName + @"(T, int)""
-  IL_002a:  newobj     ""T?..ctor(T)""
-  IL_002f:  starg.s    V_0
-  IL_0031:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""readonly bool T?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0016
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""T?""
+  IL_0013:  ldloc.1
+  IL_0014:  br.s       IL_002e
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""readonly T T?.GetValueOrDefault()""
+  IL_001d:  ldc.i4.1
+  IL_001e:  constrained. ""T""
+  IL_0024:  call       ""T I1<T>." + metadataName + @"(T, int)""
+  IL_0029:  newobj     ""T?..ctor(T)""
+  IL_002e:  starg.s    V_0
+  IL_0030:  ret
 }
 ");
 
@@ -9789,7 +9832,7 @@ class Test
 //                                               reflected in the IOperation tree. Should we change the shape of the tree in order
 //                                               to expose this information? 
 @"
-ICompoundAssignmentOperation (BinaryOperatorKind." + operatorKind + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'x " + op + @"= 1')
+ICompoundAssignmentOperation (BinaryOperatorKind." + BinaryOperatorKind(op) + (isCheckedOperator && isCheckedContext ? ", Checked" : "") + @") (OperatorMethod: T I1<T>." + metadataName + @"(T x, System.Int32 a)) (OperationKind.CompoundAssignment, Type: T) (Syntax: 'x " + op + @"= 1')
   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Left: 
@@ -10117,23 +10160,19 @@ class Test
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<<")]
-        [InlineData(">>")]
-        public void ConsumeAbstractCompoundBinaryOperator_04(string op)
+        [CombinatorialData]
+        public void ConsumeAbstractCompoundBinaryOperator_04([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isChecked)
         {
+            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    abstract static T operator" + op + @" (T x, int y);
+    abstract static T operator " + checkedKeyword + op + @" (T x, int y);
 }
 ";
             var source2 =
@@ -10141,9 +10180,9 @@ public interface I1<T> where T : I1<T>
 class Test
 {
     static void M02<T>(T x, int y) where T : I1<T>
-    {
+    {" + checkedKeyword + @"{
         x " + op + @"= y;
-    }
+    }}
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -10165,10 +10204,10 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.VerifyDiagnostics(
-                // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
-                //     abstract static T operator* (T x, int y);
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 31)
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static T operator * (T x, int y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32 + checkedKeyword.Length)
                 );
         }
 
@@ -10392,23 +10431,19 @@ class Test
         }
 
         [Theory]
-        [InlineData("+")]
-        [InlineData("-")]
-        [InlineData("*")]
-        [InlineData("/")]
-        [InlineData("%")]
-        [InlineData("&")]
-        [InlineData("|")]
-        [InlineData("^")]
-        [InlineData("<<")]
-        [InlineData(">>")]
-        public void ConsumeAbstractCompoundBinaryOperator_06(string op)
+        [CombinatorialData]
+        public void ConsumeAbstractCompoundBinaryOperator_06([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op, bool isChecked)
         {
+            if (GetBinaryOperatorName(op, isChecked, out string checkedKeyword) is null)
+            {
+                return;
+            }
+
             var source1 =
 @"
 public interface I1<T> where T : I1<T>
 {
-    abstract static T operator" + op + @" (T x, int y);
+    abstract static T operator " + checkedKeyword + op + @" (T x, int y);
 }
 ";
             var source2 =
@@ -10416,9 +10451,9 @@ public interface I1<T> where T : I1<T>
 class Test
 {
     static void M02<T>(T x, int y) where T : I1<T>
-    {
+    {" + checkedKeyword + @"{
         x " + op + @"= y;
-    }
+    }}
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -10430,21 +10465,49 @@ class Test
                                                  targetFramework: _supportingFramework,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         x <<= y;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
-                );
+            if (isChecked)
+            {
+                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                    // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x -= y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
+                    // (6,9): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x -= y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("checked user-defined operators").WithLocation(6, 9)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         x <<= y;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9)
+                    );
+            }
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
                                                  targetFramework: _supportingFramework);
 
-            compilation3.VerifyDiagnostics(
-                // (12,31): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
-                //     abstract static T operator<< (T x, int y);
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 31)
-                );
+            if (isChecked)
+            {
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                    // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     abstract static T operator checked - (T x, int y);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
+                    // (12,40): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator checked - (T x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 40)
+                    );
+            }
+            else
+            {
+                compilation3.VerifyDiagnostics(
+                    // (12,32): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
+                    //     abstract static T operator << (T x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "9.0", "preview").WithLocation(12, 32)
+                    );
+            }
         }
 
         [Theory]
@@ -25817,7 +25880,13 @@ class Test
     }}
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped).VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
