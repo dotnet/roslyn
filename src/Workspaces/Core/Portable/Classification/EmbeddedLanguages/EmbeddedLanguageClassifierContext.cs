@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.Classification
 {
-    internal struct EmbeddedLanguageClassifierContext
+    internal struct EmbeddedLanguageClassificationContext
     {
         internal readonly ClassificationOptions Options;
         private readonly ArrayBuilder<ClassifiedSpan> _result;
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         public CancellationToken CancellationToken { get; }
 
-        internal EmbeddedLanguageClassifierContext(
+        internal EmbeddedLanguageClassificationContext(
             SemanticModel semanticModel,
             SyntaxToken syntaxToken,
             ClassificationOptions options,

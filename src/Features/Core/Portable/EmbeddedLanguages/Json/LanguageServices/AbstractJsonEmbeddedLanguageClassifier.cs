@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
     /// <summary>
     /// Classifier impl for embedded json strings.
     /// </summary>
-    internal class JsonEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
+    internal abstract class AbstractJsonEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         private static readonly ObjectPool<Visitor> s_visitorPool = new(() => new Visitor());
         private readonly EmbeddedLanguageInfo _info;
 
-        public JsonEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
+        public AbstractJsonEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
         }
 
-        public void RegisterClassifications(EmbeddedLanguageClassifierContext context)
+        public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
             var token = context.SyntaxToken;
             if (!_info.IsAnyStringLiteral(token.RawKind))
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             }
         }
 
-        private static void AddClassifications(JsonNode node, Visitor visitor, EmbeddedLanguageClassifierContext context)
+        private static void AddClassifications(JsonNode node, Visitor visitor, EmbeddedLanguageClassificationContext context)
         {
             node.Accept(visitor);
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             }
         }
 
-        private static void AddTriviaClassifications(JsonToken token, EmbeddedLanguageClassifierContext context)
+        private static void AddTriviaClassifications(JsonToken token, EmbeddedLanguageClassificationContext context)
         {
             foreach (var trivia in token.LeadingTrivia)
                 AddTriviaClassifications(trivia, context);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 AddTriviaClassifications(trivia, context);
         }
 
-        private static void AddTriviaClassifications(JsonTrivia trivia, EmbeddedLanguageClassifierContext context)
+        private static void AddTriviaClassifications(JsonTrivia trivia, EmbeddedLanguageClassificationContext context)
         {
             if (trivia.Kind is JsonKind.MultiLineCommentTrivia or JsonKind.SingleLineCommentTrivia &&
                 trivia.VirtualChars.Length > 0)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
 
         private class Visitor : IJsonNodeVisitor
         {
-            public EmbeddedLanguageClassifierContext Context;
+            public EmbeddedLanguageClassificationContext Context;
 
             private void AddClassification(JsonToken token, string typeName)
             {

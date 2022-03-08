@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+namespace Microsoft.CodeAnalysis.Classification
 {
-    internal class FallbackEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
+    internal abstract class AbstractFallbackEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
         private readonly EmbeddedLanguageInfo _info;
         private readonly ImmutableArray<int> _supportedKinds;
 
-        public FallbackEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
+        protected AbstractFallbackEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
             _supportedKinds = ImmutableArray.Create(
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
                 info.SyntaxKinds.InterpolatedStringTextToken);
         }
 
-        public void RegisterClassifications(EmbeddedLanguageClassifierContext context)
+        public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
             var token = context.SyntaxToken;
             if (!_supportedKinds.Contains(token.RawKind))
