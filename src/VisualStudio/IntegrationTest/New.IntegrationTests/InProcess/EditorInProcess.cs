@@ -13,18 +13,21 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.GoToImplementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.LanguageServices.FindUsages;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -38,9 +41,11 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
+using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using SComponentModel = Microsoft.VisualStudio.ComponentModelHost.SComponentModel;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -902,6 +907,25 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.GoToBase, cancellationToken);
             await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
+        }
+
+        public async Task ConfigureAsyncNavigation(AsyncNavigationKind kind, CancellationToken cancellationToken)
+        {
+            Func<CancellationToken, Task>? delayHook = kind switch
+            {
+                AsyncNavigationKind.Default => null,
+                AsyncNavigationKind.Synchronous => static cancellationToken => Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken),
+                AsyncNavigationKind.Asynchronous => static _ => Task.CompletedTask,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
+
+            var componentModelService = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(cancellationToken);
+            var commandHandlers = componentModelService.DefaultExportProvider.GetExports<ICommandHandler, NameMetadata>();
+            var goToImplementation = (GoToImplementationCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToImplementation).Value;
+            goToImplementation.GetTestAccessor().DelayHook = delayHook;
+
+            var goToBase = (GoToBaseCommandHandler)commandHandlers.Single(handler => handler.Metadata.Name == PredefinedCommandHandlerNames.GoToBase).Value;
+            goToBase.GetTestAccessor().DelayHook = delayHook;
         }
 
         public async Task GoToImplementationAsync(CancellationToken cancellationToken)

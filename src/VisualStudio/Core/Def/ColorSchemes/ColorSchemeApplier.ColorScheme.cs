@@ -7,12 +7,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
+namespace Microsoft.CodeAnalysis.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
         /// <summary>
-        /// A ColorScheme represents a style to be applied to VS themes in 
+        /// A ColorSchemeName represents a style to be applied to VS themes in 
         /// order to emphasize some aspect of the source code. For instance
         /// C++ has an 'Enhanced (Globals vs. Members)' scheme to emphasize
         /// a distinction between where identifiers are declared.

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
+namespace Microsoft.CodeAnalysis.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
