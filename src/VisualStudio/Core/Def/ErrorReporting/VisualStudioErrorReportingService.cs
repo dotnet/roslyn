@@ -4,33 +4,35 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
+    [ExportWorkspaceService(typeof(IErrorReportingService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioErrorReportingService : IErrorReportingService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IInfoBarService _infoBarService;
+        private readonly VisualStudioInfoBar _infoBar;
         private readonly SVsServiceProvider _serviceProvider;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioErrorReportingService(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IInfoBarService infoBarService,
             SVsServiceProvider serviceProvider)
         {
             _threadingContext = threadingContext;
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-            _infoBarService = infoBarService;
+            _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
             _serviceProvider = serviceProvider;
         }
 
@@ -40,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             var stackTrace = exception is null ? "" : GetFormattedExceptionStack(exception);
             LogGlobalErrorToActivityLog(message, stackTrace);
-            _infoBarService.ShowInfoBar(message, items);
+            _infoBar.ShowInfoBar(message, items);
 
             Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
