@@ -39,8 +39,7 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract partial class AbstractLanguageServerProtocolTests
     {
-        // TODO: remove WPF dependency (IEditorInlineRenameService)
-        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
+        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
             .AddParts(typeof(TestSyntaxTreeConfigurationService))

@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => AnalyzerHelper.IsAnalyzerEnabledForProject(a, project) && !a.IsOpenFileOnly(options));
+                                        .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
-                var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.OldResult == null)

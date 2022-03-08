@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(Document document, TextSpan textSpan, CodeActionRequestPriority priority, CodeActionOptions options, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
         Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan textSpan, string diagnosticId, CodeActionOptions options, CancellationToken cancellationToken);
-        Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken);
         CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds);
         Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(Document document, TextSpan range, CodeActionOptions options, CancellationToken cancellationToken);
     }
