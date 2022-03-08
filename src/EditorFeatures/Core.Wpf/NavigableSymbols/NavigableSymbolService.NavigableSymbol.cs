@@ -58,36 +58,25 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             public void Navigate(INavigableRelationship relationship)
             {
                 // Fire and forget.
-                _ = NavigateAsync();
+                var token = _listener.BeginAsyncOperation(nameof(NavigateAsync));
+                _ = NavigateAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
             }
 
             private async Task NavigateAsync()
             {
-                try
-                {
-                    using var token = _listener.BeginAsyncOperation(nameof(NavigateAsync));
-                    using var context = _uiThreadOperationExecutor.BeginExecute(
-                        title: EditorFeaturesResources.Go_to_Definition,
-                        defaultDescription: EditorFeaturesResources.Navigating_to_definition,
-                        allowCancellation: true,
-                        showProgress: false);
+                using var context = _uiThreadOperationExecutor.BeginExecute(
+                    title: EditorFeaturesResources.Go_to_Definition,
+                    defaultDescription: EditorFeaturesResources.Navigating_to_definition,
+                    allowCancellation: true,
+                    showProgress: false);
 
-                    var cancellationToken = context.UserCancellationToken;
-                    var location = await _presenter.GetStreamingLocationAsync(
-                        _threadingContext,
-                        _document.Project.Solution.Workspace,
-                        _definitions[0].NameDisplayParts.GetFullText(),
-                        _definitions,
-                        cancellationToken).ConfigureAwait(false);
-                    if (location != null)
-                        await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                {
-                }
+                var cancellationToken = context.UserCancellationToken;
+                await _presenter.TryPresentLocationsAsync(
+                    _threadingContext,
+                    _document.Project.Solution.Workspace,
+                    _definitions[0].NameDisplayParts.GetFullText(),
+                    _definitions,
+                    cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -117,13 +117,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             //
             // TODO: Get the platform to use and pass us an operation context, or create one
             // ourselves.
-            _threadingContext.JoinableTaskFactory.Run(() => navigationService.TryNavigateToSpanAsync(
-                workspace,
-                document.Id,
-                _searchResult.NavigableItem.SourceSpan,
-                NavigationOptions.Default,
-                allowInvalidSpan: _searchResult.NavigableItem.IsStale,
-                CancellationToken.None));
+            _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                await navigationService.TryNavigateToSpanAsync(
+                    _threadingContext,
+                    workspace,
+                    document.Id,
+                    _searchResult.NavigableItem.SourceSpan,
+                    NavigationOptions.Default,
+                    allowInvalidSpan: _searchResult.NavigableItem.IsStale,
+                    CancellationToken.None).ConfigureAwait(false);
+            });
         }
 
         public int GetProvisionalViewingStatus()

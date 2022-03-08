@@ -87,9 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 if (asyncService != null)
                 {
                     var location = await asyncService.FindDefinitionLocationAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
-                    var success = location != null &&
-                        await location.NavigateToAsync(
-                            new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+                    var success = await location.NavigateToAsync(
+                        _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
 
                     if (success)
                         return;

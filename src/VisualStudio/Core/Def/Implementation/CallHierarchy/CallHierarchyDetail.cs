@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                 var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
                 // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                 _threadingContext.JoinableTaskFactory.Run(() =>
-                    navigator.TryNavigateToSpanAsync(_workspace, document.Id, _span, options, CancellationToken.None));
+                    navigator.TryNavigateToSpanAsync(
+                        _threadingContext, _workspace, document.Id, _span, options, CancellationToken.None));
             }
         }
     }
