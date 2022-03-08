@@ -129,7 +129,7 @@ function Install-Workload
     Write-Host "  Installing $shortName..."
 
     # NOTE: This requires elevated access if using a system dotnet install
-    & $dotnetPath workload install $shortName $rollbackArgs $sourcesArgs
+    & $dotnetPath workload install --ignore-failed-sources $shortName $rollbackArgs $sourcesArgs
 
     if ($rollbackFile) {
         Remove-Item $rollbackFile

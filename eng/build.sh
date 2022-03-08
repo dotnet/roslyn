@@ -299,7 +299,8 @@ fi
 
 if [[ "$restore" == true ]]; then
   # Install any dotnet workloads specified in global.json
-  bash "$scriptroot/Install-DotNetWorkloads.sh"
+  # bash "$scriptroot/Install-DotNetWorkloads.sh"
+  true
 fi
 
 bootstrap_dir=""
