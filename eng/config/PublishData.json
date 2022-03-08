@@ -238,7 +238,7 @@
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Validation]"
     },
-    "main": {
+    "main-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
@@ -246,7 +246,7 @@
       "version": "4.2.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
+      "vsBranch": "main-vs-deps",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.2p3]"
