@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         {
             var location = await GetDefinitionLocationAsync(
                 symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
-            return await location.NavigateToAsync(
+            return await location.TryNavigateToAsync(
                 threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 

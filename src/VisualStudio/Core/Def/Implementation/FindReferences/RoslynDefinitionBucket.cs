@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var location = await DefinitionItem.GetNavigableLocationAsync(
                     _presenter._workspace, cancellationToken).ConfigureAwait(false);
-                await location.NavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
+                await location.TryNavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
             }
 
             public override bool TryGetValue(string key, out object? content)

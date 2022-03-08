@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                             // TODO: we're navigating back to the top of the file, do we have a way to just bring it to the focus and that's it?
                             // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
                             didNavigate |= await documentNavigationService.TryNavigateToPositionAsync(
-                                _threadingContext, item.Workspace, item.DocumentId, position: 0, CancellationToken.None).ConfigureAwait(false);
+                                item._threadingContext, item.Workspace, item.DocumentId, position: 0, CancellationToken.None).ConfigureAwait(false);
                         }
                     }
 

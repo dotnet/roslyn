@@ -71,6 +71,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #endregion
 
+        #region xml tokens
+
+        int XmlTextLiteralToken { get; }
+
+        #endregion
+
         #region names
 
         int GenericName { get; }
