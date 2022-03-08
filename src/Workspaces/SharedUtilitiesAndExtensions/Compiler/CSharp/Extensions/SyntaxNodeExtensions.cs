@@ -324,6 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 current.Parent is not ConditionalAccessExpressionSyntax)
             {
                 current = current.Parent;
+
+                // Optional exclamations might follow the conditional operation. For example:
+                // a.b?.$$c!!!!()
+                while (current.IsKind(SyntaxKind.SuppressNullableWarningExpression))
+                {
+                    current = current.Parent;
+                }
             }
 
             // Two cases we have to care about:

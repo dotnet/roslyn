@@ -11783,5 +11783,24 @@ unsafe class Test
             await VerifyItemIsAbsentAsync(source, "X");
             await VerifyItemIsAbsentAsync(source, "Y");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(59714, "https://github.com/dotnet/roslyn/issues/59714")]
+        public async Task OptionalExclamationsAfterConditionalAccessShouldBeHandled()
+        {
+            var source = @"
+class MyClass
+{
+    public MyClass? MyObject { get; set; }
+    public MyClass? MyValue() => null;
+
+    public static void F()
+    {
+        var m = new MyClass();
+        m.MyObject?.$$MyValue!!();
+    }
+}";
+            await VerifyItemExistsAsync(source, "MyValue");
+        }
     }
 }
