@@ -832,6 +832,11 @@
         <target state="translated">导航到外部源</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="new">Navigating</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
         <target state="translated">从不</target>
