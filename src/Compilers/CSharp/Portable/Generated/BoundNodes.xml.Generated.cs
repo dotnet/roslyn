@@ -3689,7 +3689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchDispatch : BoundStatement
     {
-        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol? equalityMethod, bool hasErrors = false)
+        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, bool hasErrors = false)
             : base(BoundKind.SwitchDispatch, syntax, hasErrors || expression.HasErrors())
         {
 
@@ -3700,7 +3700,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expression = expression;
             this.Cases = cases;
             this.DefaultLabel = defaultLabel;
-            this.EqualityMethod = equalityMethod;
         }
 
 
@@ -3709,16 +3708,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases { get; }
 
         public LabelSymbol DefaultLabel { get; }
-
-        public MethodSymbol? EqualityMethod { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchDispatch(this);
 
-        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol? equalityMethod)
+        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel)
         {
-            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(equalityMethod, this.EqualityMethod))
+            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel))
             {
-                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, equalityMethod, this.HasErrors);
+                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6211,7 +6208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAttribute : BoundExpression
     {
-        public BoundAttribute(SyntaxNode syntax, MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundAttribute(SyntaxNode syntax, MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, BitVector constructorDefaultArguments, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Attribute, syntax, type, hasErrors || constructorArguments.HasErrors() || namedArguments.HasErrors())
         {
 
@@ -6224,6 +6221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstructorArgumentNamesOpt = constructorArgumentNamesOpt;
             this.ConstructorArgumentsToParamsOpt = constructorArgumentsToParamsOpt;
             this.ConstructorExpanded = constructorExpanded;
+            this.ConstructorDefaultArguments = constructorDefaultArguments;
             this.NamedArguments = namedArguments;
             this._ResultKind = resultKind;
         }
@@ -6241,6 +6239,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ConstructorExpanded { get; }
 
+        public BitVector ConstructorDefaultArguments { get; }
+
         public ImmutableArray<BoundAssignmentOperator> NamedArguments { get; }
 
         private readonly LookupResultKind _ResultKind;
@@ -6248,11 +6248,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAttribute(this);
 
-        public BoundAttribute Update(MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type)
+        public BoundAttribute Update(MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, BitVector constructorDefaultArguments, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || constructorDefaultArguments != this.ConstructorDefaultArguments || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAttribute(this.Syntax, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, namedArguments, resultKind, type, this.HasErrors);
+                var result = new BoundAttribute(this.Syntax, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, constructorDefaultArguments, namedArguments, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11153,7 +11153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSwitchDispatch(BoundSwitchDispatch node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            return node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod);
+            return node.Update(expression, node.Cases, node.DefaultLabel);
         }
         public override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
@@ -11546,7 +11546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> constructorArguments = this.VisitList(node.ConstructorArguments);
             ImmutableArray<BoundAssignmentOperator> namedArguments = this.VisitList(node.NamedArguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, namedArguments, node.ResultKind, type);
+            return node.Update(node.Constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, type);
         }
         public override BoundNode? VisitUnconvertedObjectCreationExpression(BoundUnconvertedObjectCreationExpression node)
         {
@@ -13041,13 +13041,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Update(expression, innerLocals, innerLocalFunctions, switchSections, reachabilityDecisionDag, defaultLabel, node.BreakLabel);
         }
 
-        public override BoundNode? VisitSwitchDispatch(BoundSwitchDispatch node)
-        {
-            MethodSymbol? equalityMethod = GetUpdatedSymbol(node, node.EqualityMethod);
-            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            return node.Update(expression, node.Cases, node.DefaultLabel, equalityMethod);
-        }
-
         public override BoundNode? VisitDoStatement(BoundDoStatement node)
         {
             ImmutableArray<LocalSymbol> locals = GetUpdatedArray(node, node.Locals);
@@ -13610,12 +13603,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, namedArguments, node.ResultKind, infoAndType.Type!);
+                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, namedArguments, node.ResultKind, node.Type);
+                updatedNode = node.Update(constructor, constructorArguments, node.ConstructorArgumentNamesOpt, node.ConstructorArgumentsToParamsOpt, node.ConstructorExpanded, node.ConstructorDefaultArguments, namedArguments, node.ResultKind, node.Type);
             }
             return updatedNode;
         }
@@ -15318,7 +15311,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("cases", node.Cases, null),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
-            new TreeDumperNode("equalityMethod", node.EqualityMethod, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
@@ -15905,6 +15897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("constructorArgumentNamesOpt", node.ConstructorArgumentNamesOpt, null),
             new TreeDumperNode("constructorArgumentsToParamsOpt", node.ConstructorArgumentsToParamsOpt, null),
             new TreeDumperNode("constructorExpanded", node.ConstructorExpanded, null),
+            new TreeDumperNode("constructorDefaultArguments", node.ConstructorDefaultArguments, null),
             new TreeDumperNode("namedArguments", null, from x in node.NamedArguments select Visit(x, null)),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),

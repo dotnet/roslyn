@@ -3,32 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal partial class InteractiveWorkspace : Workspace
     {
-        private readonly ISolutionCrawlerRegistrationService _registrationService;
-
         private SourceTextContainer? _openTextContainer;
         private DocumentId? _openDocumentId;
 
-        internal InteractiveWorkspace(HostServices hostServices)
+        internal InteractiveWorkspace(HostServices hostServices, IGlobalOptionService globalOptions)
             : base(hostServices, WorkspaceKind.Interactive)
         {
             // register work coordinator for this workspace
-            _registrationService = Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            _registrationService.Register(this);
+            if (globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(this);
+            }
         }
 
         protected override void Dispose(bool finalize)
         {
             // workspace is going away. unregister this workspace from work coordinator
-            _registrationService.Unregister(this, blockingShutdown: true);
+            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this, blockingShutdown: true);
 
             base.Dispose(finalize);
         }
