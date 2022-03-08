@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
 
     internal static class IStreamingFindUsagesPresenterExtensions
     {
-        public static async Task<bool> TryPresentLocationsAsync(
+        public static async Task<bool> TryPresentLocationOrNavigateIfOneAsync(
             this IStreamingFindUsagesPresenter presenter,
             IThreadingContext threadingContext,
             Workspace workspace,
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         {
             var location = await presenter.GetStreamingLocationAsync(
                 threadingContext, workspace, title, items, cancellationToken).ConfigureAwait(false);
-            return await location.NavigateToAsync(
+            return await location.TryNavigateToAsync(
                 threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
