@@ -190,8 +190,9 @@ function Ensure-DotnetSdk() {
 function InitializeDotNetWorkloads()
 {
   # Install any dotnet workloads specified in global.json
-  $globalJsonPath = Join-Path $RepoRoot 'global.json'
-  & $PSScriptRoot\Install-DotNetWorkloads.ps1 -globalJsonPath $globalJsonPath | Out-Null
+  & $PSScriptRoot\Install-DotNetWorkloads.ps1 `
+    -globalJsonPath (Join-Path $RepoRoot 'global.json') `
+    -nugetConfigPath (Join-Path $RepoRoot 'NuGet.config') | Out-Null
 }
 
 # Walks up the source tree, starting at the given file's directory, and returns a FileInfo object for the first .csproj file it finds, if any.

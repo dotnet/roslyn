@@ -17,10 +17,7 @@
   },
   "workloads": {
     "macos": {
-      "version": "12.1.301-preview.13.7",
-      "sources": [
-        "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json"
-      ]
+      "version": "12.1.301-preview.13.7"
     }
   }
 }
