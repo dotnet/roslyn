@@ -737,9 +737,6 @@ Do you want to continue?</value>
   <data name="Solution" xml:space="preserve">
     <value>Solution</value>
   </data>
-  <data name="Selection" xml:space="preserve">
-    <value>Selection</value>
-  </data>
   <data name="Containing_Member" xml:space="preserve">
     <value>Containing Member</value>
   </data>

@@ -18,12 +18,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 FixAllScope.ContainingMember, FixAllScope.ContainingType);
 
         private readonly bool _supportsFixAll;
-        private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
 
-        protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true, ImmutableArray<FixAllScope> supportedFixAllScopes = default)
+        protected SyntaxEditorBasedCodeFixProvider(bool supportsFixAll = true)
         {
             _supportsFixAll = supportsFixAll;
-            _supportedFixAllScopes = !supportedFixAllScopes.IsDefault ? supportedFixAllScopes : s_defaultSupportedFixAllScopes;
         }
 
         public sealed override FixAllProvider? GetFixAllProvider()
@@ -50,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     return await this.FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
                 },
-                _supportedFixAllScopes);
+                s_defaultSupportedFixAllScopes);
         }
 
         protected Task<Document> FixAsync(
