@@ -963,6 +963,34 @@ public struct S1
         }
 
         [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        public void StructConstructorInitializer_NestedUninitializedField()
+        {
+            var source = @"
+#nullable enable
+public struct S1
+{
+    public object F1;
+    public S2 S2;
+
+    public S1()
+    {
+        F1.ToString(); // 1
+        S2.F2.ToString(); // missing warning: https://github.com/dotnet/roslyn/issues/60038
+    }
+}
+public struct S2
+{
+    public object F2;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1").WithLocation(10, 9));
+        }
+
+        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
         public void StructConstructorInitializer_InitializedFieldViaParameterlessConstructor()
         {
             var source = @"

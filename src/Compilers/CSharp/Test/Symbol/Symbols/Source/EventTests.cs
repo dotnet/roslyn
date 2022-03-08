@@ -1333,7 +1333,7 @@ struct S
 
     S(int unused1, int unused2)
     {
-        // CS0171: E not initialized
+        // CS0171: E not initialized before C# 11
         // No error for F
     }
 
@@ -1346,6 +1346,17 @@ struct S
     }
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (11,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     S(int unused1, int unused2)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(11, 5),
+                // (11,5): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
+                //     S(int unused1, int unused2)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.E").WithLocation(11, 5),
+                // (22,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
+                //         This.E = null; //CS1612: receiver is not a variable
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "This").WithArguments("S.This").WithLocation(22, 9));
+
             CreateCompilation(text).VerifyDiagnostics(
                 // (22,9): error CS1612: Cannot modify the return value of 'S.This' because it is not a variable
                 //         This.E = null; //CS1612: receiver is not a variable

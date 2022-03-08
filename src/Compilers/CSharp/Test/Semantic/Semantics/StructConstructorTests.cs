@@ -889,8 +889,11 @@ class Program
                 //     public S2(object y) { Y = y; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("implicit initialization in struct constructors").WithLocation(20, 12));
 
-            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput:
+@"(, )
+(, 1)
+(, )");
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1600,50 +1603,65 @@ record struct S4
         [Fact]
         public void FieldInitializers_09()
         {
-            var source =
-@"#pragma warning disable 649
+            var source =@"
+using System;
+
+#pragma warning disable 649
 record struct S1()
 {
-    internal object X = 1;
-    internal object Y;
+    public object X = 1;
+    public object Y;
 }
 record struct S2()
 {
-    internal object X { get; } = 2;
-    internal object Y { get; }
+    public object X { get; } = 2;
+    public object Y { get; }
 }
 record struct S3()
 {
-    internal object X { get; init; }
-    internal object Y { get; init; } = 3;
+    public object X { get; init; }
+    public object Y { get; init; } = 3;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1());
+        Console.WriteLine(new S2());
+        Console.WriteLine(new S3());
+    }
 }
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (5,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
                 // record struct S1()
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
-                // (2,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(5, 15),
+                // (5,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S1()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(2, 15),
-                // (7,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(5, 15),
+                // (10,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
                 // record struct S2()
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(7, 15),
-                // (7,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(10, 15),
+                // (10,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S2()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("implicit initialization in struct constructors").WithLocation(7, 15),
-                // (12,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("implicit initialization in struct constructors").WithLocation(10, 15),
+                // (15,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
                 // record struct S3()
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(12, 15),
-                // (12,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(15, 15),
+                // (15,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S3()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("implicit initialization in struct constructors").WithLocation(12, 15));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("implicit initialization in struct constructors").WithLocation(15, 15));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput:
+@"
+S1 { X = 1, Y =  }
+S2 { X = 2, Y =  }
+S3 { X = , Y = 3 }
+", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("S1..ctor", @"
 {
   // Code size       20 (0x14)
@@ -1690,130 +1708,161 @@ record struct S3()
         [Fact]
         public void FieldInitializers_10()
         {
-            var source =
-@"#pragma warning disable 649
+            var source = @"
+using System;
+
+#pragma warning disable 649
 record struct S1(object X)
 {
-    internal object X = 1;
-    internal object Y;
+    public object X = 1;
+    public object Y;
 }
 record struct S2(object X)
 {
-    internal object X { get; } = 2;
-    internal object Y { get; }
+    public object X { get; } = 2;
+    public object Y { get; }
 }
 record struct S3(object Y)
 {
-    internal object X { get; init; }
-    internal object Y { get; init; } = 3;
+    public object X { get; init; }
+    public object Y { get; init; } = 3;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1(""a""));
+        Console.WriteLine(new S2(""b""));
+        Console.WriteLine(new S3(""c""));
+    }
 }
 ";
 
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
+                // (5,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(2, 15),
-                // (2,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(5, 15),
+                // (5,15): error CS0171: Field 'S1.Y' must be fully assigned before control is returned to the caller
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(2, 15),
-                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.Y").WithLocation(5, 15),
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
-                // (7,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(7, 15),
-                // (7,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("implicit initialization in struct constructors").WithLocation(10, 15),
+                // (10,15): error CS0843: Auto-implemented property 'S2.Y' must be fully assigned before control is returned to the caller.
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("implicit initialization in struct constructors").WithLocation(7, 15),
-                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.Y").WithLocation(10, 15),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
-                // (12,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(12, 15),
-                // (12,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("implicit initialization in struct constructors").WithLocation(15, 15),
+                // (15,15): error CS0843: Auto-implemented property 'S3.X' must be fully assigned before control is returned to the caller.
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("implicit initialization in struct constructors").WithLocation(12, 15),
-                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.X").WithLocation(15, 15),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25));
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyDiagnostics(
-                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput:
+@"S1 { X = 1, Y =  }
+S2 { X = 2, Y =  }
+S3 { X = , Y = 3 }
+");
+            verifier.VerifyDiagnostics(
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
-                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
-                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25));
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
         }
 
         [Fact]
         public void FieldInitializers_11()
         {
-            var source =
-@"#pragma warning disable 649
+            var source = @"
+using System;
+
+#pragma warning disable 649
 record struct S1(object X)
 {
-    internal object X;
-    internal object Y = 1;
+    public object X;
+    public object Y = 1;
 }
 record struct S2(object X)
 {
-    internal object X { get; }
-    internal object Y { get; } = 2;
+    public object X { get; }
+    public object Y { get; } = 2;
 }
 record struct S3(object Y)
 {
-    internal object X { get; init; } = 3;
-    internal object Y { get; init; }
+    public object X { get; init; } = 3;
+    public object Y { get; init; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S1(""a""));
+        Console.WriteLine(new S2(""b""));
+        Console.WriteLine(new S3(""c""));
+    }
 }
 ";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (2,15): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
+                // (5,15): error CS0171: Field 'S1.X' must be fully assigned before control is returned to the caller
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.X").WithLocation(2, 15),
-                // (2,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.X").WithLocation(5, 15),
+                // (5,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(2, 15),
-                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(5, 15),
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
-                // (7,15): error CS0843: Auto-implemented property 'S2.X' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,15): error CS0843: Auto-implemented property 'S2.X' must be fully assigned before control is returned to the caller.
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.X").WithLocation(7, 15),
-                // (7,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S2").WithArguments("S2.X").WithLocation(10, 15),
+                // (10,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("implicit initialization in struct constructors").WithLocation(7, 15),
-                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("implicit initialization in struct constructors").WithLocation(10, 15),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
-                // (12,15): error CS0843: Auto-implemented property 'S3.Y' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,15): error CS0843: Auto-implemented property 'S3.Y' must be fully assigned before control is returned to the caller.
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.Y").WithLocation(12, 15),
-                // (12,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S3").WithArguments("S3.Y").WithLocation(15, 15),
+                // (15,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("implicit initialization in struct constructors").WithLocation(12, 15),
-                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("implicit initialization in struct constructors").WithLocation(15, 15),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25));
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-            comp.VerifyDiagnostics(
-                // (2,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput:
+@"S1 { X = , Y = 1 }
+S2 { X = , Y = 2 }
+S3 { X = 3, Y =  }");
+            verifier.VerifyDiagnostics(
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S1(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 25),
-                // (7,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (10,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S2(object X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(7, 25),
-                // (12,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(10, 25),
+                // (15,25): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S3(object Y)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(12, 25));
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
         }
 
         [Fact]

@@ -1459,6 +1459,24 @@ struct Program
                 //     public Program(int dummy)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
 
+            comp = CreateCompilation(text, options: TestOptions.DebugDll.WithReportSuppressedDiagnostics(true));
+            comp.VerifyDiagnostics(
+                // (14,12): warning CS8880: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+                //     public Program(int dummy)
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoProperty, "Program", isSuppressed: true).WithArguments("Program.x").WithLocation(14, 12),
+                // (14,12): warning CS8880: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+                //     public Program(int dummy)
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoProperty, "Program", isSuppressed: true).WithArguments("Program.x2").WithLocation(14, 12),
+                // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+                //         x.i = 1;
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
+                // (16,9): warning CS8884: Use of possibly unassigned field 'i'
+                //         x.i = 1;
+                Diagnostic(ErrorCode.WRN_UseDefViolationField, "x.i", isSuppressed: true).WithArguments("i").WithLocation(16, 9),
+                // (17,34): warning CS8883: Use of possibly unassigned auto-implemented property 'x2'
+                //         System.Console.WriteLine(x2.ii);
+                Diagnostic(ErrorCode.WRN_UseDefViolationProperty, "x2", isSuppressed: true).WithArguments("x2").WithLocation(17, 34));
+
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
