@@ -6,24 +6,22 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Security.Permissions;
 using System.Windows;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
+namespace Microsoft.CodeAnalysis.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
         private sealed class ClassificationVerifier : ForegroundThreadAffinitizedObject
         {
             private readonly IServiceProvider _serviceProvider;
-            private readonly ImmutableDictionary<SchemeName, ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
+            private readonly ImmutableDictionary<ColorSchemeName, ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
 
             private static readonly Guid TextEditorMEFItemsColorCategory = new("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
@@ -68,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             private ImmutableArray<string> Classifications { get; }
 
-            public ClassificationVerifier(IThreadingContext threadingContext, IServiceProvider serviceProvider, ImmutableDictionary<SchemeName, ColorScheme> colorSchemes)
+            public ClassificationVerifier(IThreadingContext threadingContext, IServiceProvider serviceProvider, ImmutableDictionary<ColorSchemeName, ColorScheme> colorSchemes)
                 : base(threadingContext)
             {
                 _serviceProvider = serviceProvider;
@@ -90,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             /// <summary>
             /// Determines if any Classification foreground colors have been customized in Fonts and Colors.
             /// </summary>
-            public bool AreForegroundColorsCustomized(SchemeName schemeName, Guid themeId)
+            public bool AreForegroundColorsCustomized(ColorSchemeName schemeName, Guid themeId)
             {
                 AssertIsForeground();
 

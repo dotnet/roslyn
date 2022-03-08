@@ -12,7 +12,7 @@ using System.Xml.Linq;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
+namespace Microsoft.CodeAnalysis.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {

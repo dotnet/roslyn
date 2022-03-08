@@ -6,14 +6,11 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.ColorSchemes;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -24,7 +21,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
+namespace Microsoft.CodeAnalysis.ColorSchemes
 {
     [Export(typeof(ColorSchemeApplier))]
     internal sealed partial class ColorSchemeApplier : ForegroundThreadAffinitizedObject, IDisposable
@@ -35,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         private readonly IServiceProvider _serviceProvider;
         private readonly ColorSchemeSettings _settings;
         private readonly ClassificationVerifier _classificationVerifier;
-        private readonly ImmutableDictionary<SchemeName, ColorScheme> _colorSchemes;
-        private readonly AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> _colorSchemeRegistryItems;
+        private readonly ImmutableDictionary<ColorSchemeName, ColorScheme> _colorSchemes;
+        private readonly AsyncLazy<ImmutableDictionary<ColorSchemeName, ImmutableArray<RegistryItem>>> _colorSchemeRegistryItems;
 
         private bool _isInitialized = false;
         private bool _isDisposed = false;
@@ -55,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             _colorSchemes = ColorSchemeSettings.GetColorSchemes();
             _classificationVerifier = new ClassificationVerifier(threadingContext, serviceProvider, _colorSchemes);
 
-            _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>>(GetColorSchemeRegistryItemsAsync, cacheResult: true);
+            _colorSchemeRegistryItems = new AsyncLazy<ImmutableDictionary<ColorSchemeName, ImmutableArray<RegistryItem>>>(this.GetColorSchemeRegistryItemsAsync, cacheResult: true);
         }
 
         public void Dispose()
@@ -84,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
 
             VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
 
-            // Try to migrate the `useEnhancedColorsSetting` to the new `ColorScheme` setting.
+            // Try to migrate the `useEnhancedColorsSetting` to the new `ColorSchemeName` setting.
             _settings.MigrateToColorSchemeSetting();
 
             // Since the Roslyn colors are now defined in the Roslyn repo and no longer applied by the VS pkgdef built from EditorColors.xml,
@@ -95,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             UpdateColorScheme();
         }
 
-        private Task<ImmutableDictionary<SchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
+        private Task<ImmutableDictionary<ColorSchemeName, ImmutableArray<RegistryItem>>> GetColorSchemeRegistryItemsAsync(CancellationToken arg)
             => SpecializedTasks.FromResult(_colorSchemes.ToImmutableDictionary(kvp => kvp.Key, kvp => RegistryItemConverter.Convert(kvp.Value)));
 
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
@@ -133,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
         /// Returns true if the color scheme needs updating.
         /// </summary>
         /// <param name="colorScheme">The color scheme to update with.</param>
-        private bool TryGetUpdatedColorScheme([NotNullWhen(returnValue: true)] out SchemeName? colorScheme)
+        private bool TryGetUpdatedColorScheme([NotNullWhen(returnValue: true)] out ColorSchemeName? colorScheme)
         {
             // The color scheme that is currently applied to the registry
             var appliedColorScheme = _settings.GetAppliedColorScheme();
@@ -142,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             // Custom themes would be based on the MEF exported color information for classifications which matches the VS 2017 theme.
             var configuredColorScheme = IsSupportedTheme()
                 ? _settings.GetConfiguredColorScheme()
-                : SchemeName.VisualStudio2017;
+                : ColorSchemeName.VisualStudio2017;
 
             if (appliedColorScheme == configuredColorScheme)
             {

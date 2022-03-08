@@ -6,15 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Editor.ColorSchemes;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
 
-namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
+namespace Microsoft.CodeAnalysis.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
@@ -32,28 +29,28 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 _globalOptions = globalOptions;
             }
 
-            public static ImmutableDictionary<SchemeName, ColorScheme> GetColorSchemes()
+            public static ImmutableDictionary<ColorSchemeName, ColorScheme> GetColorSchemes()
             {
                 return new[]
                 {
-                    SchemeName.VisualStudio2019,
-                    SchemeName.VisualStudio2017
-                }.ToImmutableDictionary(name => name, name => GetColorScheme(name));
+                    ColorSchemeName.VisualStudio2019,
+                    ColorSchemeName.VisualStudio2017
+                }.ToImmutableDictionary(name => name, GetColorScheme);
             }
 
-            private static ColorScheme GetColorScheme(SchemeName schemeName)
+            private static ColorScheme GetColorScheme(ColorSchemeName schemeName)
             {
                 using var colorSchemeStream = GetColorSchemeXmlStream(schemeName);
                 return ColorSchemeReader.ReadColorScheme(colorSchemeStream);
             }
 
-            private static Stream GetColorSchemeXmlStream(SchemeName schemeName)
+            private static Stream GetColorSchemeXmlStream(ColorSchemeName schemeName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{schemeName}.xml");
             }
 
-            public void ApplyColorScheme(SchemeName schemeName, ImmutableArray<RegistryItem> registryItems)
+            public void ApplyColorScheme(ColorSchemeName schemeName, ImmutableArray<RegistryItem> registryItems)
             {
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
 
@@ -76,18 +73,18 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
             /// <summary>
             /// Get the color scheme that is applied to the configuration registry.
             /// </summary>
-            public SchemeName GetAppliedColorScheme()
+            public ColorSchemeName GetAppliedColorScheme()
             {
                 // The applied color scheme is stored in the configuration registry with the color theme information because
                 // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: false);
                 using var itemKey = registryRoot.OpenSubKey(ColorSchemeApplierKey);
                 return itemKey is object
-                    ? (SchemeName)itemKey.GetValue(AppliedColorSchemeName)
+                    ? (ColorSchemeName)itemKey.GetValue(AppliedColorSchemeName)
                     : default;
             }
 
-            private void SetAppliedColorScheme(SchemeName schemeName)
+            private void SetAppliedColorScheme(ColorSchemeName schemeName)
             {
                 // The applied color scheme is stored in the configuration registry with the color theme information because
                 // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
@@ -98,10 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 itemKey.Flush();
             }
 
-            public SchemeName GetConfiguredColorScheme()
+            public ColorSchemeName GetConfiguredColorScheme()
             {
                 var schemeName = _globalOptions.GetOption(ColorSchemeOptions.ColorScheme);
-                return schemeName != SchemeName.None
+                return schemeName != ColorSchemeName.None
                     ? schemeName
                     : ColorSchemeOptions.ColorScheme.DefaultValue;
             }
@@ -118,8 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ColorSchemes
                 }
 
                 var colorScheme = useEnhancedColorsSetting == ColorSchemeOptions.UseEnhancedColors.DoNotUse
-                    ? SchemeName.VisualStudio2017
-                    : SchemeName.VisualStudio2019;
+                    ? ColorSchemeName.VisualStudio2017
+                    : ColorSchemeName.VisualStudio2019;
 
                 _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.ColorScheme), colorScheme);
                 _globalOptions.SetGlobalOption(new OptionKey(ColorSchemeOptions.LegacyUseEnhancedColors), ColorSchemeOptions.UseEnhancedColors.Migrated);
