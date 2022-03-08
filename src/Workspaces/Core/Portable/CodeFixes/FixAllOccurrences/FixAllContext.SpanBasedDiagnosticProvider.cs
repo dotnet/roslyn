@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <see cref="GetDocumentSpanDiagnosticsAsync(Document, TextSpan, CancellationToken)"/> method to compute
         /// the diagnostics only for the given 'fixAllSpan' upfront.
         /// </summary>
-        public abstract class SpanBasedDiagnosticProvider : DiagnosticProvider
+        internal abstract class SpanBasedDiagnosticProvider : DiagnosticProvider
         {
             /// <summary>
             /// Gets all the diagnostics to fix for the given <paramref name="fixAllSpan"/> in the given <paramref name="document"/> in a <see cref="FixAllContext"/>.

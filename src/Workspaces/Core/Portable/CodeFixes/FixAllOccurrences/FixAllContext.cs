@@ -122,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </param>
         /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
-        public FixAllContext(
+        /// <remarks>TODO: Make API public (tracked by https://github.com/dotnet/roslyn/issues/60029)</remarks>
+        internal FixAllContext(
             Document document,
             TextSpan? triggerSpan,
             CodeFixProvider codeFixProvider,

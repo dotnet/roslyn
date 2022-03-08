@@ -2570,11 +2570,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Modification non applicable</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection">
-        <source>Selection</source>
-        <target state="new">Selection</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
         <target state="translated">La sélection ne contient pas un jeton valide.</target>

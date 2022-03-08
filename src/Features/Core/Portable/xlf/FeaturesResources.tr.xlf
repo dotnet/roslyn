@@ -2570,11 +2570,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">İşlenmemiş düzenleme</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection">
-        <source>Selection</source>
-        <target state="new">Selection</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
         <target state="translated">Seçim, geçerli bir belirteç içermiyor.</target>

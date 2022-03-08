@@ -2570,11 +2570,6 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Edição rudimentar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection">
-        <source>Selection</source>
-        <target state="new">Selection</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
         <source>Selection does not contain a valid token.</source>
         <target state="translated">A seleção não contém um token válido.</target>
