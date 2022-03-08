@@ -1947,5 +1947,42 @@ class Program
                 },
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(58972, "https://github.com/dotnet/roslyn/issues/58972")]
+        public async Task TestWhitespaceBeforeUnusedUsings_FileScopedNamespace()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"namespace N;
+
+[|{|IDE0005:using System;|}
+using System.Collections.Generic;|]
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                FixedCode =
+@"namespace N;
+
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var argList = new List<string>(args);
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }
