@@ -3,6 +3,7 @@ Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingMember = 4 -> Microsoft.C
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
+static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void

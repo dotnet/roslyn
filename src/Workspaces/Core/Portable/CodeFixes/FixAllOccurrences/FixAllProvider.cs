@@ -75,8 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Note that <see cref="FixAllScope.Custom"/> is not supported by the <see cref="DocumentBasedFixAllProvider"/>
         /// and should not be part of the supported scopes.
         /// </param>
-        /// <remarks>TODO: Make API public (tracked by https://github.com/dotnet/roslyn/issues/60029)</remarks>
-        internal static FixAllProvider Create(
+        public static FixAllProvider Create(
             Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
             ImmutableArray<FixAllScope> supportedFixAllScopes)
         {
