@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly VersionedPullCache<VersionStamp, Checksum> _versionedCache;
+        private readonly VersionedPullCache<VersionStamp?, Checksum> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var newResultId = await _versionedCache.GetNewResultIdAsync(
                     documentToPreviousDiagnosticParams,
                     document,
-                    computeCheapVersionAsync: () => project.GetDependentVersionAsync(cancellationToken),
-                    computeExpensiveVersionAsync: () => project.GetDependentChecksumAsync(cancellationToken),
+                    computeCheapVersionAsync: async () => await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false),
+                    computeExpensiveVersionAsync: async () => await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false),
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
