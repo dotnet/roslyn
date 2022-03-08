@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -137,10 +139,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var rootBeforePaste = documentBeforePaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
-            // When pasting, only do anything special if the user selections were entirely inside a single stirng
+            // When pasting, only do anything special if the user selections were entirely inside a single string
             // literal token.  Otherwise, we have a multi-selection across token kinds which will be extremely 
             // complex to try to reconcile.
-            if (!AllChangesInSameStringToken(rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste, out var tokenBeforePaste))
+            if (!AllChangesInSameStringToken(rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste, out var stringExpression))
                 return;
 
             var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
@@ -149,14 +151,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return;
 
             // If the pasting was successful, then no need to change anything.
-            if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, tokenBeforePaste, cancellationToken))
+            if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpression, cancellationToken))
                 return;
 
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
             var escapedTextChanges = GetEscapedTextChanges(
-                tokenBeforePaste, snapshotBeforePaste.Version.Changes);
+                stringExpression, snapshotBeforePaste.Version.Changes);
 
             var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
             var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
@@ -172,12 +174,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private static bool PasteWasSuccessful(
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
-            SyntaxToken tokenBeforePaste,
+            ExpressionSyntax stringExpressionBeforePaste,
             CancellationToken cancellationToken)
         {
             // Pasting a control character into a normal string literal is normally not desired.  So even if this
             // is legal, we still escape the contents to make the pasted code clear.
-            if (tokenBeforePaste.IsRegularStringLiteral() &&
+            if (stringExpressionBeforePaste is LiteralExpressionSyntax literal && literal.Token.IsRegularStringLiteral() &&
                 snapshotBeforePaste.Version.Changes.Any(c => ContainsControlCharacter(c.NewText)))
             {
                 return false;
@@ -190,17 +192,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Contract.ThrowIfNull(documentAfterPaste);
             var rootAfterPaste = documentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
-            var tokenAfterPaste = rootAfterPaste.FindToken(tokenBeforePaste.SpanStart);
-            if (tokenBeforePaste.Kind() != tokenAfterPaste.Kind() ||
-                tokenBeforePaste.SpanStart != tokenAfterPaste.SpanStart ||
-                tokenAfterPaste.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-            {
+            var stringExpressionAfterPaste = FindContainingStringExpression(rootAfterPaste, stringExpressionBeforePaste.SpanStart);
+            if (stringExpressionAfterPaste == null)
                 return false;
-            }
 
-            var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(tokenBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+            if (stringExpressionAfterPaste.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return false;
+
+            var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(stringExpressionBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
             var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
-            return spanAfterPaste == tokenAfterPaste.Span;
+            return spanAfterPaste == stringExpressionAfterPaste.Span;
         }
 
         private static bool ContainsControlCharacter(string newText)
@@ -214,26 +215,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
-        private static ImmutableArray<TextChange> GetEscapedTextChanges(SyntaxToken token, INormalizedTextChangeCollection changes)
+        private static ImmutableArray<TextChange> GetEscapedTextChanges(
+            ExpressionSyntax stringExpression, INormalizedTextChangeCollection changes)
         {
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
 
             foreach (var change in changes)
-                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), Escape(token, change.NewText)));
+                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), Escape(stringExpression, change.NewText)));
 
             return textChanges.ToImmutable();
         }
 
-        private static string Escape(SyntaxToken token, string text)
+        private static string Escape(ExpressionSyntax stringExpression, string text)
         {
-            switch (token.Kind())
+            if (stringExpression is LiteralExpressionSyntax literalExpression)
             {
-                case SyntaxKind.StringLiteralToken:
-                    return EscapeForStringLiteral(token.IsVerbatimStringLiteral(), text);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(token.Kind());
+                return EscapeForStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), text);
             }
+
+            throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
         }
 
         private static string EscapeForStringLiteral(bool isVerbatim, string value)
@@ -346,110 +346,237 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
+        /// <summary>
+        /// Returns the <see cref="LiteralExpressionSyntax"/> or <see cref="InterpolatedStringExpressionSyntax"/> if the
+        /// selections were all contained within a single literal in a compatible fashion.  For interpolated strings,
+        /// all the selections must be in the same <see cref="SyntaxKind.InterpolatedStringTextToken"/> token.
+        /// </summary>
         private static bool AllChangesInSameStringToken(
-            SyntaxNode root, SourceText text, NormalizedSnapshotSpanCollection selectionsBeforePaste, out SyntaxToken token)
+            SyntaxNode root,
+            SourceText text,
+            NormalizedSnapshotSpanCollection selectionsBeforePaste,
+            [NotNullWhen(true)] out ExpressionSyntax? stringExpression)
         {
-            token = default;
+            // First, try to see if all the selections are at least contained within a single string literal expression.
+            stringExpression = FindContainingStringExpression(root, selectionsBeforePaste);
+            if (stringExpression == null)
+                return false;
+
+            // Now, given that string expression, find the inside 'text' spans of the expression.  These are the parts
+            // of the literal between the quotes.  It does not include the interpolation holes in an interpolated
+            // string.  These spans may be empty (for an empty string, or empty text gap between interpolations).
+            var contentSpans = GetContentSpans(text, stringExpression);
+
+            // Now ensure that all the selections are contained within a single content span.
+            int? spanIndex = null;
             foreach (var snapshotSpan in selectionsBeforePaste)
             {
-                var position = snapshotSpan.Start.Position;
-                var currentToken = root.FindToken(position);
-                if (currentToken.Kind() == SyntaxKind.None)
+                var currentIndex = contentSpans.BinarySearch(
+                    snapshotSpan.Span.Start,
+                    static (ts, pos) =>
+                    {
+                        if (ts.IntersectsWith(pos))
+                            return 0;
+
+                        if (ts.End < pos)
+                            return -1;
+
+                        return 1;
+                    });
+
+                if (currentIndex < 0)
                     return false;
 
-                // keep track of the first token we see.
-                if (token.Kind() == SyntaxKind.None)
-                    token = currentToken;
-
-                // if we hit a different token, immediately bail.
-                if (token != currentToken)
-                    return false;
-
-                // Quick check that we're inside the token (and not its trivia)
-                var selectedSpan = snapshotSpan.Span.ToTextSpan();
-                if (!token.Span.Contains(selectedSpan))
-                    return false;
-
-                // Now do a stronger check that we're actually inside the bounds of a some string literal token.
-                if (!IsContainedWithinSomeStringToken(token, text, selectedSpan))
+                spanIndex ??= currentIndex;
+                if (spanIndex != currentIndex)
                     return false;
             }
 
             return true;
         }
 
-        private static bool IsContainedWithinSomeStringToken(
-            SyntaxToken token, SourceText text, TextSpan selectedSpan)
+        private static ImmutableArray<TextSpan> GetContentSpans(
+            SourceText text, ExpressionSyntax stringExpression)
         {
-            switch (token.Kind())
+            if (stringExpression is LiteralExpressionSyntax)
             {
-                case SyntaxKind.StringLiteralToken:
-                    return IsContainedWithStringLiteralToken(token, text, selectedSpan);
+                // simple string literal (normal, verbatim or raw).
+                //
+                // Skip past the leading and trailing delimiters and add the span in between.
+                if (stringExpression.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+                {
+                    var start = stringExpression.SpanStart;
+                    while (start < text.Length && text[start] == '"')
+                        start++;
 
-                case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.MultiLineRawStringLiteralToken:
-                    return IsContainedWithinRawStringLiteralToken(token, text, selectedSpan);
+                    var end = stringExpression.Span.End;
+                    while (end > start && text[end - 1] == '"')
+                        end--;
 
-                case SyntaxKind.InterpolatedStringTextToken:
-                    return IsContainedWithinInterpolatedTextToken(token, selectedSpan);
+                    return ImmutableArray.Create(TextSpan.FromBounds(start, end));
+                }
+                else
+                {
+                    var start = stringExpression.SpanStart;
+                    if (start < text.Length && text[start] == '@')
+                        start++;
 
-                case SyntaxKind.OpenBraceToken:
-                case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.InterpolatedRawStringEndToken:
-                    return IsContainedWithinInterpolatedString(token, selectedSpan);
+                    if (start < text.Length && text[start] == '"')
+                        start++;
 
-                default:
-                    // We hit some non-string token.  Don't do anything special on paste here.
-                    return false;
+                    var end = stringExpression.Span.End;
+                    if (end > start && text[end - 1] == '"')
+                        end--;
+
+                    return ImmutableArray.Create(TextSpan.FromBounds(start, end));
+                }
+            }
+            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                // Interpolated string.  Normal, verbatim, or raw.
+                //
+                // Skip past the leading and trailing delimiters.
+                var start = stringExpression.SpanStart;
+                while (start < text.Length && text[start] is '@' or '$')
+                    start++;
+
+                while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
+                    start++;
+
+                var end = stringExpression.Span.End;
+                while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
+                    end--;
+
+                // Then walk the body of the interpolated string adding (possibly empty) spans for each chunk between
+                // interpolations.
+                using var result = TemporaryArray<TextSpan>.Empty;
+
+                var currentPosition = start;
+                for (var i = 0; i < interpolatedString.Contents.Count; i++)
+                {
+                    var content = interpolatedString.Contents[i];
+                    if (content is InterpolationSyntax)
+                    {
+                        result.Add(TextSpan.FromBounds(currentPosition, content.SpanStart));
+                        currentPosition = content.Span.End;
+                    }
+                }
+
+                // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
+                result.Add(TextSpan.FromBounds(currentPosition, end));
+                return result.ToImmutableAndClear();
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(stringExpression);
             }
         }
 
-        private static bool IsContainedWithinInterpolatedString(SyntaxToken delimiterToken, TextSpan selectedSpan)
+        private static ExpressionSyntax? FindContainingStringExpression(
+            SyntaxNode root, NormalizedSnapshotSpanCollection selectionsBeforePaste)
         {
-            // if we have `$"goo$$"`, then we're inside the string token (as long as the selection ends at the start of the delimiter).
-            var interpolationExpression = delimiterToken.Parent as InterpolatedStringExpressionSyntax;
-            if (interpolationExpression is null)
-                return false;
+            ExpressionSyntax? expression = null;
+            foreach (var snapshotSpan in selectionsBeforePaste)
+            {
+                var container = FindContainingStringExpression(root, snapshotSpan.Start.Position);
+                if (container == null)
+                    return null;
 
+                expression ??= container;
+                if (expression != container)
+                    return null;
+            }
 
+            return expression;
         }
 
-        private static bool IsContainedWithStringLiteralToken(SyntaxToken token, SourceText text, TextSpan selectedSpan)
+        private static ExpressionSyntax? FindContainingStringExpression(SyntaxNode root, int position)
         {
-            var start = token.SpanStart;
-            var end = token.Span.End;
+            var node = root.FindToken(position).Parent;
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (current is LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } literalExpression)
+                    return literalExpression;
 
-            if (start < text.Length && text[start] == '@')
-                start++;
+                if (current is InterpolatedStringExpressionSyntax interpolatedString)
+                    return interpolatedString;
+            }
 
-            if (start < text.Length && text[start] == '"')
-                start++;
-
-            if (end > start && text[end - 1] == '"')
-                end--;
-
-            return TextSpan.FromBounds(start, end).Contains(selectedSpan);
+            return null;
         }
 
-        private static bool IsContainedWithinRawStringLiteralToken(SyntaxToken token, SourceText text, TextSpan selectedSpan)
-        {
-            var start = token.SpanStart;
-            var end = token.Span.End;
-            while (start < text.Length && text[start] == '"')
-                start++;
+        //private static bool IsContainedWithinSomeStringToken(
+        //    SyntaxToken token, SourceText text, TextSpan selectedSpan)
+        //{
+        //    switch (token.Kind())
+        //    {
+        //        case SyntaxKind.StringLiteralToken:
+        //            return IsContainedWithStringLiteralToken(token, text, selectedSpan);
 
-            while (end > start && text[end - 1] == '"')
-                end--;
+        //        case SyntaxKind.SingleLineRawStringLiteralToken:
+        //        case SyntaxKind.MultiLineRawStringLiteralToken:
+        //            return IsContainedWithinRawStringLiteralToken(token, text, selectedSpan);
 
-            return TextSpan.FromBounds(start, end).Contains(selectedSpan);
-        }
+        //        case SyntaxKind.InterpolatedStringTextToken:
+        //            return IsContainedWithinInterpolatedTextToken(token, selectedSpan);
 
-        private static bool IsContainedWithinInterpolatedTextToken(SyntaxToken token, TextSpan selectedSpan)
-        {
-            // interpolated text is trivial.  Because it contains no delimeters, it's fine to just check the selected span
-            // against the token span itself.
-            return token.Span.Contains(selectedSpan);
-        }
+        //        case SyntaxKind.OpenBraceToken:
+        //        case SyntaxKind.InterpolatedStringEndToken:
+        //        case SyntaxKind.InterpolatedRawStringEndToken:
+        //            return IsContainedWithinInterpolatedString(token, selectedSpan);
+
+        //        default:
+        //            // We hit some non-string token.  Don't do anything special on paste here.
+        //            return false;
+        //    }
+        //}
+
+        //private static bool IsContainedWithinInterpolatedString(SyntaxToken delimiterToken, TextSpan selectedSpan)
+        //{
+        //    // if we have `$"goo$$"`, then we're inside the string token (as long as the selection ends at the start of the delimiter).
+        //    var interpolationExpression = delimiterToken.Parent as InterpolatedStringExpressionSyntax;
+        //    if (interpolationExpression is null)
+        //        return false;
+
+
+        //}
+
+        //private static bool IsContainedWithStringLiteralToken(SyntaxToken token, SourceText text, TextSpan selectedSpan)
+        //{
+        //    var start = token.SpanStart;
+        //    var end = token.Span.End;
+
+        //    if (start < text.Length && text[start] == '@')
+        //        start++;
+
+        //    if (start < text.Length && text[start] == '"')
+        //        start++;
+
+        //    if (end > start && text[end - 1] == '"')
+        //        end--;
+
+        //    return TextSpan.FromBounds(start, end).Contains(selectedSpan);
+        //}
+
+        //private static bool IsContainedWithinRawStringLiteralToken(SyntaxToken token, SourceText text, TextSpan selectedSpan)
+        //{
+        //    var start = token.SpanStart;
+        //    var end = token.Span.End;
+        //    while (start < text.Length && text[start] == '"')
+        //        start++;
+
+        //    while (end > start && text[end - 1] == '"')
+        //        end--;
+
+        //    return TextSpan.FromBounds(start, end).Contains(selectedSpan);
+        //}
+
+        //private static bool IsContainedWithinInterpolatedTextToken(SyntaxToken token, TextSpan selectedSpan)
+        //{
+        //    // interpolated text is trivial.  Because it contains no delimeters, it's fine to just check the selected span
+        //    // against the token span itself.
+        //    return token.Span.Contains(selectedSpan);
+        //}
 
         private bool PastedTextEqualsLastCopiedText(ITextBuffer subjectBuffer)
         {
