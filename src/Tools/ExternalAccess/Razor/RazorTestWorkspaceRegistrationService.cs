@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     [Export(typeof(RazorTestWorkspaceRegistrationService))]
     [Export(typeof(LspWorkspaceRegistrationService))]
-    [Shared]
+    [Shared, PartNotDiscoverable]
     internal class RazorTestWorkspaceRegistrationService : LspWorkspaceRegistrationService
     {
         [ImportingConstructor]

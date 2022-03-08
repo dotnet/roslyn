@@ -4,14 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -51,10 +47,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             TextLoader? loader = null,
             string? filePath = null,
             bool isGenerated = false,
-            bool designTimeOnly = false)
+            bool designTimeOnly = false,
+            IRazorDocumentServiceProvider? razorDocumentServiceProvider = null)
         {
             folders ??= new List<string>();
-            return DocumentInfo.Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, designTimeOnly, new RazorTestSpanMapperProvider());
+
+            IDocumentServiceProvider? documentServiceProvider = null;
+            if (razorDocumentServiceProvider is not null)
+            {
+                documentServiceProvider = new RazorDocumentServiceProviderWrapper(razorDocumentServiceProvider);
+            }
+
+            return DocumentInfo.Create(id, name, folders, sourceCodeKind, loader, filePath, isGenerated, designTimeOnly, documentServiceProvider);
         }
 
         private class RazorCapabilitiesProvider : ICapabilitiesProvider
@@ -68,36 +72,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
                 => _razorCapabilitiesProvider.GetCapabilities(clientCapabilities);
-        }
-
-        /// <summary>
-        /// Test span mapping service provider whose existence is used only to identify documents belonging to Razor.
-        /// </summary>
-        private class RazorTestSpanMapperProvider : IDocumentServiceProvider
-        {
-            TService IDocumentServiceProvider.GetService<TService>()
-                => (TService)(object)new RazorTestSpanMappingService();
-        }
-
-        private class RazorTestSpanMappingService : ISpanMappingService
-        {
-            public bool SupportsMappingImportDirectives => throw new NotImplementedException();
-
-            public Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
-                Document oldDocument,
-                Document newDocument,
-                CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-
-            public Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(
-                Document document,
-                IEnumerable<TextSpan> spans,
-                CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             TextLoader? loader = null,
             string? filePath = null,
             bool isGenerated = false,
-            bool designTimeOnly = false);
+            bool designTimeOnly = false,
+            IRazorDocumentServiceProvider? razorDocumentServiceProvider = null);
     }
 }
