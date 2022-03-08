@@ -299,8 +299,7 @@ fi
 
 if [[ "$restore" == true ]]; then
   # Install any dotnet workloads specified in global.json
-  # TODO: Call Install-DotNetWorkloads.ps1 instead
-  dotnet workload install macos
+  bash "$scriptroot/Install-DotNetWorkloads.sh"
 fi
 
 bootstrap_dir=""
