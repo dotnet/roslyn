@@ -33,17 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         {
         }
 
-        protected override bool ShouldDisplaySnippet(SyntaxContext context)
-        {
-            var csharpContext = (CSharpSyntaxContext)context;
-            var token = context.LeftToken;
-            var isInNamespace = token.GetAncestors<SyntaxNode>()
-                .Any(node => node.IsKind(SyntaxKind.NamespaceDeclaration) ||
-                             node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration));
-
-            return csharpContext.IsStatementContext || (csharpContext.IsGlobalStatementContext && !isInNamespace);
-        }
-
         protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
         {
             var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());

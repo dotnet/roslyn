@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected readonly SyntaxAnnotation _findSnippetAnnotation = new();
 
         /// <summary>
-        /// Uses the SyntaxContext to determine if the location the cursor is at is a valid place
-        /// for each corresponding SnippetProvider
+        /// Implemented by each SnippetProvider to determine if that particular position is a valid
+        /// location for the snippet to be inserted.
         /// </summary>
         protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Generates the new snippet's TextChange's that are being inserted into the document
+        /// Generates the new snippet's TextChanges that are being inserted into the document
         /// </summary>
         protected abstract Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken);
 

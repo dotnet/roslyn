@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
-            : base(lazySnippetProviders)
+        public CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProviders)
+            : base(snippetProviders)
         {
         }
     }

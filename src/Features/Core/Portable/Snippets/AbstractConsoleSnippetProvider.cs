@@ -24,12 +24,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal abstract class AbstractConsoleSnippetProvider : AbstractSnippetProvider
     {
-        protected abstract bool ShouldDisplaySnippet(SyntaxContext context);
         protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
-
-        public AbstractConsoleSnippetProvider()
-        {
-        }
 
         public override string SnippetIdentifier => "cw";
 
@@ -38,23 +33,23 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var symbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
-            if (symbol is null)
+            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
+            if (consoleSymbol is null)
             {
                 return false;
             }
 
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return ShouldDisplaySnippet(syntaxContext);
+            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
         }
 
         protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var snippetTextChange = await GenerateSnippetAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var snippetTextChange = await GenerateSnippetTextChangeAsync(document, position, cancellationToken).ConfigureAwait(false);
             return ImmutableArray.Create(snippetTextChange);
         }
 
-        private async Task<TextChange> GenerateSnippetAsync(Document document, int position, CancellationToken cancellationToken)
+        private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var symbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -68,10 +63,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             var isAsync = declaration is not null && generator.GetModifiers(declaration).IsAsync;
 
             var invocation = isAsync
-                ? generator.ExpressionStatement(generator.AwaitExpression(generator.InvocationExpression(
-                    generator.MemberAccessExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.Out))), generator.IdentifierName(nameof(Console.Out.WriteLineAsync))))))
-                : generator.ExpressionStatement(generator.InvocationExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.WriteLine)))));
-            return new TextChange(TextSpan.FromBounds(position, position), invocation.NormalizeWhitespace().ToFullString());
+                ? generator.AwaitExpression(generator.InvocationExpression(
+                    generator.MemberAccessExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.Out))), generator.IdentifierName(nameof(Console.Out.WriteLineAsync)))))
+                : generator.InvocationExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.WriteLine))));
+            var expressionStatement = generator.ExpressionStatement(invocation);
+            return new TextChange(TextSpan.FromBounds(position, position), expressionStatement.NormalizeWhitespace().ToFullString());
         }
 
         protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
@@ -83,13 +79,13 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
 
             var argumentListNode = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
-
             if (argumentListNode is null)
             {
                 return null;
             }
 
-            return argumentListNode!.GetLocation().SourceSpan.End - 1;
+            syntaxFacts.GetPartsOfArgumentList(argumentListNode, out var openParenToken, out _, out _);
+            return openParenToken.Span.End;
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,

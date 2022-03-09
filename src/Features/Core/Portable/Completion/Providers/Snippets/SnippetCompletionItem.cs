@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
@@ -31,23 +32,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         public static string GetSnippetIdentifier(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("SnippetIdentifier", out var text))
-            {
-                return text;
-            }
-
-            return string.Empty;
+            Contract.ThrowIfFalse(item.Properties.TryGetValue("SnippetIdentifier", out var text));
+            return text;
         }
 
         public static int GetInvocationPosition(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("Position", out var text)
-                && int.TryParse(text, out var num))
-            {
-                return num;
-            }
-
-            return -1;
+            Contract.ThrowIfFalse(item.Properties.TryGetValue("Position", out var text));
+            Contract.ThrowIfFalse(int.TryParse(text, out var num));
+            return num;
         }
     }
 }
