@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal sealed partial class RemoteWorkspace : Workspace
     {
-        private readonly ISolutionCrawlerRegistrationService? _registrationService;
-
         /// <summary>
         /// Guards updates to <see cref="_primaryBranchSolutionWithChecksum"/> and <see cref="_lastRequestedSolutionWithChecksum"/>.
         /// </summary>
@@ -64,16 +62,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var exportProvider = (IMefHostExportProvider)Services.HostServices;
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
-
-            _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
-            _registrationService?.Register(this);
         }
 
         protected override void Dispose(bool finalize)
         {
             base.Dispose(finalize);
-
-            _registrationService?.Unregister(this);
+            Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Unregister(this);
         }
 
         public AssetProvider CreateAssetProvider(PinnedSolutionInfo solutionInfo, SolutionAssetCache assetCache, IAssetSource assetSource)

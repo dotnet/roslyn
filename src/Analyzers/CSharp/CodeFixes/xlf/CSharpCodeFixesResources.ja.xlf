@@ -12,6 +12,11 @@
         <target state="translated">'typeof' を 'nameof' に変換します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_record_declaration">
+        <source>Fix_record_declaration</source>
+        <target state="new">Fix_record_declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">キャプチャした変数を引数として渡す</target>

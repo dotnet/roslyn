@@ -209,6 +209,16 @@ jobs:
         publishLocation: Container
       condition: succeeded()
 
+- job: Correctness_TodoCheck
+  pool:
+    vmImage: ubuntu-20.04
+  timeoutInMinutes: 10
+  steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+
+    - pwsh: eng/todo-check.ps1
+      displayName: Validate TODO/PROTOTYPE comments are not present
+
 - job: Correctness_Rebuild
   pool:
     name: NetCore1ESPool-Public

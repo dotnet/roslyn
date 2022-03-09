@@ -2986,8 +2986,8 @@ class C
     int Method()
     {
         var q = from c in Get(1 +
-                            2 +
-                            3)
+                                2 +
+                                3)
                 from b in Get(1 +
                             2 +
                             3)
@@ -7734,7 +7734,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = $""Hello, { a }"";
+        var b = $""Hello, {a}"";
     }
 }";
 
@@ -7760,7 +7760,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = $""""""Hello, { a }"""""";
+        var b = $""""""Hello, {a}"""""";
     }
 }";
 
@@ -7788,7 +7788,7 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = $""{ a }, { b }"";
+        var c = $""{a}, {b}"";
     }
 }";
 
@@ -7868,7 +7868,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = $@""Hello, { a }"";
+        var b = $@""Hello, {a}"";
     }
 }";
 
@@ -7896,7 +7896,7 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = $@""{ a }, { b }"";
+        var c = $@""{a}, {b}"";
     }
 }";
 
@@ -7922,7 +7922,7 @@ class C
     void M()
     {
         var a = ""Hello"";
-        var c = $""{ a }, World"";
+        var c = $""{a}, World"";
     }
 }";
 
@@ -7971,6 +7971,163 @@ class C
     void M()
     {
         var s = $""""""{42,-4:x}"""""";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        public async Task InterpolatedStrings11()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var hostAddress = ""host"";
+        var nasTypeId = ""nas"";
+        var version = ""1.2"";
+        var c = $""{      hostAddress?? """"}/{nasTypeId   }/{version??""""}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var hostAddress = ""host"";
+        var nasTypeId = ""nas"";
+        var version = ""1.2"";
+        var c = $""{hostAddress ?? """"}/{nasTypeId}/{version ?? """"}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        public async Task InterpolatedStrings12()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{   a : 000.00 }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{a: 000.00 }"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(59811, "https://github.com/dotnet/roslyn/issues/59811")]
+        public async Task InterpolatedStrings13()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{ (a > 2?""a"":""b""}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = 1.2M;
+        var c = $""{(a > 2 ? ""a"" : ""b""}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings14()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{ 42 , -4 :x}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4:x}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings15()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{   42 , -4   }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4}"";
+    }
+}";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task InterpolatedStrings16()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{  42 , -4 : x }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4: x }"";
     }
 }";
 
@@ -8036,7 +8193,7 @@ class Program
 {
     static string F(int a, int b, int c)
     {
-        return $""{a} (index: 0x{ b}, size: { c}): ""
+        return $""{a} (index: 0x{b}, size: {c}): ""
     }
 }", @"class Program
 {
