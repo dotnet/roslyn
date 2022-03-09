@@ -103,6 +103,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string GetErrorDisplayString(ISymbol symbol);
 
+        // TODO: make abstract
+        // public abstract bool GetIsEnabledByDefault(int code);
+        public virtual bool GetIsEnabledByDefault(int code) => true;
+
         /// <summary>
         /// Given an error code (like 1234) return the identifier (CS1234 or BC1234).
         /// </summary>

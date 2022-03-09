@@ -2050,6 +2050,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NoDelegateConstraint = 9011,
         ERR_MisplacedRecord = 9012,
 
+        WRN_UseDefViolationPropertyStructThis = 9013,
+        WRN_UseDefViolationFieldStructThis = 9014,
+        WRN_UseDefViolationStructThis = 9015,
+        WRN_UnassignedStructThisAutoProperty = 9016,
+        WRN_UnassignedStructThis = 9017,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

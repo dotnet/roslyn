@@ -438,17 +438,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {
-                                bool isSuppressed = compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors);
+                                bool useImplicitInitialization = compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors);
                                 Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
                                 if (associatedPropertyOrEvent?.Kind == SymbolKind.Property)
                                 {
                                     Diagnostics.Add(
-                                        isSuppressed ? ErrorCode.WRN_UnassignedThisAutoProperty : ErrorCode.ERR_UnassignedThisAutoProperty, location, isSuppressed, associatedPropertyOrEvent);
+                                        useImplicitInitialization ? ErrorCode.WRN_UnassignedStructThisAutoProperty : ErrorCode.ERR_UnassignedThisAutoProperty, location, associatedPropertyOrEvent);
                                 }
                                 else
                                 {
                                     Diagnostics.Add(
-                                        isSuppressed ? ErrorCode.WRN_UnassignedThis : ErrorCode.ERR_UnassignedThis, location, isSuppressed, field);
+                                        useImplicitInitialization ? ErrorCode.WRN_UnassignedStructThis : ErrorCode.ERR_UnassignedThis, location, field);
                                 }
 
                                 this.AddImplicitlyInitializedField(field);
@@ -465,22 +465,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-#nullable enable
-        private static ErrorCode GetEquivalentWarning(ErrorCode error) => error switch
-        {
-#pragma warning disable format
-                ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
-                ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
-                ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
-                ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
-                ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
-                ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
-                ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
-                ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
-                _ => error, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
-#pragma warning restore format
-        };
 
         /// <summary>
         /// Perform data flow analysis, reporting all necessary diagnostics.
@@ -555,14 +539,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(diagnostic);
                     continue;
                 }
-                Debug.Assert(!diagnostic.IsSuppressed);
 
                 // Otherwise downgrade the error to a warning.
                 ErrorCode oldCode = (ErrorCode)diagnostic.Code;
-                ErrorCode newCode = GetEquivalentWarning(oldCode);
+                ErrorCode newCode = oldCode switch
+                {
+#pragma warning disable format
+                    ErrorCode.ERR_UnassignedThisAutoProperty => ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.ERR_UnassignedThis             => ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.ERR_ParamUnassigned            => ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.ERR_UseDefViolationProperty    => ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.ERR_UseDefViolationField       => ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.ERR_UseDefViolationThis        => ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.ERR_UseDefViolationOut         => ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.ERR_UseDefViolation            => ErrorCode.WRN_UseDefViolation,
+                    _ => oldCode, // rare but possible, e.g. ErrorCode.ERR_InsufficientStack occurring in strict mode only due to needing extra frames
+#pragma warning restore format
+                };
 
                 // We don't know any other way this can happen, but if it does we recover gracefully in production.
-                Debug.Assert(newCode != oldCode || oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_FeatureInPreview, oldCode.ToString());
+                Debug.Assert(newCode != oldCode || oldCode is ErrorCode.ERR_InsufficientStack, oldCode.ToString());
 
                 var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
                 diagnostics.Add(newCode, diagnostic.Location, args);
@@ -1155,7 +1151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // or fixed statement because there's a special error code for not initializing those.
 
                 ErrorCode errorCode;
-                bool isSuppressed = false;
                 string symbolName = symbol.Name;
 
                 if (symbol.Kind == SymbolKind.Field)
@@ -1164,12 +1159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var associatedSymbol = fieldSymbol.AssociatedSymbol;
                     if (associatedSymbol?.Kind == SymbolKind.Property)
                     {
-                        (errorCode, isSuppressed) = adjustErrorForStructFields(ErrorCode.ERR_UseDefViolationProperty, symbol, slot);
+                        errorCode = adjustErrorForStructFieldOrProperty(isProperty: true, slot);
                         symbolName = associatedSymbol.Name;
                     }
                     else
                     {
-                        (errorCode, isSuppressed) = adjustErrorForStructFields(ErrorCode.ERR_UseDefViolationField, symbol, slot);
+                        errorCode = adjustErrorForStructFieldOrProperty(isProperty: false, slot);
                     }
                 }
                 else if (symbol.Kind == SymbolKind.Parameter &&
@@ -1177,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (((ParameterSymbol)symbol).IsThis)
                     {
-                        (errorCode, isSuppressed) = adjustErrorForStructThis(ErrorCode.ERR_UseDefViolationThis, symbol, slot);
+                        errorCode = adjustErrorForStructThis(symbol, slot);
                     }
                     else
                     {
@@ -1188,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     errorCode = ErrorCode.ERR_UseDefViolation;
                 }
-                Diagnostics.Add(errorCode, new SourceLocation(node), isSuppressed, symbolName);
+                Diagnostics.Add(errorCode, new SourceLocation(node), symbolName);
             }
 
             // mark the variable's slot so that we don't complain about the variable again
@@ -1198,11 +1193,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 => !_requireOutParamsAssigned
                 || CurrentSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct };
 
-            (ErrorCode, bool isSuppressed) adjustErrorForStructThis(ErrorCode error, Symbol thisParameter, int thisSlot)
+            ErrorCode adjustErrorForStructThis(Symbol thisParameter, int thisSlot)
             {
                 if (doesNotNeedImplicitFieldInitialization())
                 {
-                    return (error, isSuppressed: false);
+                    return ErrorCode.ERR_UseDefViolationThis;
                 }
 
                 foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(thisParameter.ContainingType))
@@ -1223,17 +1218,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors))
                 {
-                    return (error, isSuppressed: false);
+                    return ErrorCode.ERR_UseDefViolationThis;
                 }
 
-                return (GetEquivalentWarning(error), isSuppressed: true);
+                return ErrorCode.WRN_UseDefViolationStructThis;
             }
 
-            (ErrorCode, bool isSuppressed) adjustErrorForStructFields(ErrorCode error, Symbol possibleStructField, int fieldSlot)
+            ErrorCode adjustErrorForStructFieldOrProperty(bool isProperty, int fieldSlot)
             {
                 if (doesNotNeedImplicitFieldInitialization())
                 {
-                    return (error, isSuppressed: false);
+                    return isProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField;
                 }
 
                 var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol(), createIfMissing: false);
@@ -1243,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (root == localSlot)
                     {
                         // the offending field access is not contained in 'this'.
-                        return (error, isSuppressed: false);
+                        return isProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField;
                     }
                     localSlot = root;
                 }
@@ -1266,10 +1261,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors))
                 {
-                    return (error, isSuppressed: false);
+                    return isProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField;
                 }
 
-                return (GetEquivalentWarning(error), isSuppressed: true);
+                return isProperty ? ErrorCode.WRN_UseDefViolationPropertyStructThis : ErrorCode.WRN_UseDefViolationFieldStructThis;
             }
         }
 

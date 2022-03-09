@@ -1224,7 +1224,10 @@ struct S
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS0169: The field 'S.y' is never used
                 //     int x, y;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12),
+                // (5,5): warning CS9017: Field 'S.y' must be fully assigned before control is returned to the caller
+                //     S(int x) { this.x = x; }
+                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.y").WithLocation(5, 5));
             verifier.VerifyIL("S..ctor", @"
 {
   // Code size       15 (0xf)

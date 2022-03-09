@@ -282,6 +282,11 @@
                 case ErrorCode.WRN_LowerCaseTypeName:
                 case ErrorCode.WRN_NullCheckedHasDefaultNull:
                 case ErrorCode.WRN_NullCheckingOnNullableType:
+                case ErrorCode.WRN_UseDefViolationPropertyStructThis:
+                case ErrorCode.WRN_UseDefViolationFieldStructThis:
+                case ErrorCode.WRN_UseDefViolationStructThis:
+                case ErrorCode.WRN_UnassignedStructThisAutoProperty:
+                case ErrorCode.WRN_UnassignedStructThis:
                     return true;
                 default:
                     return false;

@@ -6766,6 +6766,36 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ListPatternRequiresLength" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</value>
   </data>
+  <data name="WRN_UseDefViolationPropertyStructThis" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationPropertyStructThis_Title" xml:space="preserve">
+    <value>Use of possibly unassigned auto-implemented property</value>
+  </data>
+  <data name="WRN_UseDefViolationFieldStructThis" xml:space="preserve">
+    <value>Use of possibly unassigned field '{0}'</value>
+  </data>
+  <data name="WRN_UseDefViolationFieldStructThis_Title" xml:space="preserve">
+    <value>Use of possibly unassigned field</value>
+  </data>
+  <data name="WRN_UseDefViolationStructThis" xml:space="preserve">
+    <value>The 'this' object cannot be used before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UseDefViolationStructThis_Title" xml:space="preserve">
+    <value>The 'this' object cannot be used in a constructor before all of its fields have been assigned</value>
+  </data>
+  <data name="WRN_UnassignedStructThisAutoProperty" xml:space="preserve">
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedStructThisAutoProperty_Title" xml:space="preserve">
+    <value>An auto-implemented property must be fully assigned before control is returned to the caller.</value>
+  </data>
+  <data name="WRN_UnassignedStructThis" xml:space="preserve">
+    <value>Field '{0}' must be fully assigned before control is returned to the caller</value>
+  </data>
+  <data name="WRN_UnassignedStructThis_Title" xml:space="preserve">
+    <value>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</value>
+  </data>
   <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">
     <value>Slice patterns may not be used for a value of type '{0}'.</value>
   </data>

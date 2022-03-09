@@ -42,14 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return info;
         }
 
-        internal static CSDiagnosticInfo Add(this DiagnosticBag diagnostics, ErrorCode code, Location location, bool isSuppressed, params object[] args)
-        {
-            var info = new CSDiagnosticInfo(code, args);
-            var diag = new CSDiagnostic(info, location, isSuppressed);
-            diagnostics.Add(diag);
-            return info;
-        }
-
         internal static CSDiagnosticInfo Add(this DiagnosticBag diagnostics, ErrorCode code, Location location, ImmutableArray<Symbol> symbols, params object[] args)
         {
             var info = new CSDiagnosticInfo(code, args, symbols, ImmutableArray<Location>.Empty);
