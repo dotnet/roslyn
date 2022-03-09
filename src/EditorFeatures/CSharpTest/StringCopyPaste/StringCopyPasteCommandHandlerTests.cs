@@ -302,6 +302,154 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
         #endregion
 
+        #region Paste from external source into normal interpolated string before hole
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalInterpolatedStringBeforeHole1()
+        {
+            TestPasteOnly(
+                pasteText: "\n",
+                @"var x = $""$${0}""",
+                @"var x = $""\n$${0}""",
+                afterUndo: "var x = $\"\n$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalInterpolatedStringBeforeHole2()
+        {
+            TestPasteOnly(
+                pasteText: "\r\n",
+                @"var x = $""$${0}""",
+                @"var x = $""\r\n$${0}""",
+                afterUndo: "var x = $\"\r\n$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTabIntoNormalInterpolatedStringBeforeHole1()
+        {
+            TestPasteOnly(
+                pasteText: "\t",
+                @"var x = $""$${0}""",
+                @"var x = $""\t$${0}""",
+                afterUndo: "var x = $\"\t$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalSingleQuoteIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteOnly(
+                pasteText: "'",
+                @"var x = $""$${0}""",
+                @"var x = $""'$${0}""",
+                afterUndo: "var x = $\"$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalDoubleQuoteIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteOnly(
+                pasteText: "\"",
+                @"var x = $""$${0}""",
+                @"var x = $""\""$${0}""",
+                afterUndo: "var x = $\"\"$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalComplexStringIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteOnly(
+                pasteText: "\t\"\"\t",
+                @"var x = $""$${0}""",
+                @"var x = $""\t\""\""\t$${0}""",
+                afterUndo: "var x = $\"\t\"\"\t$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteOnly(
+                pasteText: "abc",
+                @"var x = $""$${0}""",
+                @"var x = $""abc$${0}""",
+                afterUndo: @"var x = $""$${0}""");
+        }
+
+        #endregion
+
+        #region Paste from external source into normal interpolated string after hole
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalInterpolatedStringAfterHole1()
+        {
+            TestPasteOnly(
+                pasteText: "\n",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\n$$""",
+                afterUndo: "var x = $\"{0}\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoNormalInterpolatedStringAfterHole2()
+        {
+            TestPasteOnly(
+                pasteText: "\r\n",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\r\n$$""",
+                afterUndo: "var x = $\"{0}\r\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTabIntoNormalInterpolatedStringAfterHole1()
+        {
+            TestPasteOnly(
+                pasteText: "\t",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\t$$""",
+                afterUndo: "var x = $\"{0}\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalSingleQuoteIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteOnly(
+                pasteText: "'",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}'$$""",
+                afterUndo: "var x = $\"{0}$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalDoubleQuoteIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteOnly(
+                pasteText: "\"",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\""$$""",
+                afterUndo: "var x = $\"{0}\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalComplexStringIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteOnly(
+                pasteText: "\t\"\"\t",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\t\""\""\t$$""",
+                afterUndo: "var x = $\"{0}\t\"\"\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteOnly(
+                pasteText: "abc",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}abc$$""",
+                afterUndo: @"var x = $""{0}$$""");
+        }
+
+        #endregion
+
         #region Paste from external source into verbatim string
 
         [WpfFact]
