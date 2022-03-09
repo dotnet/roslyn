@@ -225,7 +225,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithReferencesFindUsagesContext(
+                this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, this.ThreadingContext);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(
@@ -235,7 +236,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithoutReferencesFindUsagesContext(
+                this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, this.ThreadingContext);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)

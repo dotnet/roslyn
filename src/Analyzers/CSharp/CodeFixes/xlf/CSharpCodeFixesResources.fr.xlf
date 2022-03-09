@@ -12,6 +12,16 @@
         <target state="translated">Convertir 'typeof' en 'nameof'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_constraint">
+        <source>Fix constraint</source>
+        <target state="new">Fix constraint</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_record_declaration">
+        <source>Fix record declaration</source>
+        <target state="new">Fix record declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">Passer les variables capturées en tant qu'arguments</target>

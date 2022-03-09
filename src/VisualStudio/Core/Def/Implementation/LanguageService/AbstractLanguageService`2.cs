@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -263,6 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 this.DebuggerLanguageId,
                 (TLanguageService)this,
                 languageServices,
+                this.Package.ComponentModel.GetService<IThreadingContext>(),
                 this.Package.ComponentModel.GetService<IUIThreadOperationExecutor>());
         }
 

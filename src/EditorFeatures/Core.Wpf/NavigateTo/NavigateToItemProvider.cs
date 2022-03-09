@@ -117,7 +117,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 kinds,
                 _threadingContext.DisposalToken);
 
-            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token).ReportNonFatalErrorUnlessCancelledAsync(_cancellationTokenSource.Token);
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(StartSearch));
+            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token)
+                .CompletesAsyncOperation(asyncToken)
+                .ReportNonFatalErrorUnlessCancelledAsync(_cancellationTokenSource.Token);
         }
     }
 }

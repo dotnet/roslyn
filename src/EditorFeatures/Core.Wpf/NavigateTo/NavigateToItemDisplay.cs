@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             using var context = _threadOperationExecutor.BeginExecute(
                 EditorFeaturesResources.Navigating_to_definition, EditorFeaturesResources.Navigating_to_definition, allowCancellation: true, showProgress: false);
             await navigationService.TryNavigateToSpanAsync(
+                _threadingContext,
                 workspace,
                 document.Id,
                 _searchResult.NavigableItem.SourceSpan,

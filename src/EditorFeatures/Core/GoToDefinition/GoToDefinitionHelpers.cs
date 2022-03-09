@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return definitions.ToImmutable();
         }
 
-        public static bool TryGoToDefinition(
+        public static async Task<bool> TryNavigateToLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -111,11 +111,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            return threadingContext.JoinableTaskFactory.Run(
-                () => TryGoToDefinitionAsync(symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed));
+            var location = await GetDefinitionLocationAsync(
+                symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
+            return await location.TryNavigateToAsync(
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<bool> TryGoToDefinitionAsync(
+        public static async Task<INavigableLocation> GetDefinitionLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
 
-            return await streamingPresenter.TryNavigateToOrPresentItemsAsync(
+            return await streamingPresenter.GetStreamingLocationAsync(
                 threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 

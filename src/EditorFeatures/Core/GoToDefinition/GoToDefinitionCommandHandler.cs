@@ -4,7 +4,10 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,24 +25,27 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal class GoToDefinitionCommandHandler :
         ICommandHandler<GoToDefinitionCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public GoToDefinitionCommandHandler()
+        public GoToDefinitionCommandHandler(IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
-        private static (Document?, IGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
+        private static (Document?, IGoToDefinitionService?, IAsyncGoToDefinitionService?) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document, document?.GetLanguageService<IGoToDefinitionService>());
+            return (document, document?.GetLanguageService<IGoToDefinitionService>(), document?.GetLanguageService<IAsyncGoToDefinitionService>());
         }
 
         public CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
-            return service != null
+            var (_, service, asyncService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return service != null || asyncService != null
                 ? CommandState.Available
                 : CommandState.Unspecified;
         }
@@ -47,18 +53,22 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
             var subjectBuffer = args.SubjectBuffer;
-            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            var (document, service, asyncService) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+
+            if (service == null && asyncService == null)
+                return false;
 
             // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP client
             // from handling the request.  So prevent the local service from handling goto def commands in the remote workspace.
             // This can be removed once typescript implements LSP support for goto def.
-            if (service != null && !subjectBuffer.IsInLspEditorContext())
+            if (!subjectBuffer.IsInLspEditorContext())
             {
                 Contract.ThrowIfNull(document);
                 var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
                 if (caretPos.HasValue)
                 {
-                    ExecuteCommand(document, caretPos.Value, service, context);
+                    _threadingContext.JoinableTaskFactory.Run(() =>
+                        ExecuteCommandAsync(document, caretPos.Value, service, asyncService, context));
                     return true;
                 }
             }
@@ -66,16 +76,30 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return false;
         }
 
-        private static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService? goToDefinitionService, CommandExecutionContext context)
+        private async Task ExecuteCommandAsync(
+            Document document, int caretPosition, IGoToDefinitionService? service, IAsyncGoToDefinitionService? asyncService, CommandExecutionContext context)
         {
             string? errorMessage = null;
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
-                if (goToDefinitionService != null &&
-                    goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+                if (asyncService != null)
                 {
-                    return;
+                    var location = await asyncService.FindDefinitionLocationAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
+                    var success = await location.TryNavigateToAsync(
+                        _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+
+                    if (success)
+                        return;
+                }
+                else
+                {
+                    if (service != null &&
+                        service.TryGoToDefinition(document, caretPosition, cancellationToken))
+                    {
+                        return;
+                    }
                 }
 
                 errorMessage = FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
@@ -87,16 +111,27 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
                 context.OperationContext.TakeOwnership();
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var workspace = document.Project.Solution.Workspace;
                 var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
             }
         }
 
-        public static class TestAccessor
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public struct TestAccessor
         {
-            public static void ExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
-                => GoToDefinitionCommandHandler.ExecuteCommand(document, caretPosition, goToDefinitionService, context);
+            private readonly GoToDefinitionCommandHandler _handler;
+
+            public TestAccessor(GoToDefinitionCommandHandler handler)
+            {
+                _handler = handler;
+            }
+
+            public Task ExecuteCommandAsync(Document document, int caretPosition, IAsyncGoToDefinitionService asyncService, CommandExecutionContext context)
+                => _handler.ExecuteCommandAsync(document, caretPosition, service: null, asyncService, context);
         }
     }
 }

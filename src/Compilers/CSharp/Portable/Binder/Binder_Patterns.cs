@@ -411,8 +411,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedExpression = BindExpressionOrTypeForPattern(inputType, innerExpression, ref hasErrors, diagnostics, out var constantValueOpt, out bool wasExpression);
             if (wasExpression)
             {
+                var convertedType = convertedExpression.Type ?? inputType;
+                if (convertedType.SpecialType == SpecialType.System_String && inputType.IsSpanOrReadOnlySpanChar())
+                {
+                    convertedType = inputType;
+                }
+
                 return new BoundConstantPattern(
-                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedExpression.Type ?? inputType, hasErrors || constantValueOpt is null);
+                    node, convertedExpression, constantValueOpt ?? ConstantValue.Bad, inputType, convertedType, hasErrors || constantValueOpt is null);
             }
             else
             {
@@ -584,6 +590,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                if (expression.Type?.SpecialType == SpecialType.System_String && inputType.IsSpanOrReadOnlySpanChar())
+                {
+                    if (MessageID.IDS_FeatureSpanCharConstantPattern.CheckFeatureAvailability(diagnostics, Compilation, node.Location))
+                    {
+                        // report missing member and use site diagnostics
+                        bool isReadOnlySpan = inputType.IsReadOnlySpanChar();
+                        _ = GetWellKnownTypeMember(
+                            isReadOnlySpan ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
+                            diagnostics,
+                            syntax: node);
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpan_String, diagnostics, syntax: node);
+                        _ = GetWellKnownTypeMember(isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__get_Length : WellKnownMember.System_Span_T__get_Length,
+                            diagnostics,
+                            syntax: node);
+                    }
+
+                    convertedExpression = BindToNaturalType(expression, diagnostics);
+
+                    constantValue = convertedExpression.ConstantValue;
+                    if (constantValue == ConstantValue.Null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PatternSpanCharCannotBeStringNull, convertedExpression.Syntax.Location, inputType);
+                    }
+                    return convertedExpression;
+                }
+
                 // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
                 // because the result of a user-defined conversion does not have a ConstantValue. A constant pattern
                 // requires a constant value so we'll report a diagnostic to that effect later.

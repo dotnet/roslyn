@@ -2046,6 +2046,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IllegalAtSequence = 9008,
         ERR_StringMustStartWithQuoteCharacter = 9009,
 
+        ERR_NoEnumConstraint = 9010,
+        ERR_NoDelegateConstraint = 9011,
+        ERR_MisplacedRecord = 9012,
+        ERR_PatternSpanCharCannotBeStringNull = 9013,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
