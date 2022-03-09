@@ -43,5 +43,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Public Overrides Function FixClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
             Return ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan)
         End Function
+
+        Public Overrides Function GetSyntacticClassificationForIdentifier(identifier As SyntaxToken) As String
+            Return ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier)
+        End Function
     End Class
 End Namespace

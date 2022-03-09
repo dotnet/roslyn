@@ -103,6 +103,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             return definitions.ToImmutable();
         }
 
+        public static async Task<bool> TryNavigateToLocationAsync(
+            ISymbol symbol,
+            Solution solution,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true)
+        {
+            var location = await GetDefinitionLocationAsync(
+                symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
+            return await location.TryNavigateToAsync(
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+        }
+
         public static async Task<INavigableLocation> GetDefinitionLocationAsync(
             ISymbol symbol,
             Solution solution,

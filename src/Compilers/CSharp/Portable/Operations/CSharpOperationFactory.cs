@@ -1723,18 +1723,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
                                                     BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
-                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo is { Method: { IsExtensionMethod: true } } getEnumeratorInfo
-                                                        ? Operation.SetParentOperation(
-                                                            DeriveArguments(
-                                                                getEnumeratorInfo.Method,
-                                                                getEnumeratorInfo.Arguments,
-                                                                argumentsToParametersOpt: default,
-                                                                getEnumeratorInfo.DefaultArguments,
-                                                                getEnumeratorInfo.Expanded,
-                                                                boundForEachStatement.Expression.Syntax,
-                                                                invokedAsExtensionMethod: true),
-                                                            null)
-                                                        : default,
+                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
+                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
                                                         ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
                                                         : default);
@@ -1745,6 +1735,29 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return info;
+
+            ImmutableArray<IArgumentOperation> CreateArgumentOperations(MethodArgumentInfo? info,
+                 SyntaxNode invocationSyntax)
+            {
+                if (info == null)
+                {
+                    return default;
+                }
+                if (info.Arguments.Length == 0)
+                {
+                    return ImmutableArray<IArgumentOperation>.Empty;
+                }
+                var args = DeriveArguments(
+                    info.Method,
+                    info.Arguments,
+                    argumentsToParametersOpt: default,
+                    info.DefaultArguments,
+                    info.Expanded,
+                    invocationSyntax: invocationSyntax,
+                    invokedAsExtensionMethod: info.Method.IsExtensionMethod
+                );
+                return Operation.SetParentOperation(args, null);
+            }
         }
 
         internal IOperation CreateBoundForEachStatementLoopControlVariable(BoundForEachStatement boundForEachStatement)

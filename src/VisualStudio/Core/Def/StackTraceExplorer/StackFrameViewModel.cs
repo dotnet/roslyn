@@ -12,14 +12,12 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.Text.Classification;
@@ -85,8 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             {
                 var location = await definition.GetNavigableLocationAsync(
                     _workspace, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
+                await location.TryNavigateToAsync(
+                    _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -135,13 +133,10 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
                     var navigationService = _workspace.Services.GetService<IDocumentNavigationService>();
                     if (navigationService is null)
-                    {
                         return;
-                    }
 
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    await navigationService.TryNavigateToLineAndOffsetAsync(
-                        _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
+                    var location = await navigationService.TryNavigateToLineAndOffsetAsync(
+                        _threadingContext, _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))

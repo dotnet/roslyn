@@ -70,14 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (rehydrated == null)
                 return;
 
-            var location = await _streamingFindUsagesPresenter.GetStreamingLocationAsync(
+            await _streamingFindUsagesPresenter.TryPresentLocationOrNavigateIfOneAsync(
                 _threadingContext,
                 _workspace,
                 string.Format(CultureInfo.InvariantCulture, EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                 ImmutableArray.Create<DefinitionItem>(rehydrated),
                 cancellationToken).ConfigureAwait(false);
-            if (location != null)
-                await location.NavigateToAsync(new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
         private void TargetsSubmenu_OnOpen(object sender, RoutedEventArgs e)

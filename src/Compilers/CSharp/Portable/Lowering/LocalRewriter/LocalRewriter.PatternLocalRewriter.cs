@@ -364,6 +364,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
             {
+                Debug.Assert(!rewrittenExpr.Type.IsSpanOrReadOnlySpanChar());
+
                 if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
                 {
                     TypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);
@@ -382,6 +384,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
+                if (value.IsString && input.Type.IsSpanOrReadOnlySpanChar())
+                {
+                    return MakeSpanStringTest(input, value);
+                }
+
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
                 var operatorType = Binder.RelationalOperatorType(comparisonType);
                 Debug.Assert(operatorType != BinaryOperatorKind.Error);
@@ -417,6 +424,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
+            }
+
+            private BoundExpression MakeSpanStringTest(BoundExpression input, ConstantValue value)
+            {
+                var isReadOnlySpan = input.Type.IsReadOnlySpanChar();
+                // Binder.ConvertPatternExpression() has checked for these well-known members.
+                var sequenceEqual =
+                    ((MethodSymbol)_factory.WellKnownMember(isReadOnlySpan
+                        ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
+                        : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T))
+                    .Construct(_factory.SpecialType(SpecialType.System_Char));
+                var asSpan = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_MemoryExtensions__AsSpan_String);
+
+                Debug.Assert(sequenceEqual != null && asSpan != null);
+
+                return _factory.Call(null, sequenceEqual, input, _factory.Call(null, asSpan, _factory.StringLiteral(value)));
             }
 
             /// <summary>

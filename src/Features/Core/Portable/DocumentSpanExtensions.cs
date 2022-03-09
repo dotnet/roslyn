@@ -26,12 +26,6 @@ namespace Microsoft.CodeAnalysis
             return (workspace, service);
         }
 
-        public static Task<bool> TryNavigateToAsync(this DocumentSpan documentSpan, NavigationOptions options, CancellationToken cancellationToken)
-        {
-            var (workspace, service) = GetNavigationParts(documentSpan);
-            return service.TryNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
-        }
-
         public static Task<INavigableLocation?> GetNavigableLocationAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             var (workspace, service) = GetNavigationParts(documentSpan);

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -18,11 +19,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         private class MetadataDefinitionItemEntry : AbstractItemEntry, ISupportsNavigation
         {
+            private readonly IThreadingContext _threadingContext;
+
             public MetadataDefinitionItemEntry(
                 AbstractTableDataSourceFindUsagesContext context,
-                RoslynDefinitionBucket definitionBucket)
+                RoslynDefinitionBucket definitionBucket,
+                IThreadingContext threadingContext)
                 : base(definitionBucket, context.Presenter)
             {
+                _threadingContext = threadingContext;
             }
 
             protected override object? GetValueWorker(string keyName)
@@ -49,8 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 var location = await DefinitionBucket.DefinitionItem.GetNavigableLocationAsync(
                     Presenter._workspace, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
+                await location.TryNavigateToAsync(_threadingContext, options, cancellationToken).ConfigureAwait(false);
             }
 
             protected override IList<Inline> CreateLineTextInlines()
