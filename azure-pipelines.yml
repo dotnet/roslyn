@@ -146,7 +146,7 @@ jobs:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr
-      queueName: 'Build.Ubuntu.1804.amd64.Open'
+      queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
@@ -208,6 +208,16 @@ jobs:
         ArtifactName: 'VSIX - PreRelease'
         publishLocation: Container
       condition: succeeded()
+
+- job: Correctness_TodoCheck
+  pool:
+    vmImage: ubuntu-20.04
+  timeoutInMinutes: 10
+  steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+
+    - pwsh: eng/todo-check.ps1
+      displayName: Validate TODO/PROTOTYPE comments are not present
 
 - job: Correctness_Rebuild
   pool:

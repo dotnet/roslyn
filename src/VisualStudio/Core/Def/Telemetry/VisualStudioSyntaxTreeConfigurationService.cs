@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -31,29 +29,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         public bool DisableProjectCacheService
             => _globalOptions.GetOption(OptionsMetadata.DisableProjectCacheService);
 
-        [ExportSolutionOptionProvider, Shared]
-        internal sealed class OptionsMetadata : IOptionProvider
+        public bool EnableOpeningSourceGeneratedFilesInWorkspace
+            => _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace)
+                ?? _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
+
+        internal sealed class OptionsMetadata
         {
             /// <summary>
             /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
             /// </summary>
             public static readonly Option2<bool> DisableRecoverableTrees = new(
-                nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
+                "WorkspaceConfigurationOptions", "DisableRecoverableTrees", defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
             public static readonly Option2<bool> DisableProjectCacheService = new(
-                nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
+                "WorkspaceConfigurationOptions", nameof(DisableProjectCacheService), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
 
-            ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-                DisableRecoverableTrees,
-                DisableProjectCacheService);
+            /// <summary>
+            /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
+            /// surprised by this and we want some time to work through those issues.
+            /// </summary>
+            public static readonly Option2<bool?> EnableOpeningSourceGeneratedFilesInWorkspace = new(
+                "WorkspaceConfigurationOptions", nameof(EnableOpeningSourceGeneratedFilesInWorkspace), defaultValue: null,
+                new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
 
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public OptionsMetadata()
-            {
-            }
+            public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
+                "WorkspaceConfigurationOptions", nameof(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
         }
     }
 }

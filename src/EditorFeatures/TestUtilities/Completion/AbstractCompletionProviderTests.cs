@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
 
             var options = GetCompletionOptions();
-            var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var displayOptions = SymbolDescriptionOptions.Default;
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger, options);
             var items = completionList.Items;
@@ -773,15 +773,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols);
         }
 
-        protected static string CreateMarkupForSingleProject(string markup, string referencedCode, string sourceLanguage)
+        protected static string CreateMarkupForSingleProject(
+            string sourceCode,
+            string referencedCode,
+            string sourceLanguage,
+            string sourceFileName = "SourceDocument",
+            string referencedFileName = "ReferencedDocument")
         {
             return string.Format(@"
 <Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document FilePath=""SourceDocument"">{1}</Document>
-        <Document FilePath=""ReferencedDocument"">{2}</Document>
+    <Project Language=""{0}"" CommonReferences=""true"" Name=""ProjectName"">
+        <Document FilePath=""{3}"">{1}</Document>
+        <Document FilePath=""{4}"">{2}</Document>
     </Project>    
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), SecurityElement.Escape(referencedCode));
+</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName);
         }
 
         private async Task VerifyItemWithReferenceWorkerAsync(
@@ -795,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(documentId);
 
                 var options = GetCompletionOptions();
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 
                 var completionService = GetCompletionService(document.Project);
@@ -851,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(document.Project);
@@ -883,7 +888,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var textContainer = testWorkspace.Documents.First().GetTextBuffer().AsTextContainer();
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(document.Project);

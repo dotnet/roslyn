@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // If we're directly going to a location we need to activate the preview so
                 // that focus follows to the new cursor position. This behavior is expected
                 // because we are only going to navigate once successfully
-                if (await item.TryNavigateToAsync(workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false))
+                if (await item.TryNavigateToAsync(workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false))
                     return true;
             }
 
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
                 return await nonExternalItems[0].TryNavigateToAsync(
-                    workspace, showInPreviewTab: true, activateTab: true, cancellationToken).ConfigureAwait(false);
+                    workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
             }
 
             if (presenter != null)

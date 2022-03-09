@@ -411,7 +411,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AliasSymbol aliasOpt; // not needed.
             NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
-            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, BindingDiagnosticBag.Discarded);
+            // note: we don't need to pass an 'attributedMember' here because we only need symbolInfo from this node
+            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, attributedMember: null, BindingDiagnosticBag.Discarded);
 
             return boundNode;
         }

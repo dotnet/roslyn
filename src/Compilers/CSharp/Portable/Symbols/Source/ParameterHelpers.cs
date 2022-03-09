@@ -624,12 +624,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasErrors = true;
             }
             else if (conversion.IsReference &&
-                (parameterType.SpecialType == SpecialType.System_Object || parameterType.Kind == SymbolKind.DynamicType) &&
                 (object)defaultExpression.Type != null &&
                 defaultExpression.Type.SpecialType == SpecialType.System_String ||
                 conversion.IsBoxing)
             {
-                // We don't allow object x = "hello", object x = 123, dynamic x = "hello", etc.
+                // We don't allow object x = "hello", object x = 123, dynamic x = "hello", IEnumerable<char> x = "hello", etc.
                 // error CS1763: '{0}' is of type '{1}'. A default parameter value of a reference type other than string can only be initialized with null
                 diagnostics.Add(ErrorCode.ERR_NotNullRefDefaultParameter, parameterSyntax.Identifier.GetLocation(),
                     parameterSyntax.Identifier.ValueText, parameterType);
@@ -809,14 +808,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_DiscardCannotBeNullChecked, location);
             }
-            if (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
-                || parameter.Type.IsNullableTypeOrTypeParameter())
+
+            var annotations = parameter.FlowAnalysisAnnotations;
+            if ((annotations & FlowAnalysisAnnotations.NotNull) == 0
+                && NullableWalker.GetParameterState(parameter.TypeWithAnnotations, annotations, applyParameterNullCheck: false).State.MayBeNull()
+                && !isTypeParameterWithPossiblyNonNullableType(parameter.TypeWithAnnotations, annotations))
             {
                 diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
             }
-            else if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
+
+            if (parameter.Type.IsNonNullableValueType() && !parameter.Type.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
+            }
+
+            // For type parameters, we only want to give the warning if no type argument would result in a non-nullable type.
+            static bool isTypeParameterWithPossiblyNonNullableType(TypeWithAnnotations typeWithAnnotations, FlowAnalysisAnnotations annotations)
+            {
+                if (!typeWithAnnotations.Type.IsTypeParameter())
+                {
+                    return false;
+                }
+
+                // We avoid checking the nullable annotations, etc. of constraints due to implementation complexity,
+                // and consider it acceptable to miss "!! on nullable type" warnings in scenarios like `void M<T, U>(U u!!) where U : T?`.
+                if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
+                {
+                    return false;
+                }
+
+                // `void M<T>([AllowNull] T t!!)`
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 

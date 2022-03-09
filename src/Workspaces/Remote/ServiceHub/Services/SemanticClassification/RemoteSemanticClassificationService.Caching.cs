@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -26,13 +25,14 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Key we use to look this up in the persistence store for a particular document.
         /// </summary>
-        private const string PersistenceName = "<ClassifiedSpans>";
+        private const string s_semanticPersistenceName = "<SemanticClassifiedSpans>";
+        private const string s_embeddedLanguagePersistenceName = "<EmbeddedLanguageClassifiedSpans>";
 
         /// <summary>
         /// Our current persistence version.  If we ever change the on-disk format, this should be changed so that we
         /// skip over persisted data that we cannot read.
         /// </summary>
-        private const int ClassificationFormat = 3;
+        private const int ClassificationFormat = 4;
 
         private const int MaxCachedDocumentCount = 8;
 
@@ -41,26 +41,26 @@ namespace Microsoft.CodeAnalysis.Remote
         /// loading, if we're asking about the same documents multiple times by the classification service, we can just
         /// return what we have already loaded and not go back to the persistence store to read/decode.
         /// <para/>
-        /// This can be read and updated from different threads.  To keep things safe, we use thsi object itself
+        /// This can be read and updated from different threads.  To keep things safe, we use this object itself
         /// as the lock that is taken to serialize access.
         /// </summary>
-        private readonly LinkedList<(DocumentId id, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData = new();
+        private readonly LinkedList<(DocumentId id, ClassificationType type, Checksum checksum, ImmutableArray<ClassifiedSpan> classifiedSpans)> _cachedData = new();
 
         /// <summary>
         /// Queue where we place documents we want to compute and cache full semantic classifications for.  Note: the
         /// same document may appear multiple times inside of this queue (for different versions of the document).
         /// However, we'll only process the last version of any document added.
         /// </summary>
-        private readonly AsyncBatchingWorkQueue<(Document, ClassificationOptions, StorageDatabase)> _workQueue;
+        private readonly AsyncBatchingWorkQueue<(Document, ClassificationType type, ClassificationOptions, StorageDatabase)> _workQueue;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public RemoteSemanticClassificationService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
-            _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationOptions, StorageDatabase)>(
-                TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
-                CacheSemanticClassificationsAsync,
-                EqualityComparer<(Document, ClassificationOptions, StorageDatabase)>.Default,
+            _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions, StorageDatabase)>(
+                DelayTimeSpan.Short,
+                CacheClassificationsAsync,
+                EqualityComparer<(Document, ClassificationType, ClassificationOptions, StorageDatabase)>.Default,
                 AsynchronousOperationListenerProvider.NullListener,
                 _cancellationTokenSource.Token);
         }
@@ -71,18 +71,27 @@ namespace Microsoft.CodeAnalysis.Remote
             base.Dispose();
         }
 
-        public async ValueTask<SerializableClassifiedSpans?> GetCachedSemanticClassificationsAsync(
-            DocumentKey documentKey, TextSpan textSpan, Checksum checksum, StorageDatabase database, CancellationToken cancellationToken)
+        private static string GetPersistenceName(ClassificationType type)
+            => type switch
+            {
+                ClassificationType.Semantic => s_semanticPersistenceName,
+                ClassificationType.EmbeddedLanguage => s_embeddedLanguagePersistenceName,
+                _ => throw ExceptionUtilities.UnexpectedValue(type),
+            };
+
+        public async ValueTask<SerializableClassifiedSpans?> GetCachedClassificationsAsync(
+            DocumentKey documentKey, TextSpan textSpan, ClassificationType type, Checksum checksum, StorageDatabase database, CancellationToken cancellationToken)
         {
             var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
-                documentKey, checksum, database, cancellationToken).ConfigureAwait(false);
+                documentKey, type, checksum, database, cancellationToken).ConfigureAwait(false);
             return classifiedSpans.IsDefault
                 ? null
                 : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => c.TextSpan.IntersectsWith(textSpan)));
         }
 
-        private static async ValueTask CacheSemanticClassificationsAsync(
-            ImmutableArray<(Document document, ClassificationOptions options, StorageDatabase database)> documents, CancellationToken cancellationToken)
+        private static async ValueTask CacheClassificationsAsync(
+            ImmutableArray<(Document document, ClassificationType type, ClassificationOptions options, StorageDatabase database)> documents,
+            CancellationToken cancellationToken)
         {
             // Group all the requests by document (as we may have gotten many requests for the same document). Then,
             // only process the last document from each group (we don't need to bother stale versions of a particular
@@ -90,14 +99,15 @@ namespace Microsoft.CodeAnalysis.Remote
             var groups = documents.GroupBy(d => d.document.Id);
             var tasks = groups.Select(g => Task.Run(() =>
             {
-                var (document, options, database) = g.Last();
-                return CacheSemanticClassificationsAsync(document, options, database, cancellationToken);
+                var (document, type, options, database) = g.Last();
+                return CacheClassificationsAsync(document, type, options, database, cancellationToken);
             }, cancellationToken));
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private static async Task CacheSemanticClassificationsAsync(Document document, ClassificationOptions options, StorageDatabase database, CancellationToken cancellationToken)
+        private static async Task CacheClassificationsAsync(
+            Document document, ClassificationType type, ClassificationOptions options, StorageDatabase database, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var persistenceService = solution.Workspace.Services.GetPersistentStorageService(database);
@@ -116,7 +126,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var (documentKey, checksum) = await SemanticClassificationCacheUtilities.GetDocumentKeyAndChecksumAsync(
                 document, cancellationToken).ConfigureAwait(false);
 
-            var matches = await storage.ChecksumMatchesAsync(documentKey, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
+            var persistenceName = GetPersistenceName(type);
+            var matches = await storage.ChecksumMatchesAsync(documentKey, persistenceName, checksum, cancellationToken).ConfigureAwait(false);
             if (matches)
                 return;
 
@@ -133,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             stream.Position = 0;
-            await storage.WriteStreamAsync(documentKey, PersistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
+            await storage.WriteStreamAsync(documentKey, persistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
         }
 
         private static void WriteTo(ArrayBuilder<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
@@ -182,6 +193,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<ClassifiedSpan>> TryGetOrReadCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
+            ClassificationType type,
             Checksum checksum,
             StorageDatabase database,
             CancellationToken cancellationToken)
@@ -192,11 +204,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Otherwise, attempt to read in classifications from persistence store.
             classifiedSpans = await TryReadCachedSemanticClassificationsAsync(
-                documentKey, checksum, database, cancellationToken).ConfigureAwait(false);
+                documentKey, type, checksum, database, cancellationToken).ConfigureAwait(false);
             if (classifiedSpans.IsDefault)
                 return default;
 
-            UpdateInMemoryCache(documentKey, checksum, classifiedSpans);
+            UpdateInMemoryCache(documentKey, type, checksum, classifiedSpans);
             return classifiedSpans;
         }
 
@@ -218,6 +230,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void UpdateInMemoryCache(
             DocumentKey documentKey,
+            ClassificationType type,
             Checksum checksum,
             ImmutableArray<ClassifiedSpan> classifiedSpans)
         {
@@ -234,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // Then place the cached information for this doc at the end.
-                _cachedData.AddLast((documentKey.Id, checksum, classifiedSpans));
+                _cachedData.AddLast((documentKey.Id, type, checksum, classifiedSpans));
 
                 // And ensure we don't cache too many docs.
                 if (_cachedData.Count > MaxCachedDocumentCount)
@@ -244,6 +257,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private async Task<ImmutableArray<ClassifiedSpan>> TryReadCachedSemanticClassificationsAsync(
             DocumentKey documentKey,
+            ClassificationType type,
             Checksum checksum,
             StorageDatabase database,
             CancellationToken cancellationToken)
@@ -254,7 +268,8 @@ namespace Microsoft.CodeAnalysis.Remote
             if (storage == null)
                 return default;
 
-            using var stream = await storage.ReadStreamAsync(documentKey, PersistenceName, checksum, cancellationToken).ConfigureAwait(false);
+            var persistenceName = GetPersistenceName(type);
+            using var stream = await storage.ReadStreamAsync(documentKey, persistenceName, checksum, cancellationToken).ConfigureAwait(false);
             using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
             if (reader == null)
                 return default;

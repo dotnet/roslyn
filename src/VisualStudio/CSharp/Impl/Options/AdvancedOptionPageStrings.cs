@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.ColorSchemes;
+using Microsoft.CodeAnalysis.ColorSchemes;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -11,17 +12,32 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Analysis
             => ServicesVSResources.Analysis;
 
-        public static string Option_Background_analysis_scope
-            => ServicesVSResources.Background_analysis_scope_colon;
+        public static string Option_Run_background_code_analysis_for
+            => ServicesVSResources.Run_background_code_analysis_for_colon;
+
+        public static string Option_Background_Analysis_Scope_None
+            => ServicesVSResources.None;
 
         public static string Option_Background_Analysis_Scope_Active_File
             => ServicesVSResources.Current_document;
 
-        public static string Option_Background_Analysis_Scope_Open_Files_And_Projects
+        public static string Option_Background_Analysis_Scope_Open_Files
             => ServicesVSResources.Open_documents;
 
         public static string Option_Background_Analysis_Scope_Full_Solution
             => ServicesVSResources.Entire_solution;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_None_Tag
+            => BackgroundAnalysisScope.None;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Active_File_Tag
+            => BackgroundAnalysisScope.ActiveFile;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Open_Files_Tag
+            => BackgroundAnalysisScope.OpenFiles;
+
+        public static BackgroundAnalysisScope Option_Background_Analysis_Scope_Full_Solution_Tag
+            => BackgroundAnalysisScope.FullSolution;
 
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
@@ -267,11 +283,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Color_Scheme_VisualStudio2017
             => ServicesVSResources.Visual_Studio_2017;
 
-        public static SchemeName Color_Scheme_VisualStudio2019_Tag
-            => SchemeName.VisualStudio2019;
+        public static ColorSchemeName Color_Scheme_VisualStudio2019_Tag
+            => ColorSchemeName.VisualStudio2019;
 
-        public static SchemeName Color_Scheme_VisualStudio2017_Tag
-            => SchemeName.VisualStudio2017;
+        public static ColorSchemeName Color_Scheme_VisualStudio2017_Tag
+            => ColorSchemeName.VisualStudio2017;
 
         public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
             => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;
@@ -293,9 +309,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_JSON_strings =>
             ServicesVSResources.JSON_strings;
-
-        public static string Option_Detect_and_offer_editor_features_for_likely_JSON_strings =>
-            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings;
 
         public static string Option_Colorize_JSON_strings =>
             ServicesVSResources.Colorize_JSON_strings;

@@ -53,15 +53,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
-        public bool IsInitializing
-        {
-            get
-            {
-                Contract.ThrowIfNull(_interactiveWindow);
-                return InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
-            }
-        }
-
         public string GetReplText()
         {
             Contract.ThrowIfNull(_interactiveWindow);
