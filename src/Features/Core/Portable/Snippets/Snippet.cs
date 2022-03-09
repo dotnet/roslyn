@@ -28,16 +28,10 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public readonly int? CursorPosition;
 
-        /// <summary>
-        /// The TextSpans that need to be renamed if we insert a snippet with values that the user may want to change
-        /// </summary>
-        public readonly ImmutableArray<TextSpan> RenameLocations;
-
         public Snippet(
             string displayText,
             ImmutableArray<TextChange> textChanges,
-            int? cursorPosition,
-            ImmutableArray<TextSpan> renameLocations)
+            int? cursorPosition)
         {
             if (textChanges.IsEmpty)
             {
@@ -47,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             DisplayText = displayText;
             TextChanges = textChanges;
             CursorPosition = cursorPosition;
-            RenameLocations = renameLocations;
         }
     }
 }

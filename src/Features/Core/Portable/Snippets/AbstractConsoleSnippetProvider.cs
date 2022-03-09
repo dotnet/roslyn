@@ -108,7 +108,18 @@ namespace Microsoft.CodeAnalysis.Snippets
         private static SyntaxNode? GetConsoleExpressionStatement(ISyntaxFactsService syntaxFacts, SyntaxNode root, int position)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            return closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
+            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
+            if (nearestExpressionStatement is null)
+            {
+                return null;
+            }
+
+            if (nearestExpressionStatement.SpanStart != position)
+            {
+                return null;
+            }
+
+            return nearestExpressionStatement;
         }
 
         private static async Task<INamedTypeSymbol?> GetSymbolFromMetaDataNameAsync(Document document, CancellationToken cancellationToken)

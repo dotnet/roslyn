@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
-            if (await IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false))
+            if (!await IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false))
             {
-                return new SnippetData(SnippetDisplayName, SnippetIdentifier);
+                return null;
             }
 
-            return null;
+            return new SnippetData(SnippetDisplayName, SnippetIdentifier);
         }
 
         /// <summary>
@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             return new Snippet(
                 displayText: SnippetDisplayName,
                 textChanges: changes.ToImmutableArray(),
-                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
-                renameLocations: await GetRenameLocationsAsync(reformattedDocument, position, cancellationToken).ConfigureAwait(false));
+                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget));
         }
 
         private async Task<Document> CleanupDocumentAsync(
@@ -124,11 +123,6 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
-        }
-
-        protected virtual Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            return Task.FromResult(ImmutableArray<TextSpan>.Empty);
         }
     }
 }

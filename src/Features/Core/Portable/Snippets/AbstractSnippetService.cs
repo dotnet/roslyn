@@ -18,17 +18,21 @@ namespace Microsoft.CodeAnalysis.Snippets
     internal abstract class AbstractSnippetService : ISnippetService
     {
         private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders;
-        private readonly Dictionary<string, ISnippetProvider> _snippetProviderDictionary = new();
-        private ImmutableArray<ISnippetProvider> _snippetProviders = new();
+        private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
+        private ImmutableArray<ISnippetProvider> _snippetProviders;
 
         public AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
         {
             _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
         }
 
+        /// <summary>
+        /// This should never be called prior to GetSnippetsAsync because it gets populated
+        /// at that point in time.
+        /// </summary>
         public ISnippetProvider GetSnippetProvider(string snippetIdentifier)
         {
-            return _snippetProviderDictionary[snippetIdentifier];
+            return _identifierToProviderMap[snippetIdentifier];
         }
 
         /// <summary>
@@ -49,15 +53,14 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)
         {
-            using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
-
             if (_snippetProviders.IsDefault)
             {
+                using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
                 foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
                 {
                     var providerData = provider.Value;
                     arrayBuilder.Add(providerData);
-                    _snippetProviderDictionary.Add(providerData.SnippetIdentifier, providerData);
+                    _identifierToProviderMap.Add(providerData.SnippetIdentifier, providerData);
                 }
 
                 _snippetProviders = arrayBuilder.ToImmutable();
