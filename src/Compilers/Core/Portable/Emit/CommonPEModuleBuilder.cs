@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal abstract string ModuleName { get; }
 
-        internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbolInternal symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(IMethodSymbolInternal symbol, DiagnosticBag diagnostics, bool needDeclaration);
@@ -596,6 +595,8 @@ namespace Microsoft.CodeAnalysis.Emit
         internal override IAssemblySymbolInternal CommonCorLibrary => CorLibrary;
         internal abstract TAssemblySymbol CorLibrary { get; }
 
+        internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+
         internal sealed override Cci.ITypeReference EncTranslateType(ITypeSymbolInternal type, DiagnosticBag diagnostics)
         {
             return EncTranslateLocalVariableType((TTypeSymbol)type, diagnostics);
@@ -1026,8 +1027,12 @@ namespace Microsoft.CodeAnalysis.Emit
                         this,
                         this.SourceModule.Name,
                         Compilation.GetSubmissionSlotIndex(),
-                        syntaxNodeOpt,
-                        diagnostics,
+                        this.GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_ValueType, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Byte, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int16, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int32, syntaxNodeOpt, diagnostics),
+                        this.GetSpecialType(SpecialType.System_Int64, syntaxNodeOpt, diagnostics),
                         SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
                 if (Interlocked.CompareExchange(ref _privateImplementationDetails, result, null) != null)

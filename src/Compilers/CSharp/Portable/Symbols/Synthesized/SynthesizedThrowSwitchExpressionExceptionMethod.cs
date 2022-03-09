@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -27,8 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ParameterSymbol unmatchedValue = this.Parameters[0];
 
-                //throw new SwitchExpressionException((object)unmatchedValue);
+                //throw new SwitchExpressionException(unmatchedValue);
 
+                Debug.Assert(unmatchedValue.Type.SpecialType == SpecialType.System_Object);
                 var body = F.Block(
                         ImmutableArray<LocalSymbol>.Empty,
                         F.Throw(F.New(F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject), ImmutableArray.Create<BoundExpression>(F.Parameter(unmatchedValue)))));

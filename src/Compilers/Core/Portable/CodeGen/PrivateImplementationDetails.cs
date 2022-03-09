@@ -36,32 +36,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal const string SynthesizedThrowInvalidOperationExceptionFunctionName = "ThrowInvalidOperationException";
 
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
-        private readonly SyntaxNode _syntaxNodeOpt;
-        private readonly DiagnosticBag _diagnostics;
-        private Cci.ITypeReference SystemObject //base type
-        {
-            get
-            {
-                var systemObject = GetSpecialType(SpecialType.System_Object);
-                RoslynDebug.Assert(systemObject is not null);
-                return systemObject;
-            }
-        }
+        private readonly Cci.ITypeReference _systemObject;           //base type
+        private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
 
-        private Cci.ITypeReference SystemValueType //base for nested structs
-        {
-            get
-            {
-                var systemValueType = GetSpecialType(SpecialType.System_ValueType);
-                RoslynDebug.Assert(systemValueType is not null);
-                return systemValueType;
-            }
-        }
-
-        private Cci.ITypeReference SystemInt8Type => GetSpecialType(SpecialType.System_Byte);       //for metadata init of byte arrays
-        private Cci.ITypeReference SystemInt16Type => GetSpecialType(SpecialType.System_Int16);     //for metadata init of short arrays
-        private Cci.ITypeReference SystemInt32Type => GetSpecialType(SpecialType.System_Int32);     //for metadata init of int arrays
-        private Cci.ITypeReference SystemInt64Type => GetSpecialType(SpecialType.System_Int64);     //for metadata init of long arrays
+        private readonly Cci.ITypeReference _systemInt8Type;         //for metadata init of byte arrays
+        private readonly Cci.ITypeReference _systemInt16Type;        //for metadata init of short arrays
+        private readonly Cci.ITypeReference _systemInt32Type;        //for metadata init of int arrays
+        private readonly Cci.ITypeReference _systemInt64Type;        //for metadata init of long arrays
 
         private readonly Cci.ICustomAttribute _compilerGeneratedAttribute;
 
@@ -92,22 +73,31 @@ namespace Microsoft.CodeAnalysis.CodeGen
             CommonPEModuleBuilder moduleBuilder,
             string moduleName,
             int submissionSlotIndex,
-            SyntaxNode syntaxNodeOpt,
-            DiagnosticBag diagnostics,
+            Cci.ITypeReference systemObject,
+            Cci.ITypeReference systemValueType,
+            Cci.ITypeReference systemInt8Type,
+            Cci.ITypeReference systemInt16Type,
+            Cci.ITypeReference systemInt32Type,
+            Cci.ITypeReference systemInt64Type,
             Cci.ICustomAttribute compilerGeneratedAttribute)
         {
+            RoslynDebug.Assert(systemObject != null);
+            RoslynDebug.Assert(systemValueType != null);
+
             _moduleBuilder = moduleBuilder;
-            _syntaxNodeOpt = syntaxNodeOpt;
-            _diagnostics = diagnostics;
+            _systemObject = systemObject;
+            _systemValueType = systemValueType;
+
+            _systemInt8Type = systemInt8Type;
+            _systemInt16Type = systemInt16Type;
+            _systemInt32Type = systemInt32Type;
+            _systemInt64Type = systemInt64Type;
 
             _compilerGeneratedAttribute = compilerGeneratedAttribute;
 
             var isNetModule = moduleBuilder.OutputKind == OutputKind.NetModule;
             _name = GetClassName(moduleName, submissionSlotIndex, isNetModule);
         }
-
-        private Cci.ITypeReference GetSpecialType(SpecialType specialType)
-            => _moduleBuilder.GetSpecialType(specialType, _syntaxNodeOpt, _diagnostics);
 
         private static string GetClassName(string moduleName, int submissionSlotIndex, bool isNetModule)
         {
@@ -170,16 +160,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
             switch (size)
             {
                 case 1:
-                    return SystemInt8Type ?? new ExplicitSizeStruct(1, this, SystemValueType);
+                    return _systemInt8Type ?? new ExplicitSizeStruct(1, this, _systemValueType);
                 case 2:
-                    return SystemInt16Type ?? new ExplicitSizeStruct(2, this, SystemValueType);
+                    return _systemInt16Type ?? new ExplicitSizeStruct(2, this, _systemValueType);
                 case 4:
-                    return SystemInt32Type ?? new ExplicitSizeStruct(4, this, SystemValueType);
+                    return _systemInt32Type ?? new ExplicitSizeStruct(4, this, _systemValueType);
                 case 8:
-                    return SystemInt64Type ?? new ExplicitSizeStruct(8, this, SystemValueType);
+                    return _systemInt64Type ?? new ExplicitSizeStruct(8, this, _systemValueType);
             }
 
-            return new ExplicitSizeStruct(size, this, SystemValueType);
+            return new ExplicitSizeStruct(size, this, _systemValueType);
         }
 
         internal Cci.IFieldReference GetModuleVersionId(Cci.ITypeReference mvidType)
@@ -251,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public override string ToString() => this.Name;
 
-        public override Cci.ITypeReference GetBaseClass(EmitContext context) => SystemObject;
+        public override Cci.ITypeReference GetBaseClass(EmitContext context) => _systemObject;
 
         public override IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context)
         {
