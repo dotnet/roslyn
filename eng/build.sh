@@ -295,12 +295,11 @@ fi
 InitializeDotNetCli $install
 if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
-fi
 
-if [[ "$restore" == true ]]; then
   # Install any dotnet workloads specified in global.json
-  # bash "$scriptroot/Install-DotNetWorkloads.sh"
-  true
+  pwsh "$scriptroot/Install-DotNetWorkloads.ps1" \
+    -globalJsonPath "$repo_root/global.json" \
+    -nugetConfigPath "$repo_root/NuGet.config"
 fi
 
 bootstrap_dir=""
