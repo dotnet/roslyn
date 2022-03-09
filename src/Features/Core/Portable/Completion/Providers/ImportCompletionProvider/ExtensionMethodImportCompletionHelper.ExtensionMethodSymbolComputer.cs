@@ -35,10 +35,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
             private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes;
 
-            private static readonly AsyncBatchingWorkQueue<(Workspace, ProjectId)> _workQueue = new(
+            private static readonly AsyncBatchingWorkQueue<Project> _workQueue = new(
                    TimeSpan.FromSeconds(1),
                    BatchUpdateCacheAsync,
-                   EqualityComparer<(Workspace, ProjectId)>.Default,
                    AsynchronousOperationListenerProvider.NullListener,
                    CancellationToken.None);
 
@@ -83,33 +82,26 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 if (project is not null)
                 {
-                    _workQueue.AddWork((project.Solution.Workspace, project.Id));
+                    _workQueue.AddWork(project);
                     return _workQueue.WaitUntilCurrentBatchCompletesAsync();
                 }
 
                 return Task.CompletedTask;
             }
 
-            private static async ValueTask BatchUpdateCacheAsync(ImmutableArray<(Workspace, ProjectId)> items, CancellationToken cancellationToken)
+            private static async ValueTask BatchUpdateCacheAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
             {
-                Solution? solution = null;
-                foreach (var (workspace, projectId) in items)
+                var latestProjects = CompletionUtilities.GetDistinctProjectsFromLatestSolutionSnapshot(projects);
+                foreach (var project in latestProjects)
                 {
-                    // always use the same solution snapshot during a batch.
-                    solution ??= workspace.CurrentSolution;
                     cancellationToken.ThrowIfCancellationRequested();
+                    var cacheService = GetCacheService(project.Solution.Workspace);
 
-                    var project = solution.GetProject(projectId);
-                    if (project is not null)
-                    {
-                        var cacheService = GetCacheService(project.Solution.Workspace);
+                    foreach (var relevantProject in GetAllRelevantProjects(project))
+                        await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
 
-                        foreach (var relevantProject in GetAllRelevantProjects(project))
-                            await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
-
-                        foreach (var peReference in GetAllRelevantPeReferences(project))
-                            await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
-                    }
+                    foreach (var peReference in GetAllRelevantPeReferences(project))
+                        await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -163,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // If we are not force creating/updating the cache, an update task needs to be queued in background.
                     if (!forceCacheCreation)
-                        _workQueue.AddWork((_originatingDocument.Project.Solution.Workspace, _originatingDocument.Project.Id));
+                        _workQueue.AddWork(_originatingDocument.Project);
                 }
             }
 

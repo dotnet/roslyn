@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
         private readonly Workspace _workspace;
-        private readonly AsyncBatchingWorkQueue<ProjectId> _workQueue;
+        private readonly AsyncBatchingWorkQueue<Project> _workQueue;
 
         private IImportCompletionCacheService<CacheEntry, CacheEntry> CacheService { get; }
 
@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             _workQueue = new(
                    TimeSpan.FromSeconds(1),
                    BatchUpdateCacheAsync,
-                   EqualityComparer<ProjectId>.Default,
                    AsynchronousOperationListenerProvider.NullListener,
                    CancellationToken.None);
 
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             if (project is null)
                 return Task.CompletedTask;
 
-            _workQueue.AddWork(project.Id);
+            _workQueue.AddWork(project);
             return _workQueue.WaitUntilCurrentBatchCompletesAsync();
         }
 
@@ -148,20 +147,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             finally
             {
                 if (!forceCacheCreation)
-                    _workQueue.AddWork(currentProject.Id);
+                    _workQueue.AddWork(currentProject);
             }
         }
 
-        private async ValueTask BatchUpdateCacheAsync(ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken)
+        private async ValueTask BatchUpdateCacheAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
         {
-            var solution = _workspace.CurrentSolution;
-            foreach (var projectId in projectIds)
+            var latestProjects = CompletionUtilities.GetDistinctProjectsFromLatestSolutionSnapshot(projects);
+            foreach (var project in latestProjects)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var project = solution.GetProject(projectId);
-                if (project != null)
-                    _ = await GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+                _ = await GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
             }
         }
 
