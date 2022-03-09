@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders;
         private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
+        private readonly object _snippetProviderLock = new();
         private ImmutableArray<ISnippetProvider> _snippetProviders;
 
         public AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
@@ -53,17 +54,20 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)
         {
-            if (_snippetProviders.IsDefault)
+            lock (_snippetProviderLock)
             {
-                using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
-                foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
+                if (_snippetProviders.IsDefault)
                 {
-                    var providerData = provider.Value;
-                    arrayBuilder.Add(providerData);
-                    _identifierToProviderMap.Add(providerData.SnippetIdentifier, providerData);
-                }
+                    using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
+                    foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
+                    {
+                        var providerData = provider.Value;
+                        arrayBuilder.Add(providerData);
+                        _identifierToProviderMap.Add(providerData.SnippetIdentifier, providerData);
+                    }
 
-                _snippetProviders = arrayBuilder.ToImmutable();
+                    _snippetProviders = arrayBuilder.ToImmutable();
+                }
             }
 
             return _snippetProviders;

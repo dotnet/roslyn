@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Snippets
                     generator.MemberAccessExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.Out))), generator.IdentifierName(nameof(Console.Out.WriteLineAsync)))))
                 : generator.InvocationExpression(generator.MemberAccessExpression(typeExpression, generator.IdentifierName(nameof(Console.WriteLine))));
             var expressionStatement = generator.ExpressionStatement(invocation);
+
+            // Need to normalize the whitespace for the asynchronous case because it doesn't insert a space following the await
             return new TextChange(TextSpan.FromBounds(position, position), expressionStatement.NormalizeWhitespace().ToFullString());
         }
 
@@ -114,6 +116,9 @@ namespace Microsoft.CodeAnalysis.Snippets
                 return null;
             }
 
+            // Checking to see if that expression statement that we found is
+            // starting at the same position as the position we inserted
+            // the Console WriteLine expression statement.
             if (nearestExpressionStatement.SpanStart != position)
             {
                 return null;
