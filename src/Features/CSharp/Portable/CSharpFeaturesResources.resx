@@ -519,8 +519,8 @@
   <data name="Convert_to_method" xml:space="preserve">
     <value>Convert to method</value>
   </data>
-  <data name="Add_remove_braces_for_single_line_control_statements" xml:space="preserve">
-    <value>Add/remove braces for single-line control statements</value>
+  <data name="Add_required_braces_for_single_line_control_statements" xml:space="preserve">
+    <value>Add required braces for single-line control statements</value>
   </data>
   <data name="Apply_this_qualification_preferences" xml:space="preserve">
     <value>Apply 'this.' qualification preferences</value>
@@ -645,7 +645,7 @@
   <data name="Apply_embedded_statements_on_same_line_preferences_experimental" xml:space="preserve">
     <value>Apply embedded statements on same line preferences (experimental)</value>
   </data>
-   <data name="Apply_local_over_anonymous_function_preferences" xml:space="preserve">
+  <data name="Apply_local_over_anonymous_function_preferences" xml:space="preserve">
     <value>Apply local over anonymous function preferences</value>
   </data>
   <data name="Apply_method_group_conversion_preferences" xml:space="preserve">

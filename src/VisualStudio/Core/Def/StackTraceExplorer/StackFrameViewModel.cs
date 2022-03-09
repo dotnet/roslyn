@@ -143,7 +143,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     }
 
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    navigationService.TryNavigateToLineAndOffset(_workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken);
+                    await navigationService.TryNavigateToLineAndOffsetAsync(
+                        _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))

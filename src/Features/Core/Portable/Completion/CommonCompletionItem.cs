@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Completion
     internal static class CommonCompletionItem
     {
         public const string DescriptionProperty = nameof(DescriptionProperty);
-        public const string InsertionTextProperty = nameof(InsertionTextProperty);
 
         public static CompletionItem Create(
             string displayText,

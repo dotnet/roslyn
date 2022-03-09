@@ -76,11 +76,11 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetRequestedDocument(context));
     }
 
-    protected override ImmutableArray<PreviousResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
+    protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
     {
         if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
         {
-            return ImmutableArray.Create(new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
+            return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
         }
 
         return null;

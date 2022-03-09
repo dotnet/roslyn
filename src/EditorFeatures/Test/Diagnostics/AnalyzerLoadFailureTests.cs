@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             // Ensure CreateAnalyzerLoadFailureDiagnostic doesn't fail when called. We don't assert much about the resulting
             // diagnostic -- this is primarly to ensure we don't forget to update it if a new error code is added.
-            var diagnostic = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(eventArgs, "Analyzer.dll", null, languageName);
+            var diagnostic = DocumentAnalysisExecutor.CreateAnalyzerLoadFailureDiagnostic(eventArgs, "Analyzer.dll", null, languageName);
             Assert.Equal(languageName, diagnostic.Language);
 
             if (expectsTypeName)

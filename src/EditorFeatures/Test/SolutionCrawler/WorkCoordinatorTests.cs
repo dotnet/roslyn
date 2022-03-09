@@ -1196,35 +1196,11 @@ class C
         }
 
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
-        public async Task SemanticChange_Propagation_Transitive()
-        {
-            var solution = GetInitialSolutionInfoWithP2P();
-
-            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false)));
-
-            workspace.OnSolutionAdded(solution);
-            await WaitWaiterAsync(workspace.ExportProvider);
-
-            var id = solution.Projects[0].Id;
-            var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
-
-            var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
-
-            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
-            Assert.Equal(4, worker.DocumentIds.Count);
-        }
-
-        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
         public async Task SemanticChange_Propagation_Direct()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true)));
-
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -1652,7 +1628,7 @@ class C
             public static readonly IncrementalAnalyzerProviderMetadata Crawler = new IncrementalAnalyzerProviderMetadata(new Dictionary<string, object> { { "WorkspaceKinds", new[] { SolutionCrawlerWorkspaceKind } }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } });
         }
 
-        private class Analyzer : IIncrementalAnalyzer2
+        private class Analyzer : IIncrementalAnalyzer
         {
             public static readonly Option2<bool> TestOption = new Option2<bool>("TestOptions", "TestOption", defaultValue: true);
 
@@ -1800,6 +1776,13 @@ class C
 
             public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
+
+            public void LogAnalyzerCountSummary()
+            {
+            }
+
+            public int Priority => 1;
+
             #endregion
         }
 
@@ -1824,6 +1807,17 @@ class C
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
+
+            public void LogAnalyzerCountSummary()
+            {
+            }
+
+            public int Priority => 1;
+
             #endregion
         }
 
