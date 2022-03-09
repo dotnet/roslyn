@@ -87,6 +87,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property AlwaysUseMicrosoftAndNugetSymbolServers As Boolean
+            Get
+                Return GetBooleanOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers, value)
+            End Set
+        End Property
+
         Public Property AddImportsOnPaste As Integer
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)
