@@ -189,9 +189,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
                 document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
             {
-                var containingNode = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
+                var documentsAndSpansToFix = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
                     document, span, scope.Value, CancellationToken.None).ConfigureAwait(false);
-                if (containingNode is null)
+                if (documentsAndSpansToFix.IsEmpty)
                 {
                     return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
                 }
