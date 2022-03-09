@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Classification
         /// lang=regex</c> or passed to a symbol annotated with <c>[StringSyntaxAttribyte("Regex")]</c>.  The identifier
         /// is case sensitive for the StringSyntaxAttribute, and case insensitive for the comment.
         /// </remarks>
-        public ImmutableArray<string> Identifiers { get; }
+        public string[] Identifiers { get; }
 
         public ExportEmbeddedLanguageClassifierAttribute(
             string name, string language, params string[] identifiers)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Language = language ?? throw new ArgumentNullException(nameof(language));
-            Identifiers = identifiers.ToImmutableArray();
+            Identifiers = identifiers ?? throw new ArgumentNullException(nameof(identifiers));
         }
     }
 
