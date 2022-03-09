@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
@@ -26,19 +24,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
     internal class IntentSourceProvider : IIntentSourceProvider
     {
         private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders;
-        private readonly JsonSerializerOptions _serializerOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IntentSourceProvider([ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
         {
             _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
-
-            _serializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-            _serializerOptions.Converters.Add(new JsonStringEnumConverter());
         }
 
         private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
@@ -78,7 +69,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 originalDocument,
                 selectionTextSpan,
                 currentDocument,
-                new IntentDataProvider(intentRequestContext.IntentData, _serializerOptions),
+                new IntentDataProvider(intentRequestContext.IntentData),
                 cancellationToken).ConfigureAwait(false);
             if (results.IsDefaultOrEmpty)
             {
