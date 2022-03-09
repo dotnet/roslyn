@@ -14,16 +14,24 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal interface ISnippetProvider
     {
+        /// <summary>
         /// What we use to identify each SnippetProvider for easier retrieval
+        /// </summary>
         string SnippetIdentifier { get; }
 
+        /// <summary>
         /// What is being displayed for the Snippet on the Completion list
+        /// </summary>
         string SnippetDisplayName { get; }
 
+        /// <summary>
         /// Determines if a snippet can exist at a particular location.
+        /// </summary>
         Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken);
 
+        /// <summary>
         /// Gets the Snippet from the corresponding snippet provider.
+        /// </summary>
         Task<Snippet> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }
