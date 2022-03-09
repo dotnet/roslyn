@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
             Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
-            Debug.Assert(!(IsSpeculativeSemanticModel && owner is { Property.IsIndexer: false } SourcePropertyAccessorSymbol) || hasFieldKeywordBinderInChain(rootBinder));
+            Debug.Assert(!(IsSpeculativeSemanticModel && owner is SourcePropertyAccessorSymbol { Property.IsIndexer: false }) || hasFieldKeywordBinderInChain(rootBinder));
 
             static bool hasFieldKeywordBinderInChain(Binder rootBinder)
             {
