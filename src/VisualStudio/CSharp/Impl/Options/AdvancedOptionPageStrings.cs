@@ -105,8 +105,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_on_the_right_edge_of_the_editor_window
             => ServicesVSResources.on_the_right_edge_of_the_editor_window;
 
-        public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
-        public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
+        public static string Option_RenameTrackingPreview
+            => CSharpVSResources.Show_preview_for_rename_tracking;
+
+        public static string Option_Split_string_literals_on_enter
+            => CSharpVSResources.Split_string_literals_on_enter;
 
         public static string Option_DisplayLineSeparators
             => CSharpVSResources.Show_procedure_line_separators;
@@ -169,14 +172,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CSharpVSResources.Show_remarks_in_Quick_Info;
 
         public static string Option_Highlighting
-        {
-            get { return CSharpVSResources.Highlighting; }
-        }
+            => CSharpVSResources.Highlighting;
 
         public static string Option_OptimizeForSolutionSize
-        {
-            get { return CSharpVSResources.Optimize_for_solution_size; }
-        }
+            => CSharpVSResources.Optimize_for_solution_size;
 
         public static string Option_OptimizeForSolutionSize_Large
             => CSharpVSResources.Large;
@@ -324,5 +323,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Automatically_open_stack_trace_explorer_on_focus
             => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
+
+        public static string Option_Go_To_Definition
+            => ServicesVSResources.Go_To_Definition;
+
+        public static string Option_Navigate_asynchronously_exerimental
+            => ServicesVSResources.Navigate_asynchronously_exerimental;
     }
 }
