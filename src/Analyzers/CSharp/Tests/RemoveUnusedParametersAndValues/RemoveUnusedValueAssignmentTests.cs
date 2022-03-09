@@ -8788,5 +8788,135 @@ namespace ConsoleApp
 }";
             await TestInRegularAndScriptAsync(source, expected, options: PreferDiscard).ConfigureAwait(false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(58564, "https://github.com/dotnet/roslyn/issues/58564")]
+        public async Task OrderOfOutArgument_01()
+        {
+            await TestDiagnosticMissingAsync(
+@"namespace ConsoleApp
+{
+    public static class Program
+    {
+		public static void Foo()
+		{
+			int i;
+			OutFoo(out [|i|], 9);
+			OutFoo(out i, i);
+		}
+
+		public static void OutFoo(out int i, int arg)
+		{
+			i = ++arg;
+		}
+	}
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(58564, "https://github.com/dotnet/roslyn/issues/58564")]
+        public async Task OrderOfOutArgument_02()
+        {
+            await TestDiagnosticMissingAsync(
+@"namespace ConsoleApp
+{
+    public static class Program
+    {
+		public static void Foo()
+		{
+			int i;
+			OutFoo(9, out [|i|]);
+			OutFoo(i, out i);
+		}
+
+		public static void OutFoo(int arg, out int i)
+		{
+			i = ++arg;
+		}
+	}
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(58564, "https://github.com/dotnet/roslyn/issues/58564")]
+        public async Task OrderOfOutArgument_03()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApp
+{
+    public static class Program
+    {
+		public static void Foo()
+		{
+			int i;
+			OutFoo(out i, 9);
+			OutFoo(out [|i|], i);
+		}
+
+		public static void OutFoo(out int i, int arg)
+		{
+			i = ++arg;
+		}
+	}
+}",
+@"namespace ConsoleApp
+{
+    public static class Program
+    {
+		public static void Foo()
+		{
+			int i;
+			OutFoo(out i, 9);
+			OutFoo(out _, i);
+		}
+
+		public static void OutFoo(out int i, int arg)
+		{
+			i = ++arg;
+		}
+	}
+}", options: PreferDiscard);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [WorkItem(58564, "https://github.com/dotnet/roslyn/issues/58564")]
+        public async Task OrderOfOutArgument_04()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace ConsoleApp
+{
+    public static class Program
+    {
+		public static void Foo()
+		{
+			int i;
+			OutFoo(9, out i);
+			OutFoo(i, out [|i|]);
+		}
+
+		public static void OutFoo(int arg, out int i)
+		{
+			i = ++arg;
+		}
+	}
+}",
+@"namespace ConsoleApp
+{
+    public static class Program
+    {
+		public static void Foo()
+		{
+			int i;
+			OutFoo(9, out i);
+			OutFoo(i, out _);
+		}
+
+		public static void OutFoo(int arg, out int i)
+		{
+			i = ++arg;
+		}
+	}
+}", options: PreferDiscard);
+        }
     }
 }

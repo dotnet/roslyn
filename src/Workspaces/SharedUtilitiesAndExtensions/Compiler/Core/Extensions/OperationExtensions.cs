@@ -277,8 +277,21 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
+        public static bool IsOutArgument(this IOperation operation, [NotNullWhen(true)] out IInvocationOperation? invocation)
+        {
+            invocation = null;
+
+            if (operation.Parent is IArgumentOperation argumentOperation &&
+                    argumentOperation.Parameter?.RefKind == RefKind.Out)
+            {
+                invocation = argumentOperation.Parent as IInvocationOperation;
+            }
+
+            return invocation is not null;
+        }
+
         /// <summary>
-        /// Retursn true if the given operation is a regular compound assignment,
+        /// Return true if the given operation is a regular compound assignment,
         /// i.e. <see cref="ICompoundAssignmentOperation"/> such as <code>a += b</code>,
         /// or a special null coalescing compoud assignment, i.e. <see cref="ICoalesceAssignmentOperation"/>
         /// such as <code>a ??= b</code>.
