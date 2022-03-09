@@ -78,10 +78,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
             {
-                // Instead of concretely defining methods for each LSP method, we instead dynamically construct
-                // the generic method info from the exported handler types.  This allows us to define multiple handlers for the same method
-                // but different type parameters.  This is a key functionality to support TS external access as we do not want to couple
-                // our LSP protocol version dll to theirs.
+                // Instead of concretely defining methods for each LSP method, we instead dynamically construct the
+                // generic method info from the exported handler types.  This allows us to define multiple handlers for
+                // the same method but different type parameters.  This is a key functionality to support TS external
+                // access as we do not want to couple our LSP protocol version dll to theirs.
                 //
                 // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
                 // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
