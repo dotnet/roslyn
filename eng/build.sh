@@ -297,7 +297,7 @@ if [[ "$restore" == true ]]; then
   dotnet tool restore
 
   # Install any dotnet workloads specified in global.json
-  pwsh "$scriptroot/Install-DotNetWorkloads.ps1" \
+  dotnet tool run pwsh "$scriptroot/Install-DotNetWorkloads.ps1" \
     -globalJsonPath "$repo_root/global.json" \
     -nugetConfigPath "$repo_root/NuGet.config"
 fi
