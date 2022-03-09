@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -202,12 +203,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (stringExpressionAfterPaste == null)
                 return false;
 
-            if (stringExpressionAfterPaste.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+            if (ContainsError(stringExpressionAfterPaste))
                 return false;
 
             var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(stringExpressionBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
             var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
             return spanAfterPaste == stringExpressionAfterPaste.Span;
+        }
+
+        private static bool ContainsError(ExpressionSyntax stringExpression)
+        {
+            if (stringExpression is LiteralExpressionSyntax)
+                return NodeOrTokenContainsError(stringExpression);
+
+            if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                using var _ = PooledHashSet<Diagnostic>.GetInstance(out var errors);
+                foreach (var diagnostic in interpolatedString.GetDiagnostics())
+                {
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
+                        errors.Add(diagnostic);
+                }
+
+                // we don't care about errors in holes.  Only errors in the content portions of the string.
+                for (int i = 0, n = interpolatedString.Contents.Count; i < n && errors.Count > 0; i++)
+                {
+                    if (interpolatedString.Contents[i] is InterpolatedStringTextSyntax text)
+                    {
+                        foreach (var diagnostic in text.GetDiagnostics())
+                            errors.Remove(diagnostic);
+                    }
+                }
+
+                return errors.Count > 0;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(stringExpression);
+        }
+
+        private static bool NodeOrTokenContainsError(SyntaxNodeOrToken nodeOrToken)
+        {
+            foreach (var diagnostic in nodeOrToken.GetDiagnostics())
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool ContainsControlCharacter(ITextSnapshot snapshotBeforePaste)
