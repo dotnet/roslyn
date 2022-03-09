@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        private static readonly string s_itemToCommit = FeaturesResources.Write_to_the_Console;
+        private static readonly string s_itemToCommit = FeaturesResources.Write_to_the_console;
 
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSnippetCompletionProvider);

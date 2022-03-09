@@ -3000,9 +3000,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Перенос по словам</target>
         <note />
       </trans-unit>
-      <trans-unit id="Write_to_the_Console">
-        <source>Write to the Console</source>
-        <target state="new">Write to the Console</target>
+      <trans-unit id="Write_to_the_console">
+        <source>Write to the console</source>
+        <target state="new">Write to the console</target>
         <note />
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">

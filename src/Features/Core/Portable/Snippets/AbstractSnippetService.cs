@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
 {
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public ISnippetProvider GetSnippetProvider(string snippetIdentifier)
         {
+            Contract.ThrowIfFalse(_identifierToProviderMap.ContainsKey(snippetIdentifier));
             return _identifierToProviderMap[snippetIdentifier];
         }
 
