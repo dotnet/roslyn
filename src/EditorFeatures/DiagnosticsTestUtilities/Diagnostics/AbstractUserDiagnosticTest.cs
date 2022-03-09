@@ -25,6 +25,7 @@ using Xunit;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -185,10 +186,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var scope = GetFixAllScope(annotation);
 
-            if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
+            if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
+                document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
             {
-                var containingNode = await FixAllContextHelper.GetContainingMemberOrTypeDeclarationAsync(
-                    document, scope.Value, span, CancellationToken.None).ConfigureAwait(false);
+                var containingNode = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
+                    document, span, scope.Value, CancellationToken.None).ConfigureAwait(false);
                 if (containingNode is null)
                 {
                     return (ImmutableArray<Diagnostic>.Empty, ImmutableArray<CodeAction>.Empty, null);
