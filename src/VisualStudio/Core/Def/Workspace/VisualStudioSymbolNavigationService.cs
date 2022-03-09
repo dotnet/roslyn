@@ -121,8 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, NavigationOptions options, CancellationToken cancellationToken)
         {
             var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
+            var alwaysUseMicrosoftAndNugetSymbolServers = _globalOptions.GetOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers);
 
-            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, alwaysUseMicrosoftAndNugetSymbolServers, cancellationToken).ConfigureAwait(false);
 
             await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
