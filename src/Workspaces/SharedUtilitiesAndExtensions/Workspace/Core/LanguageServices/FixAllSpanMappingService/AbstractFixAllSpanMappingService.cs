@@ -44,14 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             continue;
                         var root = await syntaxRef.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                         var partialDeclSpan = syntaxFacts.GetContainingTypeDeclaration(root, syntaxRef.Span.Start)!.FullSpan;
-                        if (builder.TryGetValue(documentForLocation, out var spans))
-                        {
-                            builder[documentForLocation] = spans.Add(partialDeclSpan);
-                        }
-                        else
-                        {
-                            builder[documentForLocation] = ImmutableArray.Create(partialDeclSpan);
-                        }
+                        builder.MultiAdd(documentForLocation, partialDeclSpan);
                     }
 
                     return builder.ToImmutableDictionary();
