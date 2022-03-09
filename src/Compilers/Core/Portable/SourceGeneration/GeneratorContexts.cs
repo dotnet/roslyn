@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal class CallbackHolder
+        internal sealed class CallbackHolder
         {
             internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; set; }
 
