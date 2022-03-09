@@ -103,6 +103,9 @@ class Program
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("using System;", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
+            await InProcComponent.WaitForApplicationIdleAsync(HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForEditorOperationsAsync(HangMitigatingCancellationToken);
+
             await TestServices.Editor.InvokeCodeActionListWithoutWaitingAsync(HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.CodeActionAsync("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
