@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -55,6 +56,7 @@ class C
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
+                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)

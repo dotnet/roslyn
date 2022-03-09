@@ -9,9 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal class GoToDefinitionCommandHandler :
         ICommandHandler<GoToDefinitionCommandArgs>
     {
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _executor;
         private readonly IAsynchronousOperationListener _listener;
@@ -36,10 +39,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GoToDefinitionCommandHandler(
+            IGlobalOptionService globalOptionService,
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor executor,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _globalOptionService = globalOptionService;
             _threadingContext = threadingContext;
             _executor = executor;
             _listener = listenerProvider.GetListener(FeatureAttribute.GoToDefinition);
@@ -80,22 +85,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (!caretPos.HasValue)
                 return false;
 
-            if (asyncService != null)
+            if (asyncService != null && _globalOptionService.GetOption(FeatureOnOffOptions.NavigateAsynchronously))
             {
                 // We're showing our own UI, ensure the editor doesn't show anything itself.
                 context.OperationContext.TakeOwnership();
                 var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-                ExecuteModernCommandAsync(args, document, asyncService, caretPos.Value)
+                ExecuteAsynchronouslyAsync(args, document, asyncService, caretPos.Value)
                     .ReportNonFatalErrorAsync()
                     .CompletesAsyncOperation(token);
             }
-            else if (service != null)
+            else
             {
-                bool succeeded;
-                using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
-                {
-                    succeeded = service.TryGoToDefinition(document, caretPos.Value, context.OperationContext.UserCancellationToken);
-                }
+                // The language either doesn't support async goto-def, or the option is disabled to navigate
+                // asynchronously.  So fall back to normal synchronous navigation.
+                var succeeded = ExecuteSynchronously(document, service, asyncService, caretPos.Value, context);
 
                 if (!succeeded)
                 {
@@ -104,12 +107,40 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                     ReportFailure(document);
                 }
             }
-            else
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
 
             return true;
+        }
+
+        private bool ExecuteSynchronously(
+            Document document,
+            IGoToDefinitionService? service,
+            IAsyncGoToDefinitionService? asyncService,
+            int position,
+            CommandExecutionContext context)
+        {
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
+            {
+                var cancellationToken = context.OperationContext.UserCancellationToken;
+                if (asyncService != null)
+                {
+                    return _threadingContext.JoinableTaskFactory.Run(async () =>
+                    {
+                        // determine the location first.
+                        var location = await asyncService.FindDefinitionLocationAsync(
+                            document, position, cancellationToken).ConfigureAwait(false);
+                        return await location.TryNavigateToAsync(
+                            _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                    });
+                }
+                else if (service != null)
+                {
+                    return service.TryGoToDefinition(document, position, cancellationToken);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
         }
 
         private static void ReportFailure(Document document)
@@ -119,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, EditorFeaturesResources.Go_to_Definition, NotificationSeverity.Information);
         }
 
-        private async Task ExecuteModernCommandAsync(
+        private async Task ExecuteAsynchronouslyAsync(
             GoToDefinitionCommandArgs args, Document document, IAsyncGoToDefinitionService service, SnapshotPoint position)
         {
             bool succeeded;
@@ -129,8 +160,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 args.TextView, new SnapshotSpan(args.SubjectBuffer.CurrentSnapshot, position, 1),
                 EditorFeaturesResources.Navigating_to_definition))
             {
-                await Task.Delay(5000).ConfigureAwait(false);
-
                 var cancellationToken = backgroundIndicator.UserCancellationToken;
 
                 // determine the location first.
