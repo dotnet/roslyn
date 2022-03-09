@@ -3,8 +3,8 @@
 
 1. Sequence points are emitted correctly and corresponding syntax nodes are recognized as breakpoint spans by the IDE
     - Verify manually by launching VS with the new compiler bits and step through and place breakpoints on all syntax nodes that should allow breakpoint
-    - Add IDE test via `src\EditorFeatures\CSharpTest\EditAndContinue\BreakpointSpansTests.cs` (implementation `src\Features\CSharp\Portable\EditAndContinue\BreakpointSpans.cs`)
     - Add regression compiler tests that check emitted IL with sequence points (`VerifyIL` with `sequencePoints`)
+    - Add IDE test via `src\EditorFeatures\CSharpTest\EditAndContinue\BreakpointSpansTests.cs` (implementation `src\Features\CSharp\Portable\EditAndContinue\BreakpointSpans.cs`, which deals with mapping syntax to sequence points)
 2. Sequence points in relationship with closure allocations and other hidden code (for any syntax that produces sequence points)
     - The debugger supports manually moving the current IP (instruction pointer) using “Set Next Statement Ctlr+Shift+F10” command.
     - The statement can be set to any sequence point in the current method. 
@@ -30,7 +30,7 @@
     - Synthesized symbols like closures, state machines, anonymous types, lambdas, etc. also has to be mapped.
     - Impl: `src\Compilers\CSharp\Portable\Emitter\EditAndContinue\CSharpSymbolMatcher.cs`
     - Tests: `src\Compilers\CSharp\Test\Emit\Emit\EditAndContinue\SymbolMatcherTests.cs`
-6. When a new syntax is introduced that may declare a user local variable or emits long lived synthesized variables
+6. When a new syntax is introduced that may declare a user local variable or emits long lived synthesized variables (ie. state that survives between breakpoints, not just a temp within expression)
     - Validate that the variable slots can be mapped from new to previous compilation
     - This is implemented by `EncVariableSlotAllocator` using syntax offsets stored in PDB (`encLocalSlotMap` and `encLambdaMap` custom debug info).
     - The current mechanism might not be sufficient to support the mapping, in which case raise the issue with the IDE team to design additional PDB info to support the mapping.
