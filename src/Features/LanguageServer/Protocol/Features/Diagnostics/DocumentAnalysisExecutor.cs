@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Executes analyzers on a document for computing local syntax/semantic/additional file diagnostics for a specific <see cref="DocumentAnalysisScope"/>.
     /// </summary>
-    internal sealed class DocumentAnalysisExecutor
+    internal sealed partial class DocumentAnalysisExecutor
     {
         private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
@@ -91,10 +91,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return SpecializedCollections.EmptyEnumerable<DiagnosticData>();
                 }
 
-                var documentDiagnostics = await AnalyzerHelper.ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
+                var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                     documentAnalyzer, document, kind, _compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
 
-                return documentDiagnostics.ConvertToLocalDiagnostics(document, span);
+                return ConvertToLocalDiagnostics(documentDiagnostics, document, span);
             }
 
             // quick optimization to reduce allocations.
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var wholeMethodBodyDiagnostics = model.GetMethodBodyDiagnostics(cancellationToken: cancellationToken).ToArray();
                 var wholeDiagnostics = wholeDeclarationDiagnostics.Concat(wholeMethodBodyDiagnostics).Where(shouldInclude).ToArray();
 
-                if (!AnalyzerHelper.AreEquivalent(rangeDiagnostics, wholeDiagnostics))
+                if (!AreEquivalent(rangeDiagnostics, wholeDiagnostics))
                 {
                     // otherwise, report non-fatal watson so that we can fix those cases
                     FatalError.ReportAndCatch(new Exception("Bug in GetDiagnostics"));

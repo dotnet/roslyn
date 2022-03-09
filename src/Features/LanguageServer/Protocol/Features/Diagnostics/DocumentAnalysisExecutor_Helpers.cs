@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal static partial class AnalyzerHelper
+    internal sealed partial class DocumentAnalysisExecutor
     {
         // These are the error codes of the compiler warnings. 
         // Keep the ids the same so that de-duplication against compiler errors
@@ -46,100 +46,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
 
-        public static bool IsWorkspaceDiagnosticAnalyzer(this DiagnosticAnalyzer analyzer)
-            => analyzer is DocumentDiagnosticAnalyzer || analyzer is ProjectDiagnosticAnalyzer || analyzer == FileContentLoadAnalyzer.Instance;
-
-        public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
-            => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
-
-        public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, OptionSet options)
-            => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
-
-        public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
-        {
-            return options == null
-                ? descriptor.DefaultSeverity.ToReportDiagnostic()
-                : descriptor.GetEffectiveSeverity(options);
-        }
-
-        public static (string analyzerId, VersionStamp version) GetAnalyzerIdAndVersion(this DiagnosticAnalyzer analyzer)
-        {
-            // Get the unique ID for given diagnostic analyzer.
-            // note that we also put version stamp so that we can detect changed analyzer.
-            var typeInfo = analyzer.GetType().GetTypeInfo();
-            return (analyzer.GetAnalyzerId(), GetAnalyzerVersion(typeInfo.Assembly.Location));
-        }
-
-        public static string GetAnalyzerAssemblyName(this DiagnosticAnalyzer analyzer)
-            => analyzer.GetType().Assembly.GetName().Name ?? throw ExceptionUtilities.Unreachable;
-
-        public static OptionSet GetAnalyzerOptionSet(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            var optionSetAsync = GetAnalyzerOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken);
-            if (optionSetAsync.IsCompleted)
-                return optionSetAsync.Result;
-
-            return optionSetAsync.AsTask().GetAwaiter().GetResult();
-        }
-
-        public static async ValueTask<OptionSet> GetAnalyzerOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            var configOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-#pragma warning disable CS0612 // Type or member is obsolete
-            var optionSet = await GetDocumentOptionSetAsync(analyzerOptions, syntaxTree, cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0612 // Type or member is obsolete
-
-            return new AnalyzerConfigOptionSet(configOptions, optionSet);
-        }
-
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, ILanguageSpecificOption<T> option, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language: null, syntaxTree, cancellationToken);
-            if (optionAsync.IsCompleted)
-                return optionAsync.Result;
-
-            return optionAsync.AsTask().GetAwaiter().GetResult();
-        }
-
-        public static T GetOption<T>(this AnalyzerOptions analyzerOptions, IPerLanguageOption<T> option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            var optionAsync = GetOptionAsync<T>(analyzerOptions, option, language, syntaxTree, cancellationToken);
-            if (optionAsync.IsCompleted)
-                return optionAsync.Result;
-
-            return optionAsync.AsTask().GetAwaiter().GetResult();
-        }
-
-        public static async ValueTask<T> GetOptionAsync<T>(this AnalyzerOptions analyzerOptions, IOption option, string? language, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            if (analyzerOptions.TryGetEditorConfigOption<T>(option, syntaxTree, out var value))
-            {
-                return value;
-            }
-
-#pragma warning disable CS0612 // Type or member is obsolete
-            var optionSet = await analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0612 // Type or member is obsolete
-
-            if (optionSet != null)
-            {
-                value = optionSet.GetOption<T>(new OptionKey(option, language));
-            }
-
-            return value ?? (T)option.DefaultValue!;
-        }
-
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public static ValueTask<OptionSet?> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            if (analyzerOptions is not WorkspaceAnalyzerOptions workspaceAnalyzerOptions)
-            {
-                return ValueTaskFactory.FromResult((OptionSet?)null);
-            }
-
-            return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);
-        }
-
         /// <summary>
         /// Create a diagnostic for exception thrown by the given analyzer.
         /// </summary>
@@ -163,16 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 
             return Diagnostic.Create(descriptor, Location.None, analyzerName, e.GetType(), e.Message);
-        }
-
-        private static VersionStamp GetAnalyzerVersion(string path)
-        {
-            if (path == null || !File.Exists(path))
-            {
-                return VersionStamp.Default;
-            }
-
-            return VersionStamp.Create(File.GetLastWriteTimeUtc(path));
         }
 
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(AnalyzerLoadFailureEventArgs e, string fullPath, ProjectId? projectId, string? language)
@@ -224,18 +120,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 properties: ImmutableDictionary<string, string?>.Empty,
                 language: language);
         }
-
-        public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<DiagnosticAnalyzer> analyzers)
-        {
-            foreach (var analyzer in analyzers)
-            {
-                // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
-                analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
-            }
-        }
-
-        public static IEnumerable<AnalyzerPerformanceInfo> ToAnalyzerPerformanceInfo(this IDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analysisResult, DiagnosticAnalyzerInfoCache analyzerInfo)
-            => analysisResult.Select(kv => new AnalyzerPerformanceInfo(kv.Key.GetAnalyzerId(), analyzerInfo.IsTelemetryCollectionAllowed(kv.Key), kv.Value.ExecutionTime));
 
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             Project project,
@@ -490,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 #endif
 
-        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(this IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
+        public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
         {
             foreach (var diagnostic in diagnostics)
             {

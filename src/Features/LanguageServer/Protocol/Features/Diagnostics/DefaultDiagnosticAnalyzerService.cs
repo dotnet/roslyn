@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
             => DiagnosticsUpdated?.Invoke(this, state);
 
-        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer2
+        private class DefaultDiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
         {
             private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzers.IsEmpty)
                     return ImmutableArray<DiagnosticData>.Empty;
 
-                var compilationWithAnalyzers = await AnalyzerHelper.CreateCompilationWithAnalyzersAsync(
+                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
                     project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
@@ -239,6 +239,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
                 => Task.CompletedTask;
+
+            public void LogAnalyzerCountSummary()
+            {
+            }
+
+            public int Priority => 1;
 
             private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
             {

@@ -38,8 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
             : this(projectId, errorCodePrefix, LanguageNames.FSharp, (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>())
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            _workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
         }
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, string language, VisualStudioWorkspaceImpl workspace)

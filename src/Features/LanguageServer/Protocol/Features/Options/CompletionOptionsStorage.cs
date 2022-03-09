@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    // TODO: Move to EditorFeatures https://github.com/dotnet/roslyn/issues/59184
     internal static class CompletionOptionsStorage
     {
         public static CompletionOptions GetCompletionOptions(this IGlobalOptionService options, string language)

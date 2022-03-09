@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CommandHandlers;
+namespace Microsoft.CodeAnalysis.GoToDefinition;
 
 internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
     where TLanguageService : class, ILanguageService
@@ -131,7 +131,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             Contract.ThrowIfFalse(_threadingContext.HasMainThread);
 
             // Make an tracking token so that integration tests can wait until we're complete.
-            using var token = _listener.BeginAsyncOperation($"{this.GetType().Name}.{nameof(ExecuteCommandAsync)}");
+            using var token = _listener.BeginAsyncOperation($"{GetType().Name}.{nameof(ExecuteCommandAsync)}");
 
             // Only start running once the previous command has finished.  That way we don't have results from both
             // potentially interleaving with each other.  Note: this should ideally always be fast as long as the prior
@@ -141,7 +141,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             // any failures from it.  Technically this should not be possible as it should be inside this same
             // try/catch. however this code wants to be very resilient to any prior mistakes infecting later operations.
             await _inProgressCommand.NoThrowAwaitable(captureContext: false);
-            await this.ExecuteCommandWorkerAsync(document, position, cancellationTokenSource).ConfigureAwait(false);
+            await ExecuteCommandWorkerAsync(document, position, cancellationTokenSource).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -178,11 +178,9 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
         var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
-        {
             // we bailed out because another command was issued.  Immediately stop everything we're doing and return
             // back so the next operation can run.
             return;
-        }
 
         if (firstFinishedTask == findTask)
         {
@@ -195,7 +193,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
                 await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
                     _threadingContext,
                     document.Project.Solution.Workspace,
-                    title ?? this.DisplayName,
+                    title ?? DisplayName,
                     definitions,
                     cancellationToken).ConfigureAwait(false);
                 return;
@@ -258,7 +256,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     {
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
-            await findContext.SetSearchTitleAsync(this.DisplayName, cancellationToken).ConfigureAwait(false);
+            await findContext.SetSearchTitleAsync(DisplayName, cancellationToken).ConfigureAwait(false);
 
             // Let the user know in the FAR window if results may be inaccurate because this is running prior to the 
             // solution being fully loaded.

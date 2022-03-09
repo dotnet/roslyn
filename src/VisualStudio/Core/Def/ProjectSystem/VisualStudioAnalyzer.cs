@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnAnalyzerLoadError(object sender, AnalyzerLoadFailureEventArgs e)
         {
-            var data = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, _projectId, _language);
+            var data = DocumentAnalysisExecutor.CreateAnalyzerLoadFailureDiagnostic(e, FullPath, _projectId, _language);
 
             lock (_gate)
             {
