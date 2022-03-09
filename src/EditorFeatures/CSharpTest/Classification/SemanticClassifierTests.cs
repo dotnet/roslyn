@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
             return await GetSemanticClassificationsAsync(document, span);
         }
@@ -2970,7 +2971,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
@@ -3054,7 +3054,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         // language=regex
@@ -3423,6 +3422,62 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)"""""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Text(@"
+            "),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(@"
+            "));
+        }
+
         [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
         public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
@@ -3445,6 +3500,378 @@ Class("Regex"),
 Regex.Anchor("^"),
 Regex.Text(@" """" "),
 Regex.Anchor("$"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string field;
+
+    void Goo()
+    {
+        [|this.field = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string Prop { get; set; }
+
+    void Goo()
+    {
+        [|this.Prop = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] params string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new string[] { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string[] p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new[] { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_CollectionArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] List<string> p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new List<string> { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Class("List"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitCollectionArgument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] List<string> p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(new() { @""$\a(?#comment)"" });|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument_Options(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p, RegexOptions options)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Attribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ParamsAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] params string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ArrayAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(new string[] { @""$\a(?#comment)"" })]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_ImplicitArrayAttribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string[] value) { }
+}
+
+class Program
+{
+    [|[RegexTest(new[] { @""$\a(?#comment)"" })]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
         }
 
         [Theory]
@@ -3475,6 +3902,262 @@ Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),
 Class("Regex"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[/*comment*/{ 'goo': 0, bar: -Infinity, """"baz"""": true }, new Date(), text, 'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_RawString(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = """"""[/*comment*/{ 'goo': 0 }]"""""";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMultiLineJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[
+            /*comment*/
+            {
+                'goo': 0,
+                bar: -Infinity,
+                """"baz"""": true,
+                0: null
+            },
+            new Date(),
+            text,
+            'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.PropertyName("0"),
+Json.Punctuation(":"),
+Json.Keyword("null"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_NoComment_NotLikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, 2, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_NoComment_LikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, { prop: 0 }, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Number("1"),
+Json.Punctuation(","),
+Json.Object("{"),
+Json.PropertyName("prop"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Number("3"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string field;
+    void Goo()
+    {
+        [|this.field = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string Prop { get; set; }
+    void Goo()
+    {
+        [|this.Prop = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Json)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""[{ 'goo': 0}]"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
         }
 
         [Theory]
@@ -3631,6 +4314,68 @@ class X
                 Keyword("var"),
                 Escape(@"{{"),
                 Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral1(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""goo\r\nbar"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral2(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral3(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral4(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""\"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral5(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral6(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
         }
 
         [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]

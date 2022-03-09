@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <param name="options">A set of options. If these options are not supplied the
         /// current set of options from the project's workspace will be used.</param>
         /// <param name="cancellationToken">The token to check for cancellation</param>
-        bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options = null, CancellationToken cancellationToken = default);
+        Task<bool> TryNavigateToSymbolAsync(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken);
 
         /// <returns>True if the navigation was handled, indicating that the caller should not 
         /// perform the navigation.</returns>

@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
+            ClassificationOptions options,
             bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
@@ -150,8 +151,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var semanticModel = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
             document = frozenDocument;
-
-            var options = ClassificationOptions.From(document.Project);
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
                 document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
@@ -199,6 +198,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             else
             {
                 await classificationService.AddSemanticClassificationsAsync(
+                    document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddEmbeddedLanguageClassificationsAsync(
                     document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
             }
 
@@ -271,8 +272,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
                     }
 
-                    var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
-                    updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    // Omit 0-length spans created in this fashion.
+                    if (textSpan.Value.Length > 0)
+                    {
+                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                        updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    }
 
                     // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
                     // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim

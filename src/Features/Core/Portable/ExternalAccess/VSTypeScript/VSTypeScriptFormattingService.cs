@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptFormattingService(IVSTypeScriptFormattingServiceImplementation impl)
-            => _impl = impl;
+        public VSTypeScriptFormattingService([Import(AllowDefault = true)] IVSTypeScriptFormattingServiceImplementation impl)
+            => _impl = impl ?? throw new ArgumentNullException(nameof(impl));
 
         public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken)
         {

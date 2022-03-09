@@ -1,21 +1,23 @@
-abstract Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.FixAllAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext, Microsoft.CodeAnalysis.Document document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordClassName = "record class name" -> string
-const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.RecordStructName = "record struct name" -> string
-Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider
-Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.DocumentBasedFixAllProvider() -> void
-Microsoft.CodeAnalysis.CommandLineProject
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
-Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
-Microsoft.CodeAnalysis.Project.GetSourceGeneratedDocumentsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SourceGeneratedDocument>>
-Microsoft.CodeAnalysis.Editing.DeclarationKind.RecordClass = 29 -> Microsoft.CodeAnalysis.Editing.DeclarationKind
-Microsoft.CodeAnalysis.Solution.GetSourceGeneratedDocumentAsync(Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Microsoft.CodeAnalysis.SourceGeneratedDocument>
-Microsoft.CodeAnalysis.SourceGeneratedDocument
-Microsoft.CodeAnalysis.SourceGeneratedDocument.HintName.get -> string
-override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.CodeActions.CodeAction>
-override sealed Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetSupportedFixAllScopes() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.FixAllScope>
-static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, string commandLine, string baseDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
-static Microsoft.CodeAnalysis.CommandLineProject.CreateProjectInfo(string projectName, string language, System.Collections.Generic.IEnumerable<string> commandLineArgs, string projectDirectory, Microsoft.CodeAnalysis.Workspace workspace = null) -> Microsoft.CodeAnalysis.ProjectInfo
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
-virtual Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.GetFixAllTitle(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext) -> string
-static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.Document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions(bool RenameOverloads = false, bool RenameInStrings = false, bool RenameInComments = false, bool RenameFile = false) -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameOverloads.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInStrings.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInComments.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameFile.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameOverloads.init -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInStrings.init -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInComments.init -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameFile.init -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.DocumentRenameOptions() -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.DocumentRenameOptions(bool RenameMatchingTypeInStrings = false, bool RenameMatchingTypeInComments = false) -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.get -> bool
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.get -> bool
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.init -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.init -> void
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Rename.DocumentRenameOptions options, string newDocumentName, System.Collections.Generic.IReadOnlyList<string> newDocumentFolders = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet>
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Rename.SymbolRenameOptions options, string newName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>

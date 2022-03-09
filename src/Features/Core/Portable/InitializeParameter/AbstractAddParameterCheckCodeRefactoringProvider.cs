@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,22 +38,20 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        private readonly Func<SyntaxNode, bool> _isFunctionDeclarationFunc;
-
-        protected AbstractAddParameterCheckCodeRefactoringProvider()
-        {
-            _isFunctionDeclarationFunc = IsFunctionDeclaration;
-        }
-
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
         protected abstract string EscapeResourceString(string input);
         protected abstract TStatementSyntax CreateParameterCheckIfStatement(DocumentOptionSet options, TExpressionSyntax condition, TStatementSyntax ifTrueStatement);
-        protected abstract Document? TryAddNullCheckToParameterDeclaration(Document document, TParameterSyntax parameterSyntax, CancellationToken cancellationToken);
+        protected abstract Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, TParameterSyntax parameterSyntax, CancellationToken cancellationToken);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
-            Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
-            IBlockOperation? blockStatementOpt, ImmutableArray<SyntaxNode> listOfParameterNodes, TextSpan parameterSpan, CancellationToken cancellationToken)
+            Document document,
+            SyntaxNode funcOrRecord,
+            IMethodSymbol methodSymbol,
+            IBlockOperation? blockStatementOpt,
+            ImmutableArray<SyntaxNode> listOfParameterNodes,
+            TextSpan parameterSpan,
+            CancellationToken cancellationToken)
         {
             // List to keep track of the valid parameters
             var listOfParametersOrdinals = new List<int>();
@@ -62,16 +61,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(parameterNode, cancellationToken);
                 if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
-                {
                     listOfParametersOrdinals.Add(parameter.Ordinal);
-                }
             }
 
             // Min 2 parameters to offer the refactoring
             if (listOfParametersOrdinals.Count < 2)
-            {
                 return ImmutableArray<CodeAction>.Empty;
-            }
 
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
             return ImmutableArray.Create<CodeAction>(new MyCodeAction(
@@ -84,7 +79,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             Document document,
             TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
-            SyntaxNode functionDeclaration,
+            SyntaxNode funcOrRecord,
             IMethodSymbol methodSymbol,
             IBlockOperation? blockStatementOpt,
             CancellationToken cancellationToken)
@@ -93,33 +88,32 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Only should provide null-checks for reference types and nullable types.
             if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
-            {
                 return ImmutableArray<CodeAction>.Empty;
-            }
 
             // Great.  There was no null check.  Offer to add one.
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+            using var result = TemporaryArray<CodeAction>.Empty;
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameterSyntax, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c),
+                c => AddNullCheckAsync(document, parameterSyntax, parameter, funcOrRecord, methodSymbol, blockStatementOpt, c),
                 nameof(FeaturesResources.Add_null_check)));
 
-            // Also, if this was a string, offer to add the special checks to 
-            // string.IsNullOrEmpty and string.IsNullOrWhitespace.
-            if (parameter.Type.SpecialType == SpecialType.System_String)
+            // Also, if this was a string, offer to add the special checks to string.IsNullOrEmpty and
+            // string.IsNullOrWhitespace.  We cannot do this for records though as they have no location
+            // to place the checks.
+            if (parameter.Type.SpecialType == SpecialType.System_String && !IsRecordDeclaration(funcOrRecord))
             {
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
-                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c),
+                    c => AddStringCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c),
                     nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
 
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c),
+                    c => AddStringCheckAsync(document, parameter, funcOrRecord, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c),
                     nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private async Task<Document> UpdateDocumentForRefactoringAsync(
@@ -135,12 +129,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var firstParameterNode = (TParameterSyntax)root.FindNode(parameterSpan);
-                var functionDeclaration = firstParameterNode.FirstAncestorOrSelf(_isFunctionDeclarationFunc);
-                if (functionDeclaration == null)
+                var funcOrRecord = firstParameterNode.FirstAncestorOrSelf(_isFunctionDeclarationFunc) ??
+                                   firstParameterNode.FirstAncestorOrSelf(_isRecordDeclarationFunc);
+                if (funcOrRecord == null)
                     continue;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                var parameterNodes = (IReadOnlyList<TParameterSyntax>)generator.GetParameters(functionDeclaration);
+                var parameterNodes = (IReadOnlyList<TParameterSyntax>)generator.GetParameters(funcOrRecord);
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var (parameterSyntax, parameter) = GetParameterAtOrdinal(index, parameterNodes, semanticModel, cancellationToken);
                 if (parameter == null)
@@ -149,20 +144,19 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-                if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
-                {
+                if (!CanOfferRefactoring(funcOrRecord, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
                     continue;
-                }
 
-                // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more commonly used in this regard according to telemetry and UX testing.
-                if (parameter.Type.SpecialType == SpecialType.System_String)
+                // If parameter is a string, default check would be IsNullOrEmpty. This is because IsNullOrEmpty is more
+                // commonly used in this regard according to telemetry and UX testing.
+                if (parameter.Type.SpecialType == SpecialType.System_String && !IsRecordDeclaration(funcOrRecord))
                 {
-                    document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
+                    document = await AddStringCheckAsync(document, parameter, funcOrRecord, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), cancellationToken).ConfigureAwait(false);
                     continue;
                 }
 
                 // For all other parameters, add null check - updates document
-                document = await AddNullCheckAsync(document, parameterSyntax, parameter, functionDeclaration,
+                document = await AddNullCheckAsync(document, parameterSyntax, parameter, funcOrRecord,
                     (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
             }
 
@@ -264,7 +258,12 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 return false;
             }
 
-            if (parameter.IsNullChecked)
+            if (parameter.IsDiscard)
+            {
+                return false;
+            }
+
+            if (document.GetRequiredLanguageService<ISemanticFactsService>().IsNullChecked(parameter, cancellationToken))
             {
                 return false;
             }
@@ -332,7 +331,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             // First see if we can adopt the '!!' parameter null checking syntax.
-            var modifiedDocument = TryAddNullCheckToParameterDeclaration(document, parameterSyntax, cancellationToken);
+            var modifiedDocument = await TryAddNullCheckToParameterDeclarationAsync(document, parameterSyntax, cancellationToken).ConfigureAwait(false);
             if (modifiedDocument != null)
             {
                 return modifiedDocument;

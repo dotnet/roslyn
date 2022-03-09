@@ -2330,6 +2330,23 @@ class MyClass
             End Using
         End Function
 
+        <WpfFact>
+        Public Sub ReanalysisScopeExcludesMissingDocuments()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                Dim missingDocumentId = DocumentId.CreateNewId(project.Id, "Missing ID")
+                Dim reanalysisScope = New SolutionCrawlerRegistrationService.ReanalyzeScope(documentIds:={missingDocumentId})
+                Assert.Empty(reanalysisScope.GetDocumentIds(solution))
+            End Using
+        End Sub
+
         <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
         Private NotInheritable Class AnalyzerWithCustomDiagnosticCategory
             Inherits DiagnosticAnalyzer

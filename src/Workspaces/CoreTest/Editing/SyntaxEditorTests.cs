@@ -7,6 +7,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             Assert.IsAssignableFrom<TSyntax>(node);
 
-            var options = SyntaxFormattingOptions.Default;
+            var options = CSharpSyntaxFormattingOptions.Default;
             var formatted = Formatter.Format(node, EmptyWorkspace.Services, options, CancellationToken.None);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);

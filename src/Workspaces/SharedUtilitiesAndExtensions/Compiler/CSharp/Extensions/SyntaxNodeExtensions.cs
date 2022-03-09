@@ -320,7 +320,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 SyntaxKind.ElementAccessExpression,
                 SyntaxKind.SimpleMemberAccessExpression,
                 SyntaxKind.MemberBindingExpression,
-                SyntaxKind.ElementBindingExpression) &&
+                SyntaxKind.ElementBindingExpression,
+                // Optional exclamations might follow the conditional operation. For example: a.b?.$$c!!!!()
+                SyntaxKind.SuppressNullableWarningExpression) &&
                 current.Parent is not ConditionalAccessExpressionSyntax)
             {
                 current = current.Parent;
@@ -942,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode node)
+        public static (SyntaxToken openBracket, SyntaxToken closeBracket) GetBrackets(this SyntaxNode? node)
         {
             switch (node)
             {
@@ -951,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case ImplicitArrayCreationExpressionSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case AttributeListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 case BracketedParameterListSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
+                case ListPatternSyntax n: return (n.OpenBracketToken, n.CloseBracketToken);
                 default: return default;
             }
         }

@@ -24,14 +24,12 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.VSInternalMethods.OnAutoInsertName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(OnAutoInsertHandler)), Shared]
+    [Method(LSP.VSInternalMethods.OnAutoInsertName)]
     internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
-
-        public override string Method => LSP.VSInternalMethods.OnAutoInsertName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             [ImportMany(LanguageNames.VisualBasic)] IEnumerable<IBraceCompletionService> visualBasicBraceCompletionServices)
         {
             _csharpBraceCompletionServices = csharpBraceCompletionServices.ToImmutableArray();
-            _visualBasicBraceCompletionServices = _visualBasicBraceCompletionServices.ToImmutableArray();
+            _visualBasicBraceCompletionServices = visualBasicBraceCompletionServices.ToImmutableArray();
         }
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
@@ -201,7 +199,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var amountToIndent = desiredCaretLinePosition.Character - lineToIndent.Span.Length;
 
                 // Create and apply a text change with whitespace for the indentation amount.
-                var indentText = amountToIndent.CreateIndentationString(options.FormattingOptions.GetOption(FormattingOptions2.UseTabs), options.FormattingOptions.GetOption(FormattingOptions2.TabSize));
+                var indentText = amountToIndent.CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize);
                 var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(lineToIndent.End, 0), indentText));
                 return indentedText;
             }
