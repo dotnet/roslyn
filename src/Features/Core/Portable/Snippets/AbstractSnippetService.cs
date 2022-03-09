@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Snippets
     {
         private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders;
         private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
-        private readonly object _snippetProviderLock = new();
+        private readonly object _snippetProvidersLock = new();
         private ImmutableArray<ISnippetProvider> _snippetProviders;
 
         public AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders)
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)
         {
-            lock (_snippetProviderLock)
+            lock (_snippetProvidersLock)
             {
                 if (_snippetProviders.IsDefault)
                 {
