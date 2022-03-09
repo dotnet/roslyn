@@ -4,7 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+using Microsoft;
+
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     internal struct BraceCharacterAndKind
     {

@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -131,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
             else
             {
-                return nodeOrToken.AsNode().GetLastToken().Span.End;
+                return nodeOrToken.AsNode()!.GetLastToken().Span.End;
             }
         }
 
@@ -243,6 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return property.Initializer.Value.Span;
                     }
 
+                    // properties without expression body have accessor list:
+                    Contract.ThrowIfNull(property.AccessorList);
+
                     // int P { get [|{|] ... } set { ... } }
                     // int P { [|get;|] [|set;|] }
                     return CreateSpanForAccessors(property.AccessorList.Accessors, position);
@@ -254,6 +256,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         return indexer.ExpressionBody.Expression.Span;
                     }
+
+                    // indexers without expression body have accessor list:
+                    Contract.ThrowIfNull(indexer.AccessorList);
 
                     // int this[args] { get [|{|] ... } set { ... } }
                     return CreateSpanForAccessors(indexer.AccessorList.Accessors, position);
@@ -308,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var localFunction = (LocalFunctionStatementSyntax)node;
                     return (localFunction.Body != null) ?
                         TryCreateSpanForNode(localFunction.Body, position) :
-                        TryCreateSpanForNode(localFunction.ExpressionBody.Expression, position);
+                        TryCreateSpanForNode(localFunction.ExpressionBody!.Expression, position);
 
                 default:
                     if (node is ExpressionSyntax expression)
@@ -325,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        private static TextSpan CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax, int position)
+        private static TextSpan? CreateSpanForConstructorDeclaration(ConstructorDeclarationSyntax constructorSyntax, int position)
         {
             if (constructorSyntax.ExpressionBody != null &&
                 position > constructorSyntax.ExpressionBody.ArrowToken.Span.Start)
@@ -346,7 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return constructorSyntax.ExpressionBody.Expression.Span;
                 }
 
-                return CreateSpan(constructorSyntax.Body.OpenBraceToken);
+                if (constructorSyntax.Body != null)
+                {
+                    return CreateSpan(constructorSyntax.Body.OpenBraceToken);
+                }
+
+                return null;
             }
 
             // the declaration is the span of the implicit initializer
@@ -579,18 +589,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => token2.IsMissing ? token1 : token2;
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(VariableDeclarationSyntax declaration, int position)
-        {
-            switch (declaration.Parent.Kind())
+            => declaration.Parent!.Kind() switch
             {
-                case SyntaxKind.LocalDeclarationStatement:
-                case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.FieldDeclaration:
-                    // parent node will handle:
-                    return null;
-            }
+                // parent node will handle:
+                SyntaxKind.LocalDeclarationStatement or SyntaxKind.EventFieldDeclaration or SyntaxKind.FieldDeclaration => null,
 
-            return TryCreateSpanForVariableDeclaration(declaration, default, default, position);
-        }
+                _ => TryCreateSpanForVariableDeclaration(declaration, modifiersOpt: default, semicolonOpt: default, position),
+            };
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(
             VariableDeclarationSyntax variableDeclaration,
@@ -653,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return default;
             }
 
-            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent;
+            var variableDeclaration = (VariableDeclarationSyntax)variableDeclarator.Parent!;
             if (variableDeclaration.Variables.Count == 1)
             {
                 return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
@@ -667,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return CreateSpan(variableDeclarator);
         }
 
-        private static VariableDeclaratorSyntax FindClosestDeclaratorWithInitializer(SeparatedSyntaxList<VariableDeclaratorSyntax> declarators, int position)
+        private static VariableDeclaratorSyntax? FindClosestDeclaratorWithInitializer(SeparatedSyntaxList<VariableDeclaratorSyntax> declarators, int position)
         {
             var d = GetItemIndexByPosition(declarators, position);
             var i = 0;
@@ -789,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// </summary>
         internal static TextSpan GetEnvelope(SyntaxNode declaration)
         {
-            if (declaration is VariableDeclaratorSyntax { Parent: { Parent: BaseFieldDeclarationSyntax fieldDeclaration } } variableDeclarator)
+            if (declaration is VariableDeclaratorSyntax { Parent.Parent: BaseFieldDeclarationSyntax fieldDeclaration } variableDeclarator)
             {
                 return CreateSpanForVariableDeclarator(variableDeclarator, fieldDeclaration.Modifiers, fieldDeclaration.SemicolonToken);
             }
@@ -797,8 +802,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (declaration is ConstructorDeclarationSyntax constructorDeclaration)
             {
                 var firstSpan = CreateSpanForConstructorDeclaration(constructorDeclaration, constructorDeclaration.Identifier.SpanStart);
-                var lastSpan = ((SyntaxNode)constructorDeclaration.ExpressionBody ?? constructorDeclaration.Body).Span;
-                return TextSpan.FromBounds(firstSpan.Start, lastSpan.End);
+                if (firstSpan == null)
+                {
+                    return default;
+                }
+
+                var constructorBody = (SyntaxNode?)constructorDeclaration.ExpressionBody ?? constructorDeclaration.Body;
+                if (constructorBody == null)
+                {
+                    return firstSpan.Value;
+                }
+
+                return TextSpan.FromBounds(firstSpan.Value.Start, constructorBody.Span.End);
             }
 
             if (declaration is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())

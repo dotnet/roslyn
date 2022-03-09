@@ -6,11 +6,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeDefinitionWindow
+namespace Microsoft.CodeAnalysis.CodeDefinitionWindow;
+
+internal interface ICodeDefinitionWindowService
 {
-    internal interface ICodeDefinitionWindowService
-    {
-        Task<bool> IsWindowOpenAsync(CancellationToken cancellationToken);
-        Task SetContextAsync(ImmutableArray<CodeDefinitionWindowLocation> locations, CancellationToken cancellationToken);
-    }
+    Task<bool> IsWindowOpenAsync(CancellationToken cancellationToken);
+    Task SetContextAsync(ImmutableArray<CodeDefinitionWindowLocation> locations, CancellationToken cancellationToken);
 }

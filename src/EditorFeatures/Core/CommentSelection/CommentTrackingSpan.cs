@@ -6,7 +6,7 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
+namespace Microsoft.CodeAnalysis.CommentSelection
 {
     /// <summary>
     /// Wrapper around a TextSpan that holds extra data used to create a tracking span.

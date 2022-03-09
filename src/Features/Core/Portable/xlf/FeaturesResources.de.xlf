@@ -1070,14 +1070,14 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Bedingten Operator umkehren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
-        <source>Making a method an iterator requires restarting the application.</source>
-        <target state="translated">Das Festlegen einer Methode als Iterator erfordert einen Neustart der Anwendung.</target>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method an iterator requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
-        <source>Making a method asynchronous requires restarting the application.</source>
-        <target state="translated">Das Festlegen einer Methode als asynchron erfordert einen Neustart der Anwendung.</target>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method asynchronous requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method asynchronous requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">

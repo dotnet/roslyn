@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
+namespace Microsoft.CodeAnalysis.CommentSelection
 {
     internal readonly struct CommentSelectionResult
     {

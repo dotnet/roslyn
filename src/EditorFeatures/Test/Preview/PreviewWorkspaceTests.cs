@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
@@ -161,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var document = previewWorkspace.CurrentSolution.Projects.First().Documents.Single();
 
             previewWorkspace.OpenDocument(document.Id, (await document.GetTextAsync()).Container);
-            previewWorkspace.EnableDiagnostic();
+            previewWorkspace.EnableSolutionCrawler();
 
             // wait 20 seconds
             taskSource.Task.Wait(20000);
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             previewWorkspace.TryApplyChanges(previewWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp) }));
 
             // enable preview diagnostics
-            previewWorkspace.EnableDiagnostic();
+            previewWorkspace.EnableSolutionCrawler();
 
             var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             const string AnalyzerCount = "Analyzer Count: ";
