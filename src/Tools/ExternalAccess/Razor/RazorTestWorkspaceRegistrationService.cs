@@ -24,10 +24,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         {
             return WorkspaceKind.Host;
         }
-
-        public override void Register(Workspace workspace)
-        {
-            base.Register(workspace);
-        }
     }
 }
