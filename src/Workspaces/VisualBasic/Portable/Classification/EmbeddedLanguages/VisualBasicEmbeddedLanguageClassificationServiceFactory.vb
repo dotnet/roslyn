@@ -4,7 +4,9 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
@@ -15,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-                <ImportMany> classifiers As IEnumerable(Of Lazy(Of IEmbeddedLanguageClassifier, OrderableLanguageMetadata)))
-            MyBase.New(classifiers, VisualBasicSyntaxKinds.Instance, LanguageNames.VisualBasic)
+                <ImportMany> classifiers As IEnumerable(Of Lazy(Of IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata)))
+            MyBase.New(LanguageNames.VisualBasic, VisualBasicEmbeddedLanguagesProvider.Info, VisualBasicSyntaxKinds.Instance, VisualBasicFallbackEmbeddedLanguageClassifier.Instance, classifiers)
         End Sub
     End Class
 End Namespace

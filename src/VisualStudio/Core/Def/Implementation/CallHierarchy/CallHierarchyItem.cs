@@ -9,9 +9,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.CallHierarchy;
+using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 {
@@ -29,14 +34,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         private readonly string _sortText;
 
         public CallHierarchyItem(
+            CallHierarchyProvider provider,
             ISymbol symbol,
             ProjectId projectId,
             IEnumerable<AbstractCallFinder> finders,
             Func<ImageSource> glyphCreator,
-            CallHierarchyProvider provider,
-            IEnumerable<Location> callsites,
+            ImmutableArray<Location> callsites,
             Workspace workspace)
         {
+            _provider = provider;
             _symbolId = symbol.GetSymbolKey();
             _projectId = projectId;
             _finders = finders;
@@ -44,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _containingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
             _glyphCreator = glyphCreator;
             _name = symbol.ToDisplayString(MemberNameFormat);
-            _provider = provider;
-            _callsites = callsites.Select(l => new CallHierarchyDetail(provider.ThreadingContext, l, workspace));
+            _callsites = callsites.SelectAsArray(loc => new CallHierarchyDetail(provider, loc, workspace));
             _sortText = symbol.ToDisplayString();
             _workspace = workspace;
         }
@@ -138,9 +143,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
 
         public void NavigateTo()
         {
-            // Navigating to an item is not cancellable.
-            _provider.ThreadingContext.JoinableTaskFactory.Run(() =>
-                _provider.NavigateToAsync(_symbolId, _workspace.CurrentSolution.GetProject(_projectId), CancellationToken.None));
+            var token = _provider.AsyncListener.BeginAsyncOperation(nameof(NavigateTo));
+            NavigateToAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+        }
+
+        private async Task NavigateToAsync()
+        {
+            using var context = _provider.ThreadOperationExecutor.BeginExecute(
+                ServicesVSResources.Call_Hierarchy, ServicesVSResources.Navigating, allowCancellation: true, showProgress: false);
+            await _provider.NavigateToAsync(
+                _symbolId, _workspace.CurrentSolution.GetProject(_projectId), context.UserCancellationToken).ConfigureAwait(false);
         }
 
         public void StartSearch(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback)

@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -17,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpEmbeddedLanguageClassificationService(
-            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageClassifier, OrderableLanguageMetadata>> classifiers)
-            : base(classifiers, CSharpSyntaxKinds.Instance, LanguageNames.CSharp)
+            [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageClassifier, EmbeddedLanguageMetadata>> classifiers)
+            : base(LanguageNames.CSharp, CSharpEmbeddedLanguagesProvider.Info, CSharpSyntaxKinds.Instance, CSharpFallbackEmbeddedLanguageClassifier.Instance, classifiers)
         {
         }
     }
