@@ -88,12 +88,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 var version = await testServices.Shell.GetVersionAsync(cancellationToken);
-                if (Version.Parse("17.2.32127.420") >= version)
-                {
-                    // Unexpected cancellation can occur when the editor dismisses the light bulb without request
-                    return null;
-                }
-
                 throw new OperationCanceledException($"IDE version '{version}' unexpectedly dismissed the light bulb.");
             }
         }
