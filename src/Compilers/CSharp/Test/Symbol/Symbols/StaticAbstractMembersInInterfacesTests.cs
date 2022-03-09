@@ -4724,7 +4724,7 @@ interface I1
 
             bool isChecked = op.StartsWith("checked ");
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator + (I1 x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op.Substring(isChecked ? 8 : 0)).WithLocation(4, 31 + type.Length + (isChecked ? 8 : 0))
@@ -6628,7 +6628,7 @@ class Test<T> where T : I1<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (8,13): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         _ = -x;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, prefixOp + "x" + postfixOp).WithLocation(8, 13),
@@ -7075,7 +7075,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator- (T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, prefixOp + postfixOp).WithLocation(12, 31 + checkedKeyword.Length)
@@ -7152,7 +7152,7 @@ class Test
 
             if (isChecked)
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static T operator checked - (T x);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
@@ -8154,7 +8154,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (8,9): error CS8926: A static abstract interface member can be accessed only on a type parameter.
                 //         x /= 1;
                 Diagnostic(ErrorCode.ERR_BadAbstractStaticMemberAccess, "x " + op + "= 1").WithLocation(8, 9),
@@ -10064,7 +10064,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
                 // (12,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static I1 operator - (I1 x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 33 + checkedKeyword.Length)
@@ -10204,7 +10204,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static T operator * (T x, int y);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(12, 32 + checkedKeyword.Length)
@@ -10323,7 +10323,7 @@ class Test
 
             if (isChecked)
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (12,33): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static I1 operator checked - (I1 x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 33),
@@ -10467,7 +10467,7 @@ class Test
 
             if (isChecked)
             {
-                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (6,9): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //         x -= y;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= y").WithArguments("static abstract members in interfaces").WithLocation(6, 9),
@@ -10491,7 +10491,7 @@ class Test
 
             if (isChecked)
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (12,32): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static T operator checked - (T x, int y);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 32),
@@ -14820,7 +14820,7 @@ public interface I2<T> where T : I2<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadIncDecRetType or (int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator +(C1)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + checkedKeyword + op + "(C1)").WithLocation(8, 10),
@@ -14986,7 +14986,7 @@ public interface I2<T> where T : I2<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator >>(C1, int)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + checkedKeyword + op + "(C1, int)").WithLocation(8, 10),
@@ -15128,7 +15128,7 @@ interface I14 : I1
             ErrorCode badSignatureError = op.Length != 2 ? ErrorCode.ERR_BadUnaryOperatorSignature : ErrorCode.ERR_BadIncDecSignature;
             ErrorCode badAbstractSignatureError = op.Length != 2 ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadAbstractIncDecSignature;
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
                 // (12,17): error CS0558: User-defined operator 'I3.operator +(I1)' must be declared static and public
                 //     I1 operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("I3.operator " + checkedKeyword + op + "(I1)").WithLocation(12, 17 + checkedKeyword.Length),
@@ -15378,7 +15378,7 @@ interface I14 : I1
                     ).ToArray();
             }
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation1.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(expected);
 
             var m01 = compilation1.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
 
@@ -15476,7 +15476,7 @@ typeKeyword + @"
                     };
             }
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected2);
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected2);
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular9,
@@ -15525,7 +15525,7 @@ typeKeyword + @"
                     };
             }
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected3);
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(expected3);
         }
 
         [Theory]
@@ -15582,7 +15582,7 @@ typeKeyword + @"
             }
             else
             {
-                compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                     // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static I1 I1.operator +(I1 x, int y) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
@@ -15615,7 +15615,7 @@ typeKeyword + @"
             }
             else
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+                compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                     // (4,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static I1 I1.operator +(I1 x, int y) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1.").WithArguments("static abstract members in interfaces").WithLocation(4, 15),
@@ -15675,7 +15675,7 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1)", "Test1").WithLocation(2, 12)
@@ -15685,7 +15685,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (2,12): error CS8929: 'Test1.operator +(Test1)' cannot implement interface member 'I1<Test1>.operator +(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1)", "Test1").WithLocation(2, 12),
@@ -15729,7 +15729,7 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+            compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1, int)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1, int)", "Test1").WithLocation(2, 12)
@@ -15739,7 +15739,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (2,12): error CS8929: 'Test1.operator >>(Test1, int)' cannot implement interface member 'I1<Test1>.operator >>(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1.operator " + checkedKeyword + op + "(Test1, int)", "I1<Test1>.operator " + checkedKeyword + op + "(Test1, int)", "Test1").WithLocation(2, 12),
@@ -15793,7 +15793,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27 + checkedKeyword.Length),
@@ -15847,7 +15847,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static I1 I1.operator +(I1 x, int y) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 27 + checkedKeyword.Length),
@@ -23926,7 +23926,7 @@ public interface I2<T> where T : I2<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (8,10): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
                 //     C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>." + op + " operator " + checkedKeyword + "int(C1)").WithLocation(8, 10),
@@ -24065,7 +24065,7 @@ interface I14<T> : I1<T> where T : I1<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (12,23): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     implicit operator int(T x) => default;
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(12, 23 + checkedKeyword.Length),
@@ -24193,7 +24193,7 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation2.VerifyDiagnostics(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21)
@@ -24201,7 +24201,7 @@ typeKeyword + @"
             }
             else
             {
-                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
@@ -24220,7 +24220,7 @@ typeKeyword + @"
 
             if (!isChecked)
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation3.VerifyDiagnostics(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
@@ -24231,7 +24231,7 @@ typeKeyword + @"
             }
             else
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (4,21): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static explicit I2<Test1>.operator checked int(Test1 x) => default;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<Test1>.").WithArguments("static abstract members in interfaces").WithLocation(4, 21),
@@ -24285,7 +24285,7 @@ public partial interface I1<T> where T : I1<T>
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator " + checkedKeyword + "int(Test1)", "I1<Test1>." + op + " operator " + checkedKeyword + "int(Test1)", "Test1").WithLocation(2, 12)
@@ -24295,7 +24295,7 @@ public partial interface I1<T> where T : I1<T>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (2,12): error CS8929: 'Test1.explicit operator int(Test1)' cannot implement interface member 'I1<Test1>.explicit operator int(Test1)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
                 //     Test1: I1<Test1>
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>").WithArguments("Test1." + op + " operator " + checkedKeyword + "int(Test1)", "I1<Test1>." + op + " operator " + checkedKeyword + "int(Test1)", "Test1").WithLocation(2, 12),
@@ -24339,7 +24339,7 @@ typeKeyword + @"
                                                  targetFramework: TargetFramework.DesktopLatestExtended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
-            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,40): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static explicit I1<Test1>.operator int(Test1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 40 + checkedKeyword.Length)
@@ -24349,7 +24349,7 @@ typeKeyword + @"
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,40): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static explicit I1<Test1>.operator int(Test1 x) => default;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(4, 40 + checkedKeyword.Length),
@@ -25735,7 +25735,7 @@ class Test<T> where T : I1<T>
 
             var error = (op == "explicit" ? ErrorCode.ERR_NoExplicitConv : ErrorCode.ERR_NoImplicitConv);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (8,16): error CS0030: Cannot convert type 'I1<T>' to 'int'
                 //         return (int)x;
                 Diagnostic(error, cast + "x").WithArguments("I1<T>", "int").WithLocation(8, 16),
@@ -26276,7 +26276,7 @@ class Test
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (12,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     abstract static explicit operator int(T x);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "int").WithLocation(12, 39 + checkedKeyword.Length)
@@ -26404,7 +26404,7 @@ class Test
 
             if (isChecked)
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (12,40): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     abstract static explicit operator  checked int(T x);
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "checked").WithArguments("checked user-defined operators").WithLocation(12, 40),
@@ -26415,7 +26415,7 @@ class Test
             }
             else
             {
-                compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation3.VerifyDiagnostics(
                     // (12,39): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                     //     abstract static implicit operator int(T x);
                     Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "int").WithArguments("abstract", "9.0", "preview").WithLocation(12, 39)
@@ -27839,7 +27839,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator checked --(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator checked " + op + "(C1)").WithLocation(7, 19),
@@ -27880,7 +27880,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator --(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1)").WithLocation(7, 19),
@@ -27964,7 +27964,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator checked -(C1, int)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator checked " + op + "(C1, int)").WithLocation(7, 19),
@@ -28006,7 +28006,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.operator -(C1, int)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.operator " + op + "(C1, int)").WithLocation(7, 19),
@@ -28074,7 +28074,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator checked int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator checked int(C1)").WithLocation(7, 19),
@@ -28112,7 +28112,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator int(C1)").WithLocation(7, 19),
@@ -28150,7 +28150,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator checked int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator checked int(C1)").WithLocation(7, 19),
@@ -28188,7 +28188,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.implicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.implicit operator int(C1)").WithLocation(7, 19),
@@ -28226,7 +28226,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.explicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.explicit operator int(C1)").WithLocation(7, 19),
@@ -28264,7 +28264,7 @@ public class C2 : I1<C2>
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: _supportingFramework);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (7,19): error CS0535: 'C1' does not implement interface member 'I1<C1>.implicit operator int(C1)'
                 // public class C1 : I1<C1>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C1>").WithArguments("C1", "I1<C1>.implicit operator int(C1)").WithLocation(7, 19),

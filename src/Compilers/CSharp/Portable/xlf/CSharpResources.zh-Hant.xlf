@@ -287,6 +287,11 @@
         <target state="translated">__arglist 不得包含 'in' 或 'out' 傳遞的引數</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CheckedOperatorNeedsMatch">
+        <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
+        <target state="new">The operator '{0}' requires a matching non-checked version of the operator to also be defined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
         <source>Members named 'Clone' are disallowed in records.</source>
         <target state="translated">記錄中不允許名為 'Clone' 的成員。</target>

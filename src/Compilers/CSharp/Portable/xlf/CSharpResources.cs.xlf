@@ -287,6 +287,11 @@
         <target state="translated">__arglist nemůže mít argument předávaný pomocí in nebo out</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CheckedOperatorNeedsMatch">
+        <source>The operator '{0}' requires a matching non-checked version of the operator to also be defined</source>
+        <target state="new">The operator '{0}' requires a matching non-checked version of the operator to also be defined</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
         <source>Members named 'Clone' are disallowed in records.</source>
         <target state="translated">Členy s názvem Clone se v záznamech nepovolují.</target>

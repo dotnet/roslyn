@@ -141,7 +141,7 @@ struct C
 
             if (op == "-")
             {
-                compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (5,39): error CS0111: Type 'C' already defines a member called 'op_CheckedDecrement' with the same parameter types
                     //     public static C? operator checked --(C x) => x;
                     Diagnostic(ErrorCode.ERR_MemberAlreadyExists, op).WithArguments(name, "C").WithLocation(5, 39)
@@ -149,7 +149,7 @@ struct C
             }
             else
             {
-                compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (5,39): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                     //     public static C? operator checked --(C x) => x;
                     Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(5, 39),
@@ -184,7 +184,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,39): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                 //     public static int operator checked--(C x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(4, 39)
@@ -205,7 +205,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,37): error CS0559: The parameter type for ++ or -- operator must be the containing type
                 //     public static C operator checked++(int x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(4, 37)
@@ -224,7 +224,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,38): error CS0562: The parameter of a unary operator must be the containing type
                 //     public static C operator checked -(int x) => default;
                 Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "-").WithLocation(4, 38)
@@ -246,7 +246,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,23): error CS0558: User-defined operator 'C.operator checked --(C)' must be declared static and public
                 //     C operator checked--(C x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 23)
@@ -308,7 +308,7 @@ class C5
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (8,18): error CS0571: 'C.operator checked -(C)': cannot explicitly call operator or accessor
                 //         return C.op_CheckedUnaryNegation(x);
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, name).WithArguments("C.operator checked " + op + "(C)").WithLocation(8, 18),
@@ -344,7 +344,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,38): error CS1020: Overloadable binary operator expected
                 //     public static C operator checked --(C x, C y) => x;
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, op).WithLocation(4, 38)
@@ -369,7 +369,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,38): error CS1535: Overloaded unary operator '--' takes one parameter
                 //     public static C operator checked --() => default;
                 Diagnostic(ErrorCode.ERR_BadUnOpArgs, op).WithArguments(op).WithLocation(4, 38)
@@ -394,7 +394,7 @@ static class C
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,19): error CS0722: 'C': static types cannot be used as return types
                 //     public static C operator checked ++(C x) => x;
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(4, 19),
@@ -424,9 +424,9 @@ struct C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
             compilation1.VerifyDiagnostics(
-                // (4,38): error CS0216: The operator 'C.operator checked -(C)' requires a matching operator '-' to also be defined
+                // (4,38): error CS9152: The operator 'C.operator checked -(C)' requires a matching non-checked version of the operator to also be defined
                 //     public static C operator checked -(C x) => x;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, op).WithArguments("C.operator checked " + op + "(C)", op).WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C.operator checked " + op + "(C)").WithLocation(4, 38)
                 );
         }
 
@@ -566,7 +566,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -629,14 +629,14 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked -'
                 // /// See <see cref="operator checked -"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked -").WithArguments("operator checked -").WithLocation(3, 20),
@@ -653,7 +653,7 @@ class C
             Assert.Null(actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -679,7 +679,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify();
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -687,7 +687,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked -(C)'
                 // /// See <see cref="operator checked -(C)"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + op + "(C)").WithArguments("operator checked " + op + "(C)").WithLocation(3, 20),
@@ -705,7 +705,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify();
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -738,7 +738,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -1360,7 +1360,7 @@ struct C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (5,39): error CS0111: Type 'C' already defines a member called 'op_CheckedSubtraction' with the same parameter types
                 //     public static C? operator checked -(C x, C y) => x;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, op).WithArguments(name, "C").WithLocation(5, 39)
@@ -1393,7 +1393,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,37): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     public static C operator checked/(int x, int y) => default;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(4, 37)
@@ -1416,7 +1416,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,23): error CS0558: User-defined operator 'C.operator checked -(C, C)' must be declared static and public
                 //     C operator checked-(C x, C y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, op).WithArguments("C.operator checked " + op + "(C, C)").WithLocation(4, 23)
@@ -1479,7 +1479,7 @@ class C5
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (8,18): error CS0571: 'C.operator checked -(C, C)': cannot explicitly call operator or accessor
                 //         return C.op_CheckedSubtraction(x, x);
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, name).WithArguments("C.operator checked " + op + "(C, C)").WithLocation(8, 18),
@@ -1515,7 +1515,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,38): error CS1019: Overloadable unary operator expected
                 //     public static C operator checked /(C x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, op).WithLocation(4, 38)
@@ -1542,7 +1542,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,38): error CS1534: Overloaded binary operator '*' takes two parameters
                 //     public static C operator checked *() => default;
                 Diagnostic(ErrorCode.ERR_BadBinOpArgs, op).WithArguments(op).WithLocation(4, 38)
@@ -1568,7 +1568,7 @@ static class C
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,19): error CS0722: 'C': static types cannot be used as return types
                 //     public static C operator checked -(C x, C y) => x;
                 Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "C").WithArguments("C").WithLocation(4, 19),
@@ -1603,9 +1603,9 @@ struct C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
             compilation1.VerifyDiagnostics(
-                // (4,38): error CS0216: The operator 'C.operator checked -(C, C)' requires a matching operator '-' to also be defined
+                // (4,38): error CS9152: The operator 'C.operator checked -(C, C)' requires a matching non-checked version of the operator to also be defined
                 //     public static C operator checked -(C x, C y) => x;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, op).WithArguments("C.operator checked " + op + "(C, C)", op).WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("C.operator checked " + op + "(C, C)").WithLocation(4, 38)
                 );
         }
 
@@ -1621,7 +1621,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,38): error CS1020: Overloadable binary operator expected
                 //     public static C operator checked (C x, C y) => default;
                 Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "(").WithLocation(4, 38),
@@ -1748,7 +1748,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -1780,7 +1780,7 @@ class C
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "operator checked " + op).WithArguments("operator checked " + op).WithLocation(3, 20)
                 };
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -1803,7 +1803,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked'
                 // /// See <see cref="operator checked "/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked").WithArguments("operator checked").WithLocation(3, 20),
@@ -1818,7 +1818,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked'
                 // /// See <see cref="operator checked "/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked").WithArguments("operator checked").WithLocation(3, 20),
@@ -1836,7 +1836,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked'
                 // /// See <see cref="operator checked "/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked").WithArguments("operator checked").WithLocation(3, 20),
@@ -1920,7 +1920,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify();
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -1928,7 +1928,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked -(C)'
                 // /// See <see cref="operator checked -(C, C)"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked " + op + "(C, C)").WithArguments("operator checked " + op + "(C, C)").WithLocation(3, 20),
@@ -1946,7 +1946,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify();
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -1980,7 +1980,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -2045,7 +2045,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -2053,7 +2053,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'operator checked (C, C)'
                 // /// See <see cref="operator checked (C, C)"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator checked (C, C)").WithArguments("operator checked (C, C)").WithLocation(3, 20),
@@ -2071,7 +2071,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -2366,7 +2366,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,38): error CS1037: Overloadable operator expected
                 //     public static C operator checked () => default;
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(4, 38),
@@ -2542,7 +2542,7 @@ struct C1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (5,45): error CS0557: Duplicate user-defined conversion in type 'C'
                 //     public static explicit operator checked int(C x) => 0;
                 Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("C").WithLocation(5, 45),
@@ -2574,7 +2574,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,45): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     public static explicit operator checked int(string x) => 0;
                 Diagnostic(ErrorCode.ERR_ConversionNotInvolvingContainedType, "int").WithLocation(4, 45)
@@ -2593,7 +2593,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,31): error CS0558: User-defined operator 'C.explicit operator checked int(C)' must be declared static and public
                 //     explicit operator checked int(C x) => 0;
                 Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("C.explicit operator checked int(C)").WithLocation(4, 31)
@@ -2652,7 +2652,7 @@ class C5
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (8,18): error CS0571: 'C.explicit operator checked int(C)': cannot explicitly call operator or accessor
                 //         return C.op_CheckedExplicit(x);
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_CheckedExplicit").WithArguments("C.explicit operator checked int(C)").WithLocation(8, 18),
@@ -2686,7 +2686,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,48): error CS1019: Overloadable unary operator expected
                 //     public static explicit operator checked int(C x, C y) => 0;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "(C x, C y)").WithLocation(4, 48)
@@ -2709,7 +2709,7 @@ class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,48): error CS1019: Overloadable unary operator expected
                 //     public static explicit operator checked int() => 0;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "()").WithLocation(4, 48)
@@ -2732,7 +2732,7 @@ static class C
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
-            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,45): error CS0715: 'C.explicit operator checked int(C)': static classes cannot contain user-defined operators
                 //     public static explicit operator checked int(C x) => 0;
                 Diagnostic(ErrorCode.ERR_OperatorInStaticClass, "int").WithArguments("C.explicit operator checked int(C)").WithLocation(4, 45),
@@ -2759,9 +2759,9 @@ struct C
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
 
             compilation1.VerifyDiagnostics(
-                // (4,45): error CS0216: The operator 'C.explicit operator checked int(C)' requires a matching operator 'explicit' to also be defined
+                // (4,45): error CS9152: The operator 'C.explicit operator checked int(C)' requires a matching non-checked version of the operator to also be defined
                 //     public static explicit operator checked int(C x) => 0;
-                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "int").WithArguments("C.explicit operator checked int(C)", "explicit").WithLocation(4, 45)
+                Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, "int").WithArguments("C.explicit operator checked int(C)").WithLocation(4, 45)
                 );
         }
 
@@ -2842,7 +2842,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -2900,7 +2900,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -2952,7 +2952,7 @@ class C
 }
 ";
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify();
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -2960,7 +2960,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.Regular10.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (3,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'explicit operator checked int'
                 // /// See <see cref="explicit operator checked int(C)"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "explicit operator checked int(C)").WithArguments("explicit operator checked int(C)").WithLocation(3, 20),
@@ -2978,7 +2978,7 @@ class C
             Assert.Equal(expectedSymbol, actualSymbol);
 
             compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify();
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify();
 
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             expectedSymbol = compilation.SourceModule.GlobalNamespace.GetTypeMember("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind != MethodKind.Constructor).Single();
@@ -3008,7 +3008,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
@@ -3066,7 +3066,7 @@ class C
                 };
 
             var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
-            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(expected);
+            compilation.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(expected);
 
             var crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             var actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
