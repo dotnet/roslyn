@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 subjectBuffer,
                 snapshotBeforePaste,
                 selectionsBeforePaste,
+                textView.Options.GetNewLineCharacter(),
                 executionContext);
             //}
         }
@@ -129,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ITextBuffer subjectBuffer,
             ITextSnapshot snapshotBeforePaste,
             NormalizedSnapshotSpanCollection selectionsBeforePaste,
+            string newLine,
             CommandExecutionContext executionContext)
         {
             // Have to even be in a C# doc to be able to do anything here.
@@ -158,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
-            var escapedTextChanges = GetEscapedTextChanges(stringExpression, snapshotBeforePaste.Version.Changes);
+            var escapedTextChanges = GetEscapedTextChanges(snapshotBeforePaste.AsText(), stringExpression, snapshotBeforePaste.Version.Changes, newLine);
             if (escapedTextChanges.IsDefaultOrEmpty)
                 return;
 
@@ -270,7 +273,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChanges(
-            ExpressionSyntax stringExpression, INormalizedTextChangeCollection changes)
+            SourceText text,
+            ExpressionSyntax stringExpression,
+            INormalizedTextChangeCollection changes,
+            string newLine)
         {
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to
@@ -281,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
 
                 if (literalExpression.Token.Kind() == SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetEscapedTextChangesForMultiLineRawStringLiteral(literalExpression, changes);
+                    return GetEscapedTextChangesForMultiLineRawStringLiteral(text, literalExpression, changes, newLine);
 
                 throw ExceptionUtilities.UnexpectedValue(stringExpression);
             }
@@ -295,10 +301,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 throw ExceptionUtilities.UnexpectedValue(stringExpression);
             }
+
+            throw ExceptionUtilities.Unreachable;
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChangesForMultiLineRawStringLiteral(
-            SourceText text, LiteralExpressionSyntax literalExpression, INormalizedTextChangeCollection changes)
+            SourceText text,
+            LiteralExpressionSyntax literalExpression,
+            INormalizedTextChangeCollection changes,
+            string newLine)
         {
             // Can't really figure anything out if the raw string is in error.
             if (NodeOrTokenContainsError(literalExpression))
@@ -324,17 +335,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     {
                         text.GetLineAndOffset(change.OldSpan.Start, out var line, out var offset);
 
-                        // if the first chunk was pasted into the space after the first `"""` then we need to actually
-                        // insert a newline, then the indentation whitespace, then the first line of the change.
                         if (line == text.Lines.GetLineFromPosition(literalExpression.SpanStart).LineNumber)
                         {
-
+                            // if the first chunk was pasted into the space after the first `"""` then we need to actually
+                            // insert a newline, then the indentation whitespace, then the first line of the change.
+                            buffer.Append(newLine);
+                            buffer.Append(indentationWhitespace);
                         }
-                        else if (lineOffset < indentationWhitespace.Length)
+                        else if (offset < indentationWhitespace.Length)
                         {
                             // On the first line, we were pasting into the indentation whitespace.  Ensure we add enough
                             // whitespace so that the trimmed line starts at an acceptable position.
-                            buffer.Append(indentationWhitespace[lineOffset..]);
+                            buffer.Append(indentationWhitespace[offset..]);
                         }
                     }
                     else
@@ -363,32 +375,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return textChanges.ToImmutable();
         }
 
-        private static string Escape(
-            Document document, ExpressionSyntax stringExpression, string text, CancellationToken )
-        {
-            if (stringExpression is LiteralExpressionSyntax literalExpression)
-            {
-                if (stringExpression.Kind() == SyntaxKind.StringLiteralExpression)
-                    return EscapeForStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), text);
+        //private static string Escape(
+        //    Document document, ExpressionSyntax stringExpression, string text, CancellationToken )
+        //{
+        //    if (stringExpression is LiteralExpressionSyntax literalExpression)
+        //    {
+        //        if (stringExpression.Kind() == SyntaxKind.StringLiteralExpression)
+        //            return EscapeForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), text);
 
-                if (stringExpression.Kind() == SyntaxKind.SingleLineRawStringLiteralToken)
-                    return EscapeForSingleLineRawStringLiteral(document, stringExpression, cancellationToken)
+        //        if (stringExpression.Kind() == SyntaxKind.SingleLineRawStringLiteralToken)
+        //            return EscapeForSingleLineRawStringLiteral(document, stringExpression, cancellationToken)
 
-                throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
-            }
-            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
-                    return EscapeForStringLiteral(isVerbatim: false, text);
+        //        throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
+        //    }
+        //    else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+        //    {
+        //        if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+        //            return EscapeForNonRawStringLiteral(isVerbatim: false, text);
 
-                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-                    return EscapeForStringLiteral(isVerbatim: true, text);
+        //        if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+        //            return EscapeForNonRawStringLiteral(isVerbatim: true, text);
 
-                throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
-            }
+        //        throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
+        //    }
 
-            throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
-        }
+        //    throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
+        //}
 
         private static string EscapeForNonRawStringLiteral(bool isVerbatim, string value)
         {
