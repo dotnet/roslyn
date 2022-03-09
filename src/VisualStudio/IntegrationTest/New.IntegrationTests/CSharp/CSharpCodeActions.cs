@@ -100,21 +100,11 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            // Suspend file change notification during code action application, since spurious file change notifications
-            // can cause silent failure to apply the code action if they occur within this block.
-            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
-            {
-                await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-                await TestServices.EditorVerifier.CodeActionAsync("using System;", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
-            }
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("using System;", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
-            // Suspend file change notification during code action application, since spurious file change notifications
-            // can cause silent failure to apply the code action if they occur within this block.
-            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
-            {
-                await TestServices.Editor.InvokeCodeActionListWithoutWaitingAsync(HangMitigatingCancellationToken);
-                await TestServices.EditorVerifier.CodeActionAsync("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
-            }
+            await TestServices.Editor.InvokeCodeActionListWithoutWaitingAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Simplify name 'System.ArgumentException'", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.TextContainsAsync(
                 @"
@@ -506,34 +496,29 @@ public class P2 { }", HangMitigatingCancellationToken);
                 },
                 HangMitigatingCancellationToken);
 
-            // Suspend file change notification during code action application, since spurious file change notifications
-            // can cause silent failure to apply the code action if they occur within this block.
-            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var expectedItems = new[]
             {
-                await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-                var expectedItems = new[]
-                {
-                    "using System.IO;",
-                    "Rename 'P2' to 'Stream'",
-                    "System.IO.Stream",
-                    "Generate class 'Stream' in new file",
-                    "Generate class 'Stream'",
-                    "Generate nested class 'Stream'",
-                    "Generate new type...",
-                    "Remove unused variable",
-                    "Suppress or Configure issues",
-                    "Suppress CS0168",
-                    "in Source",
-                    "Configure CS0168 severity",
-                    "None",
-                    "Silent",
-                    "Suggestion",
-                    "Warning",
-                    "Error",
-                };
+                "using System.IO;",
+                "Rename 'P2' to 'Stream'",
+                "System.IO.Stream",
+                "Generate class 'Stream' in new file",
+                "Generate class 'Stream'",
+                "Generate nested class 'Stream'",
+                "Generate new type...",
+                "Remove unused variable",
+                "Suppress or Configure issues",
+                "Suppress CS0168",
+                "in Source",
+                "Configure CS0168 severity",
+                "None",
+                "Silent",
+                "Suggestion",
+                "Warning",
+                "Error",
+            };
 
-                await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
-            }
+            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, applyFix: expectedItems[0], ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.TextContainsAsync("using System.IO;", cancellationToken: HangMitigatingCancellationToken);
         }
@@ -784,26 +769,21 @@ class C
             // Apply configuration severity fix to change CS0168 to be an error.
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
 
-            // Suspend file change notification during code action application, since spurious file change notifications
-            // can cause silent failure to apply the code action if they occur within this block.
-            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            var expectedItems = new[]
             {
-                await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-                var expectedItems = new[]
-                {
-                    "Remove unused variable",
-                    "Suppress or Configure issues",
-                        "Suppress CS0168",
-                            "in Source",
-                        "Configure CS0168 severity",
-                            "None",
-                            "Silent",
-                            "Suggestion",
-                            "Warning",
-                            "Error",
-                };
-                await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, applyFix: "Error", ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
-            }
+                "Remove unused variable",
+                "Suppress or Configure issues",
+                    "Suppress CS0168",
+                        "in Source",
+                    "Configure CS0168 severity",
+                        "None",
+                        "Silent",
+                        "Suggestion",
+                        "Warning",
+                        "Error",
+            };
+            await TestServices.EditorVerifier.CodeActionsAsync(expectedItems, applyFix: "Error", ensureExpectedItemsAreOrdered: true, cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[]

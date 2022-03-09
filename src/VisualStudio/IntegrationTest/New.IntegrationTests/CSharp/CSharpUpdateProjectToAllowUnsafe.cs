@@ -26,13 +26,8 @@ unsafe class C
 
             await TestServices.Editor.PlaceCaretAsync("C", charsOffset: 0, cancellationToken);
 
-            // Suspend file change notification during code action application, since spurious file change notifications
-            // can cause silent failure to apply the code action if they occur within this block.
-            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
-            {
-                await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
-                await TestServices.EditorVerifier.CodeActionAsync("Allow unsafe code in this project", applyFix: true, cancellationToken: cancellationToken);
-            }
+            await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Allow unsafe code in this project", applyFix: true, cancellationToken: cancellationToken);
         }
 
         [IdeFact]
