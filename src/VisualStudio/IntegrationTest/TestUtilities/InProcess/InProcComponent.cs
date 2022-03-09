@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -31,7 +32,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     {
         private static JoinableTaskFactory? _joinableTaskFactory;
 
-        protected InProcComponent() { }
+        protected InProcComponent()
+        {
+            // Make sure SVsExtensionManager loads before trying to execute any test commands
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                // Workaround for deadlock loading ExtensionManagerPackage prior to
+                // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
+                await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SVsExtensionManager));
+            });
+        }
 
         private static Dispatcher CurrentApplicationDispatcher
             => Application.Current.Dispatcher;

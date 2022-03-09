@@ -322,26 +322,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition(string? expectedNavigateWindowName)
-        {
-            _editorInProc.GoToDefinition();
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
-        }
-
-        public void GoToImplementation(string? expectedNavigateWindowName)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            _editorInProc.GoToImplementation();
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
-        }
-
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();
 

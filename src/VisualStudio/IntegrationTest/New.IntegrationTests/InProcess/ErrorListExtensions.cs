@@ -19,6 +19,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return tableEntry.GetValueOrDefault(StandardTableKeyNames.BuildTool, "<unknown>");
         }
 
+        public static ItemOrigin? GetItemOrigin(this ITableEntry tableEntry)
+        {
+            return tableEntry.GetValueOrNull<ItemOrigin>(StandardTableKeyNames.ItemOrigin);
+        }
+
         public static string? GetPath(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.Path, null);

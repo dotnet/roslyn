@@ -123,6 +123,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Debugging\SourceHashAlgorithms.cs" Link="Debugging\SourceHashAlgorithms.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CodeCleanup\readme.md" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Update="FeaturesResources.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>

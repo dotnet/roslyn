@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Naming;
@@ -188,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return (type, wasPlural);
             }
 
+            // The main purpose of this is to prevent converting "string" to "chars", but it also simplifies logic for other basic types (int, double, object etc.)
+            if (type.IsSpecialType())
+            {
+                return (type, wasPlural);
+            }
+
             seenTypes.AddRange(type.GetBaseTypesAndThis());
 
             if (type is IArrayTypeSymbol arrayType)
@@ -293,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                             // Don't add multiple items for the same name and only add valid identifiers
                             if (name.Length > 1 &&
+                                name != CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName &&
                                 CSharpSyntaxFacts.Instance.IsValidIdentifier(name) &&
                                 seenBaseNames.Add(name))
                             {

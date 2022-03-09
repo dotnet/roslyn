@@ -117,47 +117,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         }
 
         /// <summary>
-        /// Get the spans located on each line so that it can only display the first one that appears on the line
-        /// </summary>
-        private void AddSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection,
-            Dictionary<int, IMappingTagSpan<InlineDiagnosticsTag>> map)
-        {
-            var viewLines = TextView.TextViewLines;
-
-            foreach (var changedSpan in changedSpanCollection)
-            {
-                if (!viewLines.IntersectsBufferSpan(changedSpan))
-                {
-                    continue;
-                }
-
-                var tagSpans = TagAggregator.GetTags(changedSpan);
-                foreach (var tagMappingSpan in tagSpans)
-                {
-                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out var mappedPoint))
-                    {
-                        continue;
-                    }
-
-                    // mappedPoint is known to not be null here because it is checked in the ShouldDrawTag method call.
-                    var lineNum = mappedPoint.GetContainingLine().LineNumber;
-
-                    // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
-                    if (!map.TryGetValue(lineNum, out var value))
-                    {
-                        map.Add(lineNum, tagMappingSpan);
-                    }
-                    else if (value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError && tagMappingSpan.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
-                    {
-                        // Draw the first instance of an error, if what is stored in the map at a specific line is
-                        // not an error, then replace it. Otherwise, just get the first warning on the line.
-                        map[lineNum] = tagMappingSpan;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Iterates through the mapping of line number to span and draws the diagnostic in the appropriate position on the screen,
         /// as well as adding the tag to the adornment layer.
         /// </summary>
@@ -220,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 // Only place the diagnostics if the diagnostic would not intersect with the editor window
                 if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
                 {
+                    graphicsResult.Dispose();
                     continue;
                 }
 
@@ -236,6 +196,47 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     tag: tag,
                     adornment: visualElement,
                     removedCallback: delegate { graphicsResult.Dispose(); });
+            }
+        }
+
+        /// <summary>
+        /// Get the spans located on each line so that it can only display the first one that appears on the line
+        /// </summary>
+        private void AddSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection,
+            Dictionary<int, IMappingTagSpan<InlineDiagnosticsTag>> map)
+        {
+            var viewLines = TextView.TextViewLines;
+
+            foreach (var changedSpan in changedSpanCollection)
+            {
+                if (!viewLines.IntersectsBufferSpan(changedSpan))
+                {
+                    continue;
+                }
+
+                var tagSpans = TagAggregator.GetTags(changedSpan);
+                foreach (var tagMappingSpan in tagSpans)
+                {
+                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out var mappedPoint))
+                    {
+                        continue;
+                    }
+
+                    // mappedPoint is known to not be null here because it is checked in the ShouldDrawTag method call.
+                    var lineNum = mappedPoint.GetContainingLine().LineNumber;
+
+                    // If the line does not have an associated tagMappingSpan and changedSpan, then add the first one.
+                    if (!map.TryGetValue(lineNum, out var value))
+                    {
+                        map.Add(lineNum, tagMappingSpan);
+                    }
+                    else if (value.Tag.ErrorType is not PredefinedErrorTypeNames.SyntaxError && tagMappingSpan.Tag.ErrorType is PredefinedErrorTypeNames.SyntaxError)
+                    {
+                        // Draw the first instance of an error, if what is stored in the map at a specific line is
+                        // not an error, then replace it. Otherwise, just get the first warning on the line.
+                        map[lineNum] = tagMappingSpan;
+                    }
+                }
             }
         }
     }

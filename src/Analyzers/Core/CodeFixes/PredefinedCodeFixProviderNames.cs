@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
         public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
         public const string SpellCheck = nameof(SpellCheck);
+        public const string TransposeRecordKeyword = nameof(TransposeRecordKeyword);
         public const string UnsealClass = nameof(UnsealClass);
         public const string UpdateLegacySuppressions = nameof(UpdateLegacySuppressions);
         public const string UpdateProjectToAllowUnsafe = nameof(UpdateProjectToAllowUnsafe);

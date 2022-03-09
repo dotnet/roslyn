@@ -665,7 +665,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim service = Assert.IsType(Of DiagnosticService)(workspace.GetService(Of IDiagnosticService)())
                 Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
 
-                Using updateSource = New ExternalErrorDiagnosticUpdateSource(workspace, analyzerService, listener, CancellationToken.None)
+                Using updateSource = New ExternalErrorDiagnosticUpdateSource(workspace.GlobalOptions, workspace, analyzerService, listener, CancellationToken.None)
 
                     Dim tableManagerProvider = New TestTableManagerProvider()
                     Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, threadingContext, updateSource, tableManagerProvider)

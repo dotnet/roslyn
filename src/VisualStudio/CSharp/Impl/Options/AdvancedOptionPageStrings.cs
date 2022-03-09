@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.ColorSchemes;
+using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -283,11 +283,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Color_Scheme_VisualStudio2017
             => ServicesVSResources.Visual_Studio_2017;
 
-        public static SchemeName Color_Scheme_VisualStudio2019_Tag
-            => SchemeName.VisualStudio2019;
+        public static ColorSchemeName Color_Scheme_VisualStudio2019_Tag
+            => ColorSchemeName.VisualStudio2019;
 
-        public static SchemeName Color_Scheme_VisualStudio2017_Tag
-            => SchemeName.VisualStudio2017;
+        public static ColorSchemeName Color_Scheme_VisualStudio2017_Tag
+            => ColorSchemeName.VisualStudio2017;
 
         public static string Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
             => ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental;

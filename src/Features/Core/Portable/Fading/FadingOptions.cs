@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -29,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Fading
             private const string FeatureName = "FadingOptions";
 
             public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new(
-                FeatureName, "FadeOutUnusedImports", defaultValue: true,
+                FeatureName, "FadeOutUnusedImports", IdeAnalyzerOptions.Default.FadeOutUnusedImports,
                 storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports"));
 
             public static readonly PerLanguageOption2<bool> FadeOutUnreachableCode = new(
-                FeatureName, "FadeOutUnreachableCode", defaultValue: true,
+                FeatureName, "FadeOutUnreachableCode", IdeAnalyzerOptions.Default.FadeOutUnreachableCode,
                 storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode"));
         }
     }
