@@ -246,10 +246,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We don't need to loop over containing symbols chain.
             // PROTOTYPE(semi-auto-props): Add an assert that the containing symbols chain doesn't include a property accessor.
-             if (methodSymbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
-             {
-                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
-             }
+            if (methodSymbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            {
+                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+            }
 
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
