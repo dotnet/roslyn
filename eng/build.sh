@@ -293,7 +293,7 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-if [[ "$restore" == true && "$source_build" != true ]]; then
+if [[ "$restore" == true ]]; then
   dotnet tool restore
 
   # Install any dotnet workloads specified in global.json
