@@ -1603,7 +1603,7 @@ record struct S4
         [Fact]
         public void FieldInitializers_09()
         {
-            var source =@"
+            var source = @"
 using System;
 
 #pragma warning disable 649
@@ -1773,7 +1773,7 @@ class Program
 @"S1 { X = 1, Y =  }
 S2 { X = 2, Y =  }
 S3 { X = , Y = 3 }
-");
+", verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S1(object X)
@@ -1852,7 +1852,7 @@ class Program
             var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput:
 @"S1 { X = , Y = 1 }
 S2 { X = , Y = 2 }
-S3 { X = 3, Y =  }");
+S3 { X = 3, Y =  }", verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S1(object X)
