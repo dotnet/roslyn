@@ -158,8 +158,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
-            var escapedTextChanges = GetEscapedTextChanges(
-                stringExpression, snapshotBeforePaste.Version.Changes);
+            var escapedTextChanges = GetEscapedTextChanges(stringExpression, snapshotBeforePaste.Version.Changes);
+            if (escapedTextChanges.IsDefaultOrEmpty)
+                return;
 
             var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
             var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
@@ -271,20 +272,107 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private static ImmutableArray<TextChange> GetEscapedTextChanges(
             ExpressionSyntax stringExpression, INormalizedTextChangeCollection changes)
         {
+            // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
+            // same location the paste originally happened at.  For raw-strings things get more complex as we have to
+            // deal with things like indentation and potentially adding newlines to make things legal.
+            if (stringExpression is LiteralExpressionSyntax literalExpression)
+            {
+                if (literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken)
+                    return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
+
+                if (literalExpression.Token.Kind() == SyntaxKind.MultiLineRawStringLiteralToken)
+                    return GetEscapedTextChangesForMultiLineRawStringLiteral(literalExpression, changes);
+
+                throw ExceptionUtilities.UnexpectedValue(stringExpression);
+            }
+            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+                    return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: false, changes);
+
+                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+                    return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: true, changes);
+
+                throw ExceptionUtilities.UnexpectedValue(stringExpression);
+            }
+        }
+
+        private static ImmutableArray<TextChange> GetEscapedTextChangesForMultiLineRawStringLiteral(
+            SourceText text, LiteralExpressionSyntax literalExpression, INormalizedTextChangeCollection changes)
+        {
+            // Can't really figure anything out if the raw string is in error.
+            if (NodeOrTokenContainsError(literalExpression))
+                return default;
+
+            var token = literalExpression.Token;
+            var endLine = text.Lines.GetLineFromPosition(token.Span.End);
+            var indentationWhitespace = endLine.GetLeadingWhitespace();
+
+            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var finalTextChanges);
+            using var _2 = PooledStringBuilder.GetInstance(out var buffer);
+
+            foreach (var change in changes)
+            {
+                // Create a text object around the change text we're making.  This is a very simple way to get
+                // a nice view of the text lines in the change.
+                var changeText = SourceText.From(change.NewText);
+                buffer.Clear();
+
+                for (int i = 0, n = changeText.Lines.Count; i < n; i++)
+                {
+                    if (i == 0)
+                    {
+                        text.GetLineAndOffset(change.OldSpan.Start, out var line, out var offset);
+
+                        // if the first chunk was pasted into the space after the first `"""` then we need to actually
+                        // insert a newline, then the indentation whitespace, then the first line of the change.
+                        if (line == text.Lines.GetLineFromPosition(literalExpression.SpanStart).LineNumber)
+                        {
+
+                        }
+                        else if (lineOffset < indentationWhitespace.Length)
+                        {
+                            // On the first line, we were pasting into the indentation whitespace.  Ensure we add enough
+                            // whitespace so that the trimmed line starts at an acceptable position.
+                            buffer.Append(indentationWhitespace[lineOffset..]);
+                        }
+                    }
+                    else
+                    {
+                        // On any other line we're adding, ensure we have enough indentation whitespace to proceed.
+                        buffer.Append(indentationWhitespace);
+                    }
+
+                    buffer.Append(changeText.ToString(changeText.Lines[i].SpanIncludingLineBreak).TrimStart());
+                }
+
+                finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
+            }
+
+            return finalTextChanges.ToImmutable();
+        }
+
+        private static ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(
+            bool isVerbatim, INormalizedTextChangeCollection changes)
+        {
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
 
             foreach (var change in changes)
-                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), Escape(stringExpression, change.NewText)));
+                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, change.NewText)));
 
             return textChanges.ToImmutable();
         }
 
-        private static string Escape(ExpressionSyntax stringExpression, string text)
+        private static string Escape(
+            Document document, ExpressionSyntax stringExpression, string text, CancellationToken )
         {
             if (stringExpression is LiteralExpressionSyntax literalExpression)
             {
                 if (stringExpression.Kind() == SyntaxKind.StringLiteralExpression)
                     return EscapeForStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), text);
+
+                if (stringExpression.Kind() == SyntaxKind.SingleLineRawStringLiteralToken)
+                    return EscapeForSingleLineRawStringLiteral(document, stringExpression, cancellationToken)
 
                 throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
             }
@@ -295,12 +383,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
                     return EscapeForStringLiteral(isVerbatim: true, text);
+
+                throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
             }
 
             throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
         }
 
-        private static string EscapeForStringLiteral(bool isVerbatim, string value)
+        private static string EscapeForNonRawStringLiteral(bool isVerbatim, string value)
         {
             if (isVerbatim)
                 return value.Replace("\"", "\"\"");
