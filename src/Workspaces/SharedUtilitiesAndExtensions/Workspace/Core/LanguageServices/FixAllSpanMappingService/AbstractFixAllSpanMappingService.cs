@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingService
     {
-        public async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
+        public async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
            Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);

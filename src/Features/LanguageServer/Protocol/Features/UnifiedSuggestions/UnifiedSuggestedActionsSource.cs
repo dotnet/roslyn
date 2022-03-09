@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
                 if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
                     document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
                 {
-                    var documentsAndSpans = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
+                    var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(
                         document, firstDiagnostic.Location.SourceSpan, scope, cancellationToken).ConfigureAwait(false);
                     if (documentsAndSpans.IsEmpty)
                         continue;

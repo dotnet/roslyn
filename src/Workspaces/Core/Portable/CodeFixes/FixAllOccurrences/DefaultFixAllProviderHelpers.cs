@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (spanMappingService == null)
                 return null;
 
-            var documentsAndSpansToFix = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(
+            var documentsAndSpansToFix = await spanMappingService.GetFixAllSpansAsync(
                 fixAllContext.Document, fixAllContext.State.TriggerSpan.Value,
                 fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
             if (documentsAndSpansToFix.IsEmpty)

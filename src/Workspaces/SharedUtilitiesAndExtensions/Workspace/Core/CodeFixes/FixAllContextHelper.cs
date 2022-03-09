@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         {
                             // We need to compute diagnostics for each of the containing member/type and its partial declarations
                             // using the trigger span.
-                            var documentsAndSpans = await spanMappingService.GetDocumentsAndSpansForContainingSymbolDeclarationsAsync(document,
+                            var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(document,
                                 triggerSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
                             var unused = PooledDictionary<Document, ImmutableArray<Diagnostic>>.GetInstance(out var builder);
                             foreach (var (documentToFix, spans) in documentsAndSpans)
