@@ -5,7 +5,8 @@
     <!-- https://github.com/dotnet/roslyn/pull/59429#issuecomment-1043195174 -->
     <EnableDefaultmacOSItems>false</EnableDefaultmacOSItems>
 
-    <NoWarn>$(NoWarn);NU1701;CS8601;CS8618;CS8622</NoWarn>
+    <!-- CA1416 can go away when we target net6.0-macos -->
+    <NoWarn>$(NoWarn);NU1701;CA1416;CS8601;CS8618;CS8622</NoWarn>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
