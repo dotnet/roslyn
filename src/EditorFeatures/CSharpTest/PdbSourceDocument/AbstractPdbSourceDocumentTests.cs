@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             var service = workspace.GetService<IMetadataAsSourceFileService>();
             try
             {
-                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation: false, useDefaultSymbolServers: false, CancellationToken.None).ConfigureAwait(false);
+                var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, MetadataAsSourceOptions.Default, CancellationToken.None).ConfigureAwait(false);
 
                 if (expectNullResult)
                 {

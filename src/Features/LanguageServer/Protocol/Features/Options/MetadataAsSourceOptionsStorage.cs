@@ -4,15 +4,14 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.GoToDefinition
+namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
-    internal static class GoToDefinitionOptionsStorage
+    internal static class MetadataAsSourceOptionsStorage
     {
-        public static bool GetNavigateToDecompiledSources(this IGlobalOptionService globalOptions)
-            => globalOptions.GetOption(NavigateToDecompiledSources);
-
-        public static bool GetAlwaysUseDefaultSymbolServers(this IGlobalOptionService globalOptions)
-            => globalOptions.GetOption(AlwaysUseDefaultSymbolServers);
+        public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions)
+            => new(
+                NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
+                AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
 
         public static Option2<bool> NavigateToDecompiledSources =
             new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,

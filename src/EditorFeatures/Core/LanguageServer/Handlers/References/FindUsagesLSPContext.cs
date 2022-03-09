@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
 
             var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(
-                _document.Project, symbol, signaturesOnly: true, allowDecompilation: false, useDefaultSymbolServers: false, cancellationToken).ConfigureAwait(false);
+                _document.Project, symbol, signaturesOnly: true, MetadataAsSourceOptions.Default, cancellationToken).ConfigureAwait(false);
 
             var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
 
