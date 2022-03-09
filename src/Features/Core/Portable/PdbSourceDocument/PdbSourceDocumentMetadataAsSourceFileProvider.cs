@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 // if the user performs subsequent navigation
                 if (info.FromRemoteLocation)
                 {
-                    _sourceLinkEnabledProjects.Add(project.Id);
+                    _sourceLinkEnabledProjects.Add(projectId);
                 }
 
                 // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
