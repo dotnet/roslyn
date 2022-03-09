@@ -27,6 +27,7 @@ usage()
   echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
   echo "  --testMono                 Run unit tests on Mono"
   echo "  --testIOperation           Run unit tests with the IOperation test hook"
+  echo "  --testEmitDiagnostics      Run unit tests with extra validation of emit diagnostics"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"

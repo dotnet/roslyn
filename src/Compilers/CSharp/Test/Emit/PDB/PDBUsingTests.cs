@@ -602,7 +602,9 @@ namespace M
                     new CSharpCompilationReference(dummyCompilation, ImmutableArray.Create("A", "A")),
                 });
 
-            compilation.VerifyDiagnostics();
+            // We use VerifyDiagnosticsOnly until this issue is fixed:
+            // https://github.com/dotnet/roslyn/issues/60045
+            compilation.VerifyDiagnosticsOnly();
             compilation.VerifyEmitDiagnostics();
         }
 

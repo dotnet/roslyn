@@ -11195,7 +11195,7 @@ class Program
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
             comp.TestOnlyCompilationData = data;
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnosticsOnly();
             Assert.Equal(2, data.InferredDelegateCount);
         }
 
@@ -11218,7 +11218,7 @@ class Program
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
             comp.TestOnlyCompilationData = data;
-            comp.VerifyDiagnostics(
+            comp.VerifyDiagnosticsOnly(
                 // (7,11): error CS0103: The name 'x' does not exist in the current context
                 //         F(x, (int y) => { });
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 11),

@@ -600,7 +600,9 @@ class C
 }";
             var compilation = CreateCompilation(source, references: new[] { CSharpRef }, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
 
-            compilation.VerifyDiagnostics();
+            // We use VerifyDiagnosticsOnly until this issue is fixed:
+            // https://github.com/dotnet/roslyn/issues/60059
+            compilation.VerifyDiagnosticsOnly();
 
             var tree = compilation.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();

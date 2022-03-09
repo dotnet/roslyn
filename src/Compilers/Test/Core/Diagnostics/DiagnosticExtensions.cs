@@ -100,6 +100,20 @@ namespace Microsoft.CodeAnalysis
         public static TCompilation VerifyDiagnostics<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
             where TCompilation : Compilation
         {
+            VerifyDiagnosticsOnly(c, expected);
+
+            if (CompilationExtensions.EnableExtraEmitDiagnosticsVerification)
+            {
+                // In a select CI leg we enable some extra validation
+                _ = c.GetEmitDiagnostics();
+            }
+
+            return c;
+        }
+
+        public static TCompilation VerifyDiagnosticsOnly<TCompilation>(this TCompilation c, params DiagnosticDescription[] expected)
+            where TCompilation : Compilation
+        {
             var diagnostics = c.GetDiagnostics();
             diagnostics.Verify(expected);
             VerifyAssemblyIds(c, diagnostics);

@@ -19261,7 +19261,9 @@ public class D
 }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            // We use VerifyDiagnosticsOnly until this issue is fixed:
+            // https://github.com/dotnet/roslyn/issues/60046
+            comp.VerifyDiagnosticsOnly(
                 // (16,32): warning CS8123: The tuple element name 'c' is ignored because a different name is specified by the target type '(int a, int b)'.
                 //         var x6 = nab ?? (a: 1, c: 3); // (a, b)?
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int a, int b)").WithLocation(16, 32),

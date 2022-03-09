@@ -30353,7 +30353,10 @@ public record C(int I) : B(I);";
 
             // CS1701: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy
             var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
-            compB.VerifyDiagnostics();
+
+            // We use VerifyDiagnosticsOnly until this issue is fixed:
+            // https://github.com/dotnet/roslyn/issues/60060
+            compB.VerifyDiagnosticsOnly();
             Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();

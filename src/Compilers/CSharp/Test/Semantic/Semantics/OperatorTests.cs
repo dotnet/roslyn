@@ -4823,7 +4823,9 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            // We use VerifyDiagnosticsOnly until this issue is fixed:
+            // https://github.com/dotnet/roslyn/issues/60059
+            var compilation = CreateCompilation(source).VerifyDiagnosticsOnly();
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]

@@ -197,14 +197,14 @@ class Program
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
-                    comp.VerifyDiagnostics(
+                    comp.VerifyDiagnosticsOnly(
                         // (7,27): warning CS8603: Possible null reference return.
                         //     static object F1() => C1;
                         Diagnostic(ErrorCode.WRN_NullReferenceReturn, "C1").WithLocation(7, 27));
                 }
                 else
                 {
-                    comp.VerifyDiagnostics();
+                    comp.VerifyDiagnosticsOnly();
                 }
 
                 var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
@@ -246,14 +246,14 @@ class Program
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
-                    comp.VerifyDiagnostics(
+                    comp.VerifyDiagnosticsOnly(
                         // (7,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
                         //     static void F1(object obj = C1) { }
                         Diagnostic(ErrorCode.WRN_NullAsNonNullable, "C1").WithLocation(7, 33));
                 }
                 else
                 {
-                    comp.VerifyDiagnostics();
+                    comp.VerifyDiagnosticsOnly();
                 }
 
                 var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
@@ -305,14 +305,14 @@ struct B2
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
-                    comp.VerifyDiagnostics(
+                    comp.VerifyDiagnosticsOnly(
                         // (2,4): warning CS8625: Cannot convert null literal to non-nullable reference type.
                         // [A(A.C1)]
                         Diagnostic(ErrorCode.WRN_NullAsNonNullable, "A.C1").WithLocation(2, 4));
                 }
                 else
                 {
-                    comp.VerifyDiagnostics();
+                    comp.VerifyDiagnosticsOnly();
                 }
 
                 var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
@@ -1147,7 +1147,7 @@ class Program
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
-                comp.VerifyDiagnostics(expectedDiagnostics);
+                comp.VerifyDiagnosticsOnly(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
                 AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
@@ -1584,7 +1584,7 @@ class A : System.Attribute
 
             var comp = CreateCompilation(source);
             comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnosticsOnly();
 
             var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             var expectedAnalyzedKeys = new[]

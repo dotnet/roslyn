@@ -866,7 +866,9 @@ class C
     event void E;
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            // We use VerifyDiagnosticsOnly for now, until this issue is fixed:
+            // https://github.com/dotnet/roslyn/issues/39979
+            CreateCompilation(text).VerifyDiagnosticsOnly(
                 // (3,11): error CS1547: Keyword 'void' cannot be used in this context
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (7,11): error CS1547: Keyword 'void' cannot be used in this context
