@@ -568,6 +568,7 @@ function Deploy-VsixViaTool() {
     $fullArg = "$baseArgs $vsixFile"
     Write-Host "`tInstalling $vsixFileName"
     Exec-Console $vsixExe $fullArg
+    Start-Sleep -Seconds 15
   }
 
   # Set up registry
