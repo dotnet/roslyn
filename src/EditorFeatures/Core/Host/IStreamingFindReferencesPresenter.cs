@@ -82,34 +82,37 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             if (items.IsDefaultOrEmpty)
                 return null;
 
-            // See if there's a third party external item we can navigate to.  If so, defer 
-            // to that item and finish.
-            foreach (var item in items.WhereAsArray(d => d.IsExternal))
+            using var _ = ArrayBuilder<(DefinitionItem item, INavigableLocation location)>.GetInstance(out var builder);
+            foreach (var item in items)
             {
-                // If we're directly going to a location we need to activate the preview so
-                // that focus follows to the new cursor position. This behavior is expected
-                // because we are only going to navigate once successfully
-                var location = await item.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
-                if (location != null)
-                    return location;
+                // Ignore any definitions that we can't navigate to.
+                var navigableItem = await item.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+                if (navigableItem != null)
+                {
+                    // If there's a third party external item we can navigate to.  Defer to that item and finish.
+                    if (item.IsExternal)
+                        return navigableItem;
+
+                    builder.Add((item, navigableItem));
+                }
             }
 
-            var nonExternalItems = items.WhereAsArray(d => !d.IsExternal);
-            if (nonExternalItems.Length == 0)
+            if (builder.Count == 0)
                 return null;
 
-            if (nonExternalItems.Length == 1 &&
-                nonExternalItems[0].SourceSpans.Length <= 1)
+            if (builder.Count == 1 &&
+                builder[0].item.SourceSpans.Length <= 1)
             {
                 // There was only one location to navigate to.  Just directly go to that location. If we're directly
                 // going to a location we need to activate the preview so that focus follows to the new cursor position.
 
-                return await nonExternalItems[0].GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+                return builder[0].location;
             }
 
             if (presenter == null)
                 return null;
 
+            var navigableItems = builder.SelectAsArray(t => t.item);
             return new NavigableLocation(async (options, cancellationToken) =>
             {
                 // Can only navigate or present items on UI thread.
@@ -123,8 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.Host
                 var (context, _) = presenter.StartSearch(title, supportsReferences: false);
                 try
                 {
-                    foreach (var definition in nonExternalItems)
-                        await context.OnDefinitionFoundAsync(definition, cancellationToken).ConfigureAwait(false);
+                    foreach (var item in navigableItems)
+                        await context.OnDefinitionFoundAsync(item, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
