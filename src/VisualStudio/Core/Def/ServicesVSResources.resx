@@ -1922,7 +1922,7 @@ Additional information: {1}</value>
   <data name="External_sources" xml:space="preserve">
     <value>External Sources</value>
   </data>
-  <data name="Always_use_Microsoft_and_Nuget_symbol_servers_for_navigation" xml:space="preserve">
-    <value>Always use Microsoft and Nuget symbol servers for navigation</value>
+  <data name="Always_use_default_symbol_servers_for_navigation" xml:space="preserve">
+    <value>Always use default symbol servers for navigation</value>
   </data>
 </root>

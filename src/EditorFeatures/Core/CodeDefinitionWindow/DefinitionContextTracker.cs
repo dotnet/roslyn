@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CodeDefinitionWindow
             else if (_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
                 var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
-                var alwaysUseMicrosoftAndNugetSymbolServers = _globalOptions.GetOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers);
-                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, allowDecompilation, alwaysUseMicrosoftAndNugetSymbolServers, cancellationToken).ConfigureAwait(false);
+                var alwaysUseDefaultSymbolServers = _globalOptions.GetOption(FeatureOnOffOptions.AlwaysUseDefaultSymbolServers);
+                var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, allowDecompilation, alwaysUseDefaultSymbolServers, cancellationToken).ConfigureAwait(false);
                 var identifierSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                 return ImmutableArray.Create(new CodeDefinitionWindowLocation(symbol.ToDisplayString(), declarationFile.FilePath, identifierSpan.Start));
             }

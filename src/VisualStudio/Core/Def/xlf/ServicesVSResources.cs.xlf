@@ -77,9 +77,9 @@
         <target state="translated">Vždy kvůli srozumitelnosti</target>
         <note />
       </trans-unit>
-      <trans-unit id="Always_use_Microsoft_and_Nuget_symbol_servers_for_navigation">
-        <source>Always use Microsoft and Nuget symbol servers for navigation</source>
-        <target state="new">Always use Microsoft and Nuget symbol servers for navigation</target>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="new">Always use default symbol servers for navigation</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Defaults">

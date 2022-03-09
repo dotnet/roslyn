@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
                         var allowDecompilation = _globalOptions.GetNavigateToDecompiledSources();
-                        var alwaysUseMicrosoftAndNugetSymbolServers = _globalOptions.GetAlwaysUseMicrosoftAndNugetSymbolServers();
-                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, allowDecompilation, alwaysUseMicrosoftAndNugetSymbolServers, cancellationToken).ConfigureAwait(false);
+                        var alwaysUseDefaultSymbolServers = _globalOptions.GetAlwaysUseDefaultSymbolServers();
+                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(document.Project, symbol, signaturesOnly: false, allowDecompilation, alwaysUseDefaultSymbolServers, cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location

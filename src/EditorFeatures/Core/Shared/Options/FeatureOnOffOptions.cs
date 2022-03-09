@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             RenameTracking,
             RefactoringVerification,
             NavigateToDecompiledSources,
+            AlwaysUseDefaultSymbolServers,
             AddImportsOnPaste,
             OfferRemoveUnusedReferences,
             OfferRemoveUnusedReferencesFeatureFlag,
@@ -95,9 +96,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "NavigateToDecompiledSources", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateToDecompiledSources"));
 
-        public static readonly Option2<bool> AlwaysUseMicrosoftAndNugetSymbolServers = new(
-            FeatureName, "AlwaysUseMicrosoftAndNugetSymbolServers", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.AlwaysUseMicrosoftAndNugetSymbolServers"));
+        public static readonly Option2<bool> AlwaysUseDefaultSymbolServers = new(
+            FeatureName, "AlwaysUseDefaultSymbolServers", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.AlwaysUseDefaultSymbolServers"));
 
         public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
             FeatureName, "AddImportsOnPaste", defaultValue: null,

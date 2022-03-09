@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
         public static bool GetNavigateToDecompiledSources(this IGlobalOptionService globalOptions)
             => globalOptions.GetOption(NavigateToDecompiledSources);
 
-        public static bool GetAlwaysUseMicrosoftAndNugetSymbolServers(this IGlobalOptionService globalOptions)
-            => globalOptions.GetOption(AlwaysUseMicrosoftAndNugetSymbolServers);
+        public static bool GetAlwaysUseDefaultSymbolServers(this IGlobalOptionService globalOptions)
+            => globalOptions.GetOption(AlwaysUseDefaultSymbolServers);
 
         public static Option2<bool> NavigateToDecompiledSources =
             new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation($"TextEditor.NavigateToDecompiledSources"));
 
-        public static Option2<bool> AlwaysUseMicrosoftAndNugetSymbolServers =
-            new("FeatureOnOffOptions", "AlwaysUseMicrosoftAndNugetSymbolServers", defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation($"TextEditor.AlwaysUseMicrosoftAndNugetSymbolServers"));
+        public static Option2<bool> AlwaysUseDefaultSymbolServers =
+            new("FeatureOnOffOptions", "AlwaysUseDefaultSymbolServers", defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation($"TextEditor.AlwaysUseDefaultSymbolServers"));
     }
 }

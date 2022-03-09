@@ -62,10 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources, value); }
         }
 
-        public int AlwaysUseMicrosoftAndNugetSymbolServers
+        public int AlwaysUseDefaultSymbolServers
         {
-            get { return GetBooleanOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers); }
-            set { SetBooleanOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers, value); }
+            get { return GetBooleanOption(FeatureOnOffOptions.AlwaysUseDefaultSymbolServers); }
+            set { SetBooleanOption(FeatureOnOffOptions.AlwaysUseDefaultSymbolServers, value); }
         }
 
         public int AddImportsOnPaste

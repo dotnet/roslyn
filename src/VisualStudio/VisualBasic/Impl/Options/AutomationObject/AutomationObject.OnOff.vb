@@ -87,12 +87,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property AlwaysUseMicrosoftAndNugetSymbolServers As Boolean
+        Public Property AlwaysUseDefaultSymbolServers As Boolean
             Get
-                Return GetBooleanOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers)
+                Return GetBooleanOption(FeatureOnOffOptions.AlwaysUseDefaultSymbolServers)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(FeatureOnOffOptions.AlwaysUseMicrosoftAndNugetSymbolServers, value)
+                SetBooleanOption(FeatureOnOffOptions.AlwaysUseDefaultSymbolServers, value)
             End Set
         End Property
 
