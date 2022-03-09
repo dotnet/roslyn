@@ -36,11 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets
         protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
         {
             var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
-            if (node is LocalFunctionStatementSyntax { ExpressionBody: null, Body: null })
-            {
-                return node.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
-            }
-
             return node;
         }
     }
