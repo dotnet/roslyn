@@ -195,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             position = CheckAndAdjustPosition(position);
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
-
             // Strip off ExecutableCodeBinder (see ctor).
             Binder binder = this.RootBinder;
 
@@ -214,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
 
             Binder executablebinder = new WithNullableContextBinder(SyntaxTree, position, binder ?? this.RootBinder);
+            if (methodSymbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } propertyAccessor)
+            {
+                executablebinder = new SpeculativeFieldKeywordBinder(propertyAccessor, executablebinder);
+            }
             executablebinder = new ExecutableCodeBinder(body, methodSymbol, executablebinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
@@ -241,11 +244,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
 
-            // PROTOTYPE(semi-auto-props): We should traverse until we get a property accessor, similar to Binder_Expressions. We may want to share the code.
-            if (methodSymbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
-            {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
-            }
+            // We don't need to loop over containing symbols chain.
+            // PROTOTYPE(semi-auto-props): Add an assert that the containing symbols chain doesn't include a property accessor.
+             if (methodSymbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+             {
+                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+             }
 
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
@@ -265,6 +269,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
+            if (methodSymbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            {
+                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+            }
+
             binder = new ExecutableCodeBinder(expressionBody, methodSymbol, binder);
 
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, expressionBody, binder, position);
