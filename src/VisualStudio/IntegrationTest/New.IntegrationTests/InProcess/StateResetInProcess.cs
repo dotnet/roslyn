@@ -60,6 +60,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            // Use default navigation behavior
+            await TestServices.Editor.ConfigureAsyncNavigation(AsyncNavigationKind.Default, cancellationToken);
+
             // Suggestion mode defaults to on for debugger views, and off for other views.
             await TestServices.Editor.SetUseSuggestionModeAsync(forDebuggerTextView: true, true, cancellationToken);
             await TestServices.Editor.SetUseSuggestionModeAsync(forDebuggerTextView: false, false, cancellationToken);

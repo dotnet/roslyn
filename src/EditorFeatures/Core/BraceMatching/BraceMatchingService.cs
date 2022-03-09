@@ -11,9 +11,10 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     [Export(typeof(IBraceMatchingService))]
     internal class BraceMatchingService : IBraceMatchingService

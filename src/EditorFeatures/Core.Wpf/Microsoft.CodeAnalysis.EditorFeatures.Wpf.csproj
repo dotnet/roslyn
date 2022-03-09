@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
