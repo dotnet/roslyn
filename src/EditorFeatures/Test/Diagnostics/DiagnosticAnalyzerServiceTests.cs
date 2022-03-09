@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     [UseExportProvider]
     public class DiagnosticAnalyzerServiceTests
     {
-        private static readonly TestComposition s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService = FeaturesTestCompositions.Features
+        private static readonly TestComposition s_featuresCompositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService))
             .AddParts(typeof(TestDocumentTrackingService));
@@ -1246,9 +1246,9 @@ class A
                 await analyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
                 await analyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);
             }
-            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+            else
             {
-                await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
+                await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, CancellationToken.None).ConfigureAwait(false);
             }
 
             await analyzer.AnalyzeProjectAsync(textDocument.Project, semanticsChanged: true, reasons: InvocationReasons.Empty, cancellationToken: CancellationToken.None).ConfigureAwait(false);

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
+    [Obsolete("Use PythiaGlobalOptions instead")]
     internal static class PythiaOptions
     {
         public const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(RemoveRecommendationLimit)));
     }
 
+    [Obsolete("Use PythiaGlobalOptions instead")]
     [ExportSolutionOptionProvider, Shared]
     internal class PythiaOptionsProvider : IOptionProvider
     {
