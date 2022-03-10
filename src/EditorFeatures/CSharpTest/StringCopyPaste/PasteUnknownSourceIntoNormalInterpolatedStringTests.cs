@@ -1,0 +1,236 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
+
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
+{
+    [UseExportProvider]
+    public class PasteUnknownSourceIntoNormalInterpolatedStringTests
+        : StringCopyPasteCommandHandlerUnknownSourceTests
+    {
+        #region Paste from external source into normal interpolated string
+
+        [WpfFact]
+        public void TestNewLineIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\n",
+                @"var x = $""$$""",
+                @"var x = $""\n$$""",
+                afterUndo: "var x = $\"\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestNewLineIntoNormalInterpolatedString2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\r\n",
+                @"var x = $""$$""",
+                @"var x = $""\r\n$$""",
+                afterUndo: "var x = $\"\r\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestTabIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\t",
+                @"var x = $""$$""",
+                @"var x = $""\t$$""",
+                afterUndo: "var x = $\"\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestSingleQuoteIntoNormalInterpolatedString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "'",
+                @"var x = $""$$""",
+                @"var x = $""'$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestDoubleQuoteIntoNormalInterpolatedString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"",
+                @"var x = $""$$""",
+                @"var x = $""\""$$""",
+                afterUndo: "var x = $\"\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestComplexStringIntoNormalInterpolatedString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\t\"\"\t",
+                @"var x = $""$$""",
+                @"var x = $""\t\""\""\t$$""",
+                afterUndo: "var x = $\"\t\"\"\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestNormalTextIntoNormalInterpolatedString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "abc",
+                @"var x = $""$$""",
+                @"var x = $""abc$$""",
+                afterUndo: @"var x = $""$$""");
+        }
+
+        #endregion
+
+        #region Paste from external source into normal interpolated string before hole
+
+        [WpfFact]
+        public void TestNewLineIntoNormalInterpolatedStringBeforeHole1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\n",
+                @"var x = $""$${0}""",
+                @"var x = $""\n$${0}""",
+                afterUndo: "var x = $\"\n$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestNewLineIntoNormalInterpolatedStringBeforeHole2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\r\n",
+                @"var x = $""$${0}""",
+                @"var x = $""\r\n$${0}""",
+                afterUndo: "var x = $\"\r\n$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestTabIntoNormalInterpolatedStringBeforeHole1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\t",
+                @"var x = $""$${0}""",
+                @"var x = $""\t$${0}""",
+                afterUndo: "var x = $\"\t$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestSingleQuoteIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "'",
+                @"var x = $""$${0}""",
+                @"var x = $""'$${0}""",
+                afterUndo: "var x = $\"$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestDoubleQuoteIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"",
+                @"var x = $""$${0}""",
+                @"var x = $""\""$${0}""",
+                afterUndo: "var x = $\"\"$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestComplexStringIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\t\"\"\t",
+                @"var x = $""$${0}""",
+                @"var x = $""\t\""\""\t$${0}""",
+                afterUndo: "var x = $\"\t\"\"\t$${0}\"");
+        }
+
+        [WpfFact]
+        public void TestNormalTextIntoNormalInterpolatedStringBeforeHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "abc",
+                @"var x = $""$${0}""",
+                @"var x = $""abc$${0}""",
+                afterUndo: @"var x = $""$${0}""");
+        }
+
+        #endregion
+
+        #region Paste from external source into normal interpolated string after hole
+
+        [WpfFact]
+        public void TestNewLineIntoNormalInterpolatedStringAfterHole1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\n",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\n$$""",
+                afterUndo: "var x = $\"{0}\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestNewLineIntoNormalInterpolatedStringAfterHole2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\r\n",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\r\n$$""",
+                afterUndo: "var x = $\"{0}\r\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestTabIntoNormalInterpolatedStringAfterHole1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\t",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\t$$""",
+                afterUndo: "var x = $\"{0}\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestSingleQuoteIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "'",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}'$$""",
+                afterUndo: "var x = $\"{0}$$\"");
+        }
+
+        [WpfFact]
+        public void TestDoubleQuoteIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\""$$""",
+                afterUndo: "var x = $\"{0}\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestComplexStringIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\t\"\"\t",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}\t\""\""\t$$""",
+                afterUndo: "var x = $\"{0}\t\"\"\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestNormalTextIntoNormalInterpolatedStringAfterHole()
+        {
+            TestPasteUnknownSource(
+                pasteText: "abc",
+                @"var x = $""{0}$$""",
+                @"var x = $""{0}abc$$""",
+                afterUndo: @"var x = $""{0}$$""");
+        }
+
+        #endregion
+    }
+}
