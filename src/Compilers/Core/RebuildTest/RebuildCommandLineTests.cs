@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 peStream,
                 pdbStream,
                 Path.GetFileName(peFilePath),
-                new CompilationRebuildArtifactResolver(compilation));
+                new CompilationRebuildArtifactResolver(compilation),
+                cancellationToken);
         }
 
         private void AddCSharpSourceFiles()

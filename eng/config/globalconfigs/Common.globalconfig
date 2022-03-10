@@ -1,15 +1,37 @@
 is_global = true
+global_level = 0
 
 dotnet_diagnostic.CA1067.severity = warning
 dotnet_diagnostic.CA1068.severity = warning
 dotnet_diagnostic.CA1200.severity = warning
+dotnet_diagnostic.CA1802.severity = warning
 dotnet_diagnostic.CA1821.severity = warning
+dotnet_diagnostic.CA2007.severity = warning
 dotnet_diagnostic.CA2009.severity = warning
 
 # CA2012: Use ValueTasks correctly
 dotnet_diagnostic.CA2012.severity = warning
 
+# CA2016: Forward the 'CancellationToken' parameter to methods
+dotnet_diagnostic.CA2016.severity = warning
+
+# IDE0035: Remove unreachable code
+dotnet_diagnostic.IDE0035.severity = warning
+
+# IDE0036: Order modifiers
+dotnet_diagnostic.IDE0036.severity = warning
+
+# IDE0043: Format string contains invalid placeholder
+dotnet_diagnostic.IDE0043.severity = warning
+
+# IDE0044: Make field readonly
+dotnet_diagnostic.IDE0044.severity = warning
+
+# IDE0055: Fix formatting
 dotnet_diagnostic.IDE0055.severity = warning
+
+# IDE0073: File header
+dotnet_diagnostic.IDE0073.severity = warning
 
 dotnet_diagnostic.RS1001.severity = none
 dotnet_diagnostic.RS1002.severity = none
@@ -29,6 +51,9 @@ dotnet_diagnostic.RS1022.severity = none
 # RS1024: Compare symbols correctly
 dotnet_diagnostic.RS1024.severity = refactoring
 
+# error RS2008: Enable analyzer release tracking for the analyzer project containing rule '{0}'
+dotnet_diagnostic.RS2008.severity = none
+
 # RS1034: Prefer 'IsKind' for checking syntax kinds
 # Hold on https://github.com/dotnet/roslyn/pull/51823#pullrequestreview-612747491
 dotnet_diagnostic.RS1034.severity = none
@@ -37,6 +62,7 @@ dotnet_diagnostic.AD0001.severity = error
 
 dotnet_diagnostic.RS0001.severity = warning
 dotnet_diagnostic.RS0002.severity = warning
+dotnet_diagnostic.RS0005.severity = warning
 dotnet_diagnostic.RS0006.severity = error
 dotnet_diagnostic.RS0012.severity = warning
 dotnet_diagnostic.RS0014.severity = warning

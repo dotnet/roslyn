@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             modelComputation.ChainTaskAndNotifyControllerWhenFinished(Function(m, c)
                                                                           checkpoint1.Release()
-                                                                          checkpoint2.Task.Wait()
+                                                                          checkpoint2.Task.Wait(CancellationToken.None)
                                                                           c.ThrowIfCancellationRequested()
                                                                           Return Task.FromResult(model)
                                                                       End Function)
