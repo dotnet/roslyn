@@ -33,6 +33,8 @@ using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 {
+    using static StringCopyPasteHelpers;
+
     [Export(typeof(ICommandHandler))]
     [VSUtilities.ContentType(ContentTypeNames.CSharpContentType)]
     [VSUtilities.Name(nameof(StringCopyPasteCommandHandler))]
@@ -161,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
-            var escapedTextChanges = GetEscapedTextChanges(snapshotBeforePaste.AsText(), stringExpression, snapshotBeforePaste.Version.Changes, newLine);
+            var escapedTextChanges = GetEscapedTextChanges(snapshotBeforePaste, snapshotAfterPaste, stringExpression, snapshotBeforePaste.Version.Changes, newLine);
             if (escapedTextChanges.IsDefaultOrEmpty)
                 return;
 
@@ -206,12 +208,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             throw ExceptionUtilities.UnexpectedValue(stringExpression);
         }
-
-        private static bool IsRawStringLiteral(InterpolatedStringExpressionSyntax interpolatedString)
-            => interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
-
-        private static bool IsRawStringLiteral(LiteralExpressionSyntax literal)
-            => literal.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken;
 
         private static bool PasteWasSuccessful(
             ITextSnapshot snapshotBeforePaste,
@@ -279,24 +275,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
-        private static bool ContainsControlCharacter(INormalizedTextChangeCollection changes)
-        {
-            return changes.Any(c => ContainsControlCharacter(c.NewText));
-        }
-
-        private static bool ContainsControlCharacter(string newText)
-        {
-            foreach (var c in newText)
-            {
-                if (char.IsControl(c))
-                    return true;
-            }
-
-            return false;
-        }
-
         private static ImmutableArray<TextChange> GetEscapedTextChanges(
-            SourceText text,
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
             ExpressionSyntax stringExpression,
             INormalizedTextChangeCollection changes,
             string newLine)
@@ -310,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
 
                 if (literalExpression.Token.Kind() == SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetEscapedTextChangesForMultiLineRawStringLiteral(text, literalExpression, changes, newLine);
+                    return GetEscapedTextChangesForMultiLineRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, changes, newLine);
 
                 throw ExceptionUtilities.UnexpectedValue(stringExpression);
             }
@@ -329,7 +310,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChangesForMultiLineRawStringLiteral(
-            SourceText text,
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
             LiteralExpressionSyntax literalExpression,
             INormalizedTextChangeCollection changes,
             string newLine)
@@ -343,11 +325,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return default;
 
             var token = literalExpression.Token;
+            var text = snapshotBeforePaste.AsText();
             var endLine = text.Lines.GetLineFromPosition(token.Span.End);
             var indentationWhitespace = endLine.GetLeadingWhitespace();
 
             using var _1 = ArrayBuilder<TextChange>.GetInstance(out var finalTextChanges);
             using var _2 = PooledStringBuilder.GetInstance(out var buffer);
+
+            var quotesToAdd = GetQuotesToAddToMultiLineRawLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, text);
+            if (quotesToAdd != null)
+                finalTextChanges.Add(new TextChange(new TextSpan(literalExpression.SpanStart, 0), quotesToAdd));
 
             foreach (var change in changes)
             {
@@ -388,38 +375,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
             }
 
+            if (quotesToAdd != null)
+                finalTextChanges.Add(new TextChange(new TextSpan(literalExpression.Span.End, 0), quotesToAdd));
+
             return finalTextChanges.ToImmutable();
         }
 
-        private static bool AllWhitespace(INormalizedTextChangeCollection changes)
+        private static string? GetQuotesToAddToMultiLineRawLiteral(ITextSnapshot snapshotBeforePaste, ITextSnapshot snapshotAfterPaste, LiteralExpressionSyntax literalExpression, SourceText text)
         {
-            foreach (var change in changes)
-            {
-                if (!AllWhitespace(change.NewText))
-                    return false;
-            }
+            var contentSpanBeforePaste = GetRawStringLiteralContentSpan(text, literalExpression, out var delimiterQuoteCount);
+            var contentSpanAfterPaste = snapshotBeforePaste.CreateTrackingSpan(contentSpanBeforePaste.ToSpan(), SpanTrackingMode.EdgeInclusive)
+                                                           .GetSpan(snapshotAfterPaste);
+            var longestQuoteSequence = GetLongestQuoteSequence(contentSpanAfterPaste);
 
-            return true;
-        }
+            var quotesToAddCount = (longestQuoteSequence - delimiterQuoteCount) + 1;
+            if (quotesToAddCount <= 0)
+                return null;
 
-        private static bool AllWhitespace(string text)
-        {
-            foreach (var ch in text)
-            {
-                if (!SyntaxFacts.IsWhitespace(ch))
-                    return false;
-            }
-
-            return true;
-        }
-
-        private static string TrimStart(string value)
-        {
-            var start = 0;
-            while (start < value.Length && SyntaxFacts.IsWhitespace(value[start]))
-                start++;
-
-            return value.Substring(start);
+            var quotesToAdd = new string('"', quotesToAddCount);
+            return quotesToAdd;
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(
@@ -432,33 +406,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             return textChanges.ToImmutable();
         }
-
-        //private static string Escape(
-        //    Document document, ExpressionSyntax stringExpression, string text, CancellationToken )
-        //{
-        //    if (stringExpression is LiteralExpressionSyntax literalExpression)
-        //    {
-        //        if (stringExpression.Kind() == SyntaxKind.StringLiteralExpression)
-        //            return EscapeForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), text);
-
-        //        if (stringExpression.Kind() == SyntaxKind.SingleLineRawStringLiteralToken)
-        //            return EscapeForSingleLineRawStringLiteral(document, stringExpression, cancellationToken)
-
-        //        throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
-        //    }
-        //    else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
-        //    {
-        //        if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
-        //            return EscapeForNonRawStringLiteral(isVerbatim: false, text);
-
-        //        if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-        //            return EscapeForNonRawStringLiteral(isVerbatim: true, text);
-
-        //        throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
-        //    }
-
-        //    throw ExceptionUtilities.UnexpectedValue(stringExpression.Kind());
-        //}
 
         private static string EscapeForNonRawStringLiteral(bool isVerbatim, string value)
         {
@@ -629,15 +576,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // Skip past the leading and trailing delimiters and add the span in between.
                 if (IsRawStringLiteral(literal))
                 {
-                    var start = stringExpression.SpanStart;
-                    while (start < text.Length && text[start] == '"')
-                        start++;
-
-                    var end = stringExpression.Span.End;
-                    while (end > start && text[end - 1] == '"')
-                        end--;
-
-                    return ImmutableArray.Create(TextSpan.FromBounds(start, end));
+                    return ImmutableArray.Create(GetRawStringLiteralContentSpan(text, literal));
                 }
                 else
                 {
@@ -728,79 +667,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             return null;
         }
-
-        //private static bool IsContainedWithinSomeStringToken(
-        //    SyntaxToken token, SourceText text, TextSpan selectedSpan)
-        //{
-        //    switch (token.Kind())
-        //    {
-        //        case SyntaxKind.StringLiteralToken:
-        //            return IsContainedWithStringLiteralToken(token, text, selectedSpan);
-
-        //        case SyntaxKind.SingleLineRawStringLiteralToken:
-        //        case SyntaxKind.MultiLineRawStringLiteralToken:
-        //            return IsContainedWithinRawStringLiteralToken(token, text, selectedSpan);
-
-        //        case SyntaxKind.InterpolatedStringTextToken:
-        //            return IsContainedWithinInterpolatedTextToken(token, selectedSpan);
-
-        //        case SyntaxKind.OpenBraceToken:
-        //        case SyntaxKind.InterpolatedStringEndToken:
-        //        case SyntaxKind.InterpolatedRawStringEndToken:
-        //            return IsContainedWithinInterpolatedString(token, selectedSpan);
-
-        //        default:
-        //            // We hit some non-string token.  Don't do anything special on paste here.
-        //            return false;
-        //    }
-        //}
-
-        //private static bool IsContainedWithinInterpolatedString(SyntaxToken delimiterToken, TextSpan selectedSpan)
-        //{
-        //    // if we have `$"goo$$"`, then we're inside the string token (as long as the selection ends at the start of the delimiter).
-        //    var interpolationExpression = delimiterToken.Parent as InterpolatedStringExpressionSyntax;
-        //    if (interpolationExpression is null)
-        //        return false;
-
-
-        //}
-
-        //private static bool IsContainedWithStringLiteralToken(SyntaxToken token, SourceText text, TextSpan selectedSpan)
-        //{
-        //    var start = token.SpanStart;
-        //    var end = token.Span.End;
-
-        //    if (start < text.Length && text[start] == '@')
-        //        start++;
-
-        //    if (start < text.Length && text[start] == '"')
-        //        start++;
-
-        //    if (end > start && text[end - 1] == '"')
-        //        end--;
-
-        //    return TextSpan.FromBounds(start, end).Contains(selectedSpan);
-        //}
-
-        //private static bool IsContainedWithinRawStringLiteralToken(SyntaxToken token, SourceText text, TextSpan selectedSpan)
-        //{
-        //    var start = token.SpanStart;
-        //    var end = token.Span.End;
-        //    while (start < text.Length && text[start] == '"')
-        //        start++;
-
-        //    while (end > start && text[end - 1] == '"')
-        //        end--;
-
-        //    return TextSpan.FromBounds(start, end).Contains(selectedSpan);
-        //}
-
-        //private static bool IsContainedWithinInterpolatedTextToken(SyntaxToken token, TextSpan selectedSpan)
-        //{
-        //    // interpolated text is trivial.  Because it contains no delimeters, it's fine to just check the selected span
-        //    // against the token span itself.
-        //    return token.Span.Contains(selectedSpan);
-        //}
 
         private bool PastedTextEqualsLastCopiedText(ITextBuffer subjectBuffer)
         {
