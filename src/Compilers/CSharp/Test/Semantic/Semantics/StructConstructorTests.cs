@@ -2178,7 +2178,6 @@ struct S3
     public S3() { F3 = GetValue(); }
     static object? GetValue() => null;
 }";
-
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.

@@ -8897,21 +8897,21 @@ namespace System
 }";
             var expected = new[]
             {
-                // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
-                //         private T2 Item2;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20),
-                // (14,16): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ValueTuple").WithArguments("implicit initialization in struct constructors").WithLocation(14, 16),
-                // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
-                // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
-                //         public ValueTuple(T1 item1, T2 item2)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
-                // (17,13): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
-                //             Item2 = item2;
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(17, 13)
+                    // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
+                    //         private T2 Item2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20),
+                    // (14,16): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         public ValueTuple(T1 item1, T2 item2)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ValueTuple").WithArguments("implicit initialization in struct constructors").WithLocation(14, 16),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    //         public ValueTuple(T1 item1, T2 item2)
+                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    //         public ValueTuple(T1 item1, T2 item2)
+                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
+                    // (17,13): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
+                    //             Item2 = item2;
+                    Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(17, 13)
             };
 
             // C# 7.0

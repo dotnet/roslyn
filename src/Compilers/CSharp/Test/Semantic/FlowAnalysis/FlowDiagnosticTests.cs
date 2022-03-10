@@ -1209,16 +1209,16 @@ struct S
 }";
             CreateCompilation(program, parseOptions: TestOptions.Regular10)
                 .VerifyDiagnostics(
-                    // (5,5): error CS0171: Field 'S.y' must be fully assigned before control is returned to the caller
-                    //     S(int x) { this.x = x; }
-                    Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.y").WithLocation(5, 5),
-                    // (5,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     S(int x) { this.x = x; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 5),
-                    // (4,12): warning CS0169: The field 'S.y' is never used
-                    //     int x, y;
-                    Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12)
-                    );
+                // (5,5): error CS0171: Field 'S.y' must be fully assigned before control is returned to the caller
+                //     S(int x) { this.x = x; }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.y").WithLocation(5, 5),
+                // (5,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     S(int x) { this.x = x; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 5),
+                // (4,12): warning CS0169: The field 'S.y' is never used
+                //     int x, y;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12)
+                );
 
             var verifier = CompileAndVerify(program);
             verifier.VerifyDiagnostics(
@@ -1380,24 +1380,24 @@ struct Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
-                //         x.i = 1;
-                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-                // (16,9): error CS0170: Use of possibly unassigned field 'i'
-                //         x.i = 1;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-                // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
-                //         System.Console.WriteLine(x2.ii);
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-                // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
-                // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
-                // (14,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
+    // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
+    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
+    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
+    //         System.Console.WriteLine(x2.ii);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
+    // (14,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
@@ -1440,24 +1440,24 @@ struct Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
-                //         x.i = 1;
-                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-                // (16,9): error CS0170: Use of possibly unassigned field 'i'
-                //         x.i = 1;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
-                // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
-                //         System.Console.WriteLine(x2.ii);
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
-                // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
-                // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
-                // (14,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
+    // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
+    // (16,9): error CS0170: Use of possibly unassigned field 'i'
+    //         x.i = 1;
+    Diagnostic(ErrorCode.ERR_UseDefViolationField, "x.i").WithArguments("i").WithLocation(16, 9),
+    // (17,34): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
+    //         System.Console.WriteLine(x2.ii);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
+    // (14,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+    //     public Program(int dummy)
+    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
 
             comp = CreateCompilation(text, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             comp.VerifyDiagnostics(
@@ -1751,58 +1751,58 @@ struct Program
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(out x1);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
-                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(ref x1);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
-                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(out x2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
-                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(ref x2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
-                // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
-                //         Goo(ref x3);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
-                // (15,17): error CS8079: Use of possibly unassigned auto-implemented property 'x1'
-                //         Goo(out x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x1").WithArguments("x1").WithLocation(15, 17),
-                // (16,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
-                //         Goo(ref x1);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(16, 9),
-                // (17,17): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
-                //         Goo(out x2);
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 17),
-                // (13,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public Program(int arg)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(13, 12),
-                // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
-                //         public int x;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
+    // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(out x1);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
+    // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(ref x1);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
+    // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(out x2);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
+    // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(ref x2);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
+    // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
+    //         Goo(ref x3);
+    Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
+    // (15,17): error CS8079: Use of possibly unassigned auto-implemented property 'x1'
+    //         Goo(out x1);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x1").WithArguments("x1").WithLocation(15, 17),
+    // (16,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
+    //         Goo(ref x1);
+    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(16, 9),
+    // (17,17): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
+    //         Goo(out x2);
+    Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 17),
+    // (13,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+    //     public Program(int arg)
+    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(13, 12),
+    // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
+    //         public int x;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
                 );
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(out x1);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
-                // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(ref x1);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
-                // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(out x2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
-                // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
-                //         Goo(ref x2);
-                Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
-                // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
-                //         Goo(ref x3);
-                Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
-                // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
-                //         public int x;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
+    // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(out x1);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(15, 17),
+    // (16,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(ref x1);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x1").WithArguments("Program.x1").WithLocation(16, 17),
+    // (17,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(out x2);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(17, 17),
+    // (18,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
+    //         Goo(ref x2);
+    Diagnostic(ErrorCode.ERR_RefProperty, "x2").WithArguments("Program.x2").WithLocation(18, 17),
+    // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
+    //         Goo(ref x3);
+    Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
+    // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
+    //         public int x;
+    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
                 );
         }
 
