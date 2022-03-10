@@ -238,14 +238,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 @"var x = """"""
     $$
     """"""",
-@"var x = """"""
-    
-    $$
-    """"""",
+"var x = \"\"\"\r\n    \n    $$\r\n    \"\"\"",
                 afterUndo:
-@"var x = """"""
-    $$
-    """"""");
+"var x = \"\"\"\r\n    \n$$\r\n    \"\"\"");
         }
 
         [WpfFact]
@@ -256,14 +251,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 @"var x = """"""
     $$
     """"""",
-@"var x = """"""
-    
-    $$
-    """"""",
+"var x = \"\"\"\r\n    \r\n    $$\r\n    \"\"\"",
                 afterUndo:
-@"var x = """"""
-    $$
-    """"""");
+"var x = \"\"\"\r\n    \r\n$$\r\n    \"\"\"");
         }
 
         [WpfFact]
