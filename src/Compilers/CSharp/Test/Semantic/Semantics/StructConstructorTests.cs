@@ -2616,21 +2616,23 @@ struct S
                 //     public S() { }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithReportSuppressedDiagnostics(true))
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings))
                 .VerifyDiagnostics(
                     // (4,16): warning CS0649: Field 'S.x' is never assigned to, and will always have its default value 0
                     //     public int x;
                     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("S.x", "0").WithLocation(4, 16),
-                    // (5,12): warning CS8881: Field 'S.x' must be fully assigned before control is returned to the caller
+                    // (5,12): warning CS9017: Field 'S.x' must be fully assigned before control is returned to the caller
                     //     public S() { }
-                    Diagnostic(ErrorCode.WRN_UnassignedThis, "S", isSuppressed: true).WithArguments("S.x").WithLocation(5, 12));
+                    Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.x").WithLocation(5, 12));
 
-            // TODO: how are suppressions removed from compiler diagnostics?
-            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions("CS8881", ReportDiagnostic.Warn))
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_UnassignedStructThis), ReportDiagnostic.Error))
                 .VerifyDiagnostics(
                 // (4,16): warning CS0649: Field 'S.x' is never assigned to, and will always have its default value 0
                 //     public int x;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("S.x", "0").WithLocation(4, 16));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("S.x", "0").WithLocation(4, 16),
+                // (5,12): error CS9017: Field 'S.x' must be fully assigned before control is returned to the caller
+                //     public S() { }
+                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.x").WithLocation(5, 12).WithWarningAsError(true));
 
             var verifier = CompileAndVerify(source);
             verifier.VerifyDiagnostics(
@@ -2681,11 +2683,11 @@ public struct S
                     //         other2.ToString(); // 3
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "other2").WithArguments("other2").WithLocation(11, 9));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithReportSuppressedDiagnostics(true))
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings))
                 .VerifyDiagnostics(
-                    // (5,12): warning CS8881: Field 'S.x' must be fully assigned before control is returned to the caller
+                    // (5,12): warning CS9017: Field 'S.x' must be fully assigned before control is returned to the caller
                     //     public S() // 1
-                    Diagnostic(ErrorCode.WRN_UnassignedThis, "S", isSuppressed: true).WithArguments("S.x").WithLocation(5, 12),
+                    Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.x").WithLocation(5, 12),
                     // (8,9): error CS0170: Use of possibly unassigned field 'x'
                     //         other.x.ToString(); // 2
                     Diagnostic(ErrorCode.ERR_UseDefViolationField, "other.x").WithArguments("x").WithLocation(8, 9),
@@ -2715,11 +2717,11 @@ public struct S
                 //         return;
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "return;").WithArguments("S.x").WithLocation(7, 9));
 
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithReportSuppressedDiagnostics(true));
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             verifier.VerifyDiagnostics(
-                // (7,9): warning CS8881: Field 'S.x' must be fully assigned before control is returned to the caller
+                // (7,9): warning CS9017: Field 'S.x' must be fully assigned before control is returned to the caller
                 //         return;
-                Diagnostic(ErrorCode.WRN_UnassignedThis, "return;", isSuppressed: true).WithArguments("S.x").WithLocation(7, 9));
+                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "return;").WithArguments("S.x").WithLocation(7, 9));
 
             verifier.VerifyIL("S..ctor", @"
 {
@@ -2761,14 +2763,14 @@ public struct S
                 //         E?.Invoke();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "E").WithArguments("E").WithLocation(9, 9));
 
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithReportSuppressedDiagnostics(true));
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             verifier.VerifyDiagnostics(
-                // (7,12): warning CS8881: Field 'S.E' must be fully assigned before control is returned to the caller
+                // (7,12): warning CS9017: Field 'S.E' must be fully assigned before control is returned to the caller
                 //     public S()
-                Diagnostic(ErrorCode.WRN_UnassignedThis, "S", isSuppressed: true).WithArguments("S.E").WithLocation(7, 12),
-                // (9,9): warning CS8884: Use of possibly unassigned field 'E'
+                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.E").WithLocation(7, 12),
+                // (9,9): warning CS9014: Use of possibly unassigned field 'E'
                 //         E?.Invoke();
-                Diagnostic(ErrorCode.WRN_UseDefViolationField, "E", isSuppressed: true).WithArguments("E").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldStructThis, "E").WithArguments("E").WithLocation(9, 9));
 
             verifier.VerifyIL("S..ctor", @"
 {

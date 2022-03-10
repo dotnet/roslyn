@@ -349,6 +349,11 @@ class X
                         case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                         case ErrorCode.WRN_CompileTimeCheckedOverflow:
                         case ErrorCode.WRN_MethGrpToNonDel:
+                        case ErrorCode.WRN_UseDefViolationPropertyStructThis:
+                        case ErrorCode.WRN_UseDefViolationFieldStructThis:
+                        case ErrorCode.WRN_UseDefViolationStructThis:
+                        case ErrorCode.WRN_UnassignedStructThisAutoProperty:
+                        case ErrorCode.WRN_UnassignedStructThis:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

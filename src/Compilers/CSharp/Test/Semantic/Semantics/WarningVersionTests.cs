@@ -185,18 +185,17 @@ public struct Struct
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                options: TestOptions.DebugDll.WithWarningLevel(5),
                 verify: Verification.Skipped);
-            verifier.VerifyDiagnostics(
-                // (4,12): warning CS9017: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller.
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThisAutoProperty, "Program").WithArguments("Program.Property").WithLocation(4, 12));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
 
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(5),
+                options: TestOptions.DebugDll
+                    .WithWarningLevel(5)
+                    .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9017: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller.
@@ -271,18 +270,18 @@ public struct Struct
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                options: TestOptions.DebugDll
+                    .WithWarningLevel(5),
                 verify: Verification.Skipped);
-            verifier.VerifyDiagnostics(
-                // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "Program").WithArguments("Program.Field").WithLocation(4, 12));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
 
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(5),
+                options: TestOptions.DebugDll
+                    .WithWarningLevel(5)
+                    .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
@@ -373,18 +372,20 @@ public struct Struct
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                options: TestOptions.DebugDll.WithWarningLevel(5),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
-                //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "Program").WithArguments("Program.Field").WithLocation(4, 12));
+                // (7,9): warning CS8887: Use of unassigned local variable 's'
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_UseDefViolation, "s").WithArguments("s").WithLocation(7, 9));
             verifier.VerifyIL("Program..ctor", csharp11IL);
 
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(5),
+                options: TestOptions.DebugDll
+                    .WithWarningLevel(5)
+                    .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
@@ -506,18 +507,17 @@ public struct Struct
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                options: TestOptions.DebugDll.WithWarningLevel(5),
                 verify: Verification.Skipped);
-            verifier.VerifyDiagnostics(
-                // (6,21): warning CS9014: Use of possibly unassigned auto-implemented property 'Property'
-                //         Struct v2 = Property;
-                Diagnostic(ErrorCode.WRN_UseDefViolationPropertyStructThis, "Property").WithArguments("Property").WithLocation(6, 21));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
 
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(5),
+                options: TestOptions.DebugDll
+                    .WithWarningLevel(5)
+                    .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,21): warning CS9014: Use of possibly unassigned auto-implemented property 'Property'
@@ -608,21 +608,20 @@ public struct Struct
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                options: TestOptions.DebugDll.WithWarningLevel(5),
                 verify: Verification.Skipped);
-            verifier.VerifyDiagnostics(
-                // (6,21): warning CS9015: Use of possibly unassigned field 'Field'
-                //         Struct v2 = Field;
-                Diagnostic(ErrorCode.WRN_UseDefViolationFieldStructThis, "Field").WithArguments("Field").WithLocation(6, 21));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyDiagnostics();
 
+            verifier.VerifyIL("Program..ctor", csharp11IL);
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(5),
+                options: TestOptions.DebugDll
+                    .WithWarningLevel(5)
+                    .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,21): warning CS9015: Use of possibly unassigned field 'Field'
+                // (6,21): warning CS9014: Use of possibly unassigned field 'Field'
                 //         Struct v2 = Field;
                 Diagnostic(ErrorCode.WRN_UseDefViolationFieldStructThis, "Field").WithArguments("Field").WithLocation(6, 21));
             verifier.VerifyIL("Program..ctor", csharp11IL);
@@ -710,18 +709,17 @@ public struct Struct
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(CodeAnalysis.Diagnostic.DefaultWarningLevel),
+                options: TestOptions.DebugDll.WithWarningLevel(5),
                 verify: Verification.Skipped);
-            verifier.VerifyDiagnostics(
-                // (6,22): warning CS9016: The 'this' object cannot be used before all of its fields have been assigned
-                //         Program p2 = this;
-                Diagnostic(ErrorCode.WRN_UseDefViolationStructThis, "this").WithArguments("this").WithLocation(6, 22));
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
 
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
-                options: TestOptions.DebugDll.WithWarningLevel(5),
+                options: TestOptions.DebugDll
+                    .WithWarningLevel(5)
+                    .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,22): warning CS9016: The 'this' object cannot be used before all of its fields have been assigned

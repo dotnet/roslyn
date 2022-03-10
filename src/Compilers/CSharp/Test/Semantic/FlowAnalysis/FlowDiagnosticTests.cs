@@ -1224,10 +1224,7 @@ struct S
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS0169: The field 'S.y' is never used
                 //     int x, y;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12),
-                // (5,5): warning CS9017: Field 'S.y' must be fully assigned before control is returned to the caller
-                //     S(int x) { this.x = x; }
-                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.y").WithLocation(5, 5));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12));
             verifier.VerifyIL("S..ctor", @"
 {
   // Code size       15 (0xf)
@@ -1462,23 +1459,23 @@ struct Program
                 //     public Program(int dummy)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
 
-            comp = CreateCompilation(text, options: TestOptions.DebugDll.WithReportSuppressedDiagnostics(true));
+            comp = CreateCompilation(text, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             comp.VerifyDiagnostics(
-                // (14,12): warning CS8880: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
+                // (14,12): warning CS9016: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThisAutoProperty, "Program", isSuppressed: true).WithArguments("Program.x").WithLocation(14, 12),
-                // (14,12): warning CS8880: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
+                Diagnostic(ErrorCode.WRN_UnassignedStructThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+                // (14,12): warning CS9016: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThisAutoProperty, "Program", isSuppressed: true).WithArguments("Program.x2").WithLocation(14, 12),
+                Diagnostic(ErrorCode.WRN_UnassignedStructThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
                 // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
                 //         x.i = 1;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-                // (16,9): warning CS8884: Use of possibly unassigned field 'i'
+                // (16,9): warning CS9014: Use of possibly unassigned field 'i'
                 //         x.i = 1;
-                Diagnostic(ErrorCode.WRN_UseDefViolationField, "x.i", isSuppressed: true).WithArguments("i").WithLocation(16, 9),
-                // (17,34): warning CS8883: Use of possibly unassigned auto-implemented property 'x2'
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldStructThis, "x.i").WithArguments("i").WithLocation(16, 9),
+                // (17,34): warning CS9013: Use of possibly unassigned auto-implemented property 'x2'
                 //         System.Console.WriteLine(x2.ii);
-                Diagnostic(ErrorCode.WRN_UseDefViolationProperty, "x2", isSuppressed: true).WithArguments("x2").WithLocation(17, 34));
+                Diagnostic(ErrorCode.WRN_UseDefViolationPropertyStructThis, "x2").WithArguments("x2").WithLocation(17, 34));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(

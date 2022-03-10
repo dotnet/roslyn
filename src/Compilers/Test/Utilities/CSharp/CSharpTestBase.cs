@@ -2393,6 +2393,22 @@ namespace System
                 options: options,
                 parseOptions: parseOptions);
         }
+
+        internal static string GetIdForErrorCode(ErrorCode code)
+        {
+            return MessageProvider.Instance.GetIdForErrorCode((int)code);
+        }
+
+        internal ImmutableDictionary<string, ReportDiagnostic> ReportStructInitializationWarnings { get; } = ImmutableDictionary.CreateRange(
+            new[]
+            {
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationPropertyStructThis), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationFieldStructThis), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationStructThis), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedStructThisAutoProperty), ReportDiagnostic.Warn),
+                KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UnassignedStructThis), ReportDiagnostic.Warn)
+            });
+
         #endregion
 
         #region Interpolated string handlers
