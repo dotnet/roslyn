@@ -443,6 +443,59 @@ ghi$$
         }
 
         [WpfFact]
+        public void TestNormalTextIntoMultiLineRawStringMultiLine11()
+        {
+            TestPasteUnknownSource(
+                pasteText: "abc\r\ndef",
+@"var x = """"""$${|Selection:
+
+    |}""""""",
+@"var x = """"""
+    abc
+    def
+    $$""""""",
+                afterUndo:
+@"var x = """"""abc
+def$$""""""");
+        }
+
+        [WpfFact]
+        public void TestNormalTextIntoMultiLineRawStringMultiLine12()
+        {
+            TestPasteUnknownSource(
+                pasteText: "abc\r\ndef\r\n",
+@"var x = """"""$${|Selection:
+
+    |}""""""",
+@"var x = """"""
+    abc
+    def
+    
+    $$""""""",
+                afterUndo:
+@"var x = """"""abc
+def
+$$""""""");
+        }
+
+        [WpfFact]
+        public void TestNormalTextIntoMultiLineRawStringMultiLine13()
+        {
+            TestPasteUnknownSource(
+                pasteText: "abc\r\ndef",
+@"var x = """"""$${|Selection:
+
+ |}   """"""",
+@"var x = """"""
+    abc
+    def
+ $$   """"""",
+                afterUndo:
+@"var x = """"""abc
+def$$   """"""");
+        }
+
+        [WpfFact]
         public void TestNormalTextIntoMultiLineRawStringHeader1()
         {
             TestPasteUnknownSource(

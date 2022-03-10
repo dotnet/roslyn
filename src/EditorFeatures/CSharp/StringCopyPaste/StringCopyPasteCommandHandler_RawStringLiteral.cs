@@ -183,8 +183,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (quotesToAdd != null)
                 finalTextChanges.Add(new TextChange(new TextSpan(stringExpressionBeforePaste.SpanStart, 0), quotesToAdd));
 
-            foreach (var change in snapshotBeforePaste.Version.Changes)
+            for (var i = 0; i < snapshotBeforePaste.Version.Changes.Count; i++)
             {
+                var change = snapshotBeforePaste.Version.Changes[i];
+
                 // Create a text object around the change text we're making.  This is a very simple way to get
                 // a nice view of the text lines in the change.
                 var changeText = SourceText.From(change.NewText);
@@ -192,19 +194,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 var commonIndentationPrefix = GetCommonIndentationPrefix(changeText);
 
-                for (int i = 0, n = changeText.Lines.Count; i < n; i++)
+                for (var j = 0; j < changeText.Lines.Count; j++)
                 {
-                    var firstLine = i == 0;
-                    var lastLine = i == n - 1;
+                    var firstChange = i == 0 && j == 0;
+                    var lastChange = (i == snapshotBeforePaste.Version.Changes.Count - 1) &&
+                                     (j == changeText.Lines.Count - 1);
 
                     // The actual full line that was pasted in.
-                    var fullInitialLine = changeText.ToString(changeText.Lines[i].SpanIncludingLineBreak);
+                    var currentChangeLine = changeText.Lines[j];
+                    var fullChangeLineText = changeText.ToString(currentChangeLine.SpanIncludingLineBreak);
                     // The contents of the line, with all leading whitespace removed.
-                    var (lineLeadingWhitespace, lineWithoutLeadingWhitespace) = ExtractWhitespace(fullInitialLine);
+                    var (lineLeadingWhitespace, lineWithoutLeadingWhitespace) = ExtractWhitespace(fullChangeLineText);
 
                     // This entire if-chain is only concerned with inserting the necessary whitespace a line should have.
 
-                    if (firstLine)
+                    if (firstChange)
                     {
                         // The first line is often special.  It may be copied without any whitespace (e.g. the user
                         // starts their selection at the start of text on that line, not the start of the line itself).
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         if (commonIndentationPrefix != null && lineLeadingWhitespace.StartsWith(commonIndentationPrefix))
                             buffer.Append(lineLeadingWhitespace[commonIndentationPrefix.Length..]);
                     }
-                    else if (!lastLine && lineWithoutLeadingWhitespace.Length > 0 && SyntaxFacts.IsNewLine(lineWithoutLeadingWhitespace[0]))
+                    else if (!lastChange && lineWithoutLeadingWhitespace.Length > 0 && SyntaxFacts.IsNewLine(lineWithoutLeadingWhitespace[0]))
                     {
                         // if it's just an empty line, don't bother adding any whitespace at all.  This will just end up
                         // inserting the blank line here.  We don't do this on the last line as we want to still insert
@@ -255,6 +259,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     // After the necessary whitespace has been added, add the actual non-whitespace contents of the
                     // line.
                     buffer.Append(lineWithoutLeadingWhitespace);
+
+                    if (lastChange)
+                    {
+                        // Similar to the check we do for the first-change, if the last change was pasted into the space
+                        // before the last `"""` then we need potentially insert a newline, then enough indentation
+                        // whitespace to keep delimiter in the right location.
+
+                        text.GetLineAndOffset(change.OldSpan.End, out var line, out var offset);
+
+                        if (line == text.Lines.GetLineFromPosition(stringExpressionBeforePaste.Span.End).LineNumber)
+                        {
+                            if (currentChangeLine.Span.End == currentChangeLine.SpanIncludingLineBreak.End)
+                                buffer.Append(newLine);
+
+                            buffer.Append(text.ToString(new TextSpan(text.Lines[line].Start, offset)));
+                        }
+                    }
                 }
 
                 finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
