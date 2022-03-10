@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static Task<CompletionChange> GetIndexerChangeAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => ReplaceTextAfterOperatorAsync(document, item, text: "[]", keepQuestion: true, positionOffset: -1, cancellationToken);
 
-        private static Task<CompletionDescription> GetIndexerDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        private static Task<CompletionDescription> GetIndexerDescriptionAsync(Document document, CompletionItem item, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, options, cancellationToken);
     }
 }

@@ -306,8 +306,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
         private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool insertSpaces = true, int tabSize = 4)
         {
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var locationTyped = locations["type"].Single();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var locationTyped = testLspServer.GetLocations("type").Single();
 
             var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
             var documentText = await document.GetTextAsync();
@@ -322,8 +322,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
         private async Task VerifyNoResult(string characterTyped, string markup, bool insertSpaces = true, int tabSize = 4)
         {
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var locationTyped = locations["type"].Single();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
             var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);

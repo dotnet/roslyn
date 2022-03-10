@@ -240,6 +240,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">작업이 완료될 때까지 비동기적으로 기다립니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="translated">이전 식을 기다립니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="translated">이전 식을 기다리고 ConfigureAwait({0})를 추가합니다.</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
+      </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
         <target state="translated">대기된 작업에서 '{0}'이(가) 반환됨</target>
@@ -460,6 +470,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">형식을 '{0}'(으)로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">디스크 또는 포함에서 이식 가능한 PDB를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">디스크에서 PDB를 찾거나 포함된 PDB 또는 기호 서버에서 PDB를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
         <target state="translated">'{0}' 필드 만들기 및 할당</target>
@@ -540,6 +560,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">CodeFixProvider '{0}' 인스턴스를 만드는 동안 오류가 발생했습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">PDB를 읽는 동안 오류 발생: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">예:</target>
@@ -553,6 +578,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">명시적으로 구현된 레코드 메서드에는 컴파일러에서 생성된 것과 일치하는 매개 변수 이름 '{0}'이 있어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">명시적으로 상속 문서</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -600,9 +630,44 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">문서 서식을 지정하는 중</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">'{0}'에서 PDB 파일을 찾음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">기호 서버에서 PDB를 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">기호 서버에서 PDB를 찾았지만 파일을 읽을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">포함된 PDB 파일을 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="translated">'{0}' 요약 메서드 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="translated">'{0}' 요약 속성 생성</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">비교 연산자 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="translated">'{0}' 상수 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -615,9 +680,24 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}'에 생성자 생성(속성 포함)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="translated">'{0}' 열거형 멤버 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="translated">'{0}' 필드 생성</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">'{0}'에 대해 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="translated">‘{0}’ 메서드 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -628,6 +708,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Generate_parameter_0_and_overrides_implementations">
         <source>Generate parameter '{0}' (and overrides/implementations)</source>
         <target state="translated">'{0}' 매개 변수(및 재정의/구현) 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="translated">'{0}' 속성 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="translated">'{0}' 읽기 전용 필드 생성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="translated">'{0}' 읽기 전용 속성 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -850,6 +945,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}은(는) 읽기 및 검색 작업을 지원하는 스트림을 반환해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Miscellaneous_Files">
+        <source>Miscellaneous Files</source>
+        <target state="translated">기타 파일</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">제어 문자가 없습니다.</target>
@@ -955,6 +1055,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">파일을 프로젝트 루트 폴더로 이동</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type">
+        <source>Move static members to another type...</source>
+        <target state="translated">정적 멤버를 다른 형식으로 이동...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to namespace...</source>
         <target state="translated">네임스페이스로 이동...</target>
@@ -965,6 +1070,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}을(를) 이동하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">'{1}'에서 기호 '{0}'(으)로 이동하는 중입니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">중첩 수량자 {0}입니다.</target>
@@ -973,6 +1083,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">추출에 필요한 일반 루트 노드가 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">PDB에서 원본 문서 정보를 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -1156,12 +1271,12 @@ This option is recommended if you know that backtracking will not succeed. Preve
       </trans-unit>
       <trans-unit id="Regex_balancing_group_long">
         <source>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
-    
+
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
         <target state="translated">균형 조정 그룹 정의는 이전에 정의된 그룹의 정의를 삭제하고, 이전에 정의된 그룹과 현재 그룹 사이의 간격을 현재 그룹에 저장합니다.
-    
+
 'name1'은 현재 그룹이고(선택 사항), 'name2'는 이전에 정의된 그룹이며, 'subexpression'은 유효한 정규식 패턴입니다. 균형 조정 그룹 정의는 name2의 정의를 삭제하고 name2와 name1 사이의 간격을 name1에 저장합니다. name2 그룹이 정의되어 있지 않으면 일치에서 역추적합니다. name2의 마지막 정의를 삭제하면 name2의 이전 정의가 표시되므로 이 구문을 통해 name2 그룹에 대한 캡처 스택을 괄호 또는 여는 대괄호 및 닫는 대괄호와 같은 중첩 구문을 추적하기 위한 카운터로 사용할 수 있습니다.
 
 균형 조정 그룹 정의에서는 'name2'를 스택으로 사용합니다. 각 중첩 구문의 시작 문자는 그룹 및 해당 Group.Captures 컬렉션에 배치됩니다. 닫는 문자가 일치되면 해당하는 여는 문자가 그룹에서 제거되고 Captures 컬렉션이 하나 감소합니다. 모든 중첩 구문의 여는 문자와 닫는 문자가 일치되고 나면 'name1'은 비어 있는 상태가 됩니다.</target>
@@ -2235,9 +2350,24 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">선택 항목이 형식 내에 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="translated">침묵</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">접근성 한정자 정렬</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">PDB에서 원본 코드 언어 정보를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">원본은 참조 어셈블리이며 PDB를 찾을 수 있는 정보가 부족합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2265,6 +2395,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">람다 함수와 로컬 함수 간에 전환하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">어셈블리 경로 '{0}'에서 기호를 찾음</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
         <target state="translated">TODO: 비관리형 리소스(비관리형 개체)를 해제하고 종료자를 재정의합니다.</target>
@@ -2290,6 +2425,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">선언이 없는 로컬 함수 호출이 선택 영역에 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">SourceLink에서 원본 코드를 다운로드하는 동안 시간이 초과되었습니다. 후속 요청이 성공할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">기호 서버에서 PDB를 다운로드하는 동안 시간이 초과되었습니다. 후속 요청이 성공할 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">(?()|)에 |가 너무 많습니다.</target>
@@ -2299,6 +2444,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <source>Too many )'s</source>
         <target state="translated">)가 너무 많습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
+      </trans-unit>
+      <trans-unit id="Types_colon">
+        <source>Types:</source>
+        <target state="translated">형식:</target>
+        <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
@@ -2583,6 +2733,46 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
         <target state="translated">{0} - {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">포함된 PDB에서 '{0}'을(를) 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">포함된 PDB에서 '{0}'을(를) 찾았지만 체크섬이 잘못되었거나 임시 파일을 읽을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">포함된 PDB에서 '{0}'을 찾았지만 임시 파일 '{1}'에 쓸 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">포함된 PDB에서 '{0}'을(를) 찾았으며 캐시된 원본 파일을 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">원래 위치에 '{0}'이(가) 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">'{0}'이(가) 원래 위치에서 발견되었지만 체크섬이 잘못되었거나 임시 파일을 읽을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">SourceLink를 통해 '{0}'을(를) 찾았습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">SourceLink를 통해 '{0}'을(를) 찾았지만 임시 파일을 읽을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2913,6 +3103,16 @@ If the "d" format specifier is used without other custom format specifiers, it's
         <target state="translated">무시 항목</target>
         <note />
       </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">포함됨</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">외부</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
+      </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
         <target state="translated">메타데이터에서</target>
@@ -3235,36 +3435,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">모두 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_enum_member_1_0">
-        <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">열거형 멤버 '{1}.{0}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constant_1_0">
-        <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 상수 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_1_0">
-        <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 읽기 전용 속성 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_1_0">
-        <source>Generate property '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 속성 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_1_0">
-        <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 읽기 전용 필드 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_1_0">
-        <source>Generate field '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 필드 생성</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="translated">'{0}' 로컬을 생성합니다.</target>
@@ -3348,11 +3518,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Introduce_query_variable_for_0">
         <source>Introduce query variable for '{0}'</source>
         <target state="translated">'{0}'에 대한 쿼리 변수 지정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Anonymous_Types_colon">
-        <source>Anonymous Types:</source>
-        <target state="translated">익명 형식:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">
@@ -3477,21 +3642,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Unknown_symbol_kind">
         <source>Unknown symbol kind</source>
         <target state="translated">알 수 없는 기호 종류</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_1_0">
-        <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">추상 속성 '{1}.{0}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_1_0">
-        <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">추상 메서드 '{1}.{0}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_1_0">
-        <source>Generate method '{1}.{0}'</source>
-        <target state="translated">{1}.{0}' 메서드 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
@@ -4163,16 +4313,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
         <target state="translated">누락된 매개 변수 노드 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">포함 범위를 비동기로 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">포함 범위를 비동기로 설정(Task 반환)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

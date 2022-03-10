@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             using var workspace = new AdhocWorkspace(hostServices);
             var option = TodoCommentOptions.TokenList;
 
-            var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptionsProvider>().FirstOrDefault();
+            var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptions>().FirstOrDefault();
             var optionService = TestOptionService.GetService(workspace, provider);
             var optionSet = optionService.GetOptions();
             var optionKey = new OptionKey(option);
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.True(persister.TryFetch(option, out var persistedValue));
             Assert.Equal(newOptionValue, persistedValue);
 
-            var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptionsProvider>().FirstOrDefault();
+            var provider = ((IMefHostExportProvider)hostServices).GetExportedValues<IOptionProvider>().OfType<TodoCommentOptions>().FirstOrDefault();
             var persisterProvider = new TestOptionService.TestOptionsPersisterProvider(persister);
             var optionService = TestOptionService.GetService(workspace, provider, persisterProvider);
             var optionSet = optionService.GetOptions();

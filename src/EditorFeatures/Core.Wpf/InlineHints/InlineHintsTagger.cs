@@ -6,13 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
+using Roslyn.Utilities;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
@@ -111,57 +114,64 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (spans.Count == 0)
+            try
             {
-                return Array.Empty<ITagSpan<IntraTextAdornmentTag>>();
-            }
-
-            var snapshot = spans[0].Snapshot;
-            if (_cache.Count == 0 || snapshot != _cacheSnapshot)
-            {
-                // Calculate UI elements
-                _cache.Clear();
-                _cacheSnapshot = snapshot;
-
-                // Calling into the InlineParameterNameHintsDataTaggerProvider which only responds with the current
-                // active view and disregards and requests for tags not in that view
-                var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
-                var tags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
-                foreach (var tag in tags)
+                if (spans.Count == 0)
                 {
-                    // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
-                    // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
-                    // occuring
-                    var dataTagSpans = tag.Span.GetSpans(snapshot);
-                    if (dataTagSpans.Count == 1)
+                    return Array.Empty<ITagSpan<IntraTextAdornmentTag>>();
+                }
+
+                var snapshot = spans[0].Snapshot;
+                if (_cache.Count == 0 || snapshot != _cacheSnapshot)
+                {
+                    // Calculate UI elements
+                    _cache.Clear();
+                    _cacheSnapshot = snapshot;
+
+                    // Calling into the InlineParameterNameHintsDataTaggerProvider which only responds with the current
+                    // active view and disregards and requests for tags not in that view
+                    var fullSpan = new SnapshotSpan(snapshot, 0, snapshot.Length);
+                    var tags = _tagAggregator.GetTags(new NormalizedSnapshotSpanCollection(fullSpan));
+                    foreach (var tag in tags)
                     {
-                        _cache.Add((tag, tagSpan: null));
+                        // Gets the associated span from the snapshot span and creates the IntraTextAdornmentTag from the data
+                        // tags. Only dealing with the dataTagSpans if the count is 1 because we do not see a multi-buffer case
+                        // occuring
+                        var dataTagSpans = tag.Span.GetSpans(snapshot);
+                        if (dataTagSpans.Count == 1)
+                        {
+                            _cache.Add((tag, tagSpan: null));
+                        }
                     }
                 }
-            }
 
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var classify = document?.Project.Solution.Options.GetOption(InlineHintsOptions.ColorHints, document?.Project.Language) ?? false;
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var classify = document != null && _taggerProvider.GlobalOptions.GetOption(InlineHintsViewOptions.ColorHints, document.Project.Language);
 
-            var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
-            for (var i = 0; i < _cache.Count; i++)
-            {
-                var tagSpan = _cache[i].mappingTagSpan.Span.GetSpans(snapshot)[0];
-                if (spans.IntersectsWith(tagSpan))
+                var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
+                for (var i = 0; i < _cache.Count; i++)
                 {
-                    if (_cache[i].tagSpan is not { } hintTagSpan)
+                    var tagSpan = _cache[i].mappingTagSpan.Span.GetSpans(snapshot)[0];
+                    if (spans.IntersectsWith(tagSpan))
                     {
-                        var parameterHintUITag = InlineHintsTag.Create(
-                                _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
-                        hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, parameterHintUITag);
-                        _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
+                        if (_cache[i].tagSpan is not { } hintTagSpan)
+                        {
+                            var parameterHintUITag = InlineHintsTag.Create(
+                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
+                            hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, parameterHintUITag);
+                            _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
+                        }
+
+                        selectedSpans.Add(hintTagSpan);
                     }
-
-                    selectedSpans.Add(hintTagSpan);
                 }
-            }
 
-            return selectedSpans;
+                return selectedSpans;
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public void Dispose()

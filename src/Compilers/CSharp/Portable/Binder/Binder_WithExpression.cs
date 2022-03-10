@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -21,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = BindRValueWithoutTargetType(syntax.Expression, diagnostics);
             var receiverType = receiver.Type;
-
-            var lookupResult = LookupResult.GetInstance();
             bool hasErrors = false;
 
             if (receiverType is null || receiverType.IsVoidType())
@@ -36,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnStructs, diagnostics);
             }
-            else if (receiverType.IsAnonymousType)
+            else if (receiverType.IsAnonymousType && !receiverType.IsDelegateType())
             {
                 CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnAnonymousTypes, diagnostics);
             }

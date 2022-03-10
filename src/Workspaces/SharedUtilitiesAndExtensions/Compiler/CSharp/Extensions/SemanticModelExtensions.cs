@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     baseType.IsParentKind(SyntaxKind.BaseList, out BaseListSyntax baseList) &&
                     baseType.Type == type)
                 {
-                    var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken) as INamedTypeSymbol;
+                    var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken);
                     if (containingType != null && containingType.TypeKind == TypeKind.Interface)
                     {
                         return containingType.DeclaredAccessibility;

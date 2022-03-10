@@ -36,6 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => _underlyingContext.ReportMessageAsync(message, cancellationToken);
 
+            public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+                => _underlyingContext.ReportInformationalMessageAsync(message, cancellationToken);
+
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
                 => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
 

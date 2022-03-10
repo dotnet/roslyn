@@ -5,11 +5,13 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
@@ -17,13 +19,16 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         ForegroundThreadAffinitizedObject
     {
         private readonly SignatureHelpControllerProvider _controllerProvider;
+        private readonly IGlobalOptionService _globalOptions;
 
         public AbstractSignatureHelpCommandHandler(
             IThreadingContext threadingContext,
-            SignatureHelpControllerProvider controllerProvider)
+            SignatureHelpControllerProvider controllerProvider,
+            IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
             _controllerProvider = controllerProvider;
+            _globalOptions = globalOptions;
         }
 
         protected bool TryGetController(EditorCommandArgs args, out Controller controller)
@@ -32,7 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             // If args is `InvokeSignatureHelpCommandArgs` then sig help was explicitly invoked by the user and should
             // be shown whether or not the option is set.
-            if (!(args is InvokeSignatureHelpCommandArgs) && !args.SubjectBuffer.GetFeatureOnOffOption(SignatureHelpOptions.ShowSignatureHelp))
+            var languageName = args.SubjectBuffer.GetLanguageName();
+            if (args is not InvokeSignatureHelpCommandArgs &&
+                languageName != null &&
+                !_globalOptions.GetOption(SignatureHelpViewOptions.ShowSignatureHelp, languageName))
             {
                 controller = null;
                 return false;

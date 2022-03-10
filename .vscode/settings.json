@@ -1,8 +1,6 @@
 {
-    "markdownlint.config": {
-        "MD028": false,
-        "MD025": {
-            "front_matter_title": ""
-        }
-    }
+    "files.associations": {
+        "**/eng/pipelines/*.yml": "azure-pipelines"
+    },
+    "omnisharp.defaultLaunchSolution": "Compilers.sln",
 }

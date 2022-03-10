@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 !methodDeclaration.ParameterList.CloseParenToken.IsMissing)
             {
                 var semanticModel = document.SemanticModel;
-                methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol;
+                methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
                 if (methodSymbol != null && !methodSymbol.ExplicitInterfaceImplementations.Any())
                 {
                     var semanticInfo = semanticModel.GetTypeInfo(methodDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);

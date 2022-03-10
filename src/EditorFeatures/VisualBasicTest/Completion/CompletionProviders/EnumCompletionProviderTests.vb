@@ -80,6 +80,9 @@ Public Enum MyEnum
     <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)> Member
 End Enum
 ]]></Text>.Value
+
+            HideAdvancedMembers = True
+
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
                 referencedCode:=referencedCode,
@@ -87,8 +90,9 @@ End Enum
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=0,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=True)
+                referencedLanguage:=LanguageNames.VisualBasic)
+
+            HideAdvancedMembers = False
 
             Await VerifyItemInEditorBrowsableContextsAsync(
                 markup:=markup,
@@ -97,8 +101,7 @@ End Enum
                 expectedSymbolsSameSolution:=1,
                 expectedSymbolsMetadataReference:=1,
                 sourceLanguage:=LanguageNames.VisualBasic,
-                referencedLanguage:=LanguageNames.VisualBasic,
-                hideAdvancedMembers:=False)
+                referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
         <Fact>

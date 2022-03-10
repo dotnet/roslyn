@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
             InitializeComponent();
             _viewModel = viewModel;
             TableControl = _viewModel.GetTableControl();
-            WhitespaceTable.Child = TableControl.Control;
+            WhitespaceTable.Content = TableControl.Control;
         }
 
         public UserControl SettingControl => this;

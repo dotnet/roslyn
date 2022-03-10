@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal static class PredefinedCodeRefactoringProviderNames
@@ -34,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertTryCastToDirectCast = "Convert Try Cast to Direct Cast";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
+        public const string EnableNullable = "Enable Nullable Reference Types";
         public const string EncapsulateField = "Encapsulate Field";
         public const string ExtractClass = "Extract Class Code Action Provider";
         public const string ExtractInterface = "Extract Interface Code Action Provider";
@@ -60,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string MergeConsecutiveIfStatements = "Merge Consecutive If Statements Code Action Provider";
         public const string MergeNestedIfStatements = "Merge Nested If Statements Code Action Provider";
         public const string MoveDeclarationNearReference = "Move Declaration Near Reference Code Action Provider";
+        public const string MoveStaticMembers = "Move Static Members to Another Type Code Action Provider";
         public const string MoveToNamespace = "Move To Namespace Code Action Provider";
         public const string MoveTypeToFile = "Move Type To File Code Action Provider";
         public const string NameTupleElement = nameof(NameTupleElement);

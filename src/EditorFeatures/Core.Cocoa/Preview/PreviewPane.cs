@@ -11,8 +11,6 @@ using Foundation;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Differencing;
 
-#pragma warning disable IDE0060 //Remove unused parameter
-
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal class PreviewPane : NSView
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         private DifferenceViewerPreview _differenceViewerPreview;
         private readonly NSTextField titleField;
 
-        public PreviewPane(NSImage severityIcon, string id, string title, string description, Uri helpLink, string helpLinkToolTipText, IReadOnlyList<object> previewContent, bool logIdVerbatimInTelemetry, Guid? optionPageGuid = null)
+        public PreviewPane(string id, string title, Uri helpLink, string helpLinkToolTipText, IReadOnlyList<object> previewContent)
         {
             _differenceViewerPreview = (DifferenceViewerPreview)previewContent[0];
             var view = ((ICocoaDifferenceViewer)_differenceViewerPreview.Viewer).VisualElement;

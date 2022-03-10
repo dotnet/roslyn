@@ -13,6 +13,29 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
     {
         private readonly IReadOnlyDictionary<string, T> _mapping;
 
+        public string[] EnumValues => GetValueDescriptions();
+
+        public string ToolTip => ServicesVSResources.Value;
+        public string AutomationName => ServicesVSResources.Value;
+
+        private string? _selectedEnumValue;
+
+        public string SelectedEnumValue
+        {
+            get
+            {
+                if (_selectedEnumValue is null)
+                {
+                    var values = EnumValues;
+                    var index = GetValueIndex();
+                    _selectedEnumValue = values[index];
+                }
+
+                return _selectedEnumValue;
+            }
+            set => _selectedEnumValue = value;
+        }
+
         protected EnumSettingViewModel()
         {
             _mapping = GetValuesAndDescriptions();

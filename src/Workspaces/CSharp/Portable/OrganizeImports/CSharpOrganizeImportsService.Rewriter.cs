@@ -17,14 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         {
             private readonly bool _placeSystemNamespaceFirst;
             private readonly bool _separateGroups;
+            private readonly SyntaxTrivia _newLineTrivia;
 
             public readonly IList<TextChange> TextChanges = new List<TextChange>();
 
             public Rewriter(bool placeSystemNamespaceFirst,
-                            bool separateGroups)
+                            bool separateGroups,
+                            SyntaxTrivia newLineTrivia)
             {
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
                 _separateGroups = separateGroups;
+                _newLineTrivia = newLineTrivia;
             }
 
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
@@ -33,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings,
                     _placeSystemNamespaceFirst, _separateGroups,
+                    _newLineTrivia,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
@@ -57,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings,
                     _placeSystemNamespaceFirst, _separateGroups,
+                    _newLineTrivia,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);

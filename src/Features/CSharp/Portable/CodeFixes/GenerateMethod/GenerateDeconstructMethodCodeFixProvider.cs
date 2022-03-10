@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             // Not supported in REPL
-            if (context.Project.IsSubmission)
+            if (context.Document.Project.IsSubmission)
             {
                 return;
             }

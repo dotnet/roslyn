@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
             InitializeComponent();
             _viewModel = viewModel;
             TableControl = _viewModel.GetTableControl();
-            CodeStyleTable.Child = TableControl.Control;
+            CodeStyleTable.Content = TableControl.Control;
             DataContext = viewModel;
         }
 

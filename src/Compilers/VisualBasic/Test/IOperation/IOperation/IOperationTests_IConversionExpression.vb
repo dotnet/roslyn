@@ -1318,7 +1318,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1.M2')
                     Children(1):
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1')
+                        IOperation:  (OperationKind.None, Type: Program.C1, IsInvalid) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

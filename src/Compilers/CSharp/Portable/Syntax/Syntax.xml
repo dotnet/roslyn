@@ -2107,6 +2107,27 @@
     </Field>
     <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
+  <Node Name="ListPatternSyntax" Base="PatternSyntax">
+    <Kind Name="ListPattern"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+    </Field>
+    <Field Name="Patterns" Type="SeparatedSyntaxList&lt;PatternSyntax&gt;" AllowTrailingSeparator="true"/>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+    </Field>
+    <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
+      <Kind Name="SingleVariableDesignation"/>
+      <Kind Name="DiscardDesignation"/>
+    </Field>
+  </Node>
+  <Node Name="SlicePatternSyntax" Base="PatternSyntax">
+    <Kind Name="SlicePattern"/>
+    <Field Name="DotDotToken" Type="SyntaxToken">
+      <Kind Name="DotDotToken"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" Optional="true"/>
+  </Node>
 
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
@@ -4169,6 +4190,9 @@
       </PropertyComment>
       <Kind Name="IdentifierToken"/>
       <Kind Name="ArgListKeyword"/>
+    </Field>
+    <Field Name="ExclamationExclamationToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="ExclamationExclamationToken"/>
     </Field>
     <Field Name="Default" Type="EqualsValueClauseSyntax" Optional="true"/>
   </Node>

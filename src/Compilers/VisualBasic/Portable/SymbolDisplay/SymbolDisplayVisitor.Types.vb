@@ -361,6 +361,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)
             Debug.Assert(symbol.IsTupleType)
 
+            If Me.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes) Then
+                builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>", noEscaping:=True))
+                Return
+            End If
+
             Dim elements As ImmutableArray(Of IFieldSymbol) = symbol.TupleElements
 
             AddPunctuation(SyntaxKind.OpenParenToken)
@@ -374,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If element.IsExplicitlyNamedTupleElement Then
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, element.Name, noEscaping:=False))
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name, noEscaping:=False))
                     AddSpace()
                     AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()

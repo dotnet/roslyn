@@ -7,6 +7,21 @@
         <target state="translated">对选定内容运行代码分析(&amp;A)</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">堆栈跟踪资源管理器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
+        <source>ShowStackTraceExplorerCommandName</source>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
+        <source>ShowStackTraceExplorer</source>
+        <target state="translated">ShowStackTraceExplorer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
         <source>&amp;Current Document</source>
         <target state="translated">当前文档(&amp;C)</target>
@@ -523,8 +538,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
-        <source>ViewEditorConfigSettings</source>
-        <target state="translated">ViewEditorConfigSettings</target>
+        <source>ShowValueTracking</source>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

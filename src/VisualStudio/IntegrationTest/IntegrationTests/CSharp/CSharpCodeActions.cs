@@ -55,7 +55,7 @@ public class Program
 ");
 
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Generate method 'Foo.Bar'", applyFix: true);
+            VisualStudio.Editor.Verify.CodeAction("Generate method 'Bar'", applyFix: true);
             VisualStudio.SolutionExplorer.Verify.FileContents(project, "Foo.cs", @"
 using System;
 
@@ -451,7 +451,7 @@ class Program
     }
 }");
             VisualStudio.Editor.InvokeCodeActionList();
-            var classifiedTokens = GetLightbulbPreviewClassification("Generate method 'Program.Foo'");
+            var classifiedTokens = GetLightbulbPreviewClassification("Generate method 'Foo'");
             Assert.True(classifiedTokens.Any(c => c.Text == "void" && c.Classification == "keyword"));
         }
 
@@ -523,7 +523,6 @@ namespace NS
             var expectedItems = new[]
             {
                 "Rename 'P2' to 'Foober'",
-                "Generate type 'Foober'",
                 "Generate class 'Foober' in new file",
                 "Generate class 'Foober'",
                 "Generate nested class 'Foober'",

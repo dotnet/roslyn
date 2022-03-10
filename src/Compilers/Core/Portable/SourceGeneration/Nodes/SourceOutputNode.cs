@@ -37,20 +37,26 @@ namespace Microsoft.CodeAnalysis
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput> previousTable, CancellationToken cancellationToken)
         {
+            string stepName = Kind == IncrementalGeneratorOutputKind.Source ? WellKnownGeneratorOutputs.SourceOutput : WellKnownGeneratorOutputs.ImplementationSourceOutput;
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached)
             {
+                if (graphState.DriverState.TrackIncrementalSteps)
+                {
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName);
+                }
                 return previousTable;
             }
 
-            var nodeTable = previousTable.ToBuilder();
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName);
             foreach (var entry in sourceTable)
             {
-                if (entry.state == EntryState.Removed)
+                var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                if (entry.State == EntryState.Removed)
                 {
-                    nodeTable.RemoveEntries();
+                    nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
                 }
-                else if (entry.state != EntryState.Cached || !nodeTable.TryUseCachedEntries())
+                else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
                     // we don't currently handle modified any differently than added at the output
                     // we just run the action and mark the new source as added. In theory we could compare
@@ -63,15 +69,16 @@ namespace Microsoft.CodeAnalysis
                     SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, cancellationToken);
                     try
                     {
-                        _action(context, entry.item);
-                        nodeTable.AddEntry((sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly()), EntryState.Added);
+                        var stopwatch = SharedStopwatch.StartNew();
+                        _action(context, entry.Item);
+                        var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
+                        nodeTable.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
                     }
                     finally
                     {
                         sourcesBuilder.Free();
                         diagnostics.Free();
                     }
-
                 }
             }
 
@@ -80,16 +87,18 @@ namespace Microsoft.CodeAnalysis
 
         IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable;
 
+        public IIncrementalGeneratorNode<(IEnumerable<GeneratedSourceText>, IEnumerable<Diagnostic>)> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable;
+
         void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable;
 
         public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {
             // get our own state table
-            Debug.Assert(context.TableBuilder is object);
+            Debug.Assert(context.TableBuilder is not null);
             var table = context.TableBuilder.GetLatestStateTableForNode(this);
 
             // add each non-removed entry to the context
-            foreach (var ((sources, diagnostics), state) in table)
+            foreach (var ((sources, diagnostics), state, _, _) in table)
             {
                 if (state != EntryState.Removed)
                 {
@@ -106,6 +115,11 @@ namespace Microsoft.CodeAnalysis
                     }
                     context.Diagnostics.AddRange(diagnostics);
                 }
+            }
+
+            if (context.GeneratorRunStateBuilder.RecordingExecutedSteps)
+            {
+                context.GeneratorRunStateBuilder.RecordStepsFromOutputNodeUpdate(table);
             }
         }
     }

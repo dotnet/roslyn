@@ -152,6 +152,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement(a, b);
         }
 
+        [Fact]
+        public void TestNormalizeListPattern()
+        {
+            var text = "_ = this is[ 1,2,.. var rest ];";
+            var expected = @"_ = this is [1, 2, ..var rest];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_TrailingComma()
+        {
+            var text = "_ = this is[ 1,2, 3,];";
+            var expected = @"_ = this is [1, 2, 3, ];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_EmptyList()
+        {
+            var text = "_ = this is[];";
+            var expected = @"_ = this is [];";
+            TestNormalizeStatement(text, expected);
+        }
+
         [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
         public void TestLineBreakInterpolations()
         {

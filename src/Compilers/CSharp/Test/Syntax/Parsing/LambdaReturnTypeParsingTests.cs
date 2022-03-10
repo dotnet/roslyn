@@ -164,35 +164,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void IdentifierReturnType_04()
         {
             string source = "var (x, y) => default";
-            UsingExpression(source);
+            verify(source, TestOptions.Regular9);
+            verify(source);
 
-            N(SyntaxKind.ParenthesizedLambdaExpression);
+            void verify(string source, ParseOptions? parseOptions = null)
             {
-                N(SyntaxKind.IdentifierName);
+                UsingExpression(source, parseOptions);
+
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "var");
-                }
-                N(SyntaxKind.ParameterList);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.IdentifierToken, "var");
                     }
-                    N(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Parameter);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.IdentifierToken, "y");
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.DefaultLiteralExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
+                    }
                 }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.DefaultLiteralExpression);
-                {
-                    N(SyntaxKind.DefaultKeyword);
-                }
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
@@ -5066,6 +5072,353 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.SemicolonToken);
             }
             EOF();
+        }
+
+        [Fact]
+        public void Var_01()
+        {
+            string source = "var () => default";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingExpression(source, parseOptions);
+
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.DefaultLiteralExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Var_02()
+        {
+            string source = "var x => x";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingExpression(source, parseOptions,
+                    // (1,1): error CS1073: Unexpected token 'x'
+                    // var x => x
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "var").WithArguments("x").WithLocation(1, 1));
+
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Var_03()
+        {
+            string source = "F(var (x, y) => default)";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingExpression(source, parseOptions);
+
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "F");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "var");
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Parameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Var_04()
+        {
+            string source = "F(var x => x)";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingExpression(source, parseOptions,
+                    // (1,7): error CS1003: Syntax error, ',' expected
+                    // F(var x => x)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(1, 7));
+
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "F");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.SimpleLambdaExpression);
+                            {
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Var_05()
+        {
+            string source = "var d = var () => default;";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingDeclaration(source, parseOptions);
+
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "d");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Var_06()
+        {
+            string source = "ref var (ref var x) => x";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingExpression(source, parseOptions);
+
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Var_07()
+        {
+            string source = "var[] (v) => v";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingExpression(source, parseOptions);
+
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ArrayType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.ArrayRankSpecifier);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.OmittedArraySizeExpression);
+                            {
+                                N(SyntaxKind.OmittedArraySizeExpressionToken);
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "v");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "v");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Var_08()
+        {
+            string source = "var.x () => default";
+            verify(source, TestOptions.Regular9);
+            verify(source);
+
+            void verify(string source, ParseOptions? parseOptions = null)
+            {
+                UsingExpression(source, parseOptions);
+
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "var");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.DefaultLiteralExpression);
+                    {
+                        N(SyntaxKind.DefaultKeyword);
+                    }
+                }
+                EOF();
+            }
         }
 
         [MemberData(nameof(AsyncAndStaticModifiers))]

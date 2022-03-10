@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider>();
             builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider>();
             builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider>();
+            builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
             builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
             builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
             builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider>();

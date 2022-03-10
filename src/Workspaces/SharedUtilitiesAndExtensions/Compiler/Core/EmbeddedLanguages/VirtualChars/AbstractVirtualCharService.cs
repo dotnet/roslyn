@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -125,13 +126,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             var tokenText = token.Text;
 
-            if (startDelimiter.Length > 0 && !tokenText.StartsWith(startDelimiter))
+            if (startDelimiter.Length > 0 && !tokenText.StartsWith(startDelimiter, StringComparison.Ordinal))
             {
                 Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
             }
 
-            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter))
+            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter, StringComparison.Ordinal))
             {
                 Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
                 return default;

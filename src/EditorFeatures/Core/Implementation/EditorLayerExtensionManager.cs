@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Internal.Log.FunctionId;
@@ -49,17 +50,17 @@ namespace Microsoft.CodeAnalysis.Editor
         internal class ExtensionManager : AbstractExtensionManager
         {
             private readonly List<IExtensionErrorHandler> _errorHandlers;
-            private readonly IGlobalOptionService _optionsService;
+            private readonly IGlobalOptionService _globalOptions;
             private readonly IErrorReportingService _errorReportingService;
             private readonly IErrorLoggerService _errorLoggerService;
 
             public ExtensionManager(
-                IGlobalOptionService optionsService,
+                IGlobalOptionService globalOptions,
                 IErrorReportingService errorReportingService,
                 IErrorLoggerService errorLoggerService,
                 List<IExtensionErrorHandler> errorHandlers)
             {
-                _optionsService = optionsService;
+                _globalOptions = globalOptions;
                 _errorHandlers = errorHandlers;
                 _errorReportingService = errorReportingService;
                 _errorLoggerService = errorLoggerService;
@@ -70,11 +71,15 @@ namespace Microsoft.CodeAnalysis.Editor
                 if (provider is CodeFixProvider or FixAllProvider or CodeRefactoringProvider)
                 {
                     if (!IsIgnored(provider) &&
-                        _optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
+                        _globalOptions.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
                     {
                         base.HandleException(provider, exception);
 
-                        _errorReportingService?.ShowGlobalErrorInfo(string.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
+                        var providerType = provider.GetType();
+
+                        _errorReportingService?.ShowGlobalErrorInfo(
+                            message: string.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, providerType.Name),
+                            TelemetryFeatureName.GetExtensionName(providerType),
                             exception,
                             new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
                             new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () =>
@@ -88,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor
                                 IgnoreProvider(provider);
                                 LogEnableAndIgnoreProvider(provider);
                             }),
-                            new InfoBarUI(String.Empty, InfoBarUI.UIKind.Close, () => LogLeaveDisabled(provider)));
+                            new InfoBarUI(string.Empty, InfoBarUI.UIKind.Close, () => LogLeaveDisabled(provider)));
                     }
                     else
                     {
@@ -97,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
                 else
                 {
-                    if (_optionsService.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
+                    if (_globalOptions.GetOption(ExtensionManagerOptions.DisableCrashingExtensions))
                     {
                         base.HandleException(provider, exception);
                     }
