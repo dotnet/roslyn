@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     // The actual full line that was pasted in.
                     var fullInitialLine = changeText.ToString(changeText.Lines[i].SpanIncludingLineBreak);
                     // The contents of the line, with all leading whitespace removed.
-                    var whitespaceTrimmedLine = TrimStart(fullInitialLine);
+                    var lineWithoutLeadingWhitespace = TrimStart(fullInitialLine);
+                    var lineLeadingWhitespace = fullInitialLine[0..^lineWithoutLeadingWhitespace.Length];
 
                     // This entire if-chain is only concerned with inserting the necessary whitespace a line should have.
 
@@ -95,10 +96,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                         // Now, we want to actually insert any whitespace the line itself should have *if* it's got more
                         // than the common indentation whitespace.
-                        if (fullInitialLine.StartsWith(commonIndentationPrefix))
-                            buffer.Append(fullInitialLine[commonIndentationPrefix.Length..]);
+                        if (lineLeadingWhitespace.StartsWith(commonIndentationPrefix))
+                            buffer.Append(lineLeadingWhitespace[commonIndentationPrefix.Length..]);
                     }
-                    else if (!lastLine && whitespaceTrimmedLine.Length > 0 && SyntaxFacts.IsNewLine(whitespaceTrimmedLine[0]))
+                    else if (!lastLine && lineWithoutLeadingWhitespace.Length > 0 && SyntaxFacts.IsNewLine(lineWithoutLeadingWhitespace[0]))
                     {
                         // if it's just an empty line, don't bother adding any whitespace at all.  This will just end up
                         // inserting the blank line here.  We don't do this on the last line as we want to still insert
@@ -113,12 +114,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         // Add the necessary whitespace the literal needs, then add the line contents without 
                         // the common whitespace included.
                         buffer.Append(indentationWhitespace);
-                        buffer.Append(fullInitialLine[commonIndentationPrefix.Length..]);
+                        buffer.Append(lineLeadingWhitespace[commonIndentationPrefix.Length..]);
                     }
 
                     // After the necessary whitespace has been added, add the actual non-whitespace contents of the
                     // line.
-                    buffer.Append(whitespaceTrimmedLine);
+                    buffer.Append(lineWithoutLeadingWhitespace);
                 }
 
                 finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
