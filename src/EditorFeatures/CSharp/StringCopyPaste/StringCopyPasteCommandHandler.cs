@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -166,6 +167,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return;
 
             var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
+
+            // If we end up making the same changes as what the paste did, then no need to proceed.
+            if (newTextAfterChanges.ContentEquals(snapshotAfterPaste.AsText()))
+                return;
+
             var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
 
             using var transaction = new CaretPreservingEditTransaction(

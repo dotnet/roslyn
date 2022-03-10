@@ -228,6 +228,152 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
         #endregion
 
+        #region Paste from external source into multi-line raw string
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoMultiLineRawString1()
+        {
+            TestPasteOnly(
+                pasteText: "\n",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    
+    $$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    \n$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNewLineIntoMultiLineRawString2()
+        {
+            TestPasteOnly(
+                pasteText: "\r\n",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = ""\r\n$$""",
+                afterUndo: "var x = \"\r\n$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTabIntoMultiLineRawString1()
+        {
+            TestPasteOnly(
+                pasteText: "\t",
+                @"var x = ""$$""",
+                @"var x = ""\t$$""",
+                afterUndo: "var x = \"\t$$\"");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalSingleQuoteIntoMultiLineRawString()
+        {
+            TestPasteOnly(
+                pasteText: "'",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    '$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    $$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalDoubleQuoteIntoMultiLineRawString()
+        {
+            TestPasteOnly(
+                pasteText: "\"",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    ""$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    $$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTripleQuoteIntoMultiLineRawString()
+        {
+            TestPasteOnly(
+                pasteText: "\"\"\"",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""""
+    """"""$$
+    """"""""",
+                afterUndo:
+@"var x = """"""
+    """"""$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalQuadrupleQuoteIntoMultiLineRawString()
+        {
+            TestPasteOnly(
+                pasteText: "\"\"\"\"",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""""""
+    """"""""$$
+    """"""""""",
+                afterUndo:
+@"var x = """"""
+    """"""""$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalComplexStringIntoMultiLineRawString()
+        {
+            TestPasteOnly(
+                pasteText: "  \"\"  ",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    """"  $$
+    """"""",
+                afterUndo:
+@"var x = """"""
+      """"  $$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawString()
+        {
+            TestPasteOnly(
+                pasteText: "abc",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    abc$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    $$
+    """"""");
+        }
+
+        #endregion
+
         #region Paste from external source into normal interpolated string
 
         [WpfFact]
