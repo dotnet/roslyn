@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             {
                 ShowItemsFromUnimportedNamespaces = ShowItemsFromUnimportedNamespaces,
                 ForceExpandedCompletionIndexCreation = ForceExpandedCompletionIndexCreation,
-                UpdateImportCompletionCacheInBackground = true
+                UpdateImportCompletionCacheInBackground = true,
             };
     }
 }
