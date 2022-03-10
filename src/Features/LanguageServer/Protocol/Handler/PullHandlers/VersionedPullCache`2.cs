@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </list>
         /// This is used to determine if we need to re-calculate results.
         /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion)> _documentIdToLastResult = new();
+        private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, int encVersion, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion)> _documentIdToLastResult = new();
 
         /// <summary>
         /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public async Task<string?> GetNewResultIdAsync(
             Dictionary<Document, PreviousPullResult> documentToPreviousResult,
             Document document,
+            int encVersion,
             Func<Task<TCheapVersion>> computeCheapVersionAsync,
             Func<Task<TExpensiveVersion>> computeExpensiveVersionAsync,
             CancellationToken cancellationToken)
@@ -73,7 +74,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (documentToPreviousResult.TryGetValue(document, out var previousResult) &&
                     previousResult.PreviousResultId != null &&
                     _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
-                    lastResult.resultId == previousResult.PreviousResultId)
+                    lastResult.resultId == previousResult.PreviousResultId &&
+                    encVersion == lastResult.encVersion)
                 {
                     cheapVersion = await computeCheapVersionAsync().ConfigureAwait(false);
                     if (cheapVersion != null && cheapVersion.Equals(lastResult.cheapVersion))
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var newResultId = $"{_uniqueKey}:{_nextDocumentResultId++}";
                 cheapVersion ??= await computeCheapVersionAsync().ConfigureAwait(false);
                 expensiveVersion ??= await computeExpensiveVersionAsync().ConfigureAwait(false);
-                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, cheapVersion, expensiveVersion);
+                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, encVersion, cheapVersion, expensiveVersion);
                 return newResultId;
             }
         }

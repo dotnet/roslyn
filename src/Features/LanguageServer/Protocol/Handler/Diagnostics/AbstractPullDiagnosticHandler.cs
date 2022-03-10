@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 var newResultId = await _versionedCache.GetNewResultIdAsync(
                     documentToPreviousDiagnosticParams,
                     document,
+                    _editAndContinueDiagnosticUpdateSource.Version,
                     computeCheapVersionAsync: () => project.GetDependentVersionAsync(cancellationToken),
                     computeExpensiveVersionAsync: () => project.GetDependentChecksumAsync(cancellationToken),
                     cancellationToken).ConfigureAwait(false);
