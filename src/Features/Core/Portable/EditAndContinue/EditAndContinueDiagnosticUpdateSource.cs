@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     [Shared]
     internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
+        private int _diagnosticsVersion;
+        private bool _previouslyHadDiagnostics;
+
+        /// <summary>
+        /// Represents an increasing integer version of diagnostics from Edit and Continue, which increments
+        /// when diagnostics might have changed even if there is no associated document changes (eg a restart
+        /// of an app during Hot Reload)
+        /// </summary>
+        public int Version => _diagnosticsVersion;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
@@ -48,14 +58,30 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// We do not track the particular reported diagnostics here since we can just clear all of them at once.
         /// </summary>
         public void ClearDiagnostics()
-            => DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+        {
+            // No point incrementing if we are going from clean to clean
+            if (_previouslyHadDiagnostics)
+            {
+                _previouslyHadDiagnostics = false;
+                _diagnosticsVersion++;
+            }
+
+            DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
+        }
 
         /// <summary>
         /// Reports given set of project or solution level diagnostics. 
         /// </summary>
-        public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics)
+        public void ReportDiagnostics(Workspace workspace, Solution solution, ImmutableArray<DiagnosticData> diagnostics, ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits)
         {
             RoslynDebug.Assert(solution != null);
+
+            // We don't report rude edits here, we just ensure we consider them in the version number increment
+            if (diagnostics.Any() || rudeEdits.Any(d => d.Diagnostics.Any()))
+            {
+                _previouslyHadDiagnostics = true;
+                _diagnosticsVersion++;
+            }
 
             var updateEvent = DiagnosticsUpdated;
             if (updateEvent == null)
