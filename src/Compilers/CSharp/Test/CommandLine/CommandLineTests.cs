@@ -2451,13 +2451,14 @@ print Goodbye, World";
                         continue;
                     }
 
-                    var sourceStr = Encoding.UTF8.GetString(sourceBlob.Array, sourceBlob.Offset, sourceBlob.Count);
+                    // offset by 3 to skip the BOM
+                    var sourceStr = Encoding.UTF8.GetString(sourceBlob.Array, sourceBlob.Offset + 3, sourceBlob.Count - 3);
 
                     Assert.Equal(expectedEmbeddedMap[docPath], sourceStr);
                     Assert.True(expectedEmbeddedMap.Remove(docPath));
                 }
             }
-            catch
+            finally
             {
                 symReader?.Dispose();
             }
@@ -14324,6 +14325,82 @@ public class Generator : ISourceGenerator
         [InlineData("abc/a.txt", "./../ABC/a.txt", 2)]
         public void TestDuplicateAdditionalFiles_Linux(string additionalFilePath1, string additionalFilePath2, int expectedCount) => TestDuplicateAdditionalFiles(additionalFilePath1, additionalFilePath2, expectedCount);
 
+
+        [Theory]
+        [InlineData("/debug:embedded")]
+        [InlineData("/debug:portable")]
+        [InlineData("/debug:full")]
+        public void Generated_Trees_Have_Full_Path(string debugSwitch)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedfilesout:" + generatedDir.Path, debugSwitch, "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+
+            ValidateWrittenSources(new() { { Path.Combine(generatedDir.Path, generatorPrefix), new() { { "generatedSource.cs", generatedSource } } } });
+
+            Dictionary<string, string> expectedEmbeddedMap = new() { { Path.Combine(generatedDir.Path, generatorPrefix, "generatedSource.cs"), generatedSource } };
+            switch (debugSwitch)
+            {
+                case "/debug:embedded":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: true);
+                    break;
+                case "/debug:portable":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: false);
+                    break;
+                case "/debug:full":
+                    ValidateEmbeddedSources_Windows(expectedEmbeddedMap, dir);
+                    break;
+            }
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [Theory]
+        [InlineData("/debug:embedded")]
+        [InlineData("/debug:portable")]
+        [InlineData("/debug:full")]
+        public void Generated_Trees_Have_Output_Path_When_No_GeneratedFilesOut(string debugSwitch)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { debugSwitch, "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+
+            // validate that *no* sources were written
+            Assert.Empty(Directory.GetDirectories(generatedDir.Path));
+
+            // but we still have full paths (using output dir) in the PDBs
+            Dictionary<string, string> expectedEmbeddedMap = new() { { Path.Combine(dir.Path, generatorPrefix, "generatedSource.cs"), generatedSource } };
+            switch (debugSwitch)
+            {
+                case "/debug:embedded":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: true);
+                    break;
+                case "/debug:portable":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: false);
+                    break;
+                case "/debug:full":
+                    ValidateEmbeddedSources_Windows(expectedEmbeddedMap, dir);
+                    break;
+            }
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]

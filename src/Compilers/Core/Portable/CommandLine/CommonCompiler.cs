@@ -749,8 +749,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
-            driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
-            generatorDiagnostics.AddRange(diagnostics);
+
+            driver = driver.RunGenerators(input);
+            var results = driver.GetRunResult();
+
+            var treeRoot = this.Arguments.GeneratedFilesOutputDirectory ?? Arguments.OutputDirectory;
+            var compilationOut = input.AddSyntaxTrees(results.GeneratedTrees.Select(t => t.WithFilePath(Path.Combine(treeRoot, t.FilePath))));
+            generatorDiagnostics.AddRange(results.Diagnostics);
 
             if (!disableCache)
             {
@@ -1045,22 +1050,21 @@ namespace Microsoft.CodeAnalysis
                             // write out the file if we have an output path
                             if (hasGeneratedOutputPath)
                             {
-                                var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, tree.FilePath);
                                 if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
                                 {
-                                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                                    Directory.CreateDirectory(Path.GetDirectoryName(tree.FilePath)!);
                                 }
 
-                                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                var fileStream = OpenFile(tree.FilePath, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is object)
                                 {
                                     Debug.Assert(tree.Encoding is object);
 
-                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                                    using var disposer = new NoThrowStreamDisposer(fileStream, tree.FilePath, diagnostics, MessageProvider);
                                     using var writer = new StreamWriter(fileStream, tree.Encoding);
 
                                     sourceText.Write(writer, cancellationToken);
-                                    touchedFilesLogger?.AddWritten(path);
+                                    touchedFilesLogger?.AddWritten(tree.FilePath);
                                 }
                             }
                         }
