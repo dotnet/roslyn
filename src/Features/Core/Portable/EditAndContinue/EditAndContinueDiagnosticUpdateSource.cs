@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public void ClearDiagnostics()
         {
-            // No point incrementing if we are going from clean to clean
+            // If ClearDiagnostics is called and there weren't any diagnostics previously, then there is no point incrementing
+            // our version number and potentially invalidating caches unnecessarily.
             if (_previouslyHadDiagnostics)
             {
                 _previouslyHadDiagnostics = false;
