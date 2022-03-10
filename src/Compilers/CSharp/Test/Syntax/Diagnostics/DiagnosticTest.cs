@@ -2761,6 +2761,11 @@ class Program
             {
                 return MessageProvider.Instance.GetErrorDisplayString(symbol);
             }
+
+            public override bool GetIsEnabledByDefault(int code)
+            {
+                return true;
+            }
         }
 
         #endregion
