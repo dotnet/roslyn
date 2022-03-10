@@ -80,7 +80,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // Even though we only report diagnostics, and not rude edits, we still need to
             // ensure that the presence of rude edits are considered when we decide to update
             // our version number.
-            if (diagnostics.Any() || rudeEdits.Any(d => d.Diagnostics.Any()))
+            // The array inside rudeEdits won't ever be empty for a given document so we can just
+            // check the outer array.
+            if (diagnostics.Any() || rudeEdits.Any())
             {
                 _previouslyHadDiagnostics = true;
                 _diagnosticsVersion++;
