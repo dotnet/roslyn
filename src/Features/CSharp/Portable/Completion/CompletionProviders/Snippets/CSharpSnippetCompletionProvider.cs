@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 {
     [ExportCompletionProvider(nameof(CSharpSnippetCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(FirstBuiltInCompletionProvider))]
+    [ExtensionOrder(After = nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider))]
     [Shared]
     internal class CSharpSnippetCompletionProvider : AbstractSnippetCompletionProvider
     {
