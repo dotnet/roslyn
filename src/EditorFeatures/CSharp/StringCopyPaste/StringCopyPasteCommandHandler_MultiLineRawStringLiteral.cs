@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     // The actual full line that was pasted in.
                     var fullInitialLine = changeText.ToString(changeText.Lines[i].SpanIncludingLineBreak);
                     // The contents of the line, with all leading whitespace removed.
-                    var lineWithoutLeadingWhitespace = TrimStart(fullInitialLine);
-                    var lineLeadingWhitespace = fullInitialLine[0..^lineWithoutLeadingWhitespace.Length];
+                    var (lineLeadingWhitespace, lineWithoutLeadingWhitespace) = ExtractWhitespace(fullInitialLine);
 
                     // This entire if-chain is only concerned with inserting the necessary whitespace a line should have.
 
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                         // Now, we want to actually insert any whitespace the line itself should have *if* it's got more
                         // than the common indentation whitespace.
-                        if (lineLeadingWhitespace.StartsWith(commonIndentationPrefix))
+                        if (commonIndentationPrefix != null && lineLeadingWhitespace.StartsWith(commonIndentationPrefix))
                             buffer.Append(lineLeadingWhitespace[commonIndentationPrefix.Length..]);
                     }
                     else if (!lastLine && lineWithoutLeadingWhitespace.Length > 0 && SyntaxFacts.IsNewLine(lineWithoutLeadingWhitespace[0]))
@@ -114,7 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         // Add the necessary whitespace the literal needs, then add the line contents without 
                         // the common whitespace included.
                         buffer.Append(indentationWhitespace);
-                        buffer.Append(lineLeadingWhitespace[commonIndentationPrefix.Length..]);
+                        if (commonIndentationPrefix != null)
+                            buffer.Append(lineLeadingWhitespace[commonIndentationPrefix.Length..]);
                     }
 
                     // After the necessary whitespace has been added, add the actual non-whitespace contents of the
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// lines as they're also very common, but are clearly not a way of indicating indentation indent for the normal
         /// lines.
         /// </summary>
-        private static string GetCommonIndentationPrefix(SourceText text)
+        private static string? GetCommonIndentationPrefix(SourceText text)
         {
             string? commonIndentPrefix = null;
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     commonIndentPrefix = GetCommonIndentationPrefix(commonIndentPrefix, text, TextSpan.FromBounds(line.Start, nonWhitespaceIndex));
             }
 
-            return commonIndentPrefix ?? "";
+            return commonIndentPrefix;
         }
 
         private static string? GetCommonIndentationPrefix(string? commonIndentPrefix, SourceText text, TextSpan lineWhitespaceSpan)

@@ -120,13 +120,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// Removes all characters matching <see cref="SyntaxFacts.IsWhitespace(char)"/> from the start of <paramref
         /// name="value"/>.
         /// </summary>
-        public static string TrimStart(string value)
+        public static (string whitespace, string contents) ExtractWhitespace(string value)
         {
             var start = 0;
             while (start < value.Length && SyntaxFacts.IsWhitespace(value[start]))
                 start++;
 
-            return value[start..];
+            return (value[..start], value[start..]);
         }
 
         public static bool IsRawStringLiteral(InterpolatedStringExpressionSyntax interpolatedString)
