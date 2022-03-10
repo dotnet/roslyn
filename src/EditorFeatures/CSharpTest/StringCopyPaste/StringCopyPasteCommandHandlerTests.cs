@@ -580,6 +580,88 @@ $$bar
         }
 
         [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine7()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\n    def\r\nghi",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    abc
+        def
+    ghi$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    abc
+    def
+ghi$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine8()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\n    def\r\n    ghi",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    abc
+    def
+    ghi$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    $$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine9()
+        {
+            TestPasteOnly(
+                pasteText: "    abc\r\n    def\r\n    ghi",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    abc
+    def
+    ghi$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+        abc
+    def
+    ghi$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine10()
+        {
+            TestPasteOnly(
+                pasteText: "        abc\r\n    def\r\n    ghi",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+        abc
+    def
+    ghi$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+            abc
+    def
+    ghi$$
+    """"""");
+        }
+
+        [WpfFact]
         public void TestPasteExternalNormalTextIntoMultiLineRawStringHeader1()
         {
             TestPasteOnly(
