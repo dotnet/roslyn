@@ -6,12 +6,11 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CommandHandlers;
+namespace Microsoft.CodeAnalysis.FindUsages;
 
 /// <summary>
 /// An impl of <see cref="IFindUsagesContext"/> that will buffer results internally to either be shown to the 

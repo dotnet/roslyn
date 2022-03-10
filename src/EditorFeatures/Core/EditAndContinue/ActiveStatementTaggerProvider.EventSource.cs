@@ -5,7 +5,7 @@
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal partial class ActiveStatementTaggerProvider
     {

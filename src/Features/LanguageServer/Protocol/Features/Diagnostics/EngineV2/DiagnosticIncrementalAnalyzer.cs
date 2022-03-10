@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// 
     /// This one follows pattern compiler has set for diagnostic analyzer.
     /// </summary>
-    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer2
+    internal partial class DiagnosticIncrementalAnalyzer : IIncrementalAnalyzer
     {
         private readonly int _correlationId;
         private readonly DiagnosticAnalyzerTelemetry _telemetry;
@@ -221,6 +221,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public void LogAnalyzerCountSummary()
             => _telemetry.ReportAndClear(_correlationId);
+
+        /// <summary>
+        /// The highest priority (lowest value) amongst all incremental analyzers (others have priority 1).
+        /// </summary>
+        public int Priority => 0;
 
         internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
             => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);

@@ -186,8 +186,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnostic.IsSuppressed)
                     continue;
 
-                var list = aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), static _ => new List<DiagnosticData>());
-                list.Add(diagnostic);
+                aggregatedDiagnostics.MultiAdd(diagnostic.GetTextSpan(), diagnostic);
             }
 
             if (aggregatedDiagnostics.Count == 0)
@@ -266,28 +265,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return null;
-        }
-
-        public async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(Document document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = new TextSpan(0, tree.Length);
-
-            var fixCollection = await GetDocumentFixAllForIdInSpanAsync(
-                document, textSpan, diagnosticId, options, cancellationToken).ConfigureAwait(false);
-            if (fixCollection == null)
-            {
-                return document;
-            }
-
-            var fixAllService = document.Project.Solution.Workspace.Services.GetRequiredService<IFixAllGetFixesService>();
-
-            var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
-
-            return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
         }
 
         private bool TryGetWorkspaceFixersMap(Document document, [NotNullWhen(true)] out Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>? fixerMap)
@@ -495,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         continue;
 
                     allFixers.Add(fixer);
-                    fixerToRangesAndDiagnostics.GetOrAdd(fixer, static _ => new()).Add((range, diagnostics));
+                    fixerToRangesAndDiagnostics.MultiAdd(fixer, (range, diagnostics));
                 }
             }
         }
@@ -679,32 +656,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var supportedScopes = ImmutableArray<FixAllScope>.Empty;
             if (fixAllProviderInfo != null)
             {
-                var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
-
                 var diagnosticIds = diagnostics.Where(fixAllProviderInfo.CanBeFixed)
                                                .Select(d => d.Id)
                                                .ToImmutableHashSet();
 
-                // When computing FixAll for unnecessary pragma suppression diagnostic,
-                // we need to include suppressed diagnostics, as well as reported compiler and analyzer diagnostics.
-                // A null value for 'diagnosticIdsForDiagnosticProvider' passed to 'FixAllDiagnosticProvider'
-                // ensures the latter.
-                ImmutableHashSet<string>? diagnosticIdsForDiagnosticProvider;
-                bool includeSuppressedDiagnostics;
-                if (diagnosticIds.Contains(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId))
-                {
-                    diagnosticIdsForDiagnosticProvider = null;
-                    includeSuppressedDiagnostics = true;
-                }
-                else
-                {
-                    diagnosticIdsForDiagnosticProvider = diagnosticIds;
-                    includeSuppressedDiagnostics = false;
-                }
+                var diagnosticProvider = fixAllForInSpan ?
+                    new FixAllPredefinedDiagnosticProvider(allDiagnostics) :
+                    (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
 
-                var diagnosticProvider = fixAllForInSpan
-                    ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
-                    : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(this, diagnosticIdsForDiagnosticProvider, includeSuppressedDiagnostics);
+                var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 
                 fixAllState = new FixAllState(
                     fixAllProviderInfo.FixAllProvider,
@@ -746,38 +706,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             return new WrapperCodeFixProvider(fixer, diagnosticIds);
-        }
-
-        private async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Contract.ThrowIfNull(document);
-            var solution = document.Project.Solution;
-            var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(solution, null, document.Id, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId != null));
-            return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, bool includeAllDocumentDiagnostics, ImmutableHashSet<string>? diagnosticIds, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Contract.ThrowIfNull(project);
-
-            if (includeAllDocumentDiagnostics)
-            {
-                // Get all diagnostics for the entire project, including document diagnostics.
-                var diagnostics = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                // Get all no-location diagnostics for the project, doesn't include document diagnostics.
-                var diagnostics = await _diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfFalse(diagnostics.All(d => d.DocumentId == null));
-                return await diagnostics.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         private async Task<bool> ContainsAnyFixAsync(
@@ -930,8 +858,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 continue;
                             }
 
-                            var list = mutableMap.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
-                            list.Add(fixer);
+                            mutableMap.MultiAdd(id, fixer);
                         }
                     }
 
@@ -1024,8 +951,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (string.IsNullOrWhiteSpace(id))
                             continue;
 
-                        var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
-                        list.Add(fixer);
+                        builder.MultiAdd(id, fixer);
                     }
                 }
             }

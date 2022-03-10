@@ -49,6 +49,7 @@ using VSLangProj140;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using OleInterop = Microsoft.VisualStudio.OLE.Interop;
 using Task = System.Threading.Tasks.Task;
+using Solution = Microsoft.CodeAnalysis.Solution;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -70,6 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ITextBufferCloneService _textBufferCloneService;
 
+        /// <summary>
+        /// The main gate to synchronize updates to this solution.
+        /// </summary>
+        /// <remarks>
+        /// See the Readme.md in this directory for further comments about threading in this area.
+        /// </remarks>
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
         /// <summary>
@@ -79,7 +86,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
+
+        /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = ImmutableDictionary<ProjectId, string?>.Empty;
+
+        /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = ImmutableDictionary<ProjectId, string>.Empty;
 
         /// <summary>
@@ -87,7 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <see cref="TryGetRuleSetPathForProject(ProjectId)"/> and any other use is extremely suspicious, since direct use of this is out of
         /// sync with the Workspace if there is active batching happening.
         /// </summary>
-        private readonly Dictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = new();
+        /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
+        private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = ImmutableDictionary<ProjectId, Func<string?>>.Empty;
 
         private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new();
 
@@ -121,6 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _documentOptionsProvidersInitialized = false;
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
+        private readonly IAsynchronousOperationListener _workspaceListener;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
@@ -150,7 +163,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
             FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
 
-            FileWatchedReferenceFactory.ReferenceChanged += this.RefreshMetadataReferencesForFile;
+            FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
             _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
                 new ExternalErrorDiagnosticUpdateSource(
@@ -160,12 +173,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                     _threadingContext), isThreadSafe: true);
+
+            _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
 
         internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
         {
+            // TODO: further understand if this needs the foreground thread for any reason. UIContexts are safe to read from the UI thread;
+            // it's not clear to me why this is being asserted.
             _foregroundObject.AssertIsForeground();
 
             if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
@@ -247,22 +264,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void ProcessQueuedWorkOnUIThread()
             => _openFileTracker?.ProcessQueuedWorkOnUIThread();
 
-        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
+        internal void AddProjectToInternalMaps_NoLock(VisualStudioProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
         {
-            using (_gate.DisposableWait())
-            {
-                _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
-                _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
-                _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
-            }
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
+            _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
+            _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
         }
 
         internal void AddProjectRuleSetFileToInternalMaps(VisualStudioProject project, Func<string?> ruleSetFilePathFunc)
         {
-            using (_gate.DisposableWait())
-            {
-                _projectToRuleSetFilePath.Add(project.Id, ruleSetFilePathFunc);
-            }
+            Contract.ThrowIfFalse(ImmutableInterlocked.TryAdd(ref _projectToRuleSetFilePath, project.Id, ruleSetFilePathFunc));
         }
 
         internal void AddDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
@@ -336,16 +349,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Solution Explorer in the SolutionExplorerShim, where if we just could more directly get to the rule set file it'd simplify this.
         internal override string? TryGetRuleSetPathForProject(ProjectId projectId)
         {
-            using (_gate.DisposableWait())
+            // _projectToRuleSetFilePath is immutable, so can be used outside of locks
+            if (_projectToRuleSetFilePath.TryGetValue(projectId, out var ruleSetPathFunc))
             {
-                if (_projectToRuleSetFilePath.TryGetValue(projectId, out var ruleSetPathFunc))
-                {
-                    return ruleSetPathFunc();
-                }
-                else
-                {
-                    return null;
-                }
+                return ruleSetPathFunc();
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -1437,7 +1448,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
-                FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
+                FileWatchedReferenceFactory.ReferenceChanged -= StartRefreshingMetadataReferencesForFile;
 
                 if (_lazyExternalErrorDiagnosticUpdateSource.IsValueCreated)
                 {
@@ -1566,6 +1577,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
+        public async ValueTask ApplyChangeToWorkspaceAsync(Action<Workspace> action)
+        {
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                action(this);
+            }
+        }
+
+        /// <summary>
+        /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
+        /// </summary>
         public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action)
         {
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
@@ -1586,39 +1608,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        /// <inheritdoc cref="ApplyBatchChangeToWorkspaceMaybeAsync(bool, Action{SolutionChangeAccumulator})"/>
+        public void ApplyBatchChangeToWorkspace(Action<SolutionChangeAccumulator> mutation)
+        {
+            ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, mutation).VerifyCompleted();
+        }
+
+        /// <inheritdoc cref="ApplyBatchChangeToWorkspaceMaybeAsync(bool, Action{SolutionChangeAccumulator})"/>
+        public Task ApplyBatchChangeToWorkspaceAsync(Action<SolutionChangeAccumulator> mutation)
+        {
+            return ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, mutation);
+        }
+
         /// <summary>
         /// Applies a change to the workspace that can do any number of project changes.
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-        public async ValueTask ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Func<CodeAnalysis.Solution, SolutionChangeAccumulator> mutation)
+        public async Task ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Action<SolutionChangeAccumulator> mutation)
         {
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
-                var solutionChangeAccumulator = mutation(oldSolution);
+                var solutionChanges = new SolutionChangeAccumulator(CurrentSolution);
+                mutation(solutionChanges);
 
-                if (!solutionChangeAccumulator.HasChange)
-                {
-                    return;
-                }
-
-                foreach (var documentId in solutionChangeAccumulator.DocumentIdsRemoved)
-                {
-                    this.ClearDocumentData(documentId);
-                }
-
-                SetCurrentSolution(solutionChangeAccumulator.Solution);
-
-                // This method returns the task that could be used to wait for the workspace changed event; we don't want
-                // to do that.
-                _ = RaiseWorkspaceChangedEventAsync(
-                    solutionChangeAccumulator.WorkspaceChangeKind,
-                    oldSolution,
-                    solutionChangeAccumulator.Solution,
-                    solutionChangeAccumulator.WorkspaceChangeProjectId,
-                    solutionChangeAccumulator.WorkspaceChangeDocumentId);
+                ApplyBatchChangeToWorkspace_NoLock(solutionChanges);
             }
+        }
+
+        private void ApplyBatchChangeToWorkspace_NoLock(SolutionChangeAccumulator solutionChanges)
+        {
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            var oldSolution = this.CurrentSolution;
+
+            if (!solutionChanges.HasChange)
+            {
+                return;
+            }
+
+            foreach (var documentId in solutionChanges.DocumentIdsRemoved)
+            {
+                this.ClearDocumentData(documentId);
+            }
+
+            SetCurrentSolution(solutionChanges.Solution);
+
+            // This method returns the task that could be used to wait for the workspace changed event; we don't want
+            // to do that.
+            _ = RaiseWorkspaceChangedEventAsync(
+                solutionChanges.WorkspaceChangeKind,
+                oldSolution,
+                solutionChanges.Solution,
+                solutionChanges.WorkspaceChangeProjectId,
+                solutionChanges.WorkspaceChangeDocumentId);
         }
 
         private readonly Dictionary<ProjectId, ProjectReferenceInformation> _projectReferenceInfoMap = new();
@@ -1642,21 +1685,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 // If we still had any output paths, we'll want to remove them to cause conversion back to metadata references.
                 // The call below implicitly is modifying the collection we've fetched, so we'll make a copy.
+                var solutionChanges = new SolutionChangeAccumulator(this.CurrentSolution);
+
                 foreach (var outputPath in projectReferenceInfo.OutputPaths.ToList())
                 {
-                    RemoveProjectOutputPath_NoLock(projectId, outputPath);
+                    RemoveProjectOutputPath_NoLock(solutionChanges, projectId, outputPath);
                 }
+
+                ApplyBatchChangeToWorkspace_NoLock(solutionChanges);
 
                 _projectReferenceInfoMap.Remove(projectId);
             }
 
             _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
             _projectToGuidMap = _projectToGuidMap.Remove(projectId);
-            // _projectToMaxSupportedLangVersionMap needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+
             ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
-            // _projectToDependencyNodeTargetIdentifier needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
             ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
-            _projectToRuleSetFilePath.Remove(projectId);
+            ImmutableInterlocked.TryRemove(ref _projectToRuleSetFilePath, projectId, out _);
 
             foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
             {
@@ -1674,18 +1720,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             base.OnProjectRemoved(projectId);
 
             // Try to update the UI context info.  But cancel that work if we're shutting down.
-            var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                try
-                {
-                    await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
-                }
-                finally
-                {
-                    asyncToken.Dispose();
-                }
+                using var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
+                await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -1703,16 +1741,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly Dictionary<string, List<ProjectId>> _projectsByOutputPath = new(StringComparer.OrdinalIgnoreCase);
 
-        public void AddProjectOutputPath(ProjectId projectId, string outputPath)
+        public void AddProjectOutputPath_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectId, string outputPath)
         {
-            using (_gate.DisposableWait())
-            {
-                AddProjectOutputPath_NoLock(projectId, outputPath);
-            }
-        }
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        private void AddProjectOutputPath_NoLock(ProjectId projectId, string outputPath)
-        {
             var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
 
             projectReferenceInformation.OutputPaths.Add(outputPath);
@@ -1724,7 +1756,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // If we have exactly one, then we're definitely good to convert
             if (projectsForOutputPath.Count == 1)
             {
-                ConvertMetadataReferencesToProjectReferences_NoLock(projectId, outputPath);
+                ConvertMetadataReferencesToProjectReferences_NoLock(solutionChanges, projectId, outputPath);
             }
             else if (distinctProjectsForOutputPath.Count == 1)
             {
@@ -1742,43 +1774,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // we're colliding with
                     if (otherProjectId != projectId)
                     {
-                        ConvertProjectReferencesToMetadataReferences_NoLock(otherProjectId, outputPath);
+                        ConvertProjectReferencesToMetadataReferences_NoLock(solutionChanges, otherProjectId, outputPath);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// Attempts to convert all metadata references to <paramref name="outputPath"/> to a project reference to <paramref name="projectId"/>.
+        /// Attempts to convert all metadata references to <paramref name="outputPath"/> to a project reference to <paramref name="projectIdToReference"/>.
         /// </summary>
-        /// <param name="projectId">The <see cref="ProjectId"/> of the project that could be referenced in place of the output path.</param>
+        /// <param name="projectIdToReference">The <see cref="ProjectId"/> of the project that could be referenced in place of the output path.</param>
         /// <param name="outputPath">The output path to replace.</param>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
-        private void ConvertMetadataReferencesToProjectReferences_NoLock(ProjectId projectId, string outputPath)
+        private void ConvertMetadataReferencesToProjectReferences_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectIdToReference, string outputPath)
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-            var modifiedSolution = this.CurrentSolution;
-            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
-
-            foreach (var projectIdToRetarget in this.CurrentSolution.ProjectIds)
+            foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
             {
-                if (CanConvertMetadataReferenceToProjectReference_NoLock(projectIdToRetarget, referencedProjectId: projectId))
+                if (CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectIdToRetarget, referencedProjectId: projectIdToReference))
                 {
                     // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
                     // Project instances to get created.
-                    foreach (PortableExecutableReference reference in modifiedSolution.GetProjectState(projectIdToRetarget)!.MetadataReferences)
+                    foreach (PortableExecutableReference reference in solutionChanges.Solution.GetProjectState(projectIdToRetarget)!.MetadataReferences)
                     {
                         if (string.Equals(reference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
                         {
                             FileWatchedReferenceFactory.StopWatchingReference(reference);
 
-                            var projectReference = new ProjectReference(projectId, reference.Properties.Aliases, reference.Properties.EmbedInteropTypes);
-                            modifiedSolution = modifiedSolution.RemoveMetadataReference(projectIdToRetarget, reference)
-                                                               .AddProjectReference(projectIdToRetarget, projectReference);
+                            var projectReference = new ProjectReference(projectIdToReference, reference.Properties.Aliases, reference.Properties.EmbedInteropTypes);
+                            var newSolution = solutionChanges.Solution.RemoveMetadataReference(projectIdToRetarget, reference)
+                                                                      .AddProjectReference(projectIdToRetarget, projectReference);
 
-                            projectIdsChanged.Add(projectIdToRetarget);
+                            solutionChanges.UpdateSolutionForProjectAction(projectIdToRetarget, newSolution);
 
                             GetReferenceInfo_NoLock(projectIdToRetarget).ConvertedProjectReferences.Add(
                                 (reference.FilePath!, projectReference));
@@ -1789,16 +1818,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
             }
-
-            SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
             Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
-        private bool CanConvertMetadataReferenceToProjectReference_NoLock(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
+        private static bool CanConvertMetadataReferenceToProjectReference(Solution solution, ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
-            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
-
             // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
             // we do want to throw exceptions.
             if (projectIdWithMetadataReference == referencedProjectId)
@@ -1808,8 +1833,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
             // Project instances to get created.
-            var projectWithMetadataReference = CurrentSolution.GetProjectState(projectIdWithMetadataReference);
-            var referencedProject = CurrentSolution.GetProjectState(referencedProjectId);
+            var projectWithMetadataReference = solution.GetProjectState(projectIdWithMetadataReference);
+            var referencedProject = solution.GetProjectState(referencedProjectId);
 
             Contract.ThrowIfNull(projectWithMetadataReference);
             Contract.ThrowIfNull(referencedProject);
@@ -1830,7 +1855,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // If this is going to cause a circular reference, also disallow it
-            if (CurrentSolution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
+            if (solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(referencedProjectId).Contains(projectIdWithMetadataReference))
             {
                 return false;
             }
@@ -1846,14 +1871,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         [PerformanceSensitive(
             "https://github.com/dotnet/roslyn/issues/37616",
             Constraint = "Update ConvertedProjectReferences in place to avoid duplicate list allocations.")]
-        private void ConvertProjectReferencesToMetadataReferences_NoLock(ProjectId projectId, string outputPath)
+        private void ConvertProjectReferencesToMetadataReferences_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectId, string outputPath)
         {
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-            var modifiedSolution = this.CurrentSolution;
-            using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsChanged);
-
-            foreach (var projectIdToRetarget in this.CurrentSolution.ProjectIds)
+            foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
             {
                 var referenceInfo = GetReferenceInfo_NoLock(projectIdToRetarget);
 
@@ -1872,10 +1894,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                     aliases: convertedReference.projectReference.Aliases,
                                     embedInteropTypes: convertedReference.projectReference.EmbedInteropTypes));
 
-                        modifiedSolution = modifiedSolution.RemoveProjectReference(projectIdToRetarget, convertedReference.projectReference)
-                                                           .AddMetadataReference(projectIdToRetarget, metadataReference);
+                        var newSolution = solutionChanges.Solution.RemoveProjectReference(projectIdToRetarget, convertedReference.projectReference)
+                                                                  .AddMetadataReference(projectIdToRetarget, metadataReference);
 
-                        projectIdsChanged.Add(projectIdToRetarget);
+                        solutionChanges.UpdateSolutionForProjectAction(projectIdToRetarget, newSolution);
 
                         referenceInfo.ConvertedProjectReferences.RemoveAt(i);
 
@@ -1886,8 +1908,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
             }
-
-            SetSolutionAndRaiseWorkspaceChanged_NoLock(modifiedSolution, projectIdsChanged);
         }
 
         public ProjectReference? TryCreateConvertedProjectReference_NoLock(ProjectId referencingProject, string path, MetadataReferenceProperties properties)
@@ -1900,7 +1920,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 var projectIdToReference = ids.First();
 
-                if (CanConvertMetadataReferenceToProjectReference_NoLock(referencingProject, projectIdToReference))
+                if (CanConvertMetadataReferenceToProjectReference(this.CurrentSolution, referencingProject, projectIdToReference))
                 {
                     var projectReference = new ProjectReference(
                         projectIdToReference,
@@ -1943,41 +1963,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        private void SetSolutionAndRaiseWorkspaceChanged_NoLock(CodeAnalysis.Solution modifiedSolution, ICollection<ProjectId> projectIdsChanged)
+        public void RemoveProjectOutputPath_NoLock(SolutionChangeAccumulator solutionChanges, ProjectId projectId, string outputPath)
         {
-            if (projectIdsChanged.Count > 0)
-            {
-                Debug.Assert(modifiedSolution != CurrentSolution);
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-                var originalSolution = this.CurrentSolution;
-                SetCurrentSolution(modifiedSolution);
-
-                if (projectIdsChanged.Count == 1)
-                {
-                    RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, originalSolution, this.CurrentSolution, projectIdsChanged.Single());
-                }
-                else
-                {
-                    RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, originalSolution, this.CurrentSolution);
-                }
-            }
-            else
-            {
-                // If they said nothing changed, than definitely nothing should have changed!
-                Debug.Assert(modifiedSolution == CurrentSolution);
-            }
-        }
-
-        public void RemoveProjectOutputPath(ProjectId projectId, string outputPath)
-        {
-            using (_gate.DisposableWait())
-            {
-                RemoveProjectOutputPath_NoLock(projectId, outputPath);
-            }
-        }
-
-        private void RemoveProjectOutputPath_NoLock(ProjectId projectId, string outputPath)
-        {
             var projectReferenceInformation = GetReferenceInfo_NoLock(projectId);
             if (!projectReferenceInformation.OutputPaths.Contains(outputPath))
             {
@@ -2004,51 +1993,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         // We had more than one project outputting to the same path. Now we're back down to one
                         // so we can reference that one again
-                        ConvertMetadataReferencesToProjectReferences_NoLock(distinctRemainingProjects.Single(), outputPath);
+                        ConvertMetadataReferencesToProjectReferences_NoLock(solutionChanges, distinctRemainingProjects.Single(), outputPath);
                     }
                 }
                 else
                 {
                     // No projects left, we need to convert back to metadata references
-                    ConvertProjectReferencesToMetadataReferences_NoLock(projectId, outputPath);
+                    ConvertProjectReferencesToMetadataReferences_NoLock(solutionChanges, projectId, outputPath);
                 }
             }
         }
 
-        private void RefreshMetadataReferencesForFile(object sender, string fullFilePath)
+        private void StartRefreshingMetadataReferencesForFile(object sender, string fullFilePath)
         {
-            using (_gate.DisposableWait())
+            _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                var newSolution = CurrentSolution;
-                using var _ = PooledHashSet<ProjectId>.GetInstance(out var changedProjectIds);
-
-                foreach (var project in CurrentSolution.Projects)
+                using var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
+                await ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
                 {
-                    // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
-                    // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
-                    // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
-                    // in the workspace at that time; it's possible it might have already been removed.
-                    foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                    foreach (var project in CurrentSolution.Projects)
                     {
-                        if (portableExecutableReference.FilePath == fullFilePath)
+                        // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
+                        // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
+                        // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
+                        // in the workspace at that time; it's possible it might have already been removed.
+                        foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
                         {
-                            FileWatchedReferenceFactory.StopWatchingReference(portableExecutableReference);
+                            if (portableExecutableReference.FilePath == fullFilePath)
+                            {
+                                FileWatchedReferenceFactory.StopWatchingReference(portableExecutableReference);
 
-                            var newPortableExecutableReference =
-                                FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(
-                                    portableExecutableReference.FilePath,
-                                    portableExecutableReference.Properties);
+                                var newPortableExecutableReference =
+                                    FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(
+                                        portableExecutableReference.FilePath,
+                                        portableExecutableReference.Properties);
 
-                            newSolution = newSolution.RemoveMetadataReference(project.Id, portableExecutableReference)
-                                                     .AddMetadataReference(project.Id, newPortableExecutableReference);
+                                var newSolution = solutionChanges.Solution.RemoveMetadataReference(project.Id, portableExecutableReference)
+                                                                            .AddMetadataReference(project.Id, newPortableExecutableReference);
 
-                            changedProjectIds.Add(project.Id);
+                                solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
+
+                            }
                         }
                     }
-                }
-
-                SetSolutionAndRaiseWorkspaceChanged_NoLock(newSolution, changedProjectIds);
-            }
+                }).ConfigureAwait(false);
+            });
         }
 
         internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
