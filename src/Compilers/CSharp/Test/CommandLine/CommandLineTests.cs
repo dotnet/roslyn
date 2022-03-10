@@ -14401,6 +14401,47 @@ public class Generator : ISourceGenerator
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
         }
+
+        [Theory]
+        [InlineData("/debug:embedded")]
+        [InlineData("/debug:portable")]
+        [InlineData("/debug:full")]
+        public void Generated_Trees_Output_Path_Respects_PathMap(string debugSwitch)
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("class C {}");
+            var generatedDir = dir.CreateDirectory("generated");
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            var mappedPath = Path.Combine("mapped", "path");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { debugSwitch, "/out:embed.exe", $"/pathmap:{dir.Path}={mappedPath}" }, generators: new[] { generator }, analyzers: null);
+
+            var generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator);
+
+            // validate that *no* sources were written
+            Assert.Empty(Directory.GetDirectories(generatedDir.Path));
+
+            // but we still have full paths (using output dir) in the PDBs
+            Dictionary<string, string> expectedEmbeddedMap = new() { { Path.Combine(mappedPath, generatorPrefix, "generatedSource.cs"), generatedSource } };
+            switch (debugSwitch)
+            {
+                case "/debug:embedded":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: true);
+                    break;
+                case "/debug:portable":
+                    ValidateEmbeddedSources_Portable(expectedEmbeddedMap, dir, isEmbeddedPdb: false);
+                    break;
+                case "/debug:full":
+                    ValidateEmbeddedSources_Windows(expectedEmbeddedMap, dir);
+                    break;
+            }
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
