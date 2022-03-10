@@ -13,33 +13,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
     {
         private readonly string? _pdbFilePath;
         private readonly string? _sourceFilePath;
-        private readonly bool _isPortablePdb;
 
-        public TestSourceLinkService(string? pdbFilePath = null, string? sourceFilePath = null, bool isPortablePdb = true)
+        public TestSourceLinkService(string? pdbFilePath = null, string? sourceFilePath = null)
         {
             _pdbFilePath = pdbFilePath;
             _sourceFilePath = sourceFilePath;
-            _isPortablePdb = isPortablePdb;
         }
 
-        public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        public Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, CancellationToken cancellationToken)
         {
             if (_pdbFilePath is null)
             {
                 return Task.FromResult<PdbFilePathResult?>(null);
             }
 
-            return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath, "status", Log: null, _isPortablePdb));
+            return Task.FromResult<PdbFilePathResult?>(new PdbFilePathResult(_pdbFilePath));
         }
 
-        public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, IPdbSourceDocumentLogger? logger, CancellationToken cancellationToken)
+        public Task<SourceFilePathResult?> GetSourceFilePathAsync(string url, string relativePath, CancellationToken cancellationToken)
         {
             if (_sourceFilePath is null)
             {
                 return Task.FromResult<SourceFilePathResult?>(null);
             }
 
-            return Task.FromResult<SourceFilePathResult?>(new SourceFilePathResult(_sourceFilePath, Log: null));
+            return Task.FromResult<SourceFilePathResult?>(new SourceFilePathResult(_sourceFilePath));
         }
     }
 }

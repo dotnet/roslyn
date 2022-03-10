@@ -534,5 +534,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         NavigateTo_CacheItemsMiss = 510,
 
         AssetService_Perf = 520,
+
+        NavigateToExternalSources = 531,
+
+        StackTraceToolWindow_ShowOnActivated = 540,
     }
 }

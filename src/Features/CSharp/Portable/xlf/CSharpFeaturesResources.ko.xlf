@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
-        <target state="new">Enable nullable reference types in project</target>
+        <target state="translated">프로젝트에서 null 허용 참조 형식 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">
@@ -169,12 +169,12 @@
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
-        <target state="new">Selection cannot include global statements</target>
+        <target state="translated">선택 영역에 전체 문을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_top_level_statements">
         <source>Selection cannot include top-level statements</source>
-        <target state="new">Selection cannot include top-level statements</target>
+        <target state="translated">선택 영역에는 최상위 문을 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Warning_Expression_may_change_code_meaning">
         <source>Warning: Expression may have side effects. Code meaning may change.</source>
-        <target state="new">Warning: Expression may have side effects. Code meaning may change.</target>
+        <target state="translated">경고: 식에 부작용이 있을 수 있습니다. 코드 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;멤버 이름&gt; =</target>
+        <target state="translated">&lt;멤버 이름&gt; = </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -259,7 +259,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt;요소 이름&gt;:</target>
+        <target state="translated">&lt;요소 이름&gt;: </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
