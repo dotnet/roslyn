@@ -388,6 +388,40 @@ $$
         }
 
         [WpfFact]
+        public void TestPasteExternalTripleQuoteIntoMultiLineRawString4()
+        {
+            TestPasteOnly(
+                pasteText: "\"\"\"",
+@"var x = """"""  
+    ""$$""  
+    """"""  ",
+@"var x = """"""""""""  
+    """"""""$$""  
+    """"""""""""  ",
+                afterUndo:
+@"var x = """"""  
+    """"""""$$""  
+    """"""  ");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTripleQuoteIntoMultiLineRawString5()
+        {
+            TestPasteOnly(
+                pasteText: "\"\"\"",
+@"var x = """"""  
+    $$""
+    """"""  ",
+@"var x = """"""""""  
+    """"""$$""
+    """"""""""  ",
+                afterUndo:
+@"var x = """"""  
+    """"""$$""
+    """"""  ");
+        }
+
+        [WpfFact]
         public void TestPasteExternalQuadrupleQuoteIntoMultiLineRawString()
         {
             TestPasteOnly(
