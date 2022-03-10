@@ -4490,6 +4490,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (openBracketToken.Kind() != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
             if (closeBracketToken.Kind() != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
+            // <Metalama> This change is generated. See Modifications.md for details.
+            openBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBracketToken);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
+            closeBracketToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBracketToken);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
+            designation = Metalama.Compiler.TreeTracker.TrackIfNeeded(designation);
+            // </Metalama>
             return (ListPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ListPattern((Syntax.InternalSyntax.SyntaxToken)openBracketToken.Node!, patterns.Node.ToGreenSeparatedList<Syntax.InternalSyntax.PatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBracketToken.Node!, designation == null ? null : (Syntax.InternalSyntax.VariableDesignationSyntax)designation.Green).CreateRed();
         }
 
@@ -4505,6 +4514,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SlicePatternSyntax SlicePattern(SyntaxToken dotDotToken, PatternSyntax? pattern)
         {
             if (dotDotToken.Kind() != SyntaxKind.DotDotToken) throw new ArgumentException(nameof(dotDotToken));
+            // <Metalama> This change is generated. See Modifications.md for details.
+            dotDotToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(dotDotToken);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
+            pattern = Metalama.Compiler.TreeTracker.TrackIfNeeded(pattern);
+            // </Metalama>
             return (SlicePatternSyntax)Syntax.InternalSyntax.SyntaxFactory.SlicePattern((Syntax.InternalSyntax.SyntaxToken)dotDotToken.Node!, pattern == null ? null : (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
@@ -7331,6 +7346,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.None: break;
                 default: throw new ArgumentException(nameof(exclamationExclamationToken));
             }
+            // <Metalama> This change is generated. See Modifications.md for details.
+            type = Metalama.Compiler.TreeTracker.TrackIfNeeded(type);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
+            identifier = Metalama.Compiler.TreeTracker.TrackIfNeeded(identifier);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
+            exclamationExclamationToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(exclamationExclamationToken);
+            // </Metalama>
+            // <Metalama> This change is generated. See Modifications.md for details.
+            @default = Metalama.Compiler.TreeTracker.TrackIfNeeded(@default);
+            // </Metalama>
             return (ParameterSyntax)Syntax.InternalSyntax.SyntaxFactory.Parameter(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), type == null ? null : (Syntax.InternalSyntax.TypeSyntax)type.Green, (Syntax.InternalSyntax.SyntaxToken)identifier.Node!, (Syntax.InternalSyntax.SyntaxToken?)exclamationExclamationToken.Node, @default == null ? null : (Syntax.InternalSyntax.EqualsValueClauseSyntax)@default.Green).CreateRed();
         }
 

@@ -5951,6 +5951,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.ListPattern(openBracketToken, patterns, closeBracketToken, designation);
                 var annotations = GetAnnotations();
+                // <Metalama> This change is generated. See Modifications.md for details.
+                Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+                // </Metalama>
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
@@ -5997,6 +6000,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 var newNode = SyntaxFactory.SlicePattern(dotDotToken, pattern);
                 var annotations = GetAnnotations();
+                // <Metalama> This change is generated. See Modifications.md for details.
+                Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+                // </Metalama>
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 

@@ -1407,6 +1407,15 @@
         <target state="translated">com estruturas</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_LogoLine3">
+        <source>Based on the Microsoft (R) Visual C# Compiler.
+Copyright (C) Microsoft Corporation. All rights reserved.
+See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</source>
+        <target state="new">Based on the Microsoft (R) Visual C# Compiler.
+Copyright (C) Microsoft Corporation. All rights reserved.
+See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
         <target state="translated">parâmetro de verificação nula</target>
@@ -10278,8 +10287,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="IDS_ToolName">
-        <source>Microsoft (R) Visual C# Compiler</source>
-        <target state="translated">Compilador do Microsoft (R) Visual C#</target>
+        <source>Metalama Compiler</source>
+        <target state="needs-review-translation">Compilador do Microsoft (R) Visual C#</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine1">
@@ -10288,8 +10297,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine2">
-        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
-        <target state="translated">Copyright (C) Microsoft Corporation. Todos os direitos reservados.</target>
+        <source>Copyright (c) SharpCrafters s.r.o. All rights reserved.</source>
+        <target state="needs-review-translation">Copyright (C) Microsoft Corporation. Todos os direitos reservados.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LangVersions">

@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis
                     // <Metalama> This code is used by Try.Metalama.
                     ImmutableArray<Diagnostic> transformerDiagnostics )
                         // </Metalama>
-                    : base(compilationWithoutGeneratedFilesSource,
+                    : base(compilationWithoutGeneratedFiles,
                            generatorInfo.WithDocumentsAreFinal(true)) // when we're in a final state, we've ran generators and should not run again
                 {
                     Contract.ThrowIfNull(finalCompilation);

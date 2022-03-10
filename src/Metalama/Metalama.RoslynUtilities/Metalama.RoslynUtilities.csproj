@@ -12,6 +12,7 @@
         <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
         <IsPackable>true</IsPackable>
         <RootNamespace>Metalama.RoslynUtilities</RootNamespace>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
     
     <PropertyGroup>
@@ -19,7 +20,8 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />
+        <!-- The version here must be the LOWEST supported -->
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.0" />
         
         <InternalsVisibleTo Include="Metalama.Framework.Engine" Key="$(MetalamaKey)" />
     </ItemGroup>
@@ -47,8 +49,12 @@
         <Compile Include="$(RoslynDirectory)\src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\StackExtensions.cs" />
         <Compile Include="$(RoslynDirectory)\src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\LocationExtensions.cs" />
         <Compile Include="$(RoslynDirectory)\src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\INamedTypeSymbolExtensions.cs" />
-        <Compile Include="$(RoslynDirectory)\src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ICollectionExtensions.cs" />        
-        
+        <Compile Include="$(RoslynDirectory)\src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ICollectionExtensions.cs" />
+        <Compile Include="$(RoslynDirectory)\src\Compilers/Core/Portable/Collections/Rope.cs"/>
+        <Compile Include="$(RoslynDirectory)\src\Compilers\Core\Portable\Collections\Boxes.cs"/>
+        <Compile Include="$(RoslynDirectory)/src/Compilers/Core/Portable/ConstantValue.cs"/>
+        <Compile Include="$(RoslynDirectory)/src/Compilers/Core/Portable/ConstantValueSpecialized.cs"/>
+        <Compile Include="$(RoslynDirectory)/src/Compilers/Core/Portable/SpecialTypeExtensions.cs"/>
         <Compile Include="$(RoslynDirectory)\src\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" />
         <Compile Include="$(RoslynDirectory)\src\Compilers\Core\Portable\InternalUtilities\Hash.cs" />
         <Compile Include="$(RoslynDirectory)\src\Compilers\Core\Portable\InternalUtilities\Debug.cs" />

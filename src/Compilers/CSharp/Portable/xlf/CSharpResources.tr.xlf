@@ -1407,6 +1407,15 @@
         <target state="translated">yapılar ile birlikte</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_LogoLine3">
+        <source>Based on the Microsoft (R) Visual C# Compiler.
+Copyright (C) Microsoft Corporation. All rights reserved.
+See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</source>
+        <target state="new">Based on the Microsoft (R) Visual C# Compiler.
+Copyright (C) Microsoft Corporation. All rights reserved.
+See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
         <target state="translated">parametre null denetimi</target>
@@ -10278,8 +10287,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="IDS_ToolName">
-        <source>Microsoft (R) Visual C# Compiler</source>
-        <target state="translated">Microsoft (R) Visual C# Derleyicisi</target>
+        <source>Metalama Compiler</source>
+        <target state="needs-review-translation">Microsoft (R) Visual C# Derleyicisi</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine1">
@@ -10288,8 +10297,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="IDS_LogoLine2">
-        <source>Copyright (C) Microsoft Corporation. All rights reserved.</source>
-        <target state="translated">Telif hakkı (C) Microsoft Corporation. Tüm hakları saklıdır.</target>
+        <source>Copyright (c) SharpCrafters s.r.o. All rights reserved.</source>
+        <target state="needs-review-translation">Telif hakkı (C) Microsoft Corporation. Tüm hakları saklıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_LangVersions">
