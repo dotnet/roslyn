@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     """"""",
                 afterUndo:
 @"var x = """"""
-    \n$$
+    $$
     """"""");
         }
 
@@ -256,18 +256,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 @"var x = """"""
     $$
     """"""",
-@"var x = ""\r\n$$""",
-                afterUndo: "var x = \"\r\n$$\"");
+@"var x = """"""
+    
+    $$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    $$
+    """"""");
         }
 
         [WpfFact]
         public void TestPasteExternalTabIntoMultiLineRawString1()
         {
             TestPasteOnly(
-                pasteText: "\t",
-                @"var x = ""$$""",
-                @"var x = ""\t$$""",
-                afterUndo: "var x = \"\t$$\"");
+                pasteText: "    ",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+        $$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    $$
+    """"""");
         }
 
         [WpfFact]
@@ -369,6 +382,139 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 afterUndo:
 @"var x = """"""
     $$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine1()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\ndef",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    abc
+    def$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    abc
+def$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine2()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\ndef",
+@"var x = """"""
+$$
+    """"""",
+@"var x = """"""
+    abc
+    def$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+abc
+def$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine3()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\ndef",
+@"var x = """"""$$
+
+    """"""",
+@"var x = """"""
+    abc
+    def$$
+    """"""",
+                afterUndo:
+@"var x = """"""abc
+def$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine4()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\ndef",
+@"var x = """"""
+    goo$$
+    """"""",
+@"var x = """"""
+    gooabc
+    def$$
+    """"""",
+                afterUndo:
+@"var x = """"""
+    gooabc
+def$$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine5()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\ndef",
+@"var x = """"""
+    goo$$bar
+    """"""",
+@"var x = """"""
+    gooabc
+    def$$bar
+    """"""",
+                afterUndo:
+@"var x = """"""
+    gooabc
+def$$bar
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringMultiLine6()
+        {
+            TestPasteOnly(
+                pasteText: "abc\r\ndef\r\n",
+@"var x = """"""
+    goo$$bar
+    """"""",
+@"var x = """"""
+    gooabc
+    def$$
+    bar
+    """"""",
+                afterUndo:
+@"var x = """"""
+    gooabc
+def
+$$bar
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalNormalTextIntoMultiLineRawStringHeader1()
+        {
+            TestPasteOnly(
+                pasteText: "bar",
+@"var x = """"""$$
+    goo
+    """"""",
+@"var x = """"""
+    bar$$
+    goo
+    """"""",
+                afterUndo:
+@"var x = """"""bar$$
+    goo
     """"""");
         }
 
