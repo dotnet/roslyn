@@ -604,7 +604,7 @@ namespace M
 
             // We use VerifyDiagnosticsOnly until this issue is fixed:
             // https://github.com/dotnet/roslyn/issues/60045
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnosticsOnly();
             compilation.VerifyEmitDiagnostics();
         }
 
