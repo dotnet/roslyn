@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
-            var escapedTextChanges = GetEscapedTextChanges(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, snapshotBeforePaste.Version.Changes, newLine);
+            var escapedTextChanges = GetAppropriateTextChanges(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newLine);
             if (escapedTextChanges.IsDefaultOrEmpty)
                 return;
 
@@ -262,28 +262,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return spanAfterPaste == stringExpressionAfterPaste.Span;
         }
 
-        private static ImmutableArray<TextChange> GetEscapedTextChanges(
+        private static ImmutableArray<TextChange> GetAppropriateTextChanges(
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
-            ExpressionSyntax stringExpression,
-            INormalizedTextChangeCollection changes,
+            ExpressionSyntax stringExpressionBeforePaste,
             string newLine)
         {
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to
             // deal with things like indentation and potentially adding newlines to make things legal.
-            if (stringExpression is LiteralExpressionSyntax literalExpression)
+            var changes = snapshotBeforePaste.Version.Changes;
+            if (stringExpressionBeforePaste is LiteralExpressionSyntax literalExpression)
             {
                 if (literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken)
                     return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
 
-                if (literalExpression.Token.Kind() == SyntaxKind.SingleLineRawStringLiteralToken)
-                    return GetEscapedTextChangesForSingleLineRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, changes, newLine);
-
-                if (literalExpression.Token.Kind() == SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetEscapedTextChangesForMultiLineRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, changes, newLine);
+                if (literalExpression.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+                    return GetTextChangesForRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, newLine);
             }
-            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            else if (stringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {
                 if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
                     return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: false, changes);
@@ -294,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // if (interpolatedString.StringStartToken.Kind() )
             }
 
-            Debug.Fail("Unhandled case: " + stringExpression.Kind());
+            Debug.Fail("Unhandled case: " + stringExpressionBeforePaste.Kind());
             return default;
         }
 

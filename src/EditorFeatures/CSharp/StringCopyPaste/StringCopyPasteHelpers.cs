@@ -331,5 +331,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 }
             }
         }
+
+        /// <summary>
+        /// Given a set of source text lines, determines what common whitespace prefix each line has.  Note that this
+        /// does *not* include the first line as it's super common for someone to copy a set of lines while only
+        /// starting the selection at the start of the content on the first line.  This also does not include empty
+        /// lines as they're also very common, but are clearly not a way of indicating indentation indent for the normal
+        /// lines.
+        /// </summary>
+        public static string? GetCommonIndentationPrefix(SourceText text)
+        {
+            string? commonIndentPrefix = null;
+
+            for (int i = 1, n = text.Lines.Count; i < n; i++)
+            {
+                var line = text.Lines[i];
+                var nonWhitespaceIndex = GetFirstNonWhitespaceIndex(text, line);
+                if (nonWhitespaceIndex >= 0)
+                    commonIndentPrefix = GetCommonIndentationPrefix(commonIndentPrefix, text, TextSpan.FromBounds(line.Start, nonWhitespaceIndex));
+            }
+
+            return commonIndentPrefix;
+        }
+
+        private static string? GetCommonIndentationPrefix(string? commonIndentPrefix, SourceText text, TextSpan lineWhitespaceSpan)
+        {
+            // first line with indentation whitespace we're seeing.  Just keep track of that.
+            if (commonIndentPrefix == null)
+                return text.ToString(lineWhitespaceSpan);
+
+            // we have indentation whitespace from a previous line.  Figure out the max commonality between it and the
+            // line we're currently looking at.
+            var commonPrefixLength = 0;
+            for (var n = Math.Min(commonIndentPrefix.Length, lineWhitespaceSpan.Length); commonPrefixLength < n; commonPrefixLength++)
+            {
+                if (commonIndentPrefix[commonPrefixLength] != text[lineWhitespaceSpan.Start + commonPrefixLength])
+                    break;
+            }
+
+            return commonIndentPrefix[..commonPrefixLength];
+        }
     }
 }
