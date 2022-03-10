@@ -84,6 +84,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return true;
         }
 
+        /// <summary>
+        /// Given a TextLine, returns the index (in the SourceText) of the first character of it that is not a
+        /// Whitespace character.  The LineBreak parts of the line are not considered here.  If the line is empty/blank
+        /// (again, not counting LineBreak characters) then -1 is returned.
+        /// </summary>
+        public static int GetFirstNonWhitespaceIndex(SourceText text, TextLine line)
+        {
+            for (int i = line.Start, n = line.End; i < n; i++)
+            {
+                if (!SyntaxFacts.IsWhitespace(text[i]))
+                    return i;
+            }
+
+            return -1;
+        }
+
         public static bool ContainsControlCharacter(INormalizedTextChangeCollection changes)
         {
             return changes.Any(c => ContainsControlCharacter(c.NewText));

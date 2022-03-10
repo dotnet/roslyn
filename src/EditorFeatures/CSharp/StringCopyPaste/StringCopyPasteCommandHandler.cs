@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             //}
             //else
             //{
+
             ProcessPasteFromUnknownSource(
                 textView,
                 subjectBuffer,
