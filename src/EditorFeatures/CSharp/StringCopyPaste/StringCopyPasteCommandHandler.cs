@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
 
             // If we end up making the same changes as what the paste did, then no need to proceed.
-            if (newTextAfterChanges.ContentEquals(snapshotAfterPaste.AsText()))
+            if (ContentsAreSame(snapshotBeforePaste, snapshotAfterPaste, stringExpression, newTextAfterChanges))
                 return;
 
             var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
@@ -183,6 +182,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             transaction.Complete();
         }
 
+        /// <summary>
+        /// Given the snapshots before/after pasting, and the source-text our manual fixup edits produced, see if our
+        /// manual application actually produced the same results as the paste.  If so, we don't need to actually do
+        /// anything.  To optimize this check, we pass in the original string expression as that's all we have to check
+        /// (adjusting for where it now ends up) in both the 'after' documents.
+        /// </summary>
+        private static bool ContentsAreSame(
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
+            ExpressionSyntax stringExpressionBeforePaste,
+            SourceText newTextAfterChanges)
+        {
+            // We ended up with documents of different length after we escapes/manipulated the pasted text.  So the 
+            // contents are definitely not the same.
+            if (newTextAfterChanges.Length != snapshotAfterPaste.Length)
+                return false;
+
+            var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(stringExpressionBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+            var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
+
+            var originalStringContentsAfterPaste = snapshotAfterPaste.AsText().ToString(spanAfterPaste);
+            var newStringContentsAfterEdit = newTextAfterChanges.ToString(spanAfterPaste);
+
+            return originalStringContentsAfterPaste == newStringContentsAfterEdit;
+        }
+
         private static bool ShouldAlwaysEscapeTextFromUnknownSource(ExpressionSyntax stringExpression, INormalizedTextChangeCollection changes)
         {
             if (stringExpression is LiteralExpressionSyntax literal)
@@ -192,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (literal.Token.IsRegularStringLiteral() && ContainsControlCharacter(changes))
                     return true;
 
-                // Always assume pasing into a raw string needs adjustment.
+                // Always assume passing into a raw string needs adjustment.
                 return IsRawStringLiteral(literal);
             }
             else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
@@ -202,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken) && ContainsControlCharacter(changes))
                     return true;
 
-                // Always assume pasing into a raw string needs adjustment.
+                // Always assume passing into a raw string needs adjustment.
                 return IsRawStringLiteral(interpolatedString);
             }
 
