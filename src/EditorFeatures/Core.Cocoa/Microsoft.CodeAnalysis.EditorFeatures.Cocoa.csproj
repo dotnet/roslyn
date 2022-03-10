@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- This should really be net6.0-macos. See notes on Microsoft.macOS.Ref below. -->
+    <!-- This should really be net6.0-macos. See notes on Microsoft.macOS.Ref
+         below, and https://github.com/dotnet/roslyn/issues/60078 . -->
     <TargetFramework>net6.0</TargetFramework>
     <DefineConstants>$(DefineConstants);COCOA</DefineConstants>
-    <!-- https://github.com/dotnet/roslyn/pull/59429#issuecomment-1043195174 -->
+    <!-- https://github.com/xamarin/xamarin-macios/issues/14331 -->
     <EnableDefaultmacOSItems>false</EnableDefaultmacOSItems>
 
     <!-- CA1416 can go away when we target net6.0-macos -->
