@@ -3,20 +3,65 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using MessagePack;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 {
     internal static class StringCopyPasteHelpers
     {
+        /// <summary>
+        /// True if the string literal contains an error diagnostic that indicates a parsing problem with it. For
+        /// interpolated strings, this only includes the text sections, and not any interpolation holes in the literal.
+        /// </summary>
+        public static bool ContainsError(ExpressionSyntax stringExpression)
+        {
+            if (stringExpression is LiteralExpressionSyntax)
+                return NodeOrTokenContainsError(stringExpression);
+
+            if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                using var _ = PooledHashSet<Diagnostic>.GetInstance(out var errors);
+                foreach (var diagnostic in interpolatedString.GetDiagnostics())
+                {
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
+                        errors.Add(diagnostic);
+                }
+
+                // we don't care about errors in holes.  Only errors in the content portions of the string.
+                for (int i = 0, n = interpolatedString.Contents.Count; i < n && errors.Count > 0; i++)
+                {
+                    if (interpolatedString.Contents[i] is InterpolatedStringTextSyntax text)
+                    {
+                        foreach (var diagnostic in text.GetDiagnostics())
+                            errors.Remove(diagnostic);
+                    }
+                }
+
+                return errors.Count > 0;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(stringExpression);
+        }
+
+        public static bool NodeOrTokenContainsError(SyntaxNodeOrToken nodeOrToken)
+        {
+            foreach (var diagnostic in nodeOrToken.GetDiagnostics())
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    return true;
+            }
+
+            return false;
+        }
+
         public static bool AllWhitespace(INormalizedTextChangeCollection changes)
         {
             foreach (var change in changes)
@@ -28,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return true;
         }
 
-        public static bool AllWhitespace(string text)
+        private static bool AllWhitespace(string text)
         {
             foreach (var ch in text)
             {
@@ -55,6 +100,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
+        /// <summary>
+        /// Removes all characters matching <see cref="SyntaxFacts.IsWhitespace(char)"/> from the start of <paramref
+        /// name="value"/>.
+        /// </summary>
         public static string TrimStart(string value)
         {
             var start = 0;
@@ -73,6 +122,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public static TextSpan GetRawStringLiteralContentSpan(SourceText text, LiteralExpressionSyntax stringExpression)
             => GetRawStringLiteralContentSpan(text, stringExpression, out _);
 
+        /// <summary>
+        /// Returns the section of a raw string literal between the <c>"""</c> delimiters.  This also includes the
+        /// leading/trailing whitespace between the delimiters for a multi-line raw string literal.
+        /// </summary>
         public static TextSpan GetRawStringLiteralContentSpan(
             SourceText text, LiteralExpressionSyntax stringExpression, out int delimiterQuoteCount)
         {
@@ -91,6 +144,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return contentSpan;
         }
 
+        /// <summary>
+        /// Given a section of a document, finds the longest sequence of quote (<c>"</c>) characters in it.  Used to
+        /// determine if a raw string literal needs to grow its delimiters to ensure that the quote sequence will no
+        /// longer be a problem.
+        /// </summary>
         public static int GetLongestQuoteSequence(SnapshotSpan contentSpan)
         {
             var snapshot = contentSpan.Snapshot;
@@ -113,6 +171,149 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             return longestCount;
+        }
+
+        public static ExpressionSyntax? FindContainingStringExpression(
+            SyntaxNode root, NormalizedSnapshotSpanCollection selectionsBeforePaste)
+        {
+            ExpressionSyntax? expression = null;
+            foreach (var snapshotSpan in selectionsBeforePaste)
+            {
+                var container = FindContainingStringExpression(root, snapshotSpan.Start.Position);
+                if (container == null)
+                    return null;
+
+                expression ??= container;
+                if (expression != container)
+                    return null;
+            }
+
+            return expression;
+        }
+
+        public static ExpressionSyntax? FindContainingStringExpression(SyntaxNode root, int position)
+        {
+            var node = root.FindToken(position).Parent;
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (current is LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } literalExpression)
+                    return literalExpression;
+
+                if (current is InterpolatedStringExpressionSyntax interpolatedString)
+                    return interpolatedString;
+            }
+
+            return null;
+        }
+
+        public static string EscapeForNonRawStringLiteral(bool isVerbatim, string value)
+        {
+            if (isVerbatim)
+                return value.Replace("\"", "\"\"");
+
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            // taken from object-display
+            for (var i = 0; i < value.Length; i++)
+            {
+                var c = value[i];
+                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate)
+                {
+                    var category = CharUnicodeInfo.GetUnicodeCategory(value, i);
+                    if (category == UnicodeCategory.Surrogate)
+                    {
+                        // an unpaired surrogate
+                        builder.Append("\\u" + ((int)c).ToString("x4"));
+                    }
+                    else if (NeedsEscaping(category))
+                    {
+                        // a surrogate pair that needs to be escaped
+                        var unicode = char.ConvertToUtf32(value, i);
+                        builder.Append("\\U" + unicode.ToString("x8"));
+                        i++; // skip the already-encoded second surrogate of the pair
+                    }
+                    else
+                    {
+                        // copy a printable surrogate pair directly
+                        builder.Append(c);
+                        builder.Append(value[++i]);
+                    }
+                }
+                else if (TryReplaceChar(c, out var replaceWith))
+                {
+                    builder.Append(replaceWith);
+                }
+                else
+                {
+                    builder.Append(c);
+                }
+            }
+
+            return builder.ToString();
+
+            static bool TryReplaceChar(char c, [NotNullWhen(true)] out string? replaceWith)
+            {
+                replaceWith = null;
+                switch (c)
+                {
+                    case '\\':
+                        replaceWith = "\\\\";
+                        break;
+                    case '\0':
+                        replaceWith = "\\0";
+                        break;
+                    case '\a':
+                        replaceWith = "\\a";
+                        break;
+                    case '\b':
+                        replaceWith = "\\b";
+                        break;
+                    case '\f':
+                        replaceWith = "\\f";
+                        break;
+                    case '\n':
+                        replaceWith = "\\n";
+                        break;
+                    case '\r':
+                        replaceWith = "\\r";
+                        break;
+                    case '\t':
+                        replaceWith = "\\t";
+                        break;
+                    case '\v':
+                        replaceWith = "\\v";
+                        break;
+                    case '"':
+                        replaceWith = "\\\"";
+                        break;
+                }
+
+                if (replaceWith != null)
+                    return true;
+
+                if (NeedsEscaping(CharUnicodeInfo.GetUnicodeCategory(c)))
+                {
+                    replaceWith = "\\u" + ((int)c).ToString("x4");
+                    return true;
+                }
+
+                return false;
+            }
+
+            static bool NeedsEscaping(UnicodeCategory category)
+            {
+                switch (category)
+                {
+                    case UnicodeCategory.Control:
+                    case UnicodeCategory.OtherNotAssigned:
+                    case UnicodeCategory.ParagraphSeparator:
+                    case UnicodeCategory.LineSeparator:
+                    case UnicodeCategory.Surrogate:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         }
     }
 }

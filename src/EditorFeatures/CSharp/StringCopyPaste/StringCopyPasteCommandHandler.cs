@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     [Export(typeof(ICommandHandler))]
     [VSUtilities.ContentType(ContentTypeNames.CSharpContentType)]
     [VSUtilities.Name(nameof(StringCopyPasteCommandHandler))]
-    internal class StringCopyPasteCommandHandler : IChainedCommandHandler<CopyCommandArgs>, IChainedCommandHandler<PasteCommandArgs>
+    internal partial class StringCopyPasteCommandHandler : IChainedCommandHandler<CopyCommandArgs>, IChainedCommandHandler<PasteCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -234,47 +233,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return spanAfterPaste == stringExpressionAfterPaste.Span;
         }
 
-        private static bool ContainsError(ExpressionSyntax stringExpression)
-        {
-            if (stringExpression is LiteralExpressionSyntax)
-                return NodeOrTokenContainsError(stringExpression);
-
-            if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                using var _ = PooledHashSet<Diagnostic>.GetInstance(out var errors);
-                foreach (var diagnostic in interpolatedString.GetDiagnostics())
-                {
-                    if (diagnostic.Severity == DiagnosticSeverity.Error)
-                        errors.Add(diagnostic);
-                }
-
-                // we don't care about errors in holes.  Only errors in the content portions of the string.
-                for (int i = 0, n = interpolatedString.Contents.Count; i < n && errors.Count > 0; i++)
-                {
-                    if (interpolatedString.Contents[i] is InterpolatedStringTextSyntax text)
-                    {
-                        foreach (var diagnostic in text.GetDiagnostics())
-                            errors.Remove(diagnostic);
-                    }
-                }
-
-                return errors.Count > 0;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(stringExpression);
-        }
-
-        private static bool NodeOrTokenContainsError(SyntaxNodeOrToken nodeOrToken)
-        {
-            foreach (var diagnostic in nodeOrToken.GetDiagnostics())
-            {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
-                    return true;
-            }
-
-            return false;
-        }
-
         private static ImmutableArray<TextChange> GetEscapedTextChanges(
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
@@ -309,93 +267,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static ImmutableArray<TextChange> GetEscapedTextChangesForMultiLineRawStringLiteral(
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
-            LiteralExpressionSyntax literalExpression,
-            INormalizedTextChangeCollection changes,
-            string newLine)
-        {
-            // Can't really figure anything out if the raw string is in error.
-            if (NodeOrTokenContainsError(literalExpression))
-                return default;
-
-            // If all we're going to do is insert whitespace, then don't make any 
-            if (AllWhitespace(changes))
-                return default;
-
-            var token = literalExpression.Token;
-            var text = snapshotBeforePaste.AsText();
-            var endLine = text.Lines.GetLineFromPosition(token.Span.End);
-            var indentationWhitespace = endLine.GetLeadingWhitespace();
-
-            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var finalTextChanges);
-            using var _2 = PooledStringBuilder.GetInstance(out var buffer);
-
-            var quotesToAdd = GetQuotesToAddToMultiLineRawLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, text);
-            if (quotesToAdd != null)
-                finalTextChanges.Add(new TextChange(new TextSpan(literalExpression.SpanStart, 0), quotesToAdd));
-
-            foreach (var change in changes)
-            {
-                // Create a text object around the change text we're making.  This is a very simple way to get
-                // a nice view of the text lines in the change.
-                var changeText = SourceText.From(change.NewText);
-                buffer.Clear();
-
-                for (int i = 0, n = changeText.Lines.Count; i < n; i++)
-                {
-                    if (i == 0)
-                    {
-                        text.GetLineAndOffset(change.OldSpan.Start, out var line, out var offset);
-
-                        if (line == text.Lines.GetLineFromPosition(literalExpression.SpanStart).LineNumber)
-                        {
-                            // if the first chunk was pasted into the space after the first `"""` then we need to actually
-                            // insert a newline, then the indentation whitespace, then the first line of the change.
-                            buffer.Append(newLine);
-                            buffer.Append(indentationWhitespace);
-                        }
-                        else if (offset < indentationWhitespace.Length)
-                        {
-                            // On the first line, we were pasting into the indentation whitespace.  Ensure we add enough
-                            // whitespace so that the trimmed line starts at an acceptable position.
-                            buffer.Append(indentationWhitespace[offset..]);
-                        }
-                    }
-                    else
-                    {
-                        // On any other line we're adding, ensure we have enough indentation whitespace to proceed.
-                        buffer.Append(indentationWhitespace);
-                    }
-
-                    buffer.Append(TrimStart(changeText.ToString(changeText.Lines[i].SpanIncludingLineBreak)));
-                }
-
-                finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
-            }
-
-            if (quotesToAdd != null)
-                finalTextChanges.Add(new TextChange(new TextSpan(literalExpression.Span.End, 0), quotesToAdd));
-
-            return finalTextChanges.ToImmutable();
-        }
-
-        private static string? GetQuotesToAddToMultiLineRawLiteral(ITextSnapshot snapshotBeforePaste, ITextSnapshot snapshotAfterPaste, LiteralExpressionSyntax literalExpression, SourceText text)
-        {
-            var contentSpanBeforePaste = GetRawStringLiteralContentSpan(text, literalExpression, out var delimiterQuoteCount);
-            var contentSpanAfterPaste = snapshotBeforePaste.CreateTrackingSpan(contentSpanBeforePaste.ToSpan(), SpanTrackingMode.EdgeInclusive)
-                                                           .GetSpan(snapshotAfterPaste);
-            var longestQuoteSequence = GetLongestQuoteSequence(contentSpanAfterPaste);
-
-            var quotesToAddCount = (longestQuoteSequence - delimiterQuoteCount) + 1;
-            if (quotesToAddCount <= 0)
-                return null;
-
-            var quotesToAdd = new string('"', quotesToAddCount);
-            return quotesToAdd;
-        }
-
         private static ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(
             bool isVerbatim, INormalizedTextChangeCollection changes)
         {
@@ -405,116 +276,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, change.NewText)));
 
             return textChanges.ToImmutable();
-        }
-
-        private static string EscapeForNonRawStringLiteral(bool isVerbatim, string value)
-        {
-            if (isVerbatim)
-                return value.Replace("\"", "\"\"");
-
-            using var _ = PooledStringBuilder.GetInstance(out var builder);
-
-            // taken from object-display
-            for (var i = 0; i < value.Length; i++)
-            {
-                var c = value[i];
-                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate)
-                {
-                    var category = CharUnicodeInfo.GetUnicodeCategory(value, i);
-                    if (category == UnicodeCategory.Surrogate)
-                    {
-                        // an unpaired surrogate
-                        builder.Append("\\u" + ((int)c).ToString("x4"));
-                    }
-                    else if (NeedsEscaping(category))
-                    {
-                        // a surrogate pair that needs to be escaped
-                        var unicode = char.ConvertToUtf32(value, i);
-                        builder.Append("\\U" + unicode.ToString("x8"));
-                        i++; // skip the already-encoded second surrogate of the pair
-                    }
-                    else
-                    {
-                        // copy a printable surrogate pair directly
-                        builder.Append(c);
-                        builder.Append(value[++i]);
-                    }
-                }
-                else if (TryReplaceChar(c, out var replaceWith))
-                {
-                    builder.Append(replaceWith);
-                }
-                else
-                {
-                    builder.Append(c);
-                }
-            }
-
-            return builder.ToString();
-        }
-
-        private static bool TryReplaceChar(char c, [NotNullWhen(true)] out string? replaceWith)
-        {
-            replaceWith = null;
-            switch (c)
-            {
-                case '\\':
-                    replaceWith = "\\\\";
-                    break;
-                case '\0':
-                    replaceWith = "\\0";
-                    break;
-                case '\a':
-                    replaceWith = "\\a";
-                    break;
-                case '\b':
-                    replaceWith = "\\b";
-                    break;
-                case '\f':
-                    replaceWith = "\\f";
-                    break;
-                case '\n':
-                    replaceWith = "\\n";
-                    break;
-                case '\r':
-                    replaceWith = "\\r";
-                    break;
-                case '\t':
-                    replaceWith = "\\t";
-                    break;
-                case '\v':
-                    replaceWith = "\\v";
-                    break;
-                case '"':
-                    replaceWith = "\\\"";
-                    break;
-            }
-
-            if (replaceWith != null)
-                return true;
-
-            if (NeedsEscaping(CharUnicodeInfo.GetUnicodeCategory(c)))
-            {
-                replaceWith = "\\u" + ((int)c).ToString("x4");
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool NeedsEscaping(UnicodeCategory category)
-        {
-            switch (category)
-            {
-                case UnicodeCategory.Control:
-                case UnicodeCategory.OtherNotAssigned:
-                case UnicodeCategory.ParagraphSeparator:
-                case UnicodeCategory.LineSeparator:
-                case UnicodeCategory.Surrogate:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         /// <summary>
@@ -633,39 +394,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             {
                 throw ExceptionUtilities.UnexpectedValue(stringExpression);
             }
-        }
-
-        private static ExpressionSyntax? FindContainingStringExpression(
-            SyntaxNode root, NormalizedSnapshotSpanCollection selectionsBeforePaste)
-        {
-            ExpressionSyntax? expression = null;
-            foreach (var snapshotSpan in selectionsBeforePaste)
-            {
-                var container = FindContainingStringExpression(root, snapshotSpan.Start.Position);
-                if (container == null)
-                    return null;
-
-                expression ??= container;
-                if (expression != container)
-                    return null;
-            }
-
-            return expression;
-        }
-
-        private static ExpressionSyntax? FindContainingStringExpression(SyntaxNode root, int position)
-        {
-            var node = root.FindToken(position).Parent;
-            for (var current = node; current != null; current = current.Parent)
-            {
-                if (current is LiteralExpressionSyntax { RawKind: (int)SyntaxKind.StringLiteralExpression } literalExpression)
-                    return literalExpression;
-
-                if (current is InterpolatedStringExpressionSyntax interpolatedString)
-                    return interpolatedString;
-            }
-
-            return null;
         }
 
         private bool PastedTextEqualsLastCopiedText(ITextBuffer subjectBuffer)
