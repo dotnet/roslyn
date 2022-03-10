@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
@@ -25,20 +24,6 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 
             // The VisualBasicNetCoreClassLibrary template does not open a file automatically.
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, WellKnownProjectTemplates.VisualBasicNetCoreClassLibraryClassFileName, HangMitigatingCancellationToken);
-        }
-
-        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [IdeFact]
-        public override async Task VerifySyntaxErrorSquiggles()
-        {
-            await base.VerifySyntaxErrorSquiggles();
-        }
-
-        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
-        [IdeFact]
-        public override async Task VerifySemanticErrorSquiggles()
-        {
-            await base.VerifySemanticErrorSquiggles();
         }
     }
 }
