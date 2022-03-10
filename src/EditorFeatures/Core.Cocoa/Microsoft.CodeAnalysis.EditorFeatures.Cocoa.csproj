@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!-- This should really be net6.0-macos. See notes on Microsoft.macOS.Ref below. -->
     <TargetFramework>net6.0</TargetFramework>
     <DefineConstants>$(DefineConstants);COCOA</DefineConstants>
     <!-- https://github.com/dotnet/roslyn/pull/59429#issuecomment-1043195174 -->
