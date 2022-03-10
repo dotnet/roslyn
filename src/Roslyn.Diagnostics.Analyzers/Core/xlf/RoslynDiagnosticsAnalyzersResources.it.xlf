@@ -297,6 +297,11 @@
         <target state="translated">I metodi di test asincroni non richiedono il suffisso 'Async'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run iterations">
+        <source>Run iterations</source>
+        <target state="new">Run iterations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">L'istanza di TemporaryArray&lt;T&gt;.AsRef() deve essere una variabile 'using'.</target>

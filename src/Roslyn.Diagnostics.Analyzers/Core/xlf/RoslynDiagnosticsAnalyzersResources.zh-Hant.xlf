@@ -297,6 +297,11 @@
         <target state="translated">非同步測試方法不需要 'Async' 尾碼</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run iterations">
+        <source>Run iterations</source>
+        <target state="new">Run iterations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">TemporaryArray&lt;T&gt;.AsRef() 的執行個體必須是 'using' 變數。</target>

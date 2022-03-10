@@ -551,7 +551,10 @@ namespace Analyzer.Utilities
         public const string SystemXmlXslXslTransform = "System.Xml.Xsl.XslTransform";
         public const string SystemXmlXslXsltSettings = "System.Xml.Xsl.XsltSettings";
         public const string XunitAssert = "Xunit.Assert";
+        public const string XunitCombinatorialDataAttribute = "Xunit.CombinatorialDataAttribute";
+        public const string XunitCombinatorialRangeAttribute = "Xunit.CombinatorialRangeAttribute";
         public const string XunitFactAttribute = "Xunit.FactAttribute";
+        public const string XunitSdkDataAttribute = "Xunit.Sdk.DataAttribute";
         public const string XunitTraitAttribute = "Xunit.TraitAttribute";
     }
 }
