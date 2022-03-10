@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim contents = Encoding.UTF8.GetString(Convert.FromBase64String(contentBase64Encoded))
 
                 Dim compilation = Await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()
-                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) t.FilePath = generatedDocumentVertex.Uri.OriginalString)
+                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) "source-generated:///" + t.FilePath.Replace("\"c, "/"c) = generatedDocumentVertex.Uri.OriginalString)
 
                 Assert.Equal(tree.GetText().ToString(), contents)
             Next
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
         <Fact>
         <WorkItem(59692, "https://github.com/dotnet/roslyn/issues/59692")>
-        Public Async Function SourceGeneratedDocumentHasRelativeUrlInJson() As Task
+        Public Async Function SourceGeneratedDocumentHasUriInJson() As Task
             Dim workspace = TestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
             Dim generatedDocument = Assert.Single(Await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync())
             Dim outputText = stringWriter.ToString()
-            Assert.Contains($"""uri"":""{generatedDocument.FilePath.Replace("\", "\\")}""", outputText)
+            Assert.Contains($"""uri"":""source-generated:///{generatedDocument.FilePath.Replace("\", "/")}""", outputText)
         End Function
     End Class
 End Namespace
