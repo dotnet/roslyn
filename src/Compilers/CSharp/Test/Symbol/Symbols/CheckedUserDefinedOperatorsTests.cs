@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -3262,6 +3263,3041 @@ class C
             crefSyntax = CrefTests.GetCrefSyntaxes(compilation).Single();
             actualSymbol = CrefTests.GetReferencedSymbol(crefSyntax, compilation, expected);
             Assert.Null(actualSymbol);
+        }
+
+        [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void OverloadResolution_UnaryOperators_01(string op)
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+
+public class C1 : C0
+{
+    public static C1 operator checked " + op + @"(C1 x)
+    {
+        System.Console.WriteLine(""checked C1"");
+        return x;
+    }
+
+    public static C1 operator " + op + @"(C1 x)
+    {
+        System.Console.WriteLine(""regular C1"");
+        return x;
+    }
+}
+
+public class C2 : C1
+{
+    public static C2 operator " + op + @"(C2 x)
+    {
+        System.Console.WriteLine(""regular C2"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+        TestUncheckedC0(new C0());
+        TestCheckedC1(new C1());
+        TestUncheckedC1(new C1());
+        TestCheckedC2(new C2());
+        TestUncheckedC2(new C2());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(" + op + @"x); // C0
+    }
+
+    public static C0 TestUncheckedC0(C0 x)
+    {
+        return unchecked(" + op + @"x);
+    }
+
+    public static C1 TestCheckedC1(C1 x)
+    {
+        return checked(" + op + @"x); // C1
+    }
+
+    public static C1 TestUncheckedC1(C1 x)
+    {
+        return unchecked(" + op + @"x);
+    }
+
+    public static C2 TestCheckedC2(C2 x)
+    {
+        return checked(" + op + @"x); // C2
+    }
+
+    public static C2 TestUncheckedC2(C2 x)
+    {
+        return unchecked(" + op + @"x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            compilation3.VerifyDiagnostics(
+                // (16,24): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return checked(-x); // C0
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "x").WithArguments("checked user-defined operators").WithLocation(16, 24),
+                // (26,24): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return checked(-x); // C1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "x").WithArguments("checked user-defined operators").WithLocation(26, 24)
+                );
+        }
+
+        [Fact]
+        public void OverloadResolution_UnaryOperators_02()
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static C0 operator checked -(C0 x)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            //   
+            //     public static C0 operator -(C0 x)
+            //     {
+            //         System.Console.WriteLine(""regular C0"");
+            //         return x;
+            //     }
+            // }
+            //   
+            // class C1 : C0
+            // {
+            //     public static C1 operator checked -(C1 x)
+            //     {
+            //         System.Console.WriteLine(""checked C1"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 op_CheckedUnaryNegation (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname static 
+        class C0 op_UnaryNegation (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""regular C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends C0
+{
+    .method public hidebysig specialname static 
+        class C1 op_CheckedUnaryNegation (
+            class C1 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C1
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C1""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void C0::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C1());
+        TestUncheckedC0(new C1());
+        TestCheckedC1(new C1());
+        TestUncheckedC1(new C1());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(-x);
+    }
+
+    public static C0 TestUncheckedC0(C0 x)
+    {
+        return unchecked(-x);
+    }
+
+    public static C1 TestCheckedC1(C1 x)
+    {
+        return checked(-x);
+    }
+
+    public static C0 TestUncheckedC1(C1 x)
+    {
+        return unchecked(-x);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C0
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("-", "op_CheckedUnaryNegation")]
+        [InlineData("++", "op_CheckedIncrement")]
+        [InlineData("--", "op_CheckedDecrement")]
+        public void OverloadResolution_UnaryOperators_03(string op, string checkedName)
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static C0 operator checked " + op + @"(C0 x)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 " + checkedName + @" (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(" + op + @"x);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("-", "op_CheckedUnaryNegation")]
+        [InlineData("++", "op_CheckedIncrement")]
+        [InlineData("--", "op_CheckedDecrement")]
+        public void OverloadResolution_UnaryOperators_04(string op, string checkedName)
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static C0 operator checked " + op + @"(C0 x)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 " + checkedName + @" (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestUncheckedC0(new C0());
+    }
+
+    public static C0 TestUncheckedC0(C0 x)
+    {
+        return unchecked(" + op + @"x);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyDiagnostics(
+                // (11,26): error CS0023: Operator '-' cannot be applied to operand of type 'C0'
+                //         return unchecked(-x);
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, op + "x").WithArguments(op, "C0").WithLocation(11, 26)
+                );
+        }
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void ExpressionTree_UnaryOperators_01(string op)
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x)
+    {
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    public static Expression<Func<C0, C0>> TestChecked()
+    {
+        return x => checked(" + op + @"x);
+    }
+
+    public static Expression<Func<C0, C0>> TestUnchecked()
+    {
+        return x => unchecked(" + op + @"x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyDiagnostics(
+                // (22,29): error CS0832: An expression tree may not contain an assignment operator
+                //         return x => checked(++x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, op + "x").WithLocation(22, 29),
+                // (27,31): error CS0832: An expression tree may not contain an assignment operator
+                //         return x => unchecked(++x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, op + "x").WithLocation(27, 31)
+                );
+        }
+
+        [Fact]
+        public void ExpressionTree_UnaryOperators_02()
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C0 
+{
+    public static C0 operator checked -(C0 x)
+    {
+        return x;
+    }
+
+    public static C0 operator -(C0 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestChecked());
+        System.Console.WriteLine(TestUnchecked());
+    }
+
+    public static Expression<Func<C0, C0>> TestChecked()
+    {
+        return x => checked(-x);
+    }
+
+    public static Expression<Func<C0, C0>> TestUnchecked()
+    {
+        return x => unchecked(-x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation1, expectedOutput: @"
+x => -x
+x => -x
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.TestChecked", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""C0 C0.op_CheckedUnaryNegation(C0)""
+  IL_001c:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0021:  castclass  ""System.Reflection.MethodInfo""
+  IL_0026:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.NegateChecked(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.0
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003a:  stloc.1
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.1
+  IL_003e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUnchecked", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""C0 C0.op_UnaryNegation(C0)""
+  IL_001c:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0021:  castclass  ""System.Reflection.MethodInfo""
+  IL_0026:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Negate(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.0
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003a:  stloc.1
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.1
+  IL_003e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExpressionTree_UnaryOperators_03()
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C0 
+{
+    public static C0 operator -(C0 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestChecked());
+        System.Console.WriteLine(TestUnchecked());
+    }
+
+    public static Expression<Func<C0, C0>> TestChecked()
+    {
+        return x => checked(-x);
+    }
+
+    public static Expression<Func<C0, C0>> TestUnchecked()
+    {
+        return x => unchecked(-x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation1, expectedOutput: @"
+x => -x
+x => -x
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.TestChecked", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""C0 C0.op_UnaryNegation(C0)""
+  IL_001c:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0021:  castclass  ""System.Reflection.MethodInfo""
+  IL_0026:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Negate(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.0
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003a:  stloc.1
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.1
+  IL_003e:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUnchecked", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""C0 C0.op_UnaryNegation(C0)""
+  IL_001c:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0021:  castclass  ""System.Reflection.MethodInfo""
+  IL_0026:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Negate(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldloc.0
+  IL_0034:  stelem.ref
+  IL_0035:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003a:  stloc.1
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.1
+  IL_003e:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void OverloadResolution_BinaryOperators_01(string op)
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+
+public class C1 : C0
+{
+    public static C1 operator checked " + op + @"(C1 x, C1 y)
+    {
+        System.Console.WriteLine(""checked C1"");
+        return x;
+    }
+
+    public static C1 operator " + op + @"(C1 x, C1 y)
+    {
+        System.Console.WriteLine(""regular C1"");
+        return x;
+    }
+}
+
+public class C2 : C1
+{
+    public static C2 operator " + op + @"(C2 x, C2 y)
+    {
+        System.Console.WriteLine(""regular C2"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+        TestUncheckedC0(new C0());
+        TestCheckedC1(new C1());
+        TestUncheckedC1(new C1());
+        TestCheckedC2(new C2());
+        TestUncheckedC2(new C2());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(x " + op + @" x); // C0
+    }
+
+    public static C0 TestUncheckedC0(C0 x)
+    {
+        return unchecked(x " + op + @" x);
+    }
+
+    public static C1 TestCheckedC1(C1 x)
+    {
+        return checked(x " + op + @" x); // C1
+    }
+
+    public static C1 TestUncheckedC1(C1 x)
+    {
+        return unchecked(x " + op + @" x);
+    }
+
+    public static C2 TestCheckedC2(C2 x)
+    {
+        return checked(x " + op + @" x); // C2
+    }
+
+    public static C2 TestUncheckedC2(C2 x)
+    {
+        return unchecked(x " + op + @" x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            compilation3.VerifyDiagnostics(
+                // (16,24): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return checked(x - x); // C0
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("checked user-defined operators").WithLocation(16, 24),
+                // (26,24): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return checked(x - x); // C1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " x").WithArguments("checked user-defined operators").WithLocation(26, 24)
+                );
+        }
+
+        [Theory]
+        [InlineData("+", "op_Addition", "op_CheckedAddition")]
+        [InlineData("-", "op_Subtraction", "op_CheckedSubtraction")]
+        [InlineData("*", "op_Multiply", "op_CheckedMultiply")]
+        [InlineData("/", "op_Division", "op_CheckedDivision")]
+        public void OverloadResolution_BinaryOperators_02(string op, string name, string checkedName)
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static C0 operator checked -(C0 x, C0 y)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            //   
+            //     public static C0 operator -(C0 x, C0 y)
+            //     {
+            //         System.Console.WriteLine(""regular C0"");
+            //         return x;
+            //     }
+            // }
+            //   
+            // class C1 : C0
+            // {
+            //     public static C1 operator checked -(C1 x, C1 y)
+            //     {
+            //         System.Console.WriteLine(""checked C1"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 " + checkedName + @" (
+            class C0 x,
+            class C0 y
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname static 
+        class C0 " + name + @" (
+            class C0 x,
+            class C0 y
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""regular C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C1
+    extends C0
+{
+    .method public hidebysig specialname static 
+        class C1 " + checkedName + @" (
+            class C1 x,
+            class C1 y
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C1
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C1""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void C0::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C1());
+        TestUncheckedC0(new C1());
+        TestCheckedC1(new C1());
+        TestUncheckedC1(new C1());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(x " + op + @" x);
+    }
+
+    public static C0 TestUncheckedC0(C0 x)
+    {
+        return unchecked(x " + op + @" x);
+    }
+
+    public static C1 TestCheckedC1(C1 x)
+    {
+        return checked(x " + op + @" x);
+    }
+
+    public static C0 TestUncheckedC1(C1 x)
+    {
+        return unchecked(x " + op + @" x);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C0
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("+", "op_CheckedAddition")]
+        [InlineData("-", "op_CheckedSubtraction")]
+        [InlineData("*", "op_CheckedMultiply")]
+        [InlineData("/", "op_CheckedDivision")]
+        public void OverloadResolution_BinaryOperators_03(string op, string checkedName)
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static C0 operator checked -(C0 x, C0 y)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 " + checkedName + @" (
+            class C0 x,
+            class C0 y
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(x " + op + @" x);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("+", "op_CheckedAddition")]
+        [InlineData("-", "op_CheckedSubtraction")]
+        [InlineData("*", "op_CheckedMultiply")]
+        [InlineData("/", "op_CheckedDivision")]
+        public void OverloadResolution_BinaryOperators_04(string op, string checkedName)
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static C0 operator checked -(C0 x, C0 y)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 " + checkedName + @" (
+            class C0 x,
+            class C0 y
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestUncheckedC0(new C0());
+    }
+
+    public static C0 TestUncheckedC0(C0 x)
+    {
+        return unchecked(x " + op + @" x);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyDiagnostics(
+                // (11,26): error CS0019: Operator '-' cannot be applied to operands of type 'C0' and 'C0'
+                //         return unchecked(x - x);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x " + op + " x").WithArguments(op, "C0", "C0").WithLocation(11, 26)
+                );
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void OverloadResolution_BinaryOperators_05(string op)
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+
+public class C1 : C0
+{
+    public static C1 operator checked " + op + @"(C1 x, C1 y)
+    {
+        System.Console.WriteLine(""checked C1"");
+        return x;
+    }
+
+    public static C1 operator " + op + @"(C1 x, C1 y)
+    {
+        System.Console.WriteLine(""regular C1"");
+        return x;
+    }
+}
+
+public class C2 : C1
+{
+    public static C2 operator " + op + @"(C2 x, C2 y)
+    {
+        System.Console.WriteLine(""regular C2"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+        TestUncheckedC0(new C0());
+        TestCheckedC1(new C1());
+        TestUncheckedC1(new C1());
+        TestCheckedC2(new C2());
+        TestUncheckedC2(new C2());
+    }
+
+    public static void TestCheckedC0(C0 x)
+    {
+        checked { x " + op + @"= x; } // C0
+    }
+
+    public static void TestUncheckedC0(C0 x)
+    {
+        unchecked { x " + op + @"= x; }
+    }
+
+    public static void TestCheckedC1(C1 x)
+    {
+        checked { x " + op + @"= x; } // C1
+    }
+
+    public static void TestUncheckedC1(C1 x)
+    {
+        unchecked { x " + op + @"= x; }
+    }
+
+    public static void TestCheckedC2(C2 x)
+    {
+        checked { x " + op + @"= x; } // C2
+    }
+
+    public static void TestUncheckedC2(C2 x)
+    {
+        unchecked { x " + op + @"= x; }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            compilation3.VerifyDiagnostics(
+                // (16,19): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         checked { x -= x; } // C0
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= x").WithArguments("checked user-defined operators").WithLocation(16, 19),
+                // (26,19): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         checked { x -= x; } // C1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + "= x").WithArguments("checked user-defined operators").WithLocation(26, 19)
+                );
+        }
+
+        [Fact]
+        public void OverloadResolution_BinaryOperators_06()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked /(C0 x, int y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator /(C0 x, int y)
+    {
+        return x;
+    }
+
+    public static C0 operator /(C0 x, byte y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        TestChecked(new C0(), 1);
+    }
+
+    public static void TestChecked(C0 x, byte y)
+    {
+        _ = checked(x / y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ExpressionTree_BinaryOperators_01()
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C0 
+{
+    public static C0 operator checked /(C0 x, C0 y)
+    {
+        return x;
+    }
+
+    public static C0 operator /(C0 x, C0 y)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    public static Expression<Func<C0, C0>> TestChecked()
+    {
+        return x => checked(x / x);
+    }
+
+    public static Expression<Func<C0, C0>> TestUnchecked()
+    {
+        return x => unchecked(x / x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyDiagnostics(
+                // (22,29): error CS7053: An expression tree may not contain 'C0.operator checked /(C0, C0)'
+                //         return x => checked(x / x);
+                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "x / x").WithArguments("C0.operator checked /(C0, C0)").WithLocation(22, 29)
+                );
+        }
+
+        [Theory]
+        [InlineData("+", "op_Addition", "op_CheckedAddition", "Add", "AddChecked")]
+        [InlineData("-", "op_Subtraction", "op_CheckedSubtraction", "Subtract", "SubtractChecked")]
+        [InlineData("*", "op_Multiply", "op_CheckedMultiply", "Multiply", "MultiplyChecked")]
+        public void ExpressionTree_BinaryOperators_02(string op, string name, string checkedName, string factory, string checkedFactory)
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x, C0 y)
+    {
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x, C0 y)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestChecked());
+        System.Console.WriteLine(TestUnchecked());
+    }
+
+    public static Expression<Func<C0, C0>> TestChecked()
+    {
+        return x => checked(x " + op + @" x);
+    }
+
+    public static Expression<Func<C0, C0>> TestUnchecked()
+    {
+        return x => unchecked(x " + op + @" x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation1, expectedOutput: @"
+x => (x " + op + @" x)
+x => (x " + op + @" x)
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.TestChecked", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldtoken    ""C0 C0." + checkedName + @"(C0, C0)""
+  IL_001d:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0022:  castclass  ""System.Reflection.MethodInfo""
+  IL_0027:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression." + checkedFactory + @"(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0032:  dup
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldloc.0
+  IL_0035:  stelem.ref
+  IL_0036:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_003e
+  IL_003e:  ldloc.1
+  IL_003f:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUnchecked", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldtoken    ""C0 C0." + name + @"(C0, C0)""
+  IL_001d:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0022:  castclass  ""System.Reflection.MethodInfo""
+  IL_0027:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression." + factory + @"(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0032:  dup
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldloc.0
+  IL_0035:  stelem.ref
+  IL_0036:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_003e
+  IL_003e:  ldloc.1
+  IL_003f:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("+", "op_Addition", "Add")]
+        [InlineData("-", "op_Subtraction", "Subtract")]
+        [InlineData("*", "op_Multiply", "Multiply")]
+        [InlineData("/", "op_Division", "Divide")]
+        public void ExpressionTree_BinaryOperators_03(string op, string name, string factory)
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C0 
+{
+    public static C0 operator " + op + @"(C0 x, C0 y)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestChecked());
+        System.Console.WriteLine(TestUnchecked());
+    }
+
+    public static Expression<Func<C0, C0>> TestChecked()
+    {
+        return x => checked(x " + op + @" x);
+    }
+
+    public static Expression<Func<C0, C0>> TestUnchecked()
+    {
+        return x => unchecked(x " + op + @" x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation1, expectedOutput: @"
+x => (x " + op + @" x)
+x => (x " + op + @" x)
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.TestChecked", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldtoken    ""C0 C0." + name + @"(C0, C0)""
+  IL_001d:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0022:  castclass  ""System.Reflection.MethodInfo""
+  IL_0027:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression." + factory + @"(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0032:  dup
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldloc.0
+  IL_0035:  stelem.ref
+  IL_0036:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_003e
+  IL_003e:  ldloc.1
+  IL_003f:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUnchecked", @"
+{
+  // Code size       64 (0x40)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, C0>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.0
+  IL_0018:  ldtoken    ""C0 C0." + name + @"(C0, C0)""
+  IL_001d:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0022:  castclass  ""System.Reflection.MethodInfo""
+  IL_0027:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression." + factory + @"(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0032:  dup
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldloc.0
+  IL_0035:  stelem.ref
+  IL_0036:  call       ""System.Linq.Expressions.Expression<System.Func<C0, C0>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, C0>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003b:  stloc.1
+  IL_003c:  br.s       IL_003e
+  IL_003e:  ldloc.1
+  IL_003f:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void ExpressionTree_BinaryOperators_04(string op)
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x, C0 y)
+    {
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x, C0 y)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    public static Expression<Func<C0, C0>> TestChecked()
+    {
+        return checked(x => x " + op + @"= x);
+    }
+
+    public static Expression<Func<C0, C0>> TestUnchecked()
+    {
+        return unchecked(x => x " + op + @"= x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            compilation1.VerifyDiagnostics(
+                // (22,29): error CS0832: An expression tree may not contain an assignment operator
+                //         return checked(x => x /= x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "x " + op + "= x").WithLocation(22, 29),
+                // (27,31): error CS0832: An expression tree may not contain an assignment operator
+                //         return unchecked(x => x /= x);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "x " + op + "= x").WithLocation(27, 31)
+                );
+        }
+
+        [Fact]
+        public void OverloadResolution_Conversion_01()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return 0;
+    }
+
+    public static implicit operator int(C0 x)
+    {
+        System.Console.WriteLine(""implicit C0"");
+        return 0;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedImplicitLong(new C0());
+        TestCheckedExplicitLong(new C0());
+        TestUncheckedImplicitLong(new C0());
+        TestUncheckedExplicitLong(new C0());
+        TestCheckedImplicitInt(new C0());
+        TestCheckedExplicitInt(new C0());
+        TestUncheckedImplicitInt(new C0());
+        TestUncheckedExplicitInt(new C0());
+    }
+
+    public static long TestCheckedImplicitLong(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static long TestCheckedExplicitLong(C0 x)
+    {
+        checked { return (long)x; }
+    }
+
+    public static long TestUncheckedImplicitLong(C0 x)
+    {
+        unchecked { return x; }
+    }
+
+    public static long TestUncheckedExplicitLong(C0 x)
+    {
+        unchecked { return (long)x; }
+    }
+
+    public static int TestCheckedImplicitInt(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static int TestCheckedExplicitInt(C0 x)
+    {
+        checked { return (int)x; }
+    }
+
+    public static int TestUncheckedImplicitInt(C0 x)
+    {
+        unchecked { return x; }
+    }
+
+    public static int TestUncheckedExplicitInt(C0 x)
+    {
+        unchecked { return (int)x; }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+implicit C0
+checked C0
+implicit C0
+regular C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+implicit C0
+checked C0
+implicit C0
+regular C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            compilation3.VerifyDiagnostics(
+                // (23,26): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         checked { return (long)x; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(long)x").WithArguments("checked user-defined operators").WithLocation(23, 26)
+                );
+        }
+
+        [Fact]
+        public void OverloadResolution_Conversion_02()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return 0;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedExplicitLong(new C0());
+        TestUncheckedExplicitLong(new C0());
+        TestCheckedExplicitInt(new C0());
+        TestUncheckedExplicitInt(new C0());
+    }
+
+    public static long TestCheckedExplicitLong(C0 x)
+    {
+        checked { return (long)x; }
+    }
+
+    public static long TestUncheckedExplicitLong(C0 x)
+    {
+        unchecked { return (long)x; }
+    }
+
+    public static int TestCheckedExplicitInt(C0 x)
+    {
+        checked { return (int)x; }
+    }
+
+    public static int TestUncheckedExplicitInt(C0 x)
+    {
+        unchecked { return (int)x; }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+regular C0
+checked C0
+regular C0
+").VerifyDiagnostics();
+
+            var source3 =
+@"
+class Program
+{
+    static void Main()
+    {
+    }
+
+    public static long TestCheckedImplicitLong(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static long TestUncheckedImplicitLong(C0 x)
+    {
+        unchecked { return x; }
+    }
+
+    public static int TestCheckedImplicitInt(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static int TestUncheckedImplicitInt(C0 x)
+    {
+        unchecked { return x; }
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source1 + source3, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation2.VerifyDiagnostics(
+                // (25,26): error CS0266: Cannot implicitly convert type 'C0' to 'long'. An explicit conversion exists (are you missing a cast?)
+                //         checked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("C0", "long").WithLocation(25, 26),
+                // (30,28): error CS0266: Cannot implicitly convert type 'C0' to 'long'. An explicit conversion exists (are you missing a cast?)
+                //         unchecked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("C0", "long").WithLocation(30, 28),
+                // (35,26): error CS0266: Cannot implicitly convert type 'C0' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         checked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("C0", "int").WithLocation(35, 26),
+                // (40,28): error CS0266: Cannot implicitly convert type 'C0' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         unchecked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("C0", "int").WithLocation(40, 28)
+                );
+        }
+
+        [Fact]
+        public void OverloadResolution_Conversion_03()
+        {
+            // The IL is equivalent to
+            //
+            // public class C0 
+            // {
+            //     public static explicit operator checked long(C0 x)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return 0;
+            //     }
+            //
+            //     public static implicit operator int(C0 x)
+            //     {
+            //         System.Console.WriteLine(""implicit C0"");
+            //         return 0;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        int64 op_CheckedExplicit (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] int64
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldc.i4.0
+        IL_000d: conv.i8
+        IL_000e: stloc.0
+        IL_000f: br.s IL_0011
+
+        IL_0011: ldloc.0
+        IL_0012: ret
+    }
+
+    .method public hidebysig specialname static 
+        int32 op_Implicit (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] int32
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""implicit C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldc.i4.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedImplicitLong(new C0());
+        TestCheckedExplicitLong(new C0());
+        TestUncheckedImplicitLong(new C0());
+        TestUncheckedExplicitLong(new C0());
+        TestCheckedImplicitInt(new C0());
+        TestCheckedExplicitInt(new C0());
+        TestUncheckedImplicitInt(new C0());
+        TestUncheckedExplicitInt(new C0());
+    }
+
+    public static long TestCheckedImplicitLong(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static long TestCheckedExplicitLong(C0 x)
+    {
+        checked { return (long)x; }
+    }
+
+    public static long TestUncheckedImplicitLong(C0 x)
+    {
+        unchecked { return x; }
+    }
+
+    public static long TestUncheckedExplicitLong(C0 x)
+    {
+        unchecked { return (long)x; }
+    }
+
+    public static int TestCheckedImplicitInt(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static int TestCheckedExplicitInt(C0 x)
+    {
+        checked { return (int)x; }
+    }
+
+    public static int TestUncheckedImplicitInt(C0 x)
+    {
+        unchecked { return x; }
+    }
+
+    public static int TestUncheckedExplicitInt(C0 x)
+    {
+        unchecked { return (int)x; }
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+implicit C0
+checked C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverloadResolution_Conversion_04()
+        {
+            // The IL is equivalent to
+            //
+            // public class C0 
+            // {
+            //     public static explicit operator checked long(C0 x)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return 0;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        int64 op_CheckedExplicit (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] int64
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldc.i4.0
+        IL_000d: conv.i8
+        IL_000e: stloc.0
+        IL_000f: br.s IL_0011
+
+        IL_0011: ldloc.0
+        IL_0012: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedExplicitLong(new C0());
+        TestCheckedExplicitInt(new C0());
+    }
+
+    public static long TestCheckedExplicitLong(C0 x)
+    {
+        checked { return (long)x; }
+    }
+
+    public static int TestCheckedExplicitInt(C0 x)
+    {
+        checked { return (int)x; }
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+checked C0
+").VerifyDiagnostics();
+
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+    }
+
+    public static long TestCheckedImplicitLong(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static long TestUncheckedImplicitLong(C0 x)
+    {
+        unchecked { return x; }
+    }
+
+    public static long TestUncheckedExplicitLong(C0 x)
+    {
+        unchecked { return (long)x; }
+    }
+
+    public static int TestCheckedImplicitInt(C0 x)
+    {
+        checked { return x; }
+    }
+
+    public static int TestUncheckedImplicitInt(C0 x)
+    {
+        unchecked { return x; }
+    }
+
+    public static int TestUncheckedExplicitInt(C0 x)
+    {
+        unchecked { return (int)x; }
+    }
+}
+";
+
+            var compilation2 = CreateCompilationWithIL(source2, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation2.VerifyDiagnostics(
+                // (10,26): error CS0266: Cannot implicitly convert type 'C0' to 'long'. An explicit conversion exists (are you missing a cast?)
+                //         checked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("C0", "long").WithLocation(10, 26),
+                // (15,28): error CS0029: Cannot implicitly convert type 'C0' to 'long'
+                //         unchecked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("C0", "long").WithLocation(15, 28),
+                // (20,28): error CS0030: Cannot convert type 'C0' to 'long'
+                //         unchecked { return (long)x; }
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(long)x").WithArguments("C0", "long").WithLocation(20, 28),
+                // (25,26): error CS0266: Cannot implicitly convert type 'C0' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         checked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("C0", "int").WithLocation(25, 26),
+                // (30,28): error CS0029: Cannot implicitly convert type 'C0' to 'int'
+                //         unchecked { return x; }
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("C0", "int").WithLocation(30, 28),
+                // (35,28): error CS0030: Cannot convert type 'C0' to 'int'
+                //         unchecked { return (int)x; }
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)x").WithArguments("C0", "int").WithLocation(35, 28)
+                );
+        }
+
+        [Fact]
+        public void ExpressionTree_Conversion_01()
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+public class C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        return 0;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestCheckedLong());
+        System.Console.WriteLine(TestUncheckedLong());
+        System.Console.WriteLine(TestCheckedInt());
+        System.Console.WriteLine(TestUncheckedInt());
+        System.Console.WriteLine(TestCheckedNullableLong());
+        System.Console.WriteLine(TestUncheckedNullableLong());
+    }
+
+    public static Expression<Func<C0, long>> TestCheckedLong()
+    {
+        return x => checked((long)x);
+    }
+
+    public static Expression<Func<C0, long>> TestUncheckedLong()
+    {
+        return x => unchecked((long)x);
+    }
+
+    public static Expression<Func<C0, int>> TestCheckedInt()
+    {
+        return x => checked((int)x);
+    }
+
+    public static Expression<Func<C0, int>> TestUncheckedInt()
+    {
+        return x => unchecked((int)x);
+    }
+
+    public static Expression<Func<C0, long?>> TestCheckedNullableLong()
+    {
+        return x => checked((long?)x);
+    }
+
+    public static Expression<Func<C0, long?>> TestUncheckedNullableLong()
+    {
+        return x => unchecked((long?)x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation1, expectedOutput:
+                ExecutionConditionUtil.IsDesktop ?
+@"
+x => ConvertChecked(x)
+x => Convert(x)
+x => ConvertChecked(ConvertChecked(x))
+x => Convert(Convert(x))
+x => Convert(ConvertChecked(x))
+x => Convert(Convert(x))
+"
+:
+@"
+x => ConvertChecked(x, Int64)
+x => Convert(x, Int64)
+x => ConvertChecked(ConvertChecked(x, Int64), Int32)
+x => Convert(Convert(x, Int64), Int32)
+x => Convert(ConvertChecked(x, Int64), Nullable`1)
+x => Convert(Convert(x, Int64), Nullable`1)
+"
+).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.TestCheckedLong", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_CheckedExplicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.ConvertChecked(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldc.i4.1
+  IL_0036:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003b:  dup
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldloc.0
+  IL_003e:  stelem.ref
+  IL_003f:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_0047
+  IL_0047:  ldloc.1
+  IL_0048:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUncheckedLong", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_Explicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldc.i4.1
+  IL_0036:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003b:  dup
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldloc.0
+  IL_003e:  stelem.ref
+  IL_003f:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_0047
+  IL_0047:  ldloc.1
+  IL_0048:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestCheckedInt", @"
+{
+  // Code size       88 (0x58)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, int>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_CheckedExplicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.ConvertChecked(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldtoken    ""int""
+  IL_003a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003f:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.ConvertChecked(System.Linq.Expressions.Expression, System.Type)""
+  IL_0044:  ldc.i4.1
+  IL_0045:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_004a:  dup
+  IL_004b:  ldc.i4.0
+  IL_004c:  ldloc.0
+  IL_004d:  stelem.ref
+  IL_004e:  call       ""System.Linq.Expressions.Expression<System.Func<C0, int>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0053:  stloc.1
+  IL_0054:  br.s       IL_0056
+  IL_0056:  ldloc.1
+  IL_0057:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUncheckedInt", @"
+{
+  // Code size       88 (0x58)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, int>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_Explicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldtoken    ""int""
+  IL_003a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003f:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_0044:  ldc.i4.1
+  IL_0045:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_004a:  dup
+  IL_004b:  ldc.i4.0
+  IL_004c:  ldloc.0
+  IL_004d:  stelem.ref
+  IL_004e:  call       ""System.Linq.Expressions.Expression<System.Func<C0, int>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0053:  stloc.1
+  IL_0054:  br.s       IL_0056
+  IL_0056:  ldloc.1
+  IL_0057:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestCheckedNullableLong", @"
+{
+  // Code size       88 (0x58)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long?>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_CheckedExplicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.ConvertChecked(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldtoken    ""long?""
+  IL_003a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003f:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_0044:  ldc.i4.1
+  IL_0045:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_004a:  dup
+  IL_004b:  ldc.i4.0
+  IL_004c:  ldloc.0
+  IL_004d:  stelem.ref
+  IL_004e:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long?>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long?>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0053:  stloc.1
+  IL_0054:  br.s       IL_0056
+  IL_0056:  ldloc.1
+  IL_0057:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUncheckedNullableLong", @"
+{
+  // Code size       88 (0x58)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long?>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_Explicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldtoken    ""long?""
+  IL_003a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003f:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_0044:  ldc.i4.1
+  IL_0045:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_004a:  dup
+  IL_004b:  ldc.i4.0
+  IL_004c:  ldloc.0
+  IL_004d:  stelem.ref
+  IL_004e:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long?>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long?>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0053:  stloc.1
+  IL_0054:  br.s       IL_0056
+  IL_0056:  ldloc.1
+  IL_0057:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExpressionTree_Conversion_02()
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+public class C0 
+{
+    public static explicit operator long(C0 x)
+    {
+        return 0;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestChecked());
+        System.Console.WriteLine(TestUnchecked());
+    }
+
+    public static Expression<Func<C0, long>> TestChecked()
+    {
+        return x => checked((long)x);
+    }
+
+    public static Expression<Func<C0, long>> TestUnchecked()
+    {
+        return x => unchecked((long)x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation1, expectedOutput:
+                ExecutionConditionUtil.IsDesktop ?
+@"
+x => Convert(x)
+x => Convert(x)
+"
+:
+@"
+x => Convert(x, Int64)
+x => Convert(x, Int64)
+"
+).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.TestChecked", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_Explicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldc.i4.1
+  IL_0036:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003b:  dup
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldloc.0
+  IL_003e:  stelem.ref
+  IL_003f:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_0047
+  IL_0047:  ldloc.1
+  IL_0048:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUnchecked", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_Explicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldc.i4.1
+  IL_0036:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003b:  dup
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldloc.0
+  IL_003e:  stelem.ref
+  IL_003f:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_0047
+  IL_0047:  ldloc.1
+  IL_0048:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExpressionTree_Conversion_03()
+        {
+            var source1 =
+@"
+using System;
+using System.Linq.Expressions;
+
+public class C0 
+{
+    public static implicit operator long(C0 x)
+    {
+        return 0;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestChecked());
+        System.Console.WriteLine(TestUnchecked());
+    }
+
+    public static Expression<Func<C0, long>> TestChecked()
+    {
+        return x => checked((long)x);
+    }
+
+    public static Expression<Func<C0, long>> TestUnchecked()
+    {
+        return x => unchecked((long)x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            var verifier = CompileAndVerify(compilation1, expectedOutput:
+                ExecutionConditionUtil.IsDesktop ?
+@"
+x => Convert(x)
+x => Convert(x)
+"
+:
+@"
+x => Convert(x, Int64)
+x => Convert(x, Int64)
+"
+).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.TestChecked", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_Implicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldc.i4.1
+  IL_0036:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003b:  dup
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldloc.0
+  IL_003e:  stelem.ref
+  IL_003f:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_0047
+  IL_0047:  ldloc.1
+  IL_0048:  ret
+}
+");
+
+            verifier.VerifyIL("Program.TestUnchecked", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.Expression<System.Func<C0, long>> V_1)
+  IL_0000:  nop
+  IL_0001:  ldtoken    ""C0""
+  IL_0006:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000b:  ldstr      ""x""
+  IL_0010:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  ldtoken    ""long""
+  IL_001c:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0021:  ldtoken    ""long C0.op_Implicit(C0)""
+  IL_0026:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_002b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0030:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0035:  ldc.i4.1
+  IL_0036:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003b:  dup
+  IL_003c:  ldc.i4.0
+  IL_003d:  ldloc.0
+  IL_003e:  stelem.ref
+  IL_003f:  call       ""System.Linq.Expressions.Expression<System.Func<C0, long>> System.Linq.Expressions.Expression.Lambda<System.Func<C0, long>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0044:  stloc.1
+  IL_0045:  br.s       IL_0047
+  IL_0047:  ldloc.1
+  IL_0048:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void Dynamic_UnaryOperators_01(string op)
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+
+public class C1 : C0
+{
+    public static C1 operator checked " + op + @"(C1 x)
+    {
+        System.Console.WriteLine(""checked C1"");
+        return x;
+    }
+
+    public static C1 operator " + op + @"(C1 x)
+    {
+        System.Console.WriteLine(""regular C1"");
+        return x;
+    }
+}
+
+public class C2 : C1
+{
+    public static C2 operator " + op + @"(C2 x)
+    {
+        System.Console.WriteLine(""regular C2"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestChecked(new C0());
+        TestUnchecked(new C0());
+        TestChecked(new C1());
+        TestUnchecked(new C1());
+        TestChecked(new C2());
+        TestUnchecked(new C2());
+    }
+
+    public static dynamic TestChecked(dynamic x)
+    {
+        return checked(" + op + @"x);
+    }
+
+    public static dynamic TestUnchecked(dynamic x)
+    {
+        return unchecked(" + op + @"x);
+    }
+}
+";
+            var compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+regular C0
+regular C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+regular C0
+regular C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilationWithCSharp(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"
+regular C0
+regular C0
+regular C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void Dynamic_BinaryOperators_01(string op)
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+
+public class C1 : C0
+{
+    public static C1 operator checked " + op + @"(C1 x, C1 y)
+    {
+        System.Console.WriteLine(""checked C1"");
+        return x;
+    }
+
+    public static C1 operator " + op + @"(C1 x, C1 y)
+    {
+        System.Console.WriteLine(""regular C1"");
+        return x;
+    }
+}
+
+public class C2 : C1
+{
+    public static C2 operator " + op + @"(C2 x, C2 y)
+    {
+        System.Console.WriteLine(""regular C2"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestChecked(new C0());
+        TestUnchecked(new C0());
+        TestChecked(new C1());
+        TestUnchecked(new C1());
+        TestChecked(new C2());
+        TestUnchecked(new C2());
+    }
+
+    public static dynamic TestChecked(dynamic x)
+    {
+        return checked(x " + op + @" x);
+    }
+
+    public static dynamic TestUnchecked(dynamic x)
+    {
+        return unchecked(x " + op + @" x);
+    }
+}
+";
+            var compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+regular C0
+regular C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+regular C0
+regular C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilationWithCSharp(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"
+regular C0
+regular C0
+regular C1
+regular C1
+regular C2
+regular C2
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Dynamic_Conversion_01()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return 0;
+    }
+
+    public static implicit operator int(C0 x)
+    {
+        System.Console.WriteLine(""implicit C0"");
+        return 0;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedImplicitLong(new C0());
+        TestCheckedExplicitLong(new C0());
+        TestUncheckedImplicitLong(new C0());
+        TestUncheckedExplicitLong(new C0());
+        TestCheckedImplicitInt(new C0());
+        TestCheckedExplicitInt(new C0());
+        TestUncheckedImplicitInt(new C0());
+        TestUncheckedExplicitInt(new C0());
+    }
+
+    public static long TestCheckedImplicitLong(dynamic x)
+    {
+        checked { return x; }
+    }
+
+    public static long TestCheckedExplicitLong(dynamic x)
+    {
+        checked { return (long)x; }
+    }
+
+    public static long TestUncheckedImplicitLong(dynamic x)
+    {
+        unchecked { return x; }
+    }
+
+    public static long TestUncheckedExplicitLong(dynamic x)
+    {
+        unchecked { return (long)x; }
+    }
+
+    public static int TestCheckedImplicitInt(dynamic x)
+    {
+        checked { return x; }
+    }
+
+    public static int TestCheckedExplicitInt(dynamic x)
+    {
+        checked { return (int)x; }
+    }
+
+    public static int TestUncheckedImplicitInt(dynamic x)
+    {
+        unchecked { return x; }
+    }
+
+    public static int TestUncheckedExplicitInt(dynamic x)
+    {
+        unchecked { return (int)x; }
+    }
+}
+";
+            var compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+implicit C0
+regular C0
+implicit C0
+regular C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilationWithCSharp(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+implicit C0
+regular C0
+implicit C0
+regular C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilationWithCSharp(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"
+implicit C0
+regular C0
+implicit C0
+regular C0
+implicit C0
+implicit C0
+implicit C0
+implicit C0
+").VerifyDiagnostics();
         }
     }
 }

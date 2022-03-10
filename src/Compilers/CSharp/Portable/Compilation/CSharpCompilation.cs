@@ -2110,7 +2110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? csdest = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return Conversions.ClassifyConversionFromType(cssource, csdest, ref discardedUseSiteInfo);
+
+            // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
+            return Conversions.ClassifyConversionFromType(cssource, csdest, isChecked: false, ref discardedUseSiteInfo);
         }
 
         /// <summary>
