@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
-        public void TestPasteExternalTabIntoMultiLineRawString1()
+        public void TestPasteExternalSpacesIntoMultiLineRawString1()
         {
             TestPasteOnly(
                 pasteText: "    ",
@@ -280,6 +280,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 afterUndo:
 @"var x = """"""
     $$
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalSpacesIntoMultiLineRawString2()
+        {
+            TestPasteOnly(
+                pasteText: "    \r\n",
+@"var x = """"""
+    $$
+    """"""",
+@"var x = """"""
+    
+    $$
+    """"""",
+                afterUndo:
+@"var x = """"""
+        
+$$
     """"""");
         }
 
@@ -318,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
-        public void TestPasteExternalTripleQuoteIntoMultiLineRawString()
+        public void TestPasteExternalTripleQuoteIntoMultiLineRawString1()
         {
             TestPasteOnly(
                 pasteText: "\"\"\"",
@@ -332,6 +351,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 @"var x = """"""
     """"""$$
     """"""");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTripleQuoteIntoMultiLineRawString2()
+        {
+            TestPasteOnly(
+                pasteText: "\"\"\"",
+@"var x = """"""  
+    $$
+    """"""  ",
+@"var x = """"""""  
+    """"""$$
+    """"""""  ",
+                afterUndo:
+@"var x = """"""  
+    """"""$$
+    """"""  ");
+        }
+
+        [WpfFact]
+        public void TestPasteExternalTripleQuoteIntoMultiLineRawString3()
+        {
+            TestPasteOnly(
+                pasteText: "\"\"\"",
+@"var x = """"""  
+    ""$$
+    """"""  ",
+@"var x = """"""""""  
+    """"""""$$
+    """"""""""  ",
+                afterUndo:
+@"var x = """"""  
+    """"""$$
+    """"""  ");
         }
 
         [WpfFact]

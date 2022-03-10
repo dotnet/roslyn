@@ -338,6 +338,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (NodeOrTokenContainsError(literalExpression))
                 return default;
 
+            // If all we're going to do is insert whitespace, then don't make any 
+            if (AllWhitespace(changes))
+                return default;
+
             var token = literalExpression.Token;
             var endLine = text.Lines.GetLineFromPosition(token.Span.End);
             var indentationWhitespace = endLine.GetLeadingWhitespace();
@@ -378,13 +382,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         buffer.Append(indentationWhitespace);
                     }
 
-                    buffer.Append(changeText.ToString(changeText.Lines[i].SpanIncludingLineBreak).TrimStart());
+                    buffer.Append(TrimStart(changeText.ToString(changeText.Lines[i].SpanIncludingLineBreak)));
                 }
 
                 finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
             }
 
             return finalTextChanges.ToImmutable();
+        }
+
+        private static bool AllWhitespace(INormalizedTextChangeCollection changes)
+        {
+            foreach (var change in changes)
+            {
+                if (!AllWhitespace(change.NewText))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool AllWhitespace(string text)
+        {
+            foreach (var ch in text)
+            {
+                if (!SyntaxFacts.IsWhitespace(ch))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static string TrimStart(string value)
+        {
+            var start = 0;
+            while (start < value.Length && SyntaxFacts.IsWhitespace(value[start]))
+                start++;
+
+            return value.Substring(start);
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(
