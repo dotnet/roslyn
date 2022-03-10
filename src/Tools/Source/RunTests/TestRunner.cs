@@ -167,8 +167,11 @@ namespace RunTests
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
                 command.AppendLine("dotnet --info");
 
-                if (Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is string iop)
-                    command.AppendLine($"{setEnvironmentVariable} ROSLYN_TEST_IOPERATION={iop}");
+                var knownEnvironmentVariables = new[] { "ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_EMITDIAGNOSTICS", "ROSLYN_TEST_USEDASSEMBLIES" };
+                foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
+                {
+                    transferEnvironmentVariable(command, setEnvironmentVariable, knownEnvironmentVariable);
+                }
 
                 command.AppendLine($"dotnet {commandLineArguments}");
 
@@ -205,6 +208,12 @@ namespace RunTests
         </HelixWorkItem>
 ";
                 return workItem;
+            }
+
+            static void transferEnvironmentVariable(StringBuilder command, string setEnvironmentVariable, string variableName)
+            {
+                if (Environment.GetEnvironmentVariable(variableName) is string iop)
+                    command.AppendLine($"{setEnvironmentVariable} {variableName}={iop}");
             }
         }
 
