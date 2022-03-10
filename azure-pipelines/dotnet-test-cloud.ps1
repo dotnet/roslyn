@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 Param(
     [string]$Configuration='Debug',
     [string]$Agent='Local',
