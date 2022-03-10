@@ -1520,16 +1520,18 @@ struct S
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindOriginalFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P { get => 0; }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -1561,16 +1563,18 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P { get => 0; }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -1598,16 +1602,18 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindOriginalFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P => 0;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -1639,16 +1645,18 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P => 0;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -1676,16 +1684,18 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P => 0;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -1717,16 +1727,18 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P => 0;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -1923,9 +1935,11 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindOriginalFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 using System;
@@ -1942,7 +1956,7 @@ class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -1983,9 +1997,11 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 using System;
@@ -2002,7 +2018,7 @@ class C
         }
     }
 }
-", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"));
+", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -2035,7 +2051,7 @@ class C
 
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -2647,9 +2663,11 @@ class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindOriginalFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2670,7 +2688,7 @@ public class C
 
     public bool GetBoolValue() => true;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -2709,9 +2727,11 @@ public class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2732,7 +2752,7 @@ public class C
 
     public bool GetBoolValue() => true;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -2767,9 +2787,11 @@ public class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsRegularProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsRegularProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2784,7 +2806,7 @@ public class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -2823,9 +2845,11 @@ public class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsRegularProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsRegularProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2840,7 +2864,7 @@ public class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -2872,13 +2896,15 @@ public class C
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
-            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsSemiAutoProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsSemiAutoProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2893,7 +2919,7 @@ public class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -2932,9 +2958,11 @@ public class C
         }
 
         [Theory]
-        [InlineData(SpeculativeBindingOption.BindAsExpression)]
-        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
-        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsSemiAutoProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsSemiAutoProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2949,7 +2977,7 @@ public class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -2981,7 +3009,7 @@ public class C
 
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
