@@ -9215,7 +9215,6 @@ internal static class NoExtensionMethods
             Assert.Null(GetSymbolNamesJoined(results.UsedLocalFunctions));
         }
 
-
         [Fact]
         public void TestDataFlowsOfIdentifierWithDelegateConversionCast()
         {
@@ -9307,6 +9306,55 @@ static class Extension
                 // (4,42): error CS0165: Use of unassigned local variable 'i'
                 // _ = new Func<string>((b ? M(out var i) : i.ToString()).ExtensionMethod);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(4, 42)
+                );
+        }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentShouldSkipImplicitThisInStaticMethodConversion()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public struct C
+{
+    private object field;
+    public C(Action a)
+    {
+        // implicit `this` receiver should be ignored in definite assignment
+        a = new(M);
+        field = 1;
+    }
+
+    public C(Action a, int ignored)
+    {
+        // implicit `this` receiver should be ignored in definite assignment
+        a = new Action(M);
+        field = 1;
+    }
+
+    public void Method1(Action a)
+    {
+        // explicit `this` disallowed
+        a = new Action(this.M);
+    }
+
+    public void Method2(Action a, C c)
+    {
+        // instance receiver disallowed
+        a = new Action(c.M);
+    }
+
+    private static void M()
+    {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (23,24): error CS0176: Member 'C.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         a = new Action(this.M);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M").WithArguments("C.M()").WithLocation(23, 24),
+                // (29,24): error CS0176: Member 'C.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         a = new Action(c.M);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.M").WithArguments("C.M()").WithLocation(29, 24)
                 );
         }
     }

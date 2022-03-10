@@ -1517,7 +1517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
-                else if (node.MethodOpt is not null && methodGroup.ReceiverOpt is not null)
+                else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(receiver, method))
                 {
                     EnterRegionIfNeeded(methodGroup);
                     VisitRvalue(methodGroup.ReceiverOpt);
@@ -1530,6 +1530,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            static bool ignoreReceiver(BoundExpression receiver, MethodSymbol method)
+            {
+                // ignore the implicit `this` receiver on a static method
+                return method.IsStatic && receiver is { Kind: BoundKind.ThisReference, WasCompilerGenerated: true };
+            }
         }
 
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
