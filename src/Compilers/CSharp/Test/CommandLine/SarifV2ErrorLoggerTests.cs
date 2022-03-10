@@ -349,6 +349,103 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             AnalyzerDiagnosticsSuppressedWithNullJustificationImpl();
         }
 
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void SourceGenerator()
+        {
+            SourceGeneratorImpl();
+        }
+
+        internal override string GetExpectedOutputForSourceGenerator(CommonCompiler cmd, string sourceFile)
+        {
+            var expectedOutput = @"{{
+  ""$schema"": ""http://json.schemastore.org/sarif-2.1.0"",
+  ""version"": ""2.1.0"",
+  ""runs"": [
+    {{
+      ""results"": [
+        {{
+          ""ruleId"": ""CS0116"",
+          ""ruleIndex"": 0,
+          ""level"": ""error"",
+          ""message"": {{
+            ""text"": ""A namespace cannot directly contain members such as fields, methods or statements""
+          }},
+          ""locations"": [
+            {{
+              ""physicalLocation"": {{
+                ""artifactLocation"": {{
+                  ""uri"": ""{5}""
+                }},
+                ""region"": {{
+                  ""startLine"": 1,
+                  ""startColumn"": 1,
+                  ""endLine"": 1,
+                  ""endColumn"": 9
+                }}
+              }}
+            }}
+          ]
+        }},
+        {{
+          ""ruleId"": ""CS5001"",
+          ""ruleIndex"": 1,
+          ""level"": ""error"",
+          ""message"": {{
+            ""text"": ""Program does not contain a static 'Main' method suitable for an entry point""
+          }}
+        }}
+      ],
+      ""tool"": {{
+        ""driver"": {{
+          ""name"": ""{0}"",
+          ""version"": ""{1}"",
+          ""dottedQuadFileVersion"": ""{2}"",
+          ""semanticVersion"": ""{3}"",
+          ""language"": ""{4}"",
+          ""rules"": [
+            {{
+              ""id"": ""CS0116"",
+              ""defaultConfiguration"": {{
+                ""level"": ""error""
+              }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS0116)"",
+              ""properties"": {{
+                ""category"": ""Compiler"",
+                ""tags"": [
+                  ""Compiler"",
+                  ""Telemetry"",
+                  ""NotConfigurable""
+                ]
+              }}
+            }},
+            {{
+              ""id"": ""CS5001"",
+              ""defaultConfiguration"": {{
+                ""level"": ""error""
+              }},
+              ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS5001)"",
+              ""properties"": {{
+                ""category"": ""Compiler"",
+                ""tags"": [
+                  ""Compiler"",
+                  ""Telemetry"",
+                  ""NotConfigurable""
+                ]
+              }}
+            }}
+          ]
+        }}
+      }},
+      ""columnKind"": ""utf16CodeUnits""
+    }}
+  ]
+}}";
+            return FormatOutputText(
+              expectedOutput,
+              cmd,
+              AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
+        }
+
         private string FormatOutputText(
           string s,
           CommonCompiler compiler,
