@@ -153,11 +153,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (documentAfterPaste == null)
                 return;
 
-            var alwaysEscape = ShouldAlwaysEscapeTextFromUnknownSource(stringExpression, snapshotBeforePaste.Version.Changes);
-
-            // If the pasting was successful, then no need to change anything.
-            if (!alwaysEscape && PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpression, cancellationToken))
-                return;
+            // Check for certain things we always think we should escape.
+            if (!ShouldAlwaysEscapeTextFromUnknownSource(stringExpression, snapshotBeforePaste.Version.Changes))
+            {
+                // If the pasting was successful, then no need to change anything.
+                if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpression, cancellationToken))
+                    return;
+            }
 
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
