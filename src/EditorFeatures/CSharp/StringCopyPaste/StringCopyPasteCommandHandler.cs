@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // When pasting, only do anything special if the user selections were entirely inside a single string
             // literal token.  Otherwise, we have a multi-selection across token kinds which will be extremely 
             // complex to try to reconcile.
-            if (!AllChangesInSameStringToken(rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste, out var stringExpression))
+            if (!AllChangesInSameStringToken(rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste, out var stringExpressionBeforePaste))
                 return;
 
             var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
@@ -154,24 +155,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return;
 
             // Check for certain things we always think we should escape.
-            if (!ShouldAlwaysEscapeTextFromUnknownSource(stringExpression, snapshotBeforePaste.Version.Changes))
+            if (!ShouldAlwaysEscapeTextFromUnknownSource(stringExpressionBeforePaste, snapshotBeforePaste.Version.Changes))
             {
                 // If the pasting was successful, then no need to change anything.
-                if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpression, cancellationToken))
+                if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, cancellationToken))
                     return;
             }
 
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
             // Repaste the contents, but this time properly escapes/manipulated so that it follows
             // the rule of the particular token kind.
-            var escapedTextChanges = GetEscapedTextChanges(snapshotBeforePaste, snapshotAfterPaste, stringExpression, snapshotBeforePaste.Version.Changes, newLine);
+            var escapedTextChanges = GetEscapedTextChanges(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, snapshotBeforePaste.Version.Changes, newLine);
             if (escapedTextChanges.IsDefaultOrEmpty)
                 return;
 
             var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
 
             // If we end up making the same changes as what the paste did, then no need to proceed.
-            if (ContentsAreSame(snapshotBeforePaste, snapshotAfterPaste, stringExpression, newTextAfterChanges))
+            if (ContentsAreSame(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newTextAfterChanges))
                 return;
 
             var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
@@ -276,10 +277,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken)
                     return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
 
+                if (literalExpression.Token.Kind() == SyntaxKind.SingleLineRawStringLiteralToken)
+                    return GetEscapedTextChangesForSingleLineRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, changes, newLine);
+
                 if (literalExpression.Token.Kind() == SyntaxKind.MultiLineRawStringLiteralToken)
                     return GetEscapedTextChangesForMultiLineRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, changes, newLine);
-
-                throw ExceptionUtilities.UnexpectedValue(stringExpression);
             }
             else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
             {
@@ -289,10 +291,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
                     return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: true, changes);
 
-                throw ExceptionUtilities.UnexpectedValue(stringExpression);
+                // if (interpolatedString.StringStartToken.Kind() )
             }
 
-            throw ExceptionUtilities.Unreachable;
+            Debug.Fail("Unhandled case: " + stringExpression.Kind());
+            return default;
         }
 
         private static ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(

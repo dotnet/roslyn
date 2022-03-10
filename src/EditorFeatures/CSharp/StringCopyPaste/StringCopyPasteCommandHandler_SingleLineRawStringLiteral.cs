@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
     internal partial class StringCopyPasteCommandHandler
     {
-        private static ImmutableArray<TextChange> GetEscapedTextChangesForMultiLineRawStringLiteral(
+        private static ImmutableArray<TextChange> GetEscapedTextChangesForSingleLineRawStringLiteral(
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             LiteralExpressionSyntax literalExpression,
@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (NodeOrTokenContainsError(literalExpression))
                 return default;
 
-            // If all we're going to do is insert whitespace, then don't make any adjustments to the text. We don't want
-            // to end up inserting nothing and having the user very confused why their paste did nothing.
+            // If all we're going to do is insert whitespace, then don't make any 
             if (AllWhitespace(changes))
                 return default;
 
