@@ -45,8 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return;
 
             var service = document.GetRequiredLanguageService<ITypeImportCompletionService>();
-            await service.WarmUpCacheAsync(document.Project, CancellationToken.None).ConfigureAwait(false);
-            await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None).ConfigureAwait(false);
+            service.QueueCacheWarmUpTask(document.Project);
+            await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

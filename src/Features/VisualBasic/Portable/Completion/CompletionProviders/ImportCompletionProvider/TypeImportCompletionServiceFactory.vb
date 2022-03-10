@@ -6,26 +6,30 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportLanguageServiceFactory(GetType(ITypeImportCompletionService), LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class TypeImportCompletionServiceFactory
         Implements ILanguageServiceFactory
 
+        Private ReadOnly _provider As IAsynchronousOperationListenerProvider
+
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(provider As IAsynchronousOperationListenerProvider)
+            _provider = provider
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New BasicTypeImportCompletionService(languageServices.WorkspaceServices.Workspace)
+            Return New BasicTypeImportCompletionService(languageServices.WorkspaceServices.Workspace, _provider.GetListener(FeatureAttribute.CompletionSet))
         End Function
 
         Private Class BasicTypeImportCompletionService
             Inherits AbstractTypeImportCompletionService
 
-            Public Sub New(workspace As Workspace)
-                MyBase.New(workspace)
+            Public Sub New(workspace As Workspace, listener As IAsynchronousOperationListener)
+                MyBase.New(workspace, listener)
             End Sub
 
             Protected Overrides ReadOnly Property GenericTypeSuffix As String

@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool hideAdvancedMembers,
             CancellationToken cancellationToken);
 
-        ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+        ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, CancellationToken cancellationToken);
     }
 }

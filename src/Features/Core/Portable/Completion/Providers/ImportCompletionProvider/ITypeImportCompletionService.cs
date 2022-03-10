@@ -28,6 +28,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             CompletionOptions options,
             CancellationToken cancellationToken);
 
-        Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken);
+        void QueueCacheWarmUpTask(Project project);
     }
 }

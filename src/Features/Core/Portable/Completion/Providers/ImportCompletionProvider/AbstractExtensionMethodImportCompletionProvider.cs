@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override void WarmUpCacheInBackground(Document document)
         {
-            _ = ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None);
+            _ = ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None);
         }
 
         protected override async Task AddCompletionItemsAsync(

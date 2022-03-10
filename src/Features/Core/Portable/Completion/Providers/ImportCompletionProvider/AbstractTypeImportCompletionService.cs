@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
-        private readonly Workspace _workspace;
         private readonly AsyncBatchingWorkQueue<Project> _workQueue;
 
         private IImportCompletionCacheService<CacheEntry, CacheEntry> CacheService { get; }
@@ -33,25 +32,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         protected abstract string Language { get; }
 
-        internal AbstractTypeImportCompletionService(Workspace workspace)
+        internal AbstractTypeImportCompletionService(Workspace workspace, IAsynchronousOperationListener listener)
         {
-            _workspace = workspace;
             _workQueue = new(
                    TimeSpan.FromSeconds(1),
                    BatchUpdateCacheAsync,
-                   AsynchronousOperationListenerProvider.NullListener,
+                   listener,
                    CancellationToken.None);
 
-            CacheService = _workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
+            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
         }
 
-        public Task WarmUpCacheAsync(Project? project, CancellationToken cancellationToken)
+        public void QueueCacheWarmUpTask(Project project)
         {
-            if (project is null)
-                return Task.CompletedTask;
-
             _workQueue.AddWork(project);
-            return _workQueue.WaitUntilCurrentBatchCompletesAsync();
         }
 
         public async Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(

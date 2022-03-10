@@ -20,26 +20,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     /// <remarks>It runs out-of-proc if it's enabled</remarks>
     internal static partial class ExtensionMethodImportCompletionHelper
     {
-        public static async Task WarmUpCacheAsync(Document document, CancellationToken cancellationToken)
+        public static async Task WarmUpCacheAsync(Project project, CancellationToken cancellationToken)
         {
-            var project = document.Project;
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var result = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService>(
                     project,
                     (service, solutionInfo, cancellationToken) => service.WarmUpCacheAsync(
-                        solutionInfo, document.Id, cancellationToken),
+                        solutionInfo, project.Id, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await WarmUpCacheInCurrentProcessAsync(document).ConfigureAwait(false);
+                WarmUpCacheInCurrentProcess(project);
             }
         }
 
-        public static Task WarmUpCacheInCurrentProcessAsync(Document document)
-            => ExtensionMethodSymbolComputer.UpdateCacheAsync(document.Project);
+        public static void WarmUpCacheInCurrentProcess(Project project)
+            => ExtensionMethodSymbolComputer.QueueCacheWarmUpTask(project);
 
         public static async Task<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
             Document document,

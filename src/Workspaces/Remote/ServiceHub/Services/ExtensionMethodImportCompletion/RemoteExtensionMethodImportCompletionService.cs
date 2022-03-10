@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetRequiredDocument(documentId);
-                await ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcessAsync(document).ConfigureAwait(false);
+                var project = solution.GetRequiredProject(projectId);
+                ExtensionMethodImportCompletionHelper.WarmUpCacheInCurrentProcess(project);
             }, cancellationToken);
         }
     }

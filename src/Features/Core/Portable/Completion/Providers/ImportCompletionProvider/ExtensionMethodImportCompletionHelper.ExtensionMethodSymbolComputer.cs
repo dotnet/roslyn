@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -35,11 +36,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
             private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes;
 
-            private static readonly AsyncBatchingWorkQueue<Project> _workQueue = new(
-                   TimeSpan.FromSeconds(1),
-                   BatchUpdateCacheAsync,
-                   AsynchronousOperationListenerProvider.NullListener,
-                   CancellationToken.None);
+            private static readonly object _gate = new();
+            private static AsyncBatchingWorkQueue<Project>? _workQueue;
+
+            private static AsyncBatchingWorkQueue<Project> GetWorkQueue(Project project)
+            {
+                lock (_gate)
+                {
+                    if (_workQueue is null)
+                    {
+                        var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
+                        var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
+                        _workQueue = new(
+                                TimeSpan.FromSeconds(1),
+                                BatchUpdateCacheAsync,
+                                listenerProvider.GetListener(FeatureAttribute.CompletionSet),
+                                CancellationToken.None);
+                    }
+
+                    return _workQueue;
+                }
+            }
 
             public ExtensionMethodSymbolComputer(
                 Document document,
@@ -78,15 +95,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// <summary>
             /// Force create/update all relevant indices
             /// </summary>
-            public static Task UpdateCacheAsync(Project? project)
+            public static void QueueCacheWarmUpTask(Project project)
             {
-                if (project is not null)
-                {
-                    _workQueue.AddWork(project);
-                    return _workQueue.WaitUntilCurrentBatchCompletesAsync();
-                }
-
-                return Task.CompletedTask;
+                var queue = GetWorkQueue(project);
+                queue.AddWork(project);
             }
 
             private static async ValueTask BatchUpdateCacheAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
@@ -155,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // If we are not force creating/updating the cache, an update task needs to be queued in background.
                     if (!forceCacheCreation)
-                        _workQueue.AddWork(_originatingDocument.Project);
+                        GetWorkQueue(_originatingDocument.Project).AddWork(_originatingDocument.Project);
                 }
             }
 

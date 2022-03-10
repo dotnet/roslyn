@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override void WarmUpCacheInBackground(Document document)
         {
             var typeImportCompletionService = document.GetRequiredLanguageService<ITypeImportCompletionService>();
-            _ = typeImportCompletionService.WarmUpCacheAsync(document.Project, CancellationToken.None);
+            typeImportCompletionService.QueueCacheWarmUpTask(document.Project);
         }
 
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)

@@ -6629,9 +6629,9 @@ class C
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function WarmUpTypeImportCompletionCache(populateCache As Boolean) As Task
+        Public Async Function WarmUpTypeImportCompletionCache() As Task
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -6663,31 +6663,28 @@ namespace NS2
 
                 Dim document = state.Workspace.CurrentSolution.GetDocument(state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id)
 
-                If populateCache Then
-                    Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
-                    Await service.WarmUpCacheAsync(document.Project, CancellationToken.None)
-                End If
-
                 Dim completionService = CType(document.GetLanguageService(Of CompletionService)(), CompletionServiceWithProviders)
                 completionService.GetTestAccessor().SuppressPartialSemantics()
-
                 state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+
+                Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
+
+                service.QueueCacheWarmUpTask(document.Project)
+                Await state.WaitForAsynchronousOperationsAsync()
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                ' w/o warming up cache in advance, the first time import completion get triggered we will not return anything from references
-                If populateCache Then
-                    Await state.AssertCompletionItemsContain(displayText:="UnimportedType", displayTextSuffix:="")
-                Else
-                    Await state.AssertCompletionItemsDoNotContainAny("UnimportedType")
-                End If
+                Await state.AssertCompletionItemsContain(displayText:="UnimportedType", displayTextSuffix:="")
+
+                service.QueueCacheWarmUpTask(document.Project)
+                Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function WarmUpExtensionMethodImportCompletionCache(populateCache As Boolean) As Task
+        Public Async Function WarmUpExtensionMethodImportCompletionCache() As Task
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -6724,22 +6721,17 @@ namespace NS2
                 Dim completionService = CType(document.GetLanguageService(Of CompletionService)(), CompletionServiceWithProviders)
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                If populateCache Then
-                    Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None)
-                End If
+                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await state.WaitForAsynchronousOperationsAsync()
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
 
-                ' w/o warming up cache in advance, the first time import completion get triggered we will not return anything from references
-                If populateCache Then
-                    Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
-                Else
-                    Await state.AssertCompletionItemsDoNotContainAny("IntegerExtMethod")
-                End If
+                Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
 
                 ' Make sure any background work would be completed.
-                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document, CancellationToken.None)
+                Await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
+                Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function
 
