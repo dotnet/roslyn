@@ -570,6 +570,8 @@ class A { void M() {  } }
         }
 
         [Fact]
+        // TODO2
+        //[ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/60045
         public void ExternAliases4()
         {
             var src1 = @"
@@ -602,9 +604,7 @@ namespace M
                     new CSharpCompilationReference(dummyCompilation, ImmutableArray.Create("A", "A")),
                 });
 
-            // We use VerifyDiagnosticsOnly until this issue is fixed:
-            // https://github.com/dotnet/roslyn/issues/60045
-            compilation.VerifyDiagnosticsOnly();
+            compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
         }
 

@@ -852,7 +852,9 @@ class C
         #endregion
 
         #region Error cases
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
+        [Fact]
+        // TODO2
+        //[ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
         [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {
@@ -866,9 +868,7 @@ class C
     event void E;
 }
 ";
-            // We use VerifyDiagnosticsOnly for now, until this issue is fixed:
-            // https://github.com/dotnet/roslyn/issues/39979
-            CreateCompilation(text).VerifyDiagnosticsOnly(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (3,11): error CS1547: Keyword 'void' cannot be used in this context
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void"),
                 // (7,11): error CS1547: Keyword 'void' cannot be used in this context

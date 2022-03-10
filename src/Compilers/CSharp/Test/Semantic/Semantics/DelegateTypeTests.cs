@@ -11175,7 +11175,7 @@ class Program
             Assert.Equal(0, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_03()
         {
             var source =
@@ -11195,11 +11195,11 @@ class Program
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
             comp.TestOnlyCompilationData = data;
-            comp.VerifyDiagnosticsOnly();
+            comp.VerifyDiagnostics();
             Assert.Equal(2, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_04()
         {
             var source =
@@ -11218,7 +11218,7 @@ class Program
             var comp = CreateCompilation(source);
             var data = new InferredDelegateTypeData();
             comp.TestOnlyCompilationData = data;
-            comp.VerifyDiagnosticsOnly(
+            comp.VerifyDiagnostics(
                 // (7,11): error CS0103: The name 'x' does not exist in the current context
                 //         F(x, (int y) => { });
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 11),

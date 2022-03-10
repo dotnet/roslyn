@@ -4766,7 +4766,7 @@ unsafe struct A
             // add better verification once this is implemented
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/60059
         public void TestNullCoalesce_Dynamic()
         {
             var source = @"
@@ -4823,9 +4823,7 @@ public class C
     }
 }
 ";
-            // We use VerifyDiagnosticsOnly until this issue is fixed:
-            // https://github.com/dotnet/roslyn/issues/60059
-            var compilation = CreateCompilation(source).VerifyDiagnosticsOnly();
+            var compilation = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]

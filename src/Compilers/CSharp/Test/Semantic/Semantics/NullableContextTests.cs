@@ -158,7 +158,7 @@ partial class C
         }
 
         // See also CommandLineTests.NullableAnalysisFlags().
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void NullableAnalysisFlags_01()
         {
             var source =
@@ -197,14 +197,14 @@ class Program
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
-                    comp.VerifyDiagnosticsOnly(
+                    comp.VerifyDiagnostics(
                         // (7,27): warning CS8603: Possible null reference return.
                         //     static object F1() => C1;
                         Diagnostic(ErrorCode.WRN_NullReferenceReturn, "C1").WithLocation(7, 27));
                 }
                 else
                 {
-                    comp.VerifyDiagnosticsOnly();
+                    comp.VerifyDiagnostics();
                 }
 
                 var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
@@ -212,7 +212,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void NullableAnalysisFlags_02()
         {
             var source =
@@ -246,14 +246,14 @@ class Program
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
-                    comp.VerifyDiagnosticsOnly(
+                    comp.VerifyDiagnostics(
                         // (7,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
                         //     static void F1(object obj = C1) { }
                         Diagnostic(ErrorCode.WRN_NullAsNonNullable, "C1").WithLocation(7, 33));
                 }
                 else
                 {
-                    comp.VerifyDiagnosticsOnly();
+                    comp.VerifyDiagnostics();
                 }
 
                 var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
@@ -261,7 +261,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void NullableAnalysisFlags_03()
         {
             var sourceA =
@@ -305,14 +305,14 @@ struct B2
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
-                    comp.VerifyDiagnosticsOnly(
+                    comp.VerifyDiagnostics(
                         // (2,4): warning CS8625: Cannot convert null literal to non-nullable reference type.
                         // [A(A.C1)]
                         Diagnostic(ErrorCode.WRN_NullAsNonNullable, "A.C1").WithLocation(2, 4));
                 }
                 else
                 {
-                    comp.VerifyDiagnosticsOnly();
+                    comp.VerifyDiagnostics();
                 }
 
                 var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
@@ -1070,7 +1070,7 @@ partial class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_05()
         {
@@ -1147,7 +1147,7 @@ class Program
             {
                 var comp = CreateCompilation(source);
                 comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
-                comp.VerifyDiagnosticsOnly(expectedDiagnostics);
+                comp.VerifyDiagnostics(expectedDiagnostics);
 
                 AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
                 AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
@@ -1531,7 +1531,7 @@ record B2() : A(
             AssertEx.Equal(new[] { "= null", "= null", "F2" }, actualAnalyzedKeys);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
         public void AnalyzeMethodsInEnabledContextOnly_12()
         {
@@ -1584,7 +1584,7 @@ class A : System.Attribute
 
             var comp = CreateCompilation(source);
             comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
-            comp.VerifyDiagnosticsOnly();
+            comp.VerifyDiagnostics();
 
             var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             var expectedAnalyzedKeys = new[]

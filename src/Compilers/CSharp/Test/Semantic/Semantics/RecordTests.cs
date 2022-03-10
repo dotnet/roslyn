@@ -30313,7 +30313,8 @@ class C2 : I(0)
                 );
         }
 
-        [Theory, WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
+        [ConditionalTheory(typeof(NoUsedAssembliesValidation))] // Tracked by  https://github.com/dotnet/roslyn/issues/60060
+        [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
         public void CrossAssemblySupportingAndNotSupportingCovariantReturns(bool useCompilationReference)
         {
@@ -30354,9 +30355,7 @@ public record C(int I) : B(I);";
             // CS1701: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy
             var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
 
-            // We use VerifyDiagnosticsOnly until this issue is fixed:
-            // https://github.com/dotnet/roslyn/issues/60060
-            compB.VerifyDiagnosticsOnly();
+            compB.VerifyDiagnostics();
             Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();

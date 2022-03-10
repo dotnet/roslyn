@@ -12,7 +12,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,9 +22,11 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -36,8 +40,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
 
         internal static bool EnableVerifyUsedAssemblies { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_USEDASSEMBLIES"));
-
-        internal static bool EnableExtraEmitDiagnosticsVerification { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_EMITDIAGNOSTICS"));
 
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,

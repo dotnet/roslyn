@@ -587,7 +587,7 @@ Block[B6] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/60059
         public void CoalesceOperation_06()
         {
             var source = @"
@@ -600,9 +600,7 @@ class C
 }";
             var compilation = CreateCompilation(source, references: new[] { CSharpRef }, targetFramework: TargetFramework.Mscorlib40AndSystemCore);
 
-            // We use VerifyDiagnosticsOnly until this issue is fixed:
-            // https://github.com/dotnet/roslyn/issues/60059
-            compilation.VerifyDiagnosticsOnly();
+            compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();

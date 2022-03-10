@@ -118,7 +118,16 @@ jobs:
     buildJobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    testArguments: -testCoreClr -testIOperation -testEmitDiagnostics -testCompilerOnly
+    testArguments: -testCoreClr -testIOperation -testCompilerOnly
+
+template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreCLR TestUsedAssemblies Debug'
+    jobName: Test_Windows_CoreClr_TestUsedAssemblies_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
 
 # Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml

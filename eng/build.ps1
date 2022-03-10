@@ -64,7 +64,6 @@ param (
   [switch]$testCoreClr,
   [switch]$testCompilerOnly = $false,
   [switch]$testIOperation,
-  [switch]$testEmitDiagnostics,
   [switch]$testUsedAssemblies,
   [switch]$sequential,
   [switch]$helix,
@@ -101,7 +100,6 @@ function Print-Usage() {
   Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
-  Write-Host "  -testEmitDiagnostics      Run extra checks to validate emit diagnostics"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
   Write-Host ""
   Write-Host "Advanced settings:"
@@ -376,10 +374,6 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_IOPERATION = "true"
   }
 
-  if ($testEmitDiagnostics) {
-    $env:ROSLYN_TEST_EMITDIAGNOSTICS = "true"
-  }
-
   if ($testUsedAssemblies) {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
@@ -475,10 +469,6 @@ function TestUsingRunTests() {
     # (they need to be transferred over to the Helix machines that run the tests)
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
-    }
-
-    if ($testEmitDiagnostics) {
-      Remove-Item env:\ROSLYN_TEST_EMITDIAGNOSTICS
     }
 
     if ($testUsedAssemblies) {
