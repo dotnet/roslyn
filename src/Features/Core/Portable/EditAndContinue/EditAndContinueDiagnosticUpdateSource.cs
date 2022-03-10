@@ -77,7 +77,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             RoslynDebug.Assert(solution != null);
 
-            // We don't report rude edits here, we just ensure we consider them in the version number increment
+            // Even though we only report diagnostics, and not rude edits, we still need to
+            // ensure that the presence of rude edits are considered when we decide to update
+            // our version number.
             if (diagnostics.Any() || rudeEdits.Any(d => d.Diagnostics.Any()))
             {
                 _previouslyHadDiagnostics = true;
