@@ -3,17 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -155,8 +152,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (documentAfterPaste == null)
                 return;
 
+            var alwaysEscape = ShouldAlwaysEscapeTextFromUnknownSource(stringExpression, snapshotBeforePaste.Version.Changes);
+
             // If the pasting was successful, then no need to change anything.
-            if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpression, cancellationToken))
+            if (!alwaysEscape && PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpression, cancellationToken))
                 return;
 
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
@@ -182,26 +181,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             transaction.Complete();
         }
 
+        private static bool ShouldAlwaysEscapeTextFromUnknownSource(ExpressionSyntax stringExpression, INormalizedTextChangeCollection changes)
+        {
+            if (stringExpression is LiteralExpressionSyntax literal)
+            {
+                // Pasting a control character into a normal string literal is normally not desired.  So even if this
+                // is legal, we still escape the contents to make the pasted code clear.
+                if (literal.Token.IsRegularStringLiteral() && ContainsControlCharacter(changes))
+                    return true;
+
+                // Always assume pasing into a raw string needs adjustment.
+                return IsRawStringLiteral(literal);
+            }
+            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                // Pasting a control character into a normal string literal is normally not desired.  So even if this
+                // is legal, we still escape the contents to make the pasted code clear.
+                if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken) && ContainsControlCharacter(changes))
+                    return true;
+
+                // Always assume pasing into a raw string needs adjustment.
+                return IsRawStringLiteral(interpolatedString);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(stringExpression);
+        }
+
+        private static bool IsRawStringLiteral(InterpolatedStringExpressionSyntax interpolatedString)
+            => interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
+
+        private static bool IsRawStringLiteral(LiteralExpressionSyntax literal)
+            => literal.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken;
+
         private static bool PasteWasSuccessful(
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             CancellationToken cancellationToken)
         {
-            // Pasting a control character into a normal string literal is normally not desired.  So even if this
-            // is legal, we still escape the contents to make the pasted code clear.
-            if (stringExpressionBeforePaste is LiteralExpressionSyntax literal && literal.Token.IsRegularStringLiteral())
-            {
-                if (ContainsControlCharacter(snapshotBeforePaste))
-                    return false;
-            }
-            else if (stringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString &&
-                interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
-            {
-                if (ContainsControlCharacter(snapshotBeforePaste))
-                    return false;
-            }
-
             // try to find the same token after the paste.  If it's got no errors, and still ends at the same expected
             // location, then it looks like what was pasted was entirely legal and should probably not be touched.
 
@@ -262,9 +279,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
-        private static bool ContainsControlCharacter(ITextSnapshot snapshotBeforePaste)
+        private static bool ContainsControlCharacter(INormalizedTextChangeCollection changes)
         {
-            return snapshotBeforePaste.Version.Changes.Any(c => ContainsControlCharacter(c.NewText));
+            return changes.Any(c => ContainsControlCharacter(c.NewText));
         }
 
         private static bool ContainsControlCharacter(string newText)
@@ -570,12 +587,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private static ImmutableArray<TextSpan> GetContentSpans(
             SourceText text, ExpressionSyntax stringExpression)
         {
-            if (stringExpression is LiteralExpressionSyntax)
+            if (stringExpression is LiteralExpressionSyntax literal)
             {
                 // simple string literal (normal, verbatim or raw).
                 //
                 // Skip past the leading and trailing delimiters and add the span in between.
-                if (stringExpression.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+                if (IsRawStringLiteral(literal))
                 {
                     var start = stringExpression.SpanStart;
                     while (start < text.Length && text[start] == '"')

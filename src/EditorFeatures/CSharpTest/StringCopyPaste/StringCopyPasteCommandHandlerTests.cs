@@ -434,10 +434,12 @@ def$$
 @"var x = """"""
     abc
     def$$
+
     """"""",
                 afterUndo:
 @"var x = """"""abc
 def$$
+
     """"""");
         }
 
@@ -489,8 +491,8 @@ def$$bar
     """"""",
 @"var x = """"""
     gooabc
-    def$$
-    bar
+    def
+    $$bar
     """"""",
                 afterUndo:
 @"var x = """"""
