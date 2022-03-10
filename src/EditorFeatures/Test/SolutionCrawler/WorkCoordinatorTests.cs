@@ -1628,7 +1628,7 @@ class C
             public static readonly IncrementalAnalyzerProviderMetadata Crawler = new IncrementalAnalyzerProviderMetadata(new Dictionary<string, object> { { "WorkspaceKinds", new[] { SolutionCrawlerWorkspaceKind } }, { "HighPriorityForActiveFile", false }, { "Name", "TestAnalyzer" } });
         }
 
-        private class Analyzer : IIncrementalAnalyzer2
+        private class Analyzer : IIncrementalAnalyzer
         {
             public static readonly Option2<bool> TestOption = new Option2<bool>("TestOptions", "TestOption", defaultValue: true);
 
@@ -1776,6 +1776,13 @@ class C
 
             public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
+
+            public void LogAnalyzerCountSummary()
+            {
+            }
+
+            public int Priority => 1;
+
             #endregion
         }
 
@@ -1800,6 +1807,17 @@ class C
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
+
+            public void LogAnalyzerCountSummary()
+            {
+            }
+
+            public int Priority => 1;
+
             #endregion
         }
 

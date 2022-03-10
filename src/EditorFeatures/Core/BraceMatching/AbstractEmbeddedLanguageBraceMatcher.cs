@@ -6,11 +6,12 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching
 {
     // Note: this type could be concrete, but we cannot export IBraceMatcher's for multiple
     // languages at once.  So all logic is contained here.  The derived types only exist for
