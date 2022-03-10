@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!isAsync)
                     {
                         // We already checked feature availability for async scenarios
-                        CheckFeatureAvailability(_syntax, MessageID.IDS_FeatureUsingDeclarations, diagnostics, _syntax.AwaitKeyword.GetLocation());
+                        CheckFeatureAvailability(expr.Syntax, MessageID.IDS_FeatureDisposalPattern, diagnostics);
                     }
                 }
             }

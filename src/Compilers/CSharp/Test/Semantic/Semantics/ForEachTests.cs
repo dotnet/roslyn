@@ -3184,8 +3184,9 @@ ref struct DisposableEnumerator
 }";
 
             var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3,
-                // error CS8370: Feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3).WithArguments("using declarations", "8.0").WithLocation(1, 1)
+                // (6,27): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         foreach (var x in new Enumerable1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "new Enumerable1()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 27)
                 );
             var enumeratorInfo = boundNode.EnumeratorInfoOpt;
 

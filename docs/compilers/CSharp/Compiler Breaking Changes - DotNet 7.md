@@ -115,7 +115,7 @@ https://github.com/dotnet/roslyn/issues/57750
 
     struct AsyncEnumerable
     {
-        AsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token) => new AsyncEnumerator();
+        public AsyncEnumerator GetAsyncEnumerator(CancellationToken token) => new AsyncEnumerator();
     }
 
     struct AsyncEnumerator : IAsyncDisposable
@@ -135,5 +135,5 @@ https://github.com/dotnet/roslyn/issues/57750
     }
     ```
 
-9. <a name="9"></a>Starting with Visual Studio 17.2, a `foreach` using a ref struct enumerator type reports an error if the language version is set to 7.3 or older.
+9. <a name="9"></a>Starting with Visual Studio 17.2, a `foreach` using a ref struct enumerator type reports an error if the language version is set to 7.3 or earlier.
 

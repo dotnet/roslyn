@@ -1159,10 +1159,10 @@ class C2
 ";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (11,16): error CS8370: The feature 'using declarations' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (11,16): error CS8370: Feature 'pattern-based disposal' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //         using (S1 s = new S1())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("using declarations", "8.0").WithLocation(11, 16)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "S1 s = new S1()").WithArguments("pattern-based disposal", "8.0").WithLocation(11, 16)
+                );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }

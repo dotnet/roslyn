@@ -2981,6 +2981,65 @@ struct AsyncEnumerator
   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)");
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.IOperation)]
+        [Fact]
+        public void NullPatternDisposeMethod()
+        {
+            var src = @"using System;
+using System.Threading.Tasks;
+/*<bind>*/
+await foreach (var x in new CustomAsyncEnumerable())
+{
+	Console.WriteLine(x);
+}
+/*</bind>*/
+
+struct CustomAsyncEnumerable
+{
+	public CustomAsyncEnumerator GetAsyncEnumerator() => new();
+}
+
+struct CustomAsyncEnumerator
+{
+	public ValueTask<bool> MoveNextAsync() => ValueTask.FromResult(false);
+	public int Current => 0;
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+            var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"
+IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
+  Locals: Local_1: System.Int32 x
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Int32 x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'var')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: CustomAsyncEnumerable, IsImplicit) (Syntax: 'new CustomA ... numerable()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IObjectCreationOperation (Constructor: CustomAsyncEnumerable..ctor()) (OperationKind.ObjectCreation, Type: CustomAsyncEnumerable) (Syntax: 'new CustomA ... numerable()')
+          Arguments(0)
+          Initializer:
+            null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                  ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)");
+
+            Assert.Null(op.Info.PatternDisposeMethod);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void ForEachFlow_07()
