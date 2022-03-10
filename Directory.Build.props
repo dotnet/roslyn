@@ -15,7 +15,6 @@
 
     <!-- https://github.com/dotnet/msbuild/blob/main/documentation/ProjectReference-Protocol.md#setplatform-negotiation -->
     <EnableDynamicPlatformResolution>true</EnableDynamicPlatformResolution>
-    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
 
     <!-- This entire repo has just one version.json file, so compute the version once and share with all projects in a large build. -->
     <GitVersionBaseDirectory>$(MSBuildThisFileDirectory)</GitVersionBaseDirectory>
