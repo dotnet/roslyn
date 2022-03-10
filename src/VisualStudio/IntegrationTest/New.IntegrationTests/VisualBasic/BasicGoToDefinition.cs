@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
@@ -61,7 +62,7 @@ End Class", HangMitigatingCancellationToken);
             Assert.Equal("Object Browser", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
             globalOptions.SetGlobalOption(new OptionKey(VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic), false);
-            globalOptions.SetGlobalOption(new OptionKey(FeatureOnOffOptions.NavigateToDecompiledSources, language: null), false);
+            globalOptions.SetGlobalOption(new OptionKey(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, language: null), false);
 
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "Class1.vb", HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);

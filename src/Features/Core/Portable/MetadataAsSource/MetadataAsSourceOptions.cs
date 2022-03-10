@@ -15,7 +15,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         bool NavigateToDecompiledSources = true,
         bool AlwaysUseDefaultSymbolServers = true)
     {
-        // note: must pass at least one parameter to avoid calling default ctor:
-        public static readonly MetadataAsSourceOptions Default = new(NavigateToDecompiledSources: true);
+        public static readonly MetadataAsSourceOptions Default = new();
+
+        public MetadataAsSourceOptions()
+            : this(NavigateToDecompiledSources: true)
+        {
+        }
     }
 }

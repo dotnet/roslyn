@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
             _logger = logger;
         }
 
-        public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, bool useDefaultSymbolServers, PEReader peReader, CancellationToken cancellationToken)
+        public async Task<PdbFilePathResult?> GetPdbFilePathAsync(string dllPath, PEReader peReader, bool useDefaultSymbolServers, CancellationToken cancellationToken)
         {
             var hasCodeViewEntry = false;
             uint timeStamp = 0;

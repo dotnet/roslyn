@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     {
                         var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
                         // Call the debugger to find the PDB from a symbol server etc.
-                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, useDefaultSymbolServers, peReader, cancellationToken);
+                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, useDefaultSymbolServers, cancellationToken);
 
                         var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
 
