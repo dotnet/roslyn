@@ -2077,7 +2077,74 @@ public class C
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
-            CompileAndVerify(compilation, expectedOutput: "InvalidOperationException");
+            CompileAndVerify(compilation, expectedOutput: "InvalidOperationException").VerifyIL("C.Main", @"
+{
+  // Code size       83 (0x53)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1,
+                int V_2,
+                System.Exception V_3) //ex
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  .try
+  {
+    IL_000a:  nop
+    IL_000b:  ldc.i4.1
+    IL_000c:  brtrue.s   IL_000f
+    IL_000e:  nop
+    IL_000f:  ldloc.0
+    IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0015:  stloc.1
+    IL_0016:  ldloc.1
+    IL_0017:  ldc.i4.3
+    IL_0018:  bne.un.s   IL_002b
+    IL_001a:  ldloc.0
+    IL_001b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0020:  stloc.2
+    IL_0021:  ldloc.2
+    IL_0022:  ldc.i4.4
+    IL_0023:  beq.s      IL_0027
+    IL_0025:  br.s       IL_002b
+    IL_0027:  ldc.i4.1
+    IL_0028:  pop
+    IL_0029:  br.s       IL_0035
+    IL_002b:  ldc.i4.1
+    IL_002c:  brtrue.s   IL_002f
+    IL_002e:  nop
+    IL_002f:  call       ""ThrowInvalidOperationException""
+    IL_0034:  nop
+    IL_0035:  ldc.i4.1
+    IL_0036:  brtrue.s   IL_0039
+    IL_0038:  nop
+    IL_0039:  nop
+    IL_003a:  leave.s    IL_0052
+  }
+  catch System.Exception
+  {
+    IL_003c:  stloc.3
+    IL_003d:  nop
+    IL_003e:  ldloc.3
+    IL_003f:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_0044:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_0049:  call       ""void System.Console.WriteLine(string)""
+    IL_004e:  nop
+    IL_004f:  nop
+    IL_0050:  leave.s    IL_0052
+  }
+  IL_0052:  ret
+}
+").VerifyIL("ThrowInvalidOperationException", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0005:  throw
+}
+");
         }
 
         [Fact]
@@ -2120,7 +2187,91 @@ namespace System.Runtime.CompilerServices
                 //             _ = t switch { (3, 4) => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("(0, _)").WithLocation(9, 19)
                 );
-            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()");
+            CompileAndVerify(compilation, expectedOutput: "SwitchExpressionException()").VerifyIL("C.Main", @"
+{
+  // Code size      123 (0x7b)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1,
+                int V_2,
+                System.Runtime.CompilerServices.SwitchExpressionException V_3, //ex
+                System.Exception V_4) //ex
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  .try
+  {
+    IL_000a:  nop
+    IL_000b:  ldc.i4.1
+    IL_000c:  brtrue.s   IL_000f
+    IL_000e:  nop
+    IL_000f:  ldloc.0
+    IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_0015:  stloc.1
+    IL_0016:  ldloc.1
+    IL_0017:  ldc.i4.3
+    IL_0018:  bne.un.s   IL_002b
+    IL_001a:  ldloc.0
+    IL_001b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0020:  stloc.2
+    IL_0021:  ldloc.2
+    IL_0022:  ldc.i4.4
+    IL_0023:  beq.s      IL_0027
+    IL_0025:  br.s       IL_002b
+    IL_0027:  ldc.i4.1
+    IL_0028:  pop
+    IL_0029:  br.s       IL_0035
+    IL_002b:  ldc.i4.1
+    IL_002c:  brtrue.s   IL_002f
+    IL_002e:  nop
+    IL_002f:  call       ""ThrowSwitchExpressionExceptionParameterless""
+    IL_0034:  nop
+    IL_0035:  ldc.i4.1
+    IL_0036:  brtrue.s   IL_0039
+    IL_0038:  nop
+    IL_0039:  nop
+    IL_003a:  leave.s    IL_007a
+  }
+  catch System.Runtime.CompilerServices.SwitchExpressionException
+  {
+    IL_003c:  stloc.3
+    IL_003d:  nop
+    IL_003e:  ldstr      ""{0}({1})""
+    IL_0043:  ldloc.3
+    IL_0044:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_0049:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_004e:  ldloc.3
+    IL_004f:  callvirt   ""object System.Runtime.CompilerServices.SwitchExpressionException.UnmatchedValue.get""
+    IL_0054:  call       ""string string.Format(string, object, object)""
+    IL_0059:  call       ""void System.Console.WriteLine(string)""
+    IL_005e:  nop
+    IL_005f:  nop
+    IL_0060:  leave.s    IL_007a
+  }
+  catch System.Exception
+  {
+    IL_0062:  stloc.s    V_4
+    IL_0064:  nop
+    IL_0065:  ldloc.s    V_4
+    IL_0067:  callvirt   ""System.Type System.Exception.GetType()""
+    IL_006c:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+    IL_0071:  call       ""void System.Console.WriteLine(string)""
+    IL_0076:  nop
+    IL_0077:  nop
+    IL_0078:  leave.s    IL_007a
+  }
+  IL_007a:  ret
+}
+").VerifyIL("ThrowSwitchExpressionExceptionParameterless", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  IL_0000:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor()""
+  IL_0005:  throw
+}
+");
         }
 
         [Fact]
