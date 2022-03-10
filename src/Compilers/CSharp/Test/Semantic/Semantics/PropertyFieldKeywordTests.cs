@@ -1518,8 +1518,10 @@ struct S
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindOriginalFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindOriginalFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 class C
@@ -1541,15 +1543,17 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 class C
@@ -1567,7 +1571,7 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
@@ -1575,8 +1579,10 @@ class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindOriginalFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindOriginalFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 class C
@@ -1598,15 +1604,17 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(arrowClause.Expression);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, arrowClause.Expression, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, arrowClause.Expression, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 class C
@@ -1624,7 +1632,7 @@ class C
             var arrowClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression("field"));
             model.TryGetSpeculativeSemanticModel(token.SpanStart, arrowClause, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(arrowClause.Expression);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, arrowClause.Expression, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, arrowClause.Expression, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
@@ -1632,8 +1640,10 @@ class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindOriginalFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 class C
@@ -1655,15 +1665,17 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 class C
@@ -1681,7 +1693,7 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
@@ -1857,8 +1869,10 @@ class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindOriginalFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindOriginalFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 using System;
@@ -1890,15 +1904,27 @@ class C
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.Equal(SpeculativeBindingOption.BindAsTypeOrNamespace, bindingOption);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
+
             Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 using System;
@@ -1926,8 +1952,18 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.Equal(SpeculativeBindingOption.BindAsTypeOrNamespace, bindingOption);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
+
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -2051,8 +2087,21 @@ class C
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
             if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
@@ -2101,8 +2150,20 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Int32 field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
 
             if (bindingState == FieldBindingTestState.BecomesLocal)
             {
@@ -2176,8 +2237,8 @@ class C
             }
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
             if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
@@ -2191,6 +2252,18 @@ class C
             {
                 Assert.Equal(FieldBindingTestState.None, bindingState);
                 Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            }
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
             }
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -2237,8 +2310,20 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Int32 field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
 
             if (bindingState == FieldBindingTestState.BecomesLocal)
             {
@@ -2301,8 +2386,21 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
             if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
@@ -2350,8 +2448,20 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Int32 field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
 
             if (bindingState == FieldBindingTestState.BecomesLocal)
             {
@@ -2370,8 +2480,10 @@ class C
             Assert.Equal(numberOfAccessorBinding, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindOriginalFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindOriginalFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2408,14 +2520,16 @@ public class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression)]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace)]
+        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindSpeculatedFirst(SpeculativeBindingOption bindingOption)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2447,7 +2561,7 @@ public class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
