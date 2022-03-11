@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                EditorConfig = "dotnet_style_prefer_foreach_explicit_cast_in_source=" + optionValue,
+                EditorConfig = @"
+[*]
+dotnet_style_prefer_foreach_explicit_cast_in_source=" + optionValue,
             }.RunAsync();
         }
 
@@ -166,7 +168,7 @@ namespace ConsoleApplication1
     }
 }";
 
-            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -479,7 +481,7 @@ namespace ConsoleApplication1
         void Main<A, B>()
         {
             var x = new List<A>();
-            [|foreach|] (B s in x)
+            {|CS0030:[|foreach|]|} (B s in x)
             {
             }
         }
@@ -494,7 +496,7 @@ namespace ConsoleApplication1
         void Main<A, B>()
         {
             var x = new List<A>();
-            foreach (B s in x.Select(v => (B)v))
+            foreach (B s in x.Select(v => {|CS0030:(B)v|}))
             {
             }
         }
