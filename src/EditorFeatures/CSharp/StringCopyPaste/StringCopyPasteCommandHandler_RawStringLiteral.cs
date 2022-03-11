@@ -89,9 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var contentSpan = GetRawStringLiteralContentSpan(snapshotBeforePaste.AsText(), stringExpressionBeforePaste);
             var contentSpanAfterPaste = MapSpan(contentSpan, snapshotBeforePaste, snapshotAfterPaste);
-
-            if (!MustBeMultiLine(snapshotAfterPaste.GetSpan(contentSpanAfterPaste.ToSpan())))
-                return default;
+            var mustBeMultiLine = MustBeMultiLine(snapshotAfterPaste.GetSpan(contentSpanAfterPaste.ToSpan()));
 
             var indentationWhitespace = stringExpressionBeforePaste.Token.GetPreferredIndentation(documentBeforePaste, cancellationToken);
 
@@ -103,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 finalTextChanges.Add(new TextChange(new TextSpan(stringExpressionBeforePaste.SpanStart, 0), quotesToAdd));
 
             // Then a newline and the indentation to start with.
-            finalTextChanges.Add(
-                new TextChange(new TextSpan(contentSpan.Start, 0), newLine + indentationWhitespace));
+            if (mustBeMultiLine)
+                finalTextChanges.Add(new TextChange(new TextSpan(contentSpan.Start, 0), newLine + indentationWhitespace));
 
             SourceText? lastChange = null;
             for (var i = 0; i < snapshotBeforePaste.Version.Changes.Count; i++)
@@ -131,17 +129,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // if the last change ended at the closing delimiter *and* ended with a newline, then we don't need to add a
             // final newline-space at the end because we will have already done that.
-            if (!(lastChange != null &&
-                  snapshotBeforePaste.Version.Changes.Last().OldEnd == contentSpan.End &&
-                  HasNewLine(lastChange.Lines.Last())))
-            {
+            if (mustBeMultiLine && !LastPastedLineAddedNewLine())
                 finalTextChanges.Add(new TextChange(new TextSpan(contentSpan.End, 0), newLine + indentationWhitespace));
-            }
 
             if (quotesToAdd != null)
                 finalTextChanges.Add(new TextChange(new TextSpan(stringExpressionBeforePaste.Span.End, 0), quotesToAdd));
 
             return finalTextChanges.ToImmutable();
+
+            bool LastPastedLineAddedNewLine()
+            {
+                return lastChange != null &&
+                    snapshotBeforePaste.Version.Changes.Last().OldEnd == contentSpan.End &&
+                      HasNewLine(lastChange.Lines.Last());
+            }
         }
 
         private static bool MustBeMultiLine(SnapshotSpan snapshotSpan)

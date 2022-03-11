@@ -108,23 +108,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                         }, TestCommandExecutionContext.Create());
                 }
 
-                {
-                    MarkupTestFile.GetPosition(expectedMarkup, out var expected, out int caretPosition);
-                    var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
-
-                    Assert.Equal(expected, finalText);
-                    Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
-                }
+                ValidateBefore(expectedMarkup);
 
                 this.SendUndo();
 
-                {
-                    MarkupTestFile.GetPosition(afterUndoMarkup, out var expected, out int caretPosition);
-                    var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
+                ValidateAfter(afterUndoMarkup);
+            }
 
-                    Assert.Equal(expected, finalText);
-                    Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
-                }
+            private void ValidateBefore(string expectedMarkup)
+            {
+                MarkupTestFile.GetPosition(expectedMarkup, out var expected, out int caretPosition);
+                var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
+
+                Assert.Equal(expected, finalText);
+                Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
+            }
+
+            private void ValidateAfter(string afterUndoMarkup)
+            {
+                MarkupTestFile.GetPosition(afterUndoMarkup, out var expected, out int caretPosition);
+                var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
+
+                Assert.Equal(expected, finalText);
+                Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
             }
 
             private static void SetSelection(
