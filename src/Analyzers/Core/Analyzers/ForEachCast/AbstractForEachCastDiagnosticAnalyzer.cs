@@ -72,19 +72,19 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 return;
 
             if (loopOperation.LoopControlVariable is not IVariableDeclaratorOperation variableDeclarator ||
-                variableDeclarator.Symbol.Type is null)
+                variableDeclarator.Symbol.Type is not ITypeSymbol iterationType)
             {
                 return;
             }
 
             var collectionType = loopOperation.Collection.Type;
-            var iterationType = loopOperation.Locals[0].Type;
-            if (collectionType is null || iterationType is null)
+            if (collectionType is null)
                 return;
 
             var (conversion, collectionElementType) = GetForEachInfo(semanticModel, node);
 
-            // Don't bother checking conversions that are problematic for other reasons.
+            // Don't bother checking conversions that are problematic for other reasons.  The user will already have a
+            // compiler error telling them the foreach is in error.
             if (!conversion.Exists)
                 return;
 
