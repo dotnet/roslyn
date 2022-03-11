@@ -569,9 +569,7 @@ class A { void M() {  } }
 ");
         }
 
-        [Fact]
-        // TODO2
-        //[ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/60045
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/60045
         public void ExternAliases4()
         {
             var src1 = @"
