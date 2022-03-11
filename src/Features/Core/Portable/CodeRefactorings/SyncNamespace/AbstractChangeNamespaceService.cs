@@ -789,18 +789,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             return await MergeDocumentChangesAsync(solution, changeDocuments, cancellationToken).ConfigureAwait(false);
 
-            Task<Document> RemoveUnnecessaryImportsWorker(
+            async Task<Document> RemoveUnnecessaryImportsWorker(
                 Document doc,
                 IEnumerable<SyntaxNode> importsToRemove,
                 CancellationToken token)
             {
                 var removeImportService = doc.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
                 var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(doc, token).ConfigureAwait(false);
 
-                return removeImportService.RemoveUnnecessaryImportsAsync(
+                return await removeImportService.RemoveUnnecessaryImportsAsync(
                     doc,
                     import => importsToRemove.Any(importToRemove => syntaxFacts.AreEquivalent(importToRemove, import)),
-                    token);
+                    formattingOptions,
+                    token).ConfigureAwait(false);
             }
         }
 

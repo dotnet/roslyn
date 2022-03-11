@@ -8,12 +8,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
     {
+#if CODE_STYLE
+        protected abstract ISyntaxFormattingService GetSyntaxFormattingService();
+#endif
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
 
@@ -34,11 +39,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         protected abstract string GetTitle();
 
-        private static Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, CancellationToken cancellationToken)
+        private async Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document,
+            CancellationToken cancellationToken)
         {
+#if CODE_STYLE
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = GetSyntaxFormattingService().GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree));
+#else
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+#endif
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
-            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
+            return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }
