@@ -10,13 +10,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
 
-        public static readonly Option2<bool> CrashOnAnalyzerException = new(nameof(InternalDiagnosticsOptions), nameof(CrashOnAnalyzerException), defaultValue: false,
+        public static readonly Option2<bool> CrashOnAnalyzerException = new("InternalDiagnosticsOptions", "CrashOnAnalyzerException", defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "CrashOnAnalyzerException"));
 
-        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(NormalDiagnosticMode), defaultValue: DiagnosticMode.Default,
+        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new("InternalDiagnosticsOptions", "NormalDiagnosticMode", defaultValue: DiagnosticMode.Default,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "NormalDiagnosticMode"));
-
-        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(EnableFileLoggingForDiagnostics), defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "EnableFileLoggingForDiagnostics"));
     }
 }

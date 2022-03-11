@@ -215,7 +215,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // TODO: filter in OOP https://github.com/dotnet/roslyn/issues/47859
         private static ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Hydrate(ImmutableArray<(DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)> diagnosticByDocument, Project project)
             => diagnosticByDocument
-                .Where(entry => project.GetTextDocument(entry.documentId)?.SupportsDiagnostics() == true)
+                .Where(
+                    entry =>
+                    {
+                        // Source generated documents (for which GetTextDocument returns null) support diagnostics. Only
+                        // filter out diagnostics where the document is non-null and SupportDiagnostics() is false.
+                        return project.GetTextDocument(entry.documentId)?.SupportsDiagnostics() != false;
+                    })
                 .ToImmutableDictionary(entry => entry.documentId, entry => entry.diagnostics);
     }
 }
