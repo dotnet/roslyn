@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
         End Function
 
         Protected Overrides Function PrepareRightExpressionLeadingTrivia(initialTrivia As SyntaxTriviaList) As SyntaxTriviaList
-            Return initialTrivia.SkipWhile(Function(t As SyntaxTrivia) t.IsWhitespace()).ToSyntaxTriviaList()
+            Return initialTrivia.WithoutLeadingWhitespaceOrEndOfLine()
         End Function
     End Class
 End Namespace

@@ -706,6 +706,29 @@ public class C
 }");
         }
 
+        [WorkItem(35870, "https://github.com/dotnet/roslyn/issues/35870")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestRightExpressionSeparatedWithSeveralLines()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a +
+
+            10;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a += 10;
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestTrivia()
         {

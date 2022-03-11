@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia
         End Function
 
-        <Extension>
+        <Extension()>
         Public Function IsPragmaDirective(trivia As SyntaxTrivia, ByRef isDisable As Boolean, ByRef isActive As Boolean, ByRef errorCodes As SeparatedSyntaxList(Of SyntaxNode)) As Boolean
             Select Case trivia.Kind()
                 Case SyntaxKind.DisableWarningDirectiveTrivia
