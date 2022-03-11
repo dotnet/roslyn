@@ -3145,11 +3145,56 @@ class C(int X, int Y)
             EOF();
         }
 
-        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
-        public void RecordStructParsing_WrongOrder()
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void RecordStructParsing_WrongOrder_CSharp10()
         {
             var text = "struct record C(int X, int Y);";
-            UsingTree(text, options: TestOptions.RegularPreview,
+            UsingTree(text, options: TestOptions.Regular10,
+                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
+                // struct record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordStructDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void RecordStructParsing_WrongOrder_CSharp9()
+        {
+            var text = "struct record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.Regular9,
                 // (1,15): error CS1514: { expected
                 // struct record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 15),
@@ -3237,11 +3282,116 @@ class C(int X, int Y)
             EOF();
         }
 
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void StructNamedRecord_CSharp8()
+        {
+            var text = "struct record { }";
+            UsingTree(text, options: TestOptions.Regular8);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void StructNamedRecord_CSharp9()
+        {
+            var text = "struct record { }";
+            UsingTree(text, options: TestOptions.Regular9);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs), WorkItem(59534, "https://github.com/dotnet/roslyn/issues/59534")]
+        public void StructNamedRecord_CSharp10()
+        {
+            var text = "struct record { }";
+            UsingTree(text, options: TestOptions.Regular10);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "record");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
-        public void RecordClassParsing_WrongOrder()
+        public void RecordClassParsing_WrongOrder_CSharp10()
         {
             var text = "class record C(int X, int Y);";
-            UsingTree(text, options: TestOptions.RegularPreview,
+            UsingTree(text, options: TestOptions.Regular10,
+                // (1,7): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
+                // class record C(int X, int Y);
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 7));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
+        public void RecordClassParsing_WrongOrder_CSharp9()
+        {
+            var text = "class record C(int X, int Y);";
+            UsingTree(text, options: TestOptions.Regular9,
                 // (1,14): error CS1514: { expected
                 // class record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "C").WithLocation(1, 14),

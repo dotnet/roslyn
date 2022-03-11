@@ -488,9 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Specifies whether or not method's out parameters should be analyzed. If there's more
-        /// than one location in the method being analyzed, then the method is partial and we prefer
-        /// to report an out parameter in partial method error.
+        /// Specifies whether or not method's out parameters should be analyzed.
         /// </summary>
         /// <param name="location">location to be used</param>
         /// <returns>true if the out parameters of the method should be analyzed</returns>
@@ -1515,15 +1513,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = node.Argument as BoundMethodGroup;
             if (methodGroup != null)
             {
-                if ((object)node.MethodOpt != null && node.MethodOpt.RequiresInstanceReceiver)
+                if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
+                {
+                    VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
+                }
+                else if (node.MethodOpt is not null && methodGroup.ReceiverOpt is not null)
                 {
                     EnterRegionIfNeeded(methodGroup);
                     VisitRvalue(methodGroup.ReceiverOpt);
                     LeaveRegionIfNeeded(methodGroup);
-                }
-                else if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
-                {
-                    VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
             }
             else

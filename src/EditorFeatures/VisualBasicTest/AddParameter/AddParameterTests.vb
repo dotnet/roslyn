@@ -715,7 +715,7 @@ End Class"
             Dim fix =
 "
 Friend Class C1
-    Private Sub M1(t1 As (Integer, Integer), p As (Integer, String))
+    Private Sub M1(t1 As (Integer, Integer), value As (Integer, String))
         Me.M1((1,1), (1,""1""))
     End Sub
 End Class"

@@ -223,6 +223,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return inputSlot;
                 }
 
+                if (member.Symbol.Kind is not (SymbolKind.Property or SymbolKind.Field))
+                {
+                    return -1;
+                }
+
                 return GetOrCreateSlot(member.Symbol, inputSlot);
             }
         }
