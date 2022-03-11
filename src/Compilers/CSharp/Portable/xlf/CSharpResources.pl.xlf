@@ -1163,8 +1163,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSet">
-        <source>Required member '{0}' must be set in the object initializer.</source>
-        <target state="new">Required member '{0}' must be set in the object initializer.</target>
+        <source>Required member '{0}' must be set in the object initializer or attribute constructor.</source>
+        <target state="new">Required member '{0}' must be set in the object initializer or attribute constructor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMemberMustBeSettable">
@@ -1173,8 +1173,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersBaseTypeInvalid">
-        <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.</source>
-        <target state="new">The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.</target>
+        <source>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</source>
+        <target state="new">The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredMembersInvalid">

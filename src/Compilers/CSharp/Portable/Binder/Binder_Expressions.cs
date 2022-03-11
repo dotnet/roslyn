@@ -4064,7 +4064,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     diagnostics,
                                     out memberResolutionResult,
                                     out candidateConstructors,
-                                    allowProtectedConstructorsOfBaseType: true);
+                                    allowProtectedConstructorsOfBaseType: true,
+                                    suppressUnsupportedRequiredMembersError: true);
                 MethodSymbol resultMember = memberResolutionResult.Member;
 
                 validateRecordCopyConstructor(constructor, baseType, resultMember, errorLocation, diagnostics);
@@ -4967,55 +4968,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private static void CheckRequiredMembersInObjectInitializer(
-            BoundObjectCreationExpression creation,
+            MethodSymbol constructor,
+            ImmutableArray<BoundExpression> initializers,
+            SyntaxNode creationSyntax,
             BindingDiagnosticBag diagnostics)
         {
-            if (!creation.Constructor.ShouldCheckRequiredMembers())
+            if (!constructor.ShouldCheckRequiredMembers())
             {
                 return;
             }
 
-            if (creation.Constructor.ContainingType.HasRequiredMembersError)
+            if (constructor.ContainingType.HasRequiredMembersError)
             {
                 // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
                 return;
             }
 
-            var requiredMembers = creation.Constructor.ContainingType.AllRequiredMembers.ToBuilder();
+            var requiredMembers = constructor.ContainingType.AllRequiredMembers.ToBuilder();
 
             if (requiredMembers.Count == 0)
             {
                 return;
             }
 
-            if (creation.InitializerExpressionOpt == null)
+            if (initializers.IsDefaultOrEmpty)
             {
                 reportMembers();
                 return;
             }
 
-            foreach (var initializer in creation.InitializerExpressionOpt.Initializers)
+            foreach (var initializer in initializers)
             {
-                if (initializer is not BoundAssignmentOperator { Left: BoundObjectInitializerMember member, Right: { } initializerExpression })
+                var (memberSymbol, initializerExpression) = initializer is BoundAssignmentOperator assignmentOperator
+                    ? (assignmentOperator.Left switch
+                    {
+                        // Regular initializers
+                        BoundObjectInitializerMember member => member.MemberSymbol,
+                        // Attribute initializers
+                        BoundPropertyAccess propertyAccess => propertyAccess.PropertySymbol,
+                        BoundFieldAccess fieldAccess => fieldAccess.FieldSymbol,
+                        _ => null
+                    }, assignmentOperator.Right)
+                    : default;
+
+                if (memberSymbol is null)
                 {
                     continue;
                 }
 
-                if (!requiredMembers.TryGetValue(member.MemberSymbol.Name, out var requiredMember))
+                if (!requiredMembers.TryGetValue(memberSymbol.Name, out var requiredMember))
                 {
                     continue;
                 }
 
-                if (!member.MemberSymbol.Equals(requiredMember, TypeCompareKind.ConsiderEverything))
+                if (!memberSymbol.Equals(requiredMember, TypeCompareKind.ConsiderEverything))
                 {
                     continue;
                 }
 
-                requiredMembers.Remove(member.MemberSymbol.Name);
+                requiredMembers.Remove(memberSymbol.Name);
 
                 if (initializerExpression is BoundObjectInitializerExpressionBase)
                 {
+                    // Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.
                     diagnostics.Add(ErrorCode.ERR_RequiredMembersMustBeAssignment, initializerExpression.Syntax.Location, requiredMember);
                 }
             }
@@ -5024,20 +5041,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportMembers()
             {
-                Location location = creation.Syntax switch
+                Location location = creationSyntax switch
                 {
                     ObjectCreationExpressionSyntax { Type: { } type } => type.Location,
                     BaseObjectCreationExpressionSyntax { NewKeyword: { } newKeyword } => newKeyword.GetLocation(),
-                    _ => creation.Syntax.Location
+                    AttributeSyntax { Name: { } name } => name.Location,
+                    _ => creationSyntax.Location
                 };
 
                 foreach (var (_, member) in requiredMembers)
                 {
-                    // Required member '{0}' must be set in the object initializer.
+                    // Required member '{0}' must be set in the object initializer or attribute constructor.
                     diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSet, location, member);
                 }
             }
         }
+#nullable disable
 
         private BoundCollectionInitializerExpression BindCollectionInitializerExpression(
             InitializerExpressionSyntax initializerSyntax,
@@ -5437,7 +5456,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics,
                     out MemberResolutionResult<MethodSymbol> memberResolutionResult,
                     out ImmutableArray<MethodSymbol> candidateConstructors,
-                    allowProtectedConstructorsOfBaseType: false) &&
+                    allowProtectedConstructorsOfBaseType: false,
+                    suppressUnsupportedRequiredMembersError: false) &&
                 !type.IsAbstract)
             {
                 var method = memberResolutionResult.Member;
@@ -5499,7 +5519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type,
                     hasError);
 
-                CheckRequiredMembersInObjectInitializer(creation, diagnostics);
+                CheckRequiredMembersInObjectInitializer(creation.Constructor, creation.InitializerExpressionOpt?.Initializers ?? default, creation.Syntax, diagnostics);
 
                 return creation;
             }
@@ -5773,7 +5793,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             out MemberResolutionResult<MethodSymbol> memberResolutionResult,
             out ImmutableArray<MethodSymbol> candidateConstructors,
-            bool allowProtectedConstructorsOfBaseType) // Last to make named arguments more convenient.
+            bool allowProtectedConstructorsOfBaseType,
+            bool suppressUnsupportedRequiredMembersError) // Last to make named arguments more convenient.
         {
             // Get accessible constructors for performing overload resolution.
             ImmutableArray<MethodSymbol> allInstanceConstructors;
@@ -5821,7 +5842,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.Add(errorLocation, useSiteInfo);
+            if (suppressUnsupportedRequiredMembersError && useSiteInfo.AccumulatesDiagnostics && useSiteInfo.Diagnostics is { Count: not 0 })
+            {
+                diagnostics.AddDependencies(useSiteInfo);
+                foreach (var diagnostic in useSiteInfo.Diagnostics)
+                {
+                    if ((ErrorCode)diagnostic.Code == ErrorCode.ERR_RequiredMembersInvalid)
+                    {
+                        continue;
+                    }
+
+                    diagnostics.ReportUseSiteDiagnostic(diagnostic, errorLocation);
+                }
+            }
+            else
+            {
+                diagnostics.Add(errorLocation, useSiteInfo);
+            }
 
             if (succeededIgnoringAccessibility)
             {

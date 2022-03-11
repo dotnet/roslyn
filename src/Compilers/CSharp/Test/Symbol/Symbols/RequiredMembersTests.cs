@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
@@ -1235,23 +1236,23 @@ public class C
 }
 ";
 
-        var creationWithoutAssignment = $@"C c = new{constructor}();";
-        var comp = CreateCompilationWithRequiredMembers(new[] { c, creationWithoutAssignment });
+        var creation = $@"C c = new{constructor}();";
+        var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
 
         var expectedDiagnostics = constructor == " C" ? new[]
         {
-            // (1,11): error CS9506: Required member 'C.Prop' must be set in the object initializer.
+            // (1,11): error CS9506: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
             // C c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop").WithLocation(1, 11),
-            // (1,11): error CS9506: Required member 'C.Field' must be set in the object initializer.
+            // (1,11): error CS9506: Required member 'C.Field' must be set in the object initializer or attribute constructor.
             // C c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field").WithLocation(1, 11)
         }
         : new[] {
-            // (1,7): error CS9506: Required member 'C.Prop' must be set in the object initializer.
+            // (1,7): error CS9506: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
             // C c = new();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Prop").WithLocation(1, 7),
-            // (1,7): error CS9506: Required member 'C.Field' must be set in the object initializer.
+            // (1,7): error CS9506: Required member 'C.Field' must be set in the object initializer or attribute constructor.
             // C c = new();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Field").WithLocation(1, 7)
         };
@@ -1259,7 +1260,7 @@ public class C
         comp.VerifyDiagnostics(expectedDiagnostics);
 
         var cComp = CreateCompilationWithRequiredMembers(c);
-        comp = CreateCompilation(creationWithoutAssignment, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
+        comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
 
         comp.VerifyDiagnostics(expectedDiagnostics);
     }
@@ -1278,23 +1279,23 @@ public class C
 }
 ";
 
-        var creationWithoutAssignment = $@"C c = new{constructor}() {{ Prop2 = 1, Field2 = 1 }};";
-        var comp = CreateCompilationWithRequiredMembers(new[] { c, creationWithoutAssignment });
+        var creation = $@"C c = new{constructor}() {{ Prop2 = 1, Field2 = 1 }};";
+        var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
 
         var expectedDiagnostics = constructor == " C" ? new[]
         {
-            // (1,11): error CS9506: Required member 'C.Prop1' must be set in the object initializer.
+            // (1,11): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // C c = new C() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(1, 11),
-            // (1,11): error CS9506: Required member 'C.Field1' must be set in the object initializer.
+            // (1,11): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
             // C c = new C() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(1, 11)
         }
         : new[] {
-            // (1,7): error CS9506: Required member 'C.Prop1' must be set in the object initializer.
+            // (1,7): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // C c = new() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Prop1").WithLocation(1, 7),
-            // (1,7): error CS9506: Required member 'C.Field1' must be set in the object initializer.
+            // (1,7): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
             // C c = new() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Field1").WithLocation(1, 7)
         };
@@ -1302,7 +1303,7 @@ public class C
         comp.VerifyDiagnostics(expectedDiagnostics);
 
         var cComp = CreateCompilationWithRequiredMembers(c);
-        comp = CreateCompilation(creationWithoutAssignment, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
+        comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
 
         comp.VerifyDiagnostics(expectedDiagnostics);
     }
@@ -1319,15 +1320,15 @@ public class C
 }
 ";
 
-        var creationWithoutAssignment = @"
+        var creation = @"
 C c = new" + constructor + @"() { Prop1 = 1, Field1 = 1 };
 System.Console.WriteLine($""{c.Prop1}, {c.Field1}"");
 ";
-        var comp = CreateCompilationWithRequiredMembers(new[] { c, creationWithoutAssignment });
+        var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
         CompileAndVerify(comp, expectedOutput: "1, 1");
 
         var cComp = CreateCompilationWithRequiredMembers(c);
-        comp = CreateCompilation(creationWithoutAssignment, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
+        comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
         CompileAndVerify(comp, expectedOutput: "1, 1");
     }
 
@@ -1346,10 +1347,10 @@ public class C
 ";
         var comp = CreateCompilationWithRequiredMembers(c);
         comp.VerifyDiagnostics(
-            // (2,13): error CS9506: Required member 'C.Prop1' must be set in the object initializer.
+            // (2,13): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // var c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(2, 13),
-            // (2,13): error CS9506: Required member 'C.Field1' must be set in the object initializer.
+            // (2,13): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
             // var c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(2, 13),
             // (3,15): error CS0200: Property or indexer 'C.Prop1' cannot be assigned to -- it is read only
@@ -1443,16 +1444,16 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-                // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer.
+                // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop1").WithLocation(2, 9),
-                // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer.
+                // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field1").WithLocation(2, 9),
-                // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer.
+                // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop2").WithLocation(2, 9),
-                // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer.
+                // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field2").WithLocation(2, 9)
         };
@@ -1495,16 +1496,16 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-            // (2,9): error CS9506: Required member 'Base.Prop2' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Base.Prop2' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop2").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Base.Field2' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Base.Field2' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field2").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Prop4' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Derived.Prop4' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop4").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Field4' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Derived.Field4' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field4").WithLocation(2, 9)
         };
@@ -1581,16 +1582,16 @@ public class Derived : Base
 
         var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics(
-            // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field1").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop1").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop2").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field2").WithLocation(2, 9)
         );
@@ -1658,7 +1659,7 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
         };
@@ -1697,7 +1698,7 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
         };
@@ -1801,7 +1802,7 @@ public class Derived : Base
 
         var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() });
         comp.VerifyDiagnostics(
-            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer.
+            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
         );
@@ -1838,23 +1839,21 @@ _ = new Derived3();
 class Derived2 : Derived
 {
     public Derived2() {}
+    public Derived2(int x) {}
 }
 class Derived3 : Derived { }";
 
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (7,12): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            //     public Derived2() {}
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public Derived2(int x) {}
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(8, 12),
+            // (10,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // class Derived3 : Derived { }
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7),
-            // (9,7): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // class Derived3 : Derived { }
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(10, 7)
         );
     }
 
@@ -1891,18 +1890,12 @@ class Derived3 : Derived { }";
 
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (7,12): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            //     public Derived2() {}
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // class Derived3 : Derived { }
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7),
-            // (9,7): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // class Derived3 : Derived { }
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
         );
     }
 
@@ -1938,18 +1931,12 @@ class Derived3 : Derived { }";
 
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (7,12): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            //     public Derived2() {}
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // class Derived3 : Derived { }
-            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7),
-            // (9,7): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // class Derived3 : Derived { }
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
         );
     }
 
@@ -1964,7 +1951,7 @@ public record Base
 ";
 
         var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
-        CompileAndVerify(originalComp).VerifyDiagnostics();
+        CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
         // This IL is the equivalent of:
         // public record Derived : Base
@@ -2157,39 +2144,30 @@ record DerivedDerived3() : Derived;
         var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
         // PROTOTYPE(req): do we want to take the effort to remove some of these duplicate errors?
         comp.VerifyDiagnostics(
-            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived1 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
             // (6,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
             // record DerivedDerived1 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
-            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public DerivedDerived1()
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
-            // (8,12): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            //     public DerivedDerived1()
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
             // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived2 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
             // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
@@ -2207,7 +2185,7 @@ public record Base
 ";
 
         var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
-        CompileAndVerify(originalComp).VerifyDiagnostics();
+        CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
         // This IL is the equivalent of:
         // public record Derived : Base
@@ -2403,39 +2381,30 @@ record DerivedDerived3() : Derived;
         var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
         // PROTOTYPE(req): do we want to take the effort to remove some of these duplicate errors?
         comp.VerifyDiagnostics(
-            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived1 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
             // (6,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
             // record DerivedDerived1 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
-            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public DerivedDerived1()
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
-            // (8,12): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            //     public DerivedDerived1()
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
             // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived2 : Derived
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the `SetsRequiredMembers` attribute.
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
-            // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
-            // record DerivedDerived3() : Derived;
-            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
             // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
@@ -2547,7 +2516,7 @@ partial class CustomHandler
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, handler });
         comp.VerifyDiagnostics(
-            // (2,25): error CS9506: Required member 'CustomHandler.Field' must be set in the object initializer.
+            // (2,25): error CS9506: Required member 'CustomHandler.Field' must be set in the object initializer or attribute constructor.
             // CustomHandler handler = $"";
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, @"$""""").WithArguments("CustomHandler.Field").WithLocation(2, 25)
         );
@@ -2576,7 +2545,7 @@ class C : I
 ";
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (5,9): error CS9506: Required member 'C.P' must be set in the object initializer.
+            // (5,9): error CS9506: Required member 'C.P' must be set in the object initializer or attribute constructor.
             // _ = new I();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "I").WithArguments("C.P").WithLocation(5, 9)
         );
@@ -2604,6 +2573,205 @@ class C : I
 }
 ";
         var comp = CreateCompilationWithRequiredMembers(code);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (5,9): error CS9506: Required member 'C.P' must be set in the object initializer or attribute constructor.
+            // _ = new I() { P = 1 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "I").WithArguments("C.P").WithLocation(5, 9)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_NotSet()
+    {
+        var code = @"
+using System;
+
+[Attr]
+class C
+{
+}
+
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (4,2): error CS9506: Required member 'AttrAttribute.P' must be set in the object initializer or attribute constructor.
+            // [Attr]
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Attr").WithArguments("AttrAttribute.P").WithLocation(4, 2)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_AllSet()
+    {
+        var code = @"
+using System;
+
+[Attr(P = 1, F = 2)]
+class C
+{
+}
+
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var attr = c.GetAttributes().Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive01()
+    {
+        var code = @"
+using System;
+
+[Attr(P = 1, F = 2)]
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var attrAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("AttrAttribute");
+            var attr = attrAttribute.GetAttributes().Where(a => a.AttributeClass!.Name == "AttrAttribute").Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive02()
+    {
+        var code = @"
+using System;
+
+class AttrAttribute : Attribute
+{
+    [Attr(P = 1, F = 2)]
+    public required int P { get; set; }
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var attrAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("AttrAttribute");
+            var p = attrAttribute.GetMember<PropertySymbol>("P");
+            var attr = p.GetAttributes().Where(a => a.AttributeClass!.Name == "AttrAttribute").Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive03()
+    {
+        var code = @"
+using System;
+
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+    [Attr(P = 1, F = 2)]
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var attrAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("AttrAttribute");
+            var f = attrAttribute.GetMember<FieldSymbol>("F");
+            var attr = f.GetAttributes().Where(a => a.AttributeClass!.Name == "AttrAttribute").Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive04()
+    {
+        var code = @"
+namespace System.Runtime.CompilerServices;
+
+[RequiredMember]
+public class RequiredMemberAttribute : Attribute
+{
+    public required int P { get; set; }
+}
+";
+
+        var comp = CreateCompilation(code);
+        comp.VerifyDiagnostics(
+            // (4,2): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
+            // [RequiredMember]
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "RequiredMember").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute.P").WithLocation(4, 2),
+            // (4,2): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // [RequiredMember]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(4, 2)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive05()
+    {
+        var code = @"
+namespace System.Runtime.CompilerServices;
+
+public class RequiredMemberAttribute : Attribute
+{
+    [RequiredMember]
+    public required int P { get; set; }
+}
+";
+
+        var comp = CreateCompilation(code);
+        comp.VerifyDiagnostics(
+            // (6,6): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
+            //     [RequiredMember]
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "RequiredMember").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute.P").WithLocation(6, 6),
+            // (6,6): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            //     [RequiredMember]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(6, 6)
+        );
     }
 }

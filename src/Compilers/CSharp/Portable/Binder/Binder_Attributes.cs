@@ -215,6 +215,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
 
+            if (attributeConstructor is not null)
+            {
+                CheckRequiredMembersInObjectInitializer(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node, diagnostics);
+            }
+
             analyzedArguments.ConstructorArguments.Free();
 
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
@@ -572,7 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 out memberResolutionResult,
                 out candidateConstructors,
-                allowProtectedConstructorsOfBaseType: true))
+                allowProtectedConstructorsOfBaseType: true,
+                suppressUnsupportedRequiredMembersError: false))
             {
                 resultKind = resultKind.WorseResultKind(
                     memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
