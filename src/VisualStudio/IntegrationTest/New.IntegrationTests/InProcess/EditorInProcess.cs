@@ -626,6 +626,17 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task InvokeCodeActionListWithoutWaitingAsync(CancellationToken cancellationToken)
         {
+            if (Version.Parse("17.2.32210.308") > await TestServices.Shell.GetVersionAsync(cancellationToken))
+            {
+                // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
+                // fires while expanding the light bulb).
+                await TestServices.Input.SendAsync(new KeyPress(VirtualKey.Period, ShiftState.Ctrl));
+                await Task.Delay(5000, cancellationToken);
+
+                await TestServices.Editor.DismissLightBulbSessionAsync(cancellationToken);
+                await Task.Delay(5000, cancellationToken);
+            }
+
             await ShowLightBulbAsync(cancellationToken);
         }
 
