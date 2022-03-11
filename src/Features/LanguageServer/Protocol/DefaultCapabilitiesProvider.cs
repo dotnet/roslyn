@@ -31,6 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 .ToImmutableArray();
         }
 
+        public void Initialize()
+        {
+            // Force completion providers to resolve in initialize, because it means MEF parts will be loaded,
+            // which we need to do before the GetCapabilities call, as that is on the UI thread.
+            _ = _completionProviders.Select(p => p.Value).ToArray();
+        }
+
         public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var capabilities = new ServerCapabilities();
