@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 node.GetFirstToken().GetLocation(),
-                Descriptor.GetEffectiveSeverity(options),
+                option.Notification.Severity,
                 additionalLocations: null,
                 properties: isFixable ? s_isFixableProperties : null,
                 node.GetFirstToken().ToString(),
