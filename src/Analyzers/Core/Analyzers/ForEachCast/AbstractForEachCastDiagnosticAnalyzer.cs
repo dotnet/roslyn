@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         {
         }
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract ImmutableArray<TSyntaxKind> GetSyntaxKinds();
         protected abstract (CommonConversion conversion, ITypeSymbol? collectionElementType) GetForEachInfo(SemanticModel semanticModel, TForEachStatementSyntax node);
 
@@ -77,7 +79,8 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 return;
             }
 
-            var collectionType = loopOperation.Collection.Type;
+            var syntaxFacts = this.SyntaxFacts;
+            var collectionType = semanticModel.GetTypeInfo(syntaxFacts.GetExpressionOfForeachStatement(node), cancellationToken).Type;
             if (collectionType is null)
                 return;
 
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
             // We can only fix this issue if the collection type implemented ienumerable and we have
             // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
-            var isFixable = (collectionType is IArrayTypeSymbol || collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType))) &&
+            var isFixable = collectionType.Equals(ienumerableType) || collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType)) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
             var options = semanticModel.Compilation.Options;
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         private static bool IsLegacyAPI(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)
         {
             return collectionElementType.SpecialType == SpecialType.System_Object &&
-                !collectionType.AllInterfaces.Any(i => i.OriginalDefinition.Equals(ienumerableOfTType));
+                !(collectionType.OriginalDefinition.Equals(ienumerableOfTType) || collectionType.AllInterfaces.Any(i => i.OriginalDefinition.Equals(ienumerableOfTType)));
         }
     }
 }

@@ -106,7 +106,7 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        public async Task ObjectArrayCollection()
+        public async Task ObjectArray()
         {
             var test = @"
 using System.Collections.Generic;
@@ -131,6 +131,46 @@ namespace ConsoleApplication1
     class Program
     {   
         void Main(object[] x)
+        {
+            foreach (string item in x.Cast<string>())
+            {
+            }
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
+        }
+
+        [Fact]
+        public async Task IComparableArrayCollection()
+        {
+            var test = @"
+using System;
+using System.Collections.Generic;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(IComparable[] x)
+        {
+            [|foreach|] (string item in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(IComparable[] x)
         {
             foreach (string item in x.Cast<string>())
             {

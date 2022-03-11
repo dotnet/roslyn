@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ForEachCast;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ForEachCast
@@ -18,6 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ForEachCast
         public CSharpForEachCastDiagnosticAnalyzer() : base(LanguageNames.CSharp)
         {
         }
+
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
 
         protected override ImmutableArray<SyntaxKind> GetSyntaxKinds()
             => ImmutableArray.Create(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement);
