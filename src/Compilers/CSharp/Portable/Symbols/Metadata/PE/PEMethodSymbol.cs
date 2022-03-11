@@ -1346,6 +1346,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
+                if (diagnosticInfo == null && this.ShouldCheckRequiredMembers() && ContainingType.HasRequiredMembersError)
+                {
+                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_RequiredMembersInvalid, ContainingType);
+                }
+
                 return InitializeUseSiteDiagnostic(result.AdjustDiagnosticInfo(diagnosticInfo));
             }
 

@@ -625,6 +625,19 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
+        protected const string RequiredMemberAttribute = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public class RequiredMemberAttribute : Attribute
+    {
+        public RequiredMemberAttribute()
+        {
+        }
+    }
+}
+";
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);
@@ -1295,12 +1308,12 @@ namespace System.Runtime.CompilerServices
 
         public static CSharpCompilation CreateCompilation(
             AssemblyIdentity identity,
-            string[] source,
-            MetadataReference[] references,
+            CSharpTestSource? source,
+            IEnumerable<MetadataReference> references,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null)
         {
-            var trees = (source == null) ? null : source.Select(s => Parse(s, options: parseOptions)).ToArray();
+            var trees = (source ?? CSharpTestSource.None).GetSyntaxTrees(parseOptions);
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
 
             ValidateCompilation(createCompilationLambda);

@@ -11,6 +11,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -23,6 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class NamedTypeSymbol : TypeSymbol, INamedTypeSymbolInternal
     {
         private bool _hasNoBaseCycles;
+
+        /// <remarks>
+        /// This field cannot be used to determine whether <see cref="_lazyRequiredMembers"/> has been initialized.
+        /// Ensure that <see cref="_lazyRequiredMembers"/> is checked for defaultness _before_ reading this field, which potentially
+        /// means using an `Interlocked.MemoryBarrier()` to ensure that reading this location is not reordered before the read to <see cref="_lazyRequiredMembers"/>.
+        /// </remarks>
+        private bool _lazyHasRequiredMembersErrorDoNotAccessDirectly = false;
+        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers;
 
         // Only the compiler can create NamedTypeSymbols.
         internal NamedTypeSymbol(TupleExtraData tupleData = null)
@@ -498,6 +508,118 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if this type declares any required members. It does not recursively check up the tree for _all_ required members.
         /// </summary>
         internal abstract bool HasDeclaredRequiredMembers { get; }
+
+#nullable enable
+        /// <summary>
+        /// Whether the type encountered an error while trying to build its complete list of required members.
+        /// </summary>
+        internal bool HasRequiredMembersError
+        {
+            get
+            {
+                CalculateRequiredMembersIfRequired();
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                return _lazyHasRequiredMembersErrorDoNotAccessDirectly;
+            }
+        }
+
+        /// <summary>
+        /// The full list of all required members for this type, including from base classes. If <see cref="HasRequiredMembersError"/> is true,
+        /// this returns empty.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this API if all you need are the required members declared on this type. Use <see cref="GetMembers()"/> instead, filtering for
+        /// required members, instead of calling this API.
+        /// </remarks>
+        internal ImmutableSegmentedDictionary<string, Symbol> AllRequiredMembers
+        {
+            get
+            {
+                CalculateRequiredMembersIfRequired();
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                return _lazyRequiredMembers;
+            }
+        }
+
+        private void CalculateRequiredMembersIfRequired()
+        {
+            if (_lazyRequiredMembers.IsDefault)
+            {
+                ImmutableSegmentedDictionary<string, Symbol>.Builder? builder = null;
+                bool success = TryCalculateRequiredMembers(ref builder);
+                var requiredMembers = success
+                    ? builder?.ToImmutable() ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
+                    : ImmutableSegmentedDictionary<string, Symbol>.Empty;
+
+                _lazyHasRequiredMembersErrorDoNotAccessDirectly = !success;
+                // InterlockedInitialize uses `Interlocked.CompareExchange` under the hood, which will introduce a full
+                // memory barrier, ensuring that the _lazyHasRequiredMembersErrorDoNotAccessDirectly write is not reordered
+                // after the initialization of _lazyRequiredMembers.
+                RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyRequiredMembers, requiredMembers);
+            }
+            else
+            {
+                // Ensure that, after this method, _lazyRequiredMembersErrorDoNotAccessDirectly is able to be accessed safely.
+                Interlocked.MemoryBarrier();
+            }
+        }
+
+        /// <summary>
+        /// Attempts to calculate the required members for this type. Returns false if there were errors.
+        /// </summary>
+        private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
+        {
+            var lazyRequiredMembers = _lazyRequiredMembers;
+            if (!lazyRequiredMembers.IsDefault)
+            {
+                requiredMembersBuilder = lazyRequiredMembers.ToBuilder();
+                // Ensure that this read is not reordered before the read to `IsDefault`.
+                Interlocked.MemoryBarrier();
+                return !_lazyHasRequiredMembersErrorDoNotAccessDirectly;
+            }
+
+            if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)
+            {
+                return false;
+            }
+
+            // We need to make sure that members from a base type weren't hidden by members from the current type.
+            if (!HasDeclaredRequiredMembers && requiredMembersBuilder == null)
+            {
+                return true;
+            }
+
+            return addCurrentTypeMembers(ref requiredMembersBuilder);
+
+            bool addCurrentTypeMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
+            {
+                requiredMembersBuilder ??= ImmutableSegmentedDictionary.CreateBuilder<string, Symbol>();
+
+                foreach (var member in GetMembersUnordered())
+                {
+                    if (requiredMembersBuilder.ContainsKey(member.Name))
+                    {
+                        // This is only permitted if the member is an override of a required member from a base type, and is required itself.
+                        if (!member.IsRequired()
+                            || member.GetOverriddenMember() is not { } overriddenMember
+                            || !overriddenMember.Equals(requiredMembersBuilder[member.Name], TypeCompareKind.ConsiderEverything))
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (!member.IsRequired())
+                    {
+                        continue;
+                    }
+
+                    requiredMembersBuilder[member.Name] = member;
+                }
+
+                return true;
+            }
+        }
+#nullable disable
 
         /// <summary>
         /// Get all the members of this symbol.

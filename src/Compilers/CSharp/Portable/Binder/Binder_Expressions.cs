@@ -4967,6 +4967,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static void CheckRequiredMembersInObjectInitializer(
+            BoundObjectCreationExpression creation,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (!creation.Constructor.ShouldCheckRequiredMembers())
+            {
+                return;
+            }
+
+            if (creation.Constructor.ContainingType.HasRequiredMembersError)
+            {
+                // An error will be reported on the constructor if from source, or a use-site diagnostic will be reported on the use if from metadata.
+                return;
+            }
+
+            var requiredMembers = creation.Constructor.ContainingType.AllRequiredMembers.ToBuilder();
+
+            if (requiredMembers.Count == 0)
+            {
+                return;
+            }
+
+            if (creation.InitializerExpressionOpt == null)
+            {
+                reportMembers();
+                return;
+            }
+
+            foreach (var initializer in creation.InitializerExpressionOpt.Initializers)
+            {
+                if (initializer is not BoundAssignmentOperator { Left: BoundObjectInitializerMember member, Right: { } initializerExpression })
+                {
+                    continue;
+                }
+
+                if (!requiredMembers.TryGetValue(member.MemberSymbol.Name, out var requiredMember))
+                {
+                    continue;
+                }
+
+                if (!member.MemberSymbol.Equals(requiredMember, TypeCompareKind.ConsiderEverything))
+                {
+                    continue;
+                }
+
+                requiredMembers.Remove(member.MemberSymbol.Name);
+
+                if (initializerExpression is BoundObjectInitializerExpressionBase)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RequiredMembersMustBeAssignment, initializerExpression.Syntax.Location, requiredMember);
+                }
+            }
+
+            reportMembers();
+
+            void reportMembers()
+            {
+                Location location = creation.Syntax switch
+                {
+                    ObjectCreationExpressionSyntax { Type: { } type } => type.Location,
+                    BaseObjectCreationExpressionSyntax { NewKeyword: { } newKeyword } => newKeyword.GetLocation(),
+                    _ => creation.Syntax.Location
+                };
+
+                foreach (var (_, member) in requiredMembers)
+                {
+                    // Required member '{0}' must be set in the object initializer.
+                    diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSet, location, member);
+                }
+            }
+        }
+
         private BoundCollectionInitializerExpression BindCollectionInitializerExpression(
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
@@ -5411,7 +5483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 boundInitializerOpt = makeBoundInitializerOpt();
-                result = new BoundObjectCreationExpression(
+                var creation = new BoundObjectCreationExpression(
                     node,
                     method,
                     candidateConstructors,
@@ -5427,7 +5499,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type,
                     hasError);
 
-                return result;
+                CheckRequiredMembersInObjectInitializer(creation, diagnostics);
+
+                return creation;
             }
 
             LookupResultKind resultKind;
