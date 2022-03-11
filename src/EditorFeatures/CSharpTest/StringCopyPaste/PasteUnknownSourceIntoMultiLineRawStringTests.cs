@@ -512,5 +512,35 @@ def$$   """"""");
     goo
     """"""");
         }
+
+        [WpfFact]
+        public void TestQuotesIntoHeader1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"\"",
+@"var x = """"""$${|Selection:
+
+    |}""""""",
+@"var x = """"""
+    """"
+    $$""""""",
+                afterUndo:
+@"var x = """"""""""$$""""""");
+        }
+
+        [WpfFact]
+        public void TestQuotesIntoHeader2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"\"\"",
+@"var x = """"""$${|Selection:
+
+    |}""""""",
+@"var x = """"""""
+    """"""
+    ""$$""""""",
+                afterUndo:
+@"var x = """"""""""""$$""""""");
+        }
     }
 }

@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
     internal partial class StringCopyPasteCommandHandler
     {
+        /// <summary>
+        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
+        /// add to the start and end to keep things parsing properly.
+        /// </summary>
         private static string? GetQuotesToAddToRawLiteral(
             ITextSnapshot snapshotBeforePaste, ITextSnapshot snapshotAfterPaste, LiteralExpressionSyntax stringExpressionBeforePaste)
         {
