@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -37,6 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             bool isSourceGeneratorOutput,
             ITextManagerAdapter textManagerAdapter)
         {
+            // Keep track that code model was accessed.  We want to get a sense of how widespread usage of it still is.
+            Logger.Log(FunctionId.CodeModel_FileCodeModel_Create);
             return new FileCodeModel(state, parent, documentId, isSourceGeneratorOutput, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
