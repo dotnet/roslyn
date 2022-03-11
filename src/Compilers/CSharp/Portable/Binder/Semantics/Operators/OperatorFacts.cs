@@ -165,19 +165,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(CheckedUserDefinedOperators) : Adjust?
-        public static string UnaryOperatorNameFromOperatorKind(UnaryOperatorKind kind)
+        public static string UnaryOperatorNameFromOperatorKind(UnaryOperatorKind kind, bool isChecked)
         {
             switch (kind & UnaryOperatorKind.OpMask)
             {
                 case UnaryOperatorKind.UnaryPlus: return WellKnownMemberNames.UnaryPlusOperatorName;
-                case UnaryOperatorKind.UnaryMinus: return WellKnownMemberNames.UnaryNegationOperatorName;
+                case UnaryOperatorKind.UnaryMinus: return isChecked ? WellKnownMemberNames.CheckedUnaryNegationOperatorName : WellKnownMemberNames.UnaryNegationOperatorName;
                 case UnaryOperatorKind.BitwiseComplement: return WellKnownMemberNames.OnesComplementOperatorName;
                 case UnaryOperatorKind.LogicalNegation: return WellKnownMemberNames.LogicalNotOperatorName;
                 case UnaryOperatorKind.PostfixIncrement:
-                case UnaryOperatorKind.PrefixIncrement: return WellKnownMemberNames.IncrementOperatorName;
+                case UnaryOperatorKind.PrefixIncrement: return isChecked ? WellKnownMemberNames.CheckedIncrementOperatorName : WellKnownMemberNames.IncrementOperatorName;
                 case UnaryOperatorKind.PostfixDecrement:
-                case UnaryOperatorKind.PrefixDecrement: return WellKnownMemberNames.DecrementOperatorName;
+                case UnaryOperatorKind.PrefixDecrement: return isChecked ? WellKnownMemberNames.CheckedDecrementOperatorName : WellKnownMemberNames.DecrementOperatorName;
                 case UnaryOperatorKind.True: return WellKnownMemberNames.TrueOperatorName;
                 case UnaryOperatorKind.False: return WellKnownMemberNames.FalseOperatorName;
                 default:
@@ -185,26 +184,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(CheckedUserDefinedOperators) : Adjust?
-        public static string BinaryOperatorNameFromOperatorKind(BinaryOperatorKind kind)
+        public static string BinaryOperatorNameFromOperatorKind(BinaryOperatorKind kind, bool isChecked)
         {
             switch (kind & BinaryOperatorKind.OpMask)
             {
-                case BinaryOperatorKind.Addition: return WellKnownMemberNames.AdditionOperatorName;
+                case BinaryOperatorKind.Addition: return isChecked ? WellKnownMemberNames.CheckedAdditionOperatorName : WellKnownMemberNames.AdditionOperatorName;
                 case BinaryOperatorKind.And: return WellKnownMemberNames.BitwiseAndOperatorName;
-                case BinaryOperatorKind.Division: return WellKnownMemberNames.DivisionOperatorName;
+                case BinaryOperatorKind.Division: return isChecked ? WellKnownMemberNames.CheckedDivisionOperatorName : WellKnownMemberNames.DivisionOperatorName;
                 case BinaryOperatorKind.Equal: return WellKnownMemberNames.EqualityOperatorName;
                 case BinaryOperatorKind.GreaterThan: return WellKnownMemberNames.GreaterThanOperatorName;
                 case BinaryOperatorKind.GreaterThanOrEqual: return WellKnownMemberNames.GreaterThanOrEqualOperatorName;
                 case BinaryOperatorKind.LeftShift: return WellKnownMemberNames.LeftShiftOperatorName;
                 case BinaryOperatorKind.LessThan: return WellKnownMemberNames.LessThanOperatorName;
                 case BinaryOperatorKind.LessThanOrEqual: return WellKnownMemberNames.LessThanOrEqualOperatorName;
-                case BinaryOperatorKind.Multiplication: return WellKnownMemberNames.MultiplyOperatorName;
+                case BinaryOperatorKind.Multiplication: return isChecked ? WellKnownMemberNames.CheckedMultiplyOperatorName : WellKnownMemberNames.MultiplyOperatorName;
                 case BinaryOperatorKind.Or: return WellKnownMemberNames.BitwiseOrOperatorName;
                 case BinaryOperatorKind.NotEqual: return WellKnownMemberNames.InequalityOperatorName;
                 case BinaryOperatorKind.Remainder: return WellKnownMemberNames.ModulusOperatorName;
                 case BinaryOperatorKind.RightShift: return WellKnownMemberNames.RightShiftOperatorName;
-                case BinaryOperatorKind.Subtraction: return WellKnownMemberNames.SubtractionOperatorName;
+                case BinaryOperatorKind.Subtraction: return isChecked ? WellKnownMemberNames.CheckedSubtractionOperatorName : WellKnownMemberNames.SubtractionOperatorName;
                 case BinaryOperatorKind.Xor: return WellKnownMemberNames.ExclusiveOrOperatorName;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind & BinaryOperatorKind.OpMask);

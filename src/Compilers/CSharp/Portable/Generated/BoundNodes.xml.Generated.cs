@@ -1949,7 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNullCoalescingOperator : BoundExpression
     {
-        public BoundNullCoalescingOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundNullCoalescingOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, bool @checked, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.NullCoalescingOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors() || leftPlaceholder.HasErrors() || leftConversion.HasErrors())
         {
 
@@ -1962,6 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LeftPlaceholder = leftPlaceholder;
             this.LeftConversion = leftConversion;
             this.OperatorResultKind = operatorResultKind;
+            this.Checked = @checked;
         }
 
 
@@ -1976,14 +1977,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression? LeftConversion { get; }
 
         public BoundNullCoalescingOperatorResultKind OperatorResultKind { get; }
+
+        public bool Checked { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitNullCoalescingOperator(this);
 
-        public BoundNullCoalescingOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, TypeSymbol type)
+        public BoundNullCoalescingOperator Update(BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, bool @checked, TypeSymbol type)
         {
-            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || leftPlaceholder != this.LeftPlaceholder || leftConversion != this.LeftConversion || operatorResultKind != this.OperatorResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || leftPlaceholder != this.LeftPlaceholder || leftConversion != this.LeftConversion || operatorResultKind != this.OperatorResultKind || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundNullCoalescingOperator(this.Syntax, leftOperand, rightOperand, leftPlaceholder, leftConversion, operatorResultKind, type, this.HasErrors);
+                var result = new BoundNullCoalescingOperator(this.Syntax, leftOperand, rightOperand, leftPlaceholder, leftConversion, operatorResultKind, @checked, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3439,25 +3442,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundReturnStatement : BoundStatement
     {
-        public BoundReturnStatement(SyntaxNode syntax, RefKind refKind, BoundExpression? expressionOpt, bool hasErrors = false)
+        public BoundReturnStatement(SyntaxNode syntax, RefKind refKind, BoundExpression? expressionOpt, bool @checked, bool hasErrors = false)
             : base(BoundKind.ReturnStatement, syntax, hasErrors || expressionOpt.HasErrors())
         {
             this.RefKind = refKind;
             this.ExpressionOpt = expressionOpt;
+            this.Checked = @checked;
         }
 
 
         public RefKind RefKind { get; }
 
         public BoundExpression? ExpressionOpt { get; }
+
+        public bool Checked { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitReturnStatement(this);
 
-        public BoundReturnStatement Update(RefKind refKind, BoundExpression? expressionOpt)
+        public BoundReturnStatement Update(RefKind refKind, BoundExpression? expressionOpt, bool @checked)
         {
-            if (refKind != this.RefKind || expressionOpt != this.ExpressionOpt)
+            if (refKind != this.RefKind || expressionOpt != this.ExpressionOpt || @checked != this.Checked)
             {
-                var result = new BoundReturnStatement(this.Syntax, refKind, expressionOpt, this.HasErrors);
+                var result = new BoundReturnStatement(this.Syntax, refKind, expressionOpt, @checked, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -10906,7 +10912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundValuePlaceholder? leftPlaceholder = node.LeftPlaceholder;
             BoundExpression? leftConversion = node.LeftConversion;
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, type);
+            return node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, node.Checked, type);
         }
         public override BoundNode? VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator node)
         {
@@ -11125,7 +11131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitReturnStatement(BoundReturnStatement node)
         {
             BoundExpression? expressionOpt = (BoundExpression?)this.Visit(node.ExpressionOpt);
-            return node.Update(node.RefKind, expressionOpt);
+            return node.Update(node.RefKind, expressionOpt, node.Checked);
         }
         public override BoundNode? VisitYieldReturnStatement(BoundYieldReturnStatement node)
         {
@@ -12564,12 +12570,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, infoAndType.Type!);
+                updatedNode = node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, node.Checked, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, node.Type);
+                updatedNode = node.Update(leftOperand, rightOperand, leftPlaceholder, leftConversion, node.OperatorResultKind, node.Checked, node.Type);
             }
             return updatedNode;
         }
@@ -14928,6 +14934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("leftPlaceholder", null, new TreeDumperNode[] { Visit(node.LeftPlaceholder, null) }),
             new TreeDumperNode("leftConversion", null, new TreeDumperNode[] { Visit(node.LeftConversion, null) }),
             new TreeDumperNode("operatorResultKind", node.OperatorResultKind, null),
+            new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -15269,6 +15276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("refKind", node.RefKind, null),
             new TreeDumperNode("expressionOpt", null, new TreeDumperNode[] { Visit(node.ExpressionOpt, null) }),
+            new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

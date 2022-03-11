@@ -7175,14 +7175,16 @@ public class RubyTime
                 {
                     foreach (var right in exprs)
                     {
-                        var signature1 = getBinaryOperator(binder, op, left, right, useEasyOut: true);
-                        var signature2 = getBinaryOperator(binder, op, left, right, useEasyOut: false);
+                        var signature1 = getBinaryOperator(binder, op, isChecked: false, left, right, useEasyOut: true);
+                        var signature2 = getBinaryOperator(binder, op, isChecked: false, left, right, useEasyOut: false);
+                        var signature3 = getBinaryOperator(binder, op, isChecked: true, left, right, useEasyOut: false);
                         Assert.Equal(signature1, signature2);
+                        Assert.Equal(signature1, signature3);
                     }
                 }
             }
 
-            static BinaryOperatorKind getBinaryOperator(Binder binder, BinaryOperatorKind kind, BoundExpression left, BoundExpression right, bool useEasyOut)
+            static BinaryOperatorKind getBinaryOperator(Binder binder, BinaryOperatorKind kind, bool isChecked, BoundExpression left, BoundExpression right, bool useEasyOut)
             {
                 var overloadResolution = new OverloadResolution(binder);
                 var result = BinaryOperatorOverloadResolutionResult.GetInstance();
@@ -7193,7 +7195,7 @@ public class RubyTime
                 else
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref discardedUseSiteInfo);
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, isChecked, left, right, result, ref discardedUseSiteInfo);
                 }
                 var signature = result.Best.Signature.Kind;
                 result.Free();
@@ -7425,12 +7427,6 @@ public class RubyTime
                 returnName = containerName;
             }
 
-            Assert.Equal(String.Format("{2} {0}.{1}({0} value)",
-                                       containerName,
-                                       OperatorFacts.UnaryOperatorNameFromOperatorKind(op),
-                                       returnName),
-                         symbol1.ToTestDisplayString());
-
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
 
@@ -7457,6 +7453,11 @@ public class RubyTime
             }
 
             Assert.Equal(expectChecked, symbol1.IsCheckedBuiltin);
+            Assert.Equal(String.Format("{2} {0}.{1}({0} value)",
+                                       containerName,
+                                       OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: expectChecked),
+                                       returnName),
+                         symbol1.ToTestDisplayString());
 
             Assert.False(symbol1.IsGenericMethod);
             Assert.False(symbol1.IsExtensionMethod);
@@ -8197,16 +8198,6 @@ class Module1
 
             Assert.Equal(isDynamic, signature.ReturnType.IsDynamic());
 
-            string expectedSymbol = String.Format("{4} {0}.{2}({1} left, {3} right)",
-                                       containerName,
-                                       leftName,
-                                       OperatorFacts.BinaryOperatorNameFromOperatorKind(op),
-                                       rightName,
-                                       returnName);
-            string actualSymbol = symbol1.ToTestDisplayString();
-
-            Assert.Equal(expectedSymbol, actualSymbol);
-
             Assert.Equal(MethodKind.BuiltinOperator, symbol1.MethodKind);
             Assert.True(symbol1.IsImplicitlyDeclared);
 
@@ -8225,6 +8216,16 @@ class Module1
                     isChecked = isDynamic;
                     break;
             }
+
+            string expectedSymbol = String.Format("{4} {0}.{2}({1} left, {3} right)",
+                                       containerName,
+                                       leftName,
+                                       OperatorFacts.BinaryOperatorNameFromOperatorKind(op, isChecked),
+                                       rightName,
+                                       returnName);
+            string actualSymbol = symbol1.ToTestDisplayString();
+
+            Assert.Equal(expectedSymbol, actualSymbol);
 
             Assert.Equal(isChecked, symbol1.IsCheckedBuiltin);
 
