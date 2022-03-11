@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnifiedSuggestions;
@@ -40,7 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             private readonly ReferenceCountedDisposable<State> _state;
 
+#pragma warning disable CS0067 // The event 'name' is never used
             public event EventHandler<EventArgs>? SuggestedActionsChanged;
+#pragma warning restore CS0067 // The event 'name' is never used
 
             public readonly IGlobalOptionService GlobalOptions;
 
@@ -565,7 +565,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 // ask editor to refresh light-bulb when workspace solution status is changed
-                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
+                // 🐉 Currently this event is disabled since it can cause unexpected light bulb dismissal
+                //this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
             }
 
             private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId? currentDocumentId, int solutionVersion)
@@ -589,7 +590,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return;
                 }
 
-                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
+                // 🐉 Currently this event is disabled since it can cause unexpected light bulb dismissal
+                //this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
 
                 Volatile.Write(ref state.Target.LastSolutionVersionReported, solutionVersion);
             }
