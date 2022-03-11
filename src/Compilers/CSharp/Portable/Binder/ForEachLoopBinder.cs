@@ -997,8 +997,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If IDisposable is available but its Dispose method is not, then diagnostics will be reported only if the enumerator
             // is potentially disposable.
 
-            // For async foreach, we don't do the runtime check
-
             TypeSymbol enumeratorType = builder.GetEnumeratorInfo.Method.ReturnType;
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -1041,7 +1039,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!enumeratorType.IsRefLikeType && patternDisposeMethod is null)
             {
-                // if it wasn't pattern-disposable, see if it's directly convertable to IDisposable
+                // If it wasn't pattern-disposable, see if it's directly convertable to IDisposable
+                // For async foreach, we don't do the runtime check in unsealed case
                 if ((!enumeratorType.IsSealed && !isAsync) ||
                     this.Conversions.ClassifyImplicitConversionFromType(enumeratorType,
                         isAsync ? this.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable) : this.Compilation.GetSpecialType(SpecialType.System_IDisposable),
