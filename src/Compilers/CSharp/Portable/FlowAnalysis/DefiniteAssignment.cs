@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
 
                 // We don't know any other way this can happen, but if it does we recover gracefully in production.
-                Debug.Assert(newCode != oldCode || oldCode is ErrorCode.ERR_InsufficientStack, oldCode.ToString());
+                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
 
                 var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
                 diagnostics.Add(newCode, diagnostic.Location, args);
