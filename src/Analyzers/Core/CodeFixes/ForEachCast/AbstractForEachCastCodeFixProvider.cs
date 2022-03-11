@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.ForEachCastDiagnosticId);
+
         internal sealed override CodeFixCategory CodeFixCategory
             => CodeFixCategory.CodeStyle;
 
