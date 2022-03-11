@@ -89,6 +89,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -128,6 +129,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -213,6 +215,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -305,6 +308,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -348,6 +352,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -420,6 +425,7 @@ namespace ConsoleApplication1
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -544,6 +550,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -585,6 +592,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -631,6 +639,7 @@ namespace ConsoleApplication1
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -746,6 +755,7 @@ namespace ConsoleApplication1
             var fixedCode = @"
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program
@@ -753,7 +763,7 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<dynamic>();
-            foreach (string s in x.Cast<string>())
+            foreach (string s in x.Select(v => (string)v))
             {
             }
         }
@@ -858,6 +868,7 @@ namespace ConsoleApplication1
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace ConsoleApplication1
 {
     class Program

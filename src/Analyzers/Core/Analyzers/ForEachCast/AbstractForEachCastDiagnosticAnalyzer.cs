@@ -92,6 +92,12 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             if (conversion.IsImplicit)
                 return;
 
+            // An implicit legal conversion still shows up as explicit conversion in the object model.  But this is fine
+            // to keep as is since being an implicit-conversion means the API indicates it should always be safe to
+            // happen at runtime.
+            if (conversion.IsUserDefined && conversion.MethodSymbol is { Name: WellKnownMemberNames.ImplicitConversionName })
+                return;
+
             if (collectionElementType is null)
                 return;
 
