@@ -138,10 +138,10 @@ $$
                 pasteText: "\"",
 @"var x = """""" $$""""""",
 @"var x = """"""
-     ""$$
-    """"""",
+     ""
+    $$""""""",
                 afterUndo:
-@"var x = """""" $$""""""""");
+@"var x = """""" ""$$""""""");
         }
 
         [WpfFact]
@@ -167,7 +167,7 @@ $$
      """"""
     ""$$""""""",
                 afterUndo:
-@"var x = """""" $$""""""""""""");
+@"var x = """""" """"""$$""""""");
         }
 
         [WpfFact]
@@ -276,8 +276,8 @@ def$$ """"""");
 @"var x = """""" $$""""""",
 @"var x = """"""
      abc
-    def$$
-    """"""",
+    def
+    $$""""""",
                 afterUndo:
 @"var x = """""" abc
 def$$""""""");
@@ -291,8 +291,8 @@ def$$""""""");
 @"var x = """"""goo$$""""""",
 @"var x = """"""
     gooabc
-    def$$
-    """"""",
+    def
+    $$""""""",
                 afterUndo:
 @"var x = """"""gooabc
 def$$""""""");
@@ -356,8 +356,8 @@ ghi$$ """"""");
 @"var x = """"""
      abc
         def
-    ghi$$ 
-    """"""",
+    ghi
+    $$""""""",
                 afterUndo:
 @"var x = """""" abc
     def
@@ -373,8 +373,8 @@ ghi$$""""""");
 @"var x = """"""
     abc
     def
-    ghi$$ 
-    """"""",
+    ghi 
+   $$ """"""",
                 afterUndo:
 @"var x = """"""abc
     def
@@ -390,8 +390,8 @@ ghi$$""""""");
 @"var x = """"""
     abc
     def
-    ghi$$ 
-    """"""",
+    ghi 
+   $$ """"""",
                 afterUndo:
 @"var x = """"""abc
     def
@@ -405,10 +405,10 @@ ghi$$""""""");
                 pasteText: "    abc\r\n    def\r\n    ghi",
 @"var x = """"""$$ """"""",
 @"var x = """"""
-        abc
+    abc
     def
-    ghi$$ 
-    """"""",
+    ghi 
+   $$ """"""",
                 afterUndo:
 @"var x = """"""    abc
     def
@@ -422,10 +422,10 @@ ghi$$""""""");
                 pasteText: "    abc\r\n    def\r\n    ghi",
 @"var x = """""" $$""""""",
 @"var x = """"""
-         abc
+     abc
     def
-    ghi$$
-    """"""",
+    ghi
+    $$""""""",
                 afterUndo:
 @"var x = """"""     abc
     def
@@ -439,15 +439,14 @@ ghi$$""""""");
                 pasteText: "        abc\r\n    def\r\n    ghi",
 @"var x = """"""$$ """"""",
 @"var x = """"""
-            abc
+        abc
     def
-    ghi$$ 
-    """"""",
+    ghi 
+   $$ """"""",
                 afterUndo:
 @"var x = """"""        abc
     def
-    ghi$$ 
-    """"""");
+    ghi$$ """"""");
         }
 
         [WpfFact]
@@ -457,10 +456,10 @@ ghi$$""""""");
                 pasteText: "        abc\r\n    def\r\n    ghi",
 @"var x = """""" $$""""""",
 @"var x = """"""
-             abc
+         abc
     def
-    ghi$$
-    """"""",
+    ghi
+    $$""""""",
                 afterUndo:
 @"var x = """"""         abc
     def
@@ -491,10 +490,10 @@ def$$""""""");
 @"var x = """"""
       abc
     def  
-    $$""""""",
+  $$  """"""",
                 afterUndo:
-@"var x = """"""abc
-def$$""""""");
+@"var x = """"""  abc
+def$$  """"""");
         }
 
         [WpfFact]
@@ -524,11 +523,11 @@ $$""""""");
       abc
     def
       
-    $$""""""",
+  $$  """"""",
                 afterUndo:
 @"var x = """"""  abc
 def
-  $$""""""");
+$$  """"""");
         }
 
         [WpfFact]
@@ -539,11 +538,11 @@ def
 @"var x = """"""$${|Selection:    |}  """"""",
 @"var x = """"""
     abc
-    def  $$
-    """"""",
+    def  
+  $$  """"""",
                 afterUndo:
 @"var x = """"""abc
-def$$   """"""");
+def$$  """"""");
         }
 
         [WpfFact]
@@ -554,8 +553,8 @@ def$$   """"""");
 @"var x = """"""  $${|Selection:    |}""""""",
 @"var x = """"""
       abc
-    def$$
-    """"""",
+    def
+    $$""""""",
                 afterUndo:
 @"var x = """"""  abc
 def$$""""""");
@@ -594,8 +593,8 @@ def$$""""""");
                 pasteText: "\"\"",
 @"var x = """"""$${|Selection:    |}""""""",
 @"var x = """"""
-    """"$$
-    """"""",
+    """"
+    $$""""""",
                 afterUndo:
 @"var x = """"""""""$$""""""");
         }
@@ -607,8 +606,8 @@ def$$""""""");
                 pasteText: "\"\"\"",
 @"var x = """"""$${|Selection:    |}""""""",
 @"var x = """"""""
-    """"""$$
-    """"""""",
+    """"""
+    ""$$""""""",
                 afterUndo:
 @"var x = """"""""""""$$""""""");
         }

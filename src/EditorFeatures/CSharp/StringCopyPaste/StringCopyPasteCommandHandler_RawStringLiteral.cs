@@ -104,23 +104,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (mustBeMultiLine)
                 finalTextChanges.Add(new TextChange(new TextSpan(contentSpan.Start, 0), newLine + indentationWhitespace));
 
-            SourceText? lastChange = null;
+            SourceText? changeText = null;
             for (var i = 0; i < snapshotBeforePaste.Version.Changes.Count; i++)
             {
                 var change = snapshotBeforePaste.Version.Changes[i];
 
                 // Create a text object around the change text we're making.  This is a very simple way to get
                 // a nice view of the text lines in the change.
-                lastChange = SourceText.From(change.NewText);
+                changeText = SourceText.From(change.NewText);
+                var commonIndentationPrefix = GetCommonIndentationPrefix(changeText) ?? "";
+
                 buffer.Clear();
 
-                for (var j = 0; j < lastChange.Lines.Count; j++)
+                for (var j = 0; j < changeText.Lines.Count; j++)
                 {
-                    var changeLine = lastChange.Lines[j];
-                    buffer.Append(lastChange.ToString(changeLine.SpanIncludingLineBreak));
+                    // The actual full line that was pasted in.
+                    var currentChangeLine = changeText.Lines[j];
+                    var fullChangeLineText = changeText.ToString(currentChangeLine.SpanIncludingLineBreak);
+
+                    if (j == 0)
+                    {
+                        // on the first line, remove the common indentation if we can. Otherwise leave alone.
+                        if (fullChangeLineText.StartsWith(commonIndentationPrefix))
+                            buffer.Append(fullChangeLineText[commonIndentationPrefix.Length..]);
+                        else
+                            buffer.Append(fullChangeLineText);
+                    }
+                    else
+                    {
+                        // on all the rest of the lines, always remove the common indentation.
+                        buffer.Append(fullChangeLineText[commonIndentationPrefix.Length..]);
+                    }
 
                     // if we ended with a newline, make sure the next line is indented enough.
-                    if (HasNewLine(changeLine))
+                    if (HasNewLine(currentChangeLine))
                         buffer.Append(indentationWhitespace);
                 }
 
@@ -139,9 +156,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             bool LastPastedLineAddedNewLine()
             {
-                return lastChange != null &&
+                return changeText != null &&
                     snapshotBeforePaste.Version.Changes.Last().OldEnd == contentSpan.End &&
-                      HasNewLine(lastChange.Lines.Last());
+                      HasNewLine(changeText.Lines.Last());
             }
         }
 
