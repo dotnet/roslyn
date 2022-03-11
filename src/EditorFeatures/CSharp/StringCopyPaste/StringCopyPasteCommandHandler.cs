@@ -181,7 +181,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 CSharpEditorResources.Fixing_string_literal_after_paste,
                 textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-            textView.ope
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
             transaction.Complete();
         }
