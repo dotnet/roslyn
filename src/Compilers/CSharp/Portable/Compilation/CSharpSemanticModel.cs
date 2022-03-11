@@ -251,6 +251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            // PROTOTYPE(semi-auto-props): Traverse containing symbols chain, if necessary, and add tests.
+            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor)
+            {
+                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+            }
+
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
