@@ -51,14 +51,15 @@ namespace Microsoft.CodeAnalysis.Snippets
 
         private async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var symbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
+            var consoleSymbol = await GetSymbolFromMetaDataNameAsync(document, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(consoleSymbol);
             var generator = SyntaxGenerator.GetGenerator(document);
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
             // We know symbol is not null at this point since it was checked when determining
             // if we are in a valid location to insert the snippet.
-            var typeExpression = generator.TypeExpression(symbol!);
+            var typeExpression = generator.TypeExpression(consoleSymbol);
             var declaration = GetAsyncSupportingDeclaration(token);
             var isAsync = declaration is not null && generator.GetModifiers(declaration).IsAsync;
 

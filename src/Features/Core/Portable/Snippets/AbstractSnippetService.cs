@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -64,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Snippets
                     foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
                     {
                         var providerData = provider.Value;
+                        Debug.Assert(_identifierToProviderMap.TryAdd(providerData.SnippetIdentifier, providerData));
                         arrayBuilder.Add(providerData);
-                        _identifierToProviderMap.Add(providerData.SnippetIdentifier, providerData);
                     }
 
                     _snippetProviders = arrayBuilder.ToImmutable();

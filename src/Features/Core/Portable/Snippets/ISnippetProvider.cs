@@ -32,6 +32,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// <summary>
         /// Gets the Snippet from the corresponding snippet provider.
         /// </summary>
-        Task<Snippet> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }

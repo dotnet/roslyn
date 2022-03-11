@@ -11,13 +11,8 @@ namespace Microsoft.CodeAnalysis.Snippets
     /// <summary>
     /// Encapsulates the information that makes up a Snippet.
     /// </summary>
-    internal readonly struct Snippet
+    internal readonly struct SnippetChange
     {
-        /// <summary>
-        /// The type of snippet, equivalent to what gets displayed in the Completion list
-        /// </summary>
-        public readonly string DisplayText;
-
         /// <summary>
         /// The TextChange's associated with introducing a snippet into a document
         /// </summary>
@@ -28,8 +23,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public readonly int? CursorPosition;
 
-        public Snippet(
-            string displayText,
+        public SnippetChange(
             ImmutableArray<TextChange> textChanges,
             int? cursorPosition)
         {
@@ -38,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Snippets
                 throw new ArgumentException($"{ textChanges.Length } must not be empty");
             }
 
-            DisplayText = displayText;
             TextChanges = textChanges;
             CursorPosition = cursorPosition;
         }

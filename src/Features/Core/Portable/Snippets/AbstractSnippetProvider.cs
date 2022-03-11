@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// Reformats the document with the snippet TextChange and annotates 
         /// appropriately for the cursor to get the target cursor position.
         /// </summary>
-        public async Task<Snippet> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            return new Snippet(
-                displayText: SnippetDisplayName,
+            return new SnippetChange(
                 textChanges: changes.ToImmutableArray(),
                 cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget));
         }
