@@ -2399,7 +2399,7 @@ namespace System
             return MessageProvider.Instance.GetIdForErrorCode((int)code);
         }
 
-        internal ImmutableDictionary<string, ReportDiagnostic> ReportStructInitializationWarnings { get; } = ImmutableDictionary.CreateRange(
+        internal static ImmutableDictionary<string, ReportDiagnostic> ReportStructInitializationWarnings { get; } = ImmutableDictionary.CreateRange(
             new[]
             {
                 KeyValuePairUtil.Create(GetIdForErrorCode(ErrorCode.WRN_UseDefViolationPropertyStructThis), ReportDiagnostic.Warn),
