@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ForEachCast
         {
             var forEachInfo = semanticModel.GetForEachStatementInfo(forEachStatement);
             var result = forEachInfo.ElementType;
+            // We should only get here if our analyzer found an issue, and it already checked that this property
+            // was non-null.  So we can safely know it's non-null at fix time as well.
             Contract.ThrowIfNull(result);
             return result;
         }
