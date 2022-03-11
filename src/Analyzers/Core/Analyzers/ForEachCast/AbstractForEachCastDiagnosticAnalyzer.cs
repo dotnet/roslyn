@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 return;
 
             if (loopOperation.LoopControlVariable is not IVariableDeclaratorOperation variableDeclarator ||
-                variableDeclarator.Type is null)
+                variableDeclarator.Symbol.Type is null)
             {
                 return;
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 return;
 
             // If the conversion was implicit, then everything is ok.  Implicit conversions are safe and do not throw at runtime.
-            if (!conversion.IsImplicit)
+            if (conversion.IsImplicit)
                 return;
 
             if (collectionElementType is null)

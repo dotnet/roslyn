@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
 
     public class ForEachCastTests
     {
-        private async Task TestWorkerAsync(
+        private static async Task TestWorkerAsync(
             string testCode, string fixedCode, string optionValue)
         {
             await new VerifyCS.Test
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForEachCast
             }.RunAsync();
         }
 
-        private Task TestAlwaysAsync(string markup, string alwaysMarkup)
+        private static Task TestAlwaysAsync(string markup, string alwaysMarkup)
             => TestWorkerAsync(markup, alwaysMarkup, "always");
 
-        private Task TestNonLegacyAsync(string markup, string nonLegacyMarkup)
+        private static Task TestNonLegacyAsync(string markup, string nonLegacyMarkup)
             => TestWorkerAsync(markup, nonLegacyMarkup, "non_legacy");
 
         [Fact]
@@ -88,6 +88,7 @@ namespace ConsoleApplication1
 }";
             var fixedCode = @"
 using System.Collections.Generic;
+using System.Linq;
 namespace ConsoleApplication1
 {
     class Program
@@ -107,7 +108,45 @@ namespace ConsoleApplication1
         }
 
         [Fact]
-        public async Task NongenericObjectCollection()
+        public async Task NonGenericObjectCollection_Always()
+        {
+            var test = @"
+using System.Collections;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new ArrayList();
+            [|foreach|] (string item in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System.Collections;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new ArrayList();
+            foreach (string item in x.Cast<string>())
+            {
+            }
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, fixedCode);
+        }
+
+        [Fact]
+        public async Task NonGenericObjectCollection_NonLegacy()
         {
             var test = @"
 using System.Collections;
@@ -125,7 +164,7 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
         }
 
         [Fact]
@@ -147,8 +186,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
-            This conversation was marked as resolved by maxkoshevoi
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -163,8 +202,25 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<A>();
-            {|#0:foreach|} (B item in x)
-This conversation was marked as resolved by maxkoshevoi
+            [|foreach|] (B item in x)
+            {
+            }
+        }
+    }
+    class A { }
+    class B : A { }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new List<A>();
+            foreach (B item in x.Cast<B>())
             {
             }
         }
@@ -173,7 +229,8 @@ This conversation was marked as resolved by maxkoshevoi
     class B : A { }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, GetCSharpResultAt(0).WithArguments("A", "B"), test);
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
@@ -195,7 +252,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -222,7 +280,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -237,14 +296,30 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<long>();
-            {|#0:foreach|} (int item in x)
+            [|foreach|] (int item in x)
             {
             }
         }
     }
 }";
-
-            await VerifyCS.VerifyCodeFixAsync(test, GetCSharpResultAt(0).WithArguments("Int64", "Int32"), test);
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new List<long>();
+            foreach (int item in x.Select(v => (int)v))
+            {
+            }
+        }
+    }
+}";
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
@@ -259,7 +334,28 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<A>();
-            {|#0:foreach|} (B item in x)
+            [|foreach|] (B item in x)
+            {
+            }
+        }
+    }
+    class A { }
+    class B 
+    { 
+        public static explicit operator B(A a) => new B();
+    }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new List<A>();
+            foreach (B item in x.Select(v => (B)v))
             {
             }
         }
@@ -271,7 +367,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, GetCSharpResultAt(0).WithArguments("A", "B"), test);
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
@@ -295,7 +392,8 @@ namespace ConsoleApplication1
     class B : A { }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -311,18 +409,36 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<IComparable>();
-            {|#0:foreach|} (string s in x)
+            [|foreach|] (string s in x)
             {
             }
         }
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, GetCSharpResultAt(0).WithArguments("IComparable", "String"), test);
+            var fixedCode = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new List<IComparable>();
+            foreach (string s in x.Cast<string>())
+            {
+            }
+        }
+    }
+}";
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
-        public async Task ClassToInterfase()
+        public async Task ClassToImplementedInterfase()
         {
             var test = @"
 using System;
@@ -341,7 +457,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -356,14 +473,30 @@ namespace ConsoleApplication1
         void Main<A, B>()
         {
             var x = new List<A>();
-            {|#0:foreach|} (B s in x)
+            [|foreach|] (B s in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main<A, B>()
+        {
+            var x = new List<A>();
+            foreach (B s in x.Select(v => (B)v))
             {
             }
         }
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, DiagnosticResult.CompilerError("CS0030").WithLocation(0).WithArguments("A", "B"), test);
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
@@ -385,7 +518,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -400,14 +534,75 @@ namespace ConsoleApplication1
         void Main<A, B>() where B : A
         {
             var x = new List<A>();
-            {|#0:foreach|} (B s in x)
+            [|foreach|] (B s in x)
             {
             }
         }
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, GetCSharpResultAt(0).WithArguments("A", "B"), test);
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main<A, B>() where B : A
+        {
+            var x = new List<A>();
+            foreach (B s in x.Select(v => (B)v))
+            {
+            }
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
+        }
+
+        [Fact]
+        public async Task GenericTypes_Invalid_Relationship_ClassConstraint()
+        {
+            var test = @"
+using System.Collections.Generic;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main<A, B>()
+            where A : class
+            where B : A, class
+        {
+            var x = new List<A>();
+            [|foreach|] (B s in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main<A, B>()
+            where A : class
+            where B : A, class
+        {
+            var x = new List<A>();
+            foreach (B s in x.Cast<B>())
+            {
+            }
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
@@ -422,7 +617,27 @@ namespace ConsoleApplication1
     {   
         void Main()
         {
-            {|#0:foreach|} (string item in GenerateSequence())
+            [|foreach|] (string item in GenerateSequence())
+            {
+            }
+            IEnumerable<IComparable> GenerateSequence()
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            foreach (string item in GenerateSequence().Cast<string>())
             {
             }
             IEnumerable<IComparable> GenerateSequence()
@@ -433,7 +648,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, GetCSharpResultAt(0).WithArguments("IComparable", "String"), test);
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
@@ -459,7 +675,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -481,7 +698,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -503,7 +721,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -518,14 +737,31 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<dynamic>();
-            {|#0:foreach|} (string s in x)
+            [|foreach|] (string s in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new List<dynamic>();
+            foreach (string s in x.Cast<string>())
             {
             }
         }
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, GetCSharpResultAt(0).WithArguments("dynamic", "String"), test);
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
 
         [Fact]
@@ -547,7 +783,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -570,7 +807,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -593,7 +831,8 @@ namespace ConsoleApplication1
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, test);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
@@ -609,14 +848,32 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<(int, IComparable)>();
-            foreach ((int i,  {|#0:int j|}) in x)
+            [|foreach|] ((int i,  int j) in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main()
+        {
+            var x = new List<(int, IComparable)>();
+            foreach ((int i, int j) in x.Select(v => ((int i, int j))v)
             {
             }
         }
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(test, DiagnosticResult.CompilerError("CS0266").WithLocation(0).WithArguments("System.IComparable", "int"), test);
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
         }
     }
 }

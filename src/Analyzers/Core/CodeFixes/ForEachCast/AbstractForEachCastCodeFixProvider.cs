@@ -68,12 +68,12 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var expression = syntaxFacts.GetExpressionOfForeachStatement(forEachStatement);
             var loopOperation = (IForEachLoopOperation)semanticModel.GetRequiredOperation(forEachStatement, cancellationToken);
             var variableDeclarator = (IVariableDeclaratorOperation)loopOperation.LoopControlVariable;
-            Contract.ThrowIfNull(variableDeclarator.Type);
+            Contract.ThrowIfNull(variableDeclarator.Symbol.Type);
 
             var elementType = GetForEachElementType(semanticModel, forEachStatement);
-            var conversion = semanticModel.Compilation.ClassifyCommonConversion(elementType, variableDeclarator.Type);
+            var conversion = semanticModel.Compilation.ClassifyCommonConversion(elementType, variableDeclarator.Symbol.Type);
 
-            var rewritten = GetRewrittenCollection(editor.Generator, expression, variableDeclarator.Type, conversion);
+            var rewritten = GetRewrittenCollection(editor.Generator, expression, variableDeclarator.Symbol.Type, conversion);
             rewritten = rewritten.WithAdditionalAnnotations(Simplifier.Annotation, Simplifier.AddImportsAnnotation);
 
             var enumerableType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!);
