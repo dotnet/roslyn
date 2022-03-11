@@ -2,14 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.ForEachCast;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ForEachCast;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
 
@@ -567,7 +562,7 @@ namespace ConsoleApplication1
     {   
         void Main<A, B>()
             where A : class
-            where B : A, class
+            where B : class, A
         {
             var x = new List<A>();
             [|foreach|] (B s in x)
@@ -586,7 +581,7 @@ namespace ConsoleApplication1
     {   
         void Main<A, B>()
             where A : class
-            where B : A, class
+            where B : class, A
         {
             var x = new List<A>();
             foreach (B s in x.Cast<B>())
@@ -845,33 +840,15 @@ namespace ConsoleApplication1
         void Main()
         {
             var x = new List<(int, IComparable)>();
-            [|foreach|] ((int i,  int j) in x)
-            {
-            }
-        }
-    }
-}";
-            var fixedCode = @"
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace ConsoleApplication1
-{
-    class Program
-    {   
-        void Main()
-        {
-            var x = new List<(int, IComparable)>();
-            foreach ((int i, int j) in x.Select(v => ((int i, int j))v)
+            foreach ((int i, {|CS0266:int j|}) in x)
             {
             }
         }
     }
 }";
 
-            await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
     }
 }
