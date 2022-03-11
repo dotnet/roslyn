@@ -8,8 +8,10 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 {
     internal static class StringCopyPasteHelpers
     {
+        public static bool HasNewLine(TextLine line)
+            => line.Span.End != line.SpanIncludingLineBreak.End;
+
         /// <summary>
         /// True if the string literal contains an error diagnostic that indicates a parsing problem with it. For
         /// interpolated strings, this only includes the text sections, and not any interpolation holes in the literal.
@@ -136,14 +141,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             => literal.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken;
 
         public static TextSpan GetRawStringLiteralContentSpan(SourceText text, LiteralExpressionSyntax stringExpression)
-            => GetRawStringLiteralContentSpan(text, stringExpression, out _);
+            => GetRawStringLiteralContentSpan(text, stringExpression, out _, out _);
 
         /// <summary>
         /// Returns the section of a raw string literal between the <c>"""</c> delimiters.  This also includes the
         /// leading/trailing whitespace between the delimiters for a multi-line raw string literal.
         /// </summary>
         public static TextSpan GetRawStringLiteralContentSpan(
-            SourceText text, LiteralExpressionSyntax stringExpression, out int delimiterQuoteCount)
+            SourceText text,
+            LiteralExpressionSyntax stringExpression,
+            out int delimiterQuoteCount,
+            out bool mustBeMultiLine)
         {
             Contract.ThrowIfFalse(IsRawStringLiteral(stringExpression));
 
@@ -157,6 +165,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 end--;
 
             var contentSpan = TextSpan.FromBounds(start, end);
+
+            // If the string is empty, starts/ends with a quote, or contains a newline, then it has to be multiline.
+            mustBeMultiLine =
+                start == end ||
+                text[start] == '"' ||
+                text[end - 1] == '"';
+
+            if (!mustBeMultiLine)
+            {
+                for (var i = start; i < end; i++)
+                {
+                    if (SyntaxFacts.IsNewLine(text[i]))
+                    {
+                        mustBeMultiLine = true;
+                        break;
+                    }
+                }
+            }
+
             return contentSpan;
         }
 
@@ -371,5 +398,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             return commonIndentPrefix[..commonPrefixLength];
         }
+
+        public static TextSpan MapSpan(TextSpan span, ITextSnapshot from, ITextSnapshot to)
+            => from.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive).GetSpan(to).Span.ToTextSpan();
     }
 }

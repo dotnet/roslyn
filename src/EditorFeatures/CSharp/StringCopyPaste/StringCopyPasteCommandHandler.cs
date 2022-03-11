@@ -162,10 +162,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return;
             }
 
-            // Ok, the user pasted text that couldn't cleanly be added to this token without issue.
-            // Repaste the contents, but this time properly escapes/manipulated so that it follows
-            // the rule of the particular token kind.
-            var escapedTextChanges = GetAppropriateTextChanges(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newLine);
+            // Ok, the user pasted text that couldn't cleanly be added to this token without issue. Repaste the
+            // contents, but this time properly escapes/manipulated so that it follows the rule of the particular token
+            // kind.
+            var escapedTextChanges = GetAppropriateTextChanges(
+                snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newLine, cancellationToken);
             if (escapedTextChanges.IsDefaultOrEmpty)
                 return;
 
@@ -266,7 +267,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
-            string newLine)
+            string newLine,
+            CancellationToken cancellationToken)
         {
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to
@@ -278,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
 
                 if (literalExpression.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetTextChangesForRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, newLine);
+                    return GetTextChangesForRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, newLine, cancellationToken);
             }
             else if (stringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {
