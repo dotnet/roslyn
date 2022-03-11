@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Snippets
                     foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
                     {
                         var providerData = provider.Value;
-                        Debug.Assert(_identifierToProviderMap.TryAdd(providerData.SnippetIdentifier, providerData));
+                        Debug.Assert(!_identifierToProviderMap.TryGetValue(providerData.SnippetIdentifier, out var _));
+                        _identifierToProviderMap.Add(providerData.SnippetIdentifier, providerData);
                         arrayBuilder.Add(providerData);
                     }
 
