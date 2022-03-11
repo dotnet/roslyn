@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\n",
 @"var x = """"""$$ """"""",
-"var x = \"\"\"\r\n    \n    $$\r\n    \"\"\"",
+"var x = \"\"\"\r\n    \n     \r\n   $$ \"\"\"",
                 afterUndo:
-"var x = \"\"\"\r\n    \n$$\r\n    \"\"\"");
+"var x = \"\"\"\n$$ \"\"\"");
         }
 
         [WpfFact]
@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\n",
 @"var x = """""" $$""""""",
-"var x = \"\"\"\r\n    \n    $$\r\n    \"\"\"",
+"var x = \"\"\"\r\n     \n    \r\n    $$\"\"\"",
                 afterUndo:
-"var x = \"\"\"\r\n    \n$$\r\n    \"\"\"");
+"var x = \"\"\" \n$$\"\"\"");
         }
 
         [WpfFact]
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\r\n",
 @"var x = """"""$$ """"""",
-"var x = \"\"\"\r\n    \r\n    $$\r\n    \"\"\"",
+"var x = \"\"\"\r\n$$    \r\n     \r\n    \"\"\"",
                 afterUndo:
-"var x = \"\"\"\r\n    \r\n$$\r\n    \"\"\"");
+"var x = \"\"\"\r\n$$ \"\"\"");
         }
 
         [WpfFact]
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\r\n",
 @"var x = """""" $$""""""",
-"var x = \"\"\"\r\n    \r\n    $$\r\n    \"\"\"",
+"var x = \"\"\"\r\n     \r\n    \r\n    $$\"\"\"",
                 afterUndo:
-"var x = \"\"\"\r\n    \r\n$$\r\n    \"\"\"");
+"var x = \"\"\" \r\n$$\"\"\"");
         }
 
         [WpfFact]
