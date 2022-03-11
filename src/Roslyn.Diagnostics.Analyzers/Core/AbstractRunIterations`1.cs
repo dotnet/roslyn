@@ -88,14 +88,14 @@ namespace Roslyn.Diagnostics.Analyzers
                     {
                         updatedMethod = updatedMethod.ReplaceNode(
                             attribute,
-                            syntaxGenerator.WithName(attribute, name[0..^4] + "Theory"));
+                            ReplaceName(syntaxGenerator, attribute, name[0..^4] + "Theory"));
                         break;
                     }
                     else if (name.EndsWith("FactAttribute"))
                     {
                         updatedMethod = updatedMethod.ReplaceNode(
                             attribute,
-                            syntaxGenerator.WithName(attribute, name[0..^"FactAttribute".Length] + "TheoryAttribute"));
+                            ReplaceName(syntaxGenerator, attribute, name[0..^"FactAttribute".Length] + "TheoryAttribute"));
                         break;
                     }
                 }
@@ -127,6 +127,20 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var root = await method.SyntaxTree.GetRootAsync(cancellationToken);
             return document.WithSyntaxRoot(root.ReplaceNode(method, updatedMethod));
+        }
+
+        private static SyntaxNode ReplaceName(SyntaxGenerator syntaxGenerator, SyntaxNode node, string name)
+        {
+            var newNode = syntaxGenerator.WithName(node, name);
+            if (newNode.RawKind != node.RawKind
+                && newNode.ChildNodes().FirstOrDefault()?.RawKind == node.RawKind)
+            {
+                // The call to WithName may have converted AttributeSyntax to AttributeListSyntax; we only want the
+                // AttributeSyntax portion.
+                newNode = newNode.ChildNodes().First();
+            }
+
+            return newNode;
         }
     }
 }
