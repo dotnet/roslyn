@@ -4,11 +4,14 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+<<<<<<< HEAD
 Imports Microsoft.CodeAnalysis.Navigation
+=======
+Imports Microsoft.CodeAnalysis.GoToDefinition
+>>>>>>> upstream/main
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities

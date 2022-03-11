@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.VisualStudio
     {
         public static IVsLanguageServiceBuildErrorReporter2 Create(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
             var workspace = (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>();
-            workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
             return new ProjectExternalErrorReporter(projectId, errorCodePrefix, LanguageNames.FSharp, workspace);
         }
     }
