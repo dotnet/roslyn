@@ -232,9 +232,9 @@ $$
             TestPasteUnknownSource(
                 pasteText: "  \"\"  ",
 @"var x = """"""$$ """"""",
-@"var x = """"""  """"  $$""""",
+@"var x = """"""  """"  $$ """"""",
                 afterUndo:
-@"var x = """"""$$ """"""",);
+@"var x = """"""$$ """"""");
         }
 
         [WpfFact]
