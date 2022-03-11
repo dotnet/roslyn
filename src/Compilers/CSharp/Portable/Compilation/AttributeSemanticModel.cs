@@ -48,8 +48,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
-
+            Debug.Assert(rootBinder.ContainingMemberOrLambda is not SourcePropertyAccessorSymbol { Property.IsIndexer: false } || hasSpeculativeFieldKeywordBinderInChain(rootBinder));
             return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
+
+            static bool hasSpeculativeFieldKeywordBinderInChain(Binder? rootBinder)
+            {
+                while (rootBinder is not null)
+                {
+                    if (rootBinder is SpeculativeFieldKeywordBinder)
+                    {
+                        return true;
+                    }
+
+                    if (rootBinder is FieldKeywordBinder)
+                    {
+                        Debug.Fail("Expected SpeculativeFieldKeywordBinder to be found before FieldKeywordBinder.");
+                        return false;
+                    }
+
+                    rootBinder = rootBinder.Next;
+                }
+
+                return false;
+            }
         }
 
         private NamedTypeSymbol AttributeType

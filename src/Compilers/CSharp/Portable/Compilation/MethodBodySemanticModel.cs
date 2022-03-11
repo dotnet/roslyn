@@ -59,15 +59,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
             Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));
-            Debug.Assert(!(IsSpeculativeSemanticModel && owner is SourcePropertyAccessorSymbol { Property.IsIndexer: false }) || hasFieldKeywordBinderInChain(rootBinder));
+            Debug.Assert(!(IsSpeculativeSemanticModel && owner is SourcePropertyAccessorSymbol { Property.IsIndexer: false }) || hasSpeculativeFieldKeywordBinderInChain(rootBinder));
 
-            static bool hasFieldKeywordBinderInChain(Binder rootBinder)
+            static bool hasSpeculativeFieldKeywordBinderInChain(Binder rootBinder)
             {
                 while (rootBinder is not null)
                 {
-                    if (rootBinder is FieldKeywordBinder)
+                    if (rootBinder is SpeculativeFieldKeywordBinder)
                     {
                         return true;
+                    }
+
+                    if (rootBinder is FieldKeywordBinder)
+                    {
+                        Debug.Fail("Expected SpeculativeFieldKeywordBinder to be found before FieldKeywordBinder.");
+                        return false;
                     }
 
                     rootBinder = rootBinder.Next;
