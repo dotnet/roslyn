@@ -22,7 +22,7 @@ internal static class IdeAnalyzerOptionsStorage
     // for testing only
     internal static void SetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, string language, IdeAnalyzerOptions options)
     {
-        globalOptions.SetGlobalOption(new OptionKey((IOption)CrashOnAnalyzerException, language), options.CrashOnAnalyzerException);
+        globalOptions.SetGlobalOption(new OptionKey((IOption)CrashOnAnalyzerException), options.CrashOnAnalyzerException);
         globalOptions.SetGlobalOption(new OptionKey((IOption)FadeOutUnusedImports, language), options.FadeOutUnusedImports);
         globalOptions.SetGlobalOption(new OptionKey((IOption)FadeOutUnreachableCode, language), options.FadeOutUnreachableCode);
         globalOptions.SetGlobalOption(new OptionKey((IOption)ReportInvalidPlaceholdersInStringDotFormatCalls, language), options.ReportInvalidPlaceholdersInStringDotFormatCalls);
