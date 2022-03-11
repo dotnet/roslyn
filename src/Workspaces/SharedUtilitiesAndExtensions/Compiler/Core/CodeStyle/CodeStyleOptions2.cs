@@ -377,6 +377,56 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 KeyValuePairUtil.Create("all", UnusedParametersPreference.AllMethods),
             });
 
+        #region dotnet_style_prefer_foreach_explicit_cast_in_Source
+
+        private static readonly CodeStyleOption2<ForEachExplicitCastInSourcePreference> s_forEachExplicitCastInSourceNonLegacyPreference =
+            new(ForEachExplicitCastInSourcePreference.NonLegacy, NotificationOption2.Suggestion);
+
+        private static readonly BidirectionalMap<string, ForEachExplicitCastInSourcePreference> s_forEachExplicitCastInSourcePreferencePreferenceMap =
+            new(new[]
+            {
+                KeyValuePairUtil.Create("always", ForEachExplicitCastInSourcePreference.Always),
+                KeyValuePairUtil.Create("never", ForEachExplicitCastInSourcePreference.Never),
+                KeyValuePairUtil.Create("non_legacy", ForEachExplicitCastInSourcePreference.NonLegacy),
+            });
+
+        internal static readonly PerLanguageOption2<CodeStyleOption2<ForEachExplicitCastInSourcePreference>> ForEachExplicitCastInSource =
+            CreateOption(
+                CodeStyleOptionGroups.ExpressionLevelPreferences,
+                nameof(ForEachExplicitCastInSource),
+                s_forEachExplicitCastInSourceNonLegacyPreference,
+                new EditorConfigStorageLocation<CodeStyleOption2<ForEachExplicitCastInSourcePreference>>(
+                    "dotnet_style_prefer_foreach_explicit_cast_in_source",
+                    s => ParseForEachExplicitCastInSourcePreference(s, s_forEachExplicitCastInSourceNonLegacyPreference),
+                    v => GetForEachExplicitCastInSourceEditorConfigString(v, s_forEachExplicitCastInSourceNonLegacyPreference)),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.ForEachExplicitCastInSourcePreference"));
+
+        private static CodeStyleOption2<ForEachExplicitCastInSourcePreference> ParseForEachExplicitCastInSourcePreference(
+            string optionString, CodeStyleOption2<ForEachExplicitCastInSourcePreference> defaultValue)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString,
+                    defaultValue.Notification, out var value, out var notification))
+            {
+                Debug.Assert(s_forEachExplicitCastInSourcePreferencePreferenceMap.ContainsKey(value));
+                return new CodeStyleOption2<ForEachExplicitCastInSourcePreference>(
+                    s_forEachExplicitCastInSourcePreferencePreferenceMap.GetValueOrDefault(value), notification);
+            }
+
+            return defaultValue;
+        }
+
+        private static string GetForEachExplicitCastInSourceEditorConfigString(
+            CodeStyleOption2<ForEachExplicitCastInSourcePreference> option,
+            CodeStyleOption2<ForEachExplicitCastInSourcePreference> defaultValue)
+        {
+            Debug.Assert(s_forEachExplicitCastInSourcePreferencePreferenceMap.ContainsValue(option.Value));
+            var value = s_forEachExplicitCastInSourcePreferencePreferenceMap.GetKeyOrDefault(option.Value) ??
+                s_forEachExplicitCastInSourcePreferencePreferenceMap.GetKeyOrDefault(defaultValue.Value);
+            return option.Notification == null ? value! : $"{value}{GetEditorConfigStringNotificationPart(option, defaultValue)}";
+        }
+
+        #endregion
+
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreateOption(
             CodeStyleOptionGroups.ExpressionLevelPreferences,
             nameof(PreferSystemHashCode),

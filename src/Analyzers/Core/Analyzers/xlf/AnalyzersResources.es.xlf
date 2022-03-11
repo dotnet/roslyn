@@ -22,6 +22,11 @@
         <target state="translated">Agregar modificadores de accesibilidad</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_explicit_cast">
+        <source>Add explicit cast</source>
+        <target state="new">Add explicit cast</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parentheses_for_clarity">
         <source>Add parentheses for clarity</source>
         <target state="translated">Agregar paréntesis para claridad</target>
@@ -385,6 +390,11 @@
       <trans-unit id="Use_throw_expression">
         <source>Use 'throw' expression</source>
         <target state="translated">Usar expresión "throw"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_statement_implicitly_converts_1_to_2_and_may_fail_at_runtime">
+        <source>'{0}' statement implicitly converts '{1}' to '{2}' and may fail at runtime</source>
+        <target state="new">'{0}' statement implicitly converts '{1}' to '{2}' and may fail at runtime</target>
         <note />
       </trans-unit>
     </body>

@@ -27,6 +27,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\AbstractForEachCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\AnalyzerOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />

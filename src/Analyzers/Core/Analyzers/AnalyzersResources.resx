@@ -352,4 +352,10 @@
   <data name="Simplify_LINQ_expression" xml:space="preserve">
     <value>Simplify LINQ expression</value>
   </data>
+  <data name="_0_statement_implicitly_converts_1_to_2_and_may_fail_at_runtime" xml:space="preserve">
+    <value>'{0}' statement implicitly converts '{1}' to '{2}' and may fail at runtime</value>
+  </data>
+  <data name="Add_explicit_cast" xml:space="preserve">
+    <value>Add explicit cast</value>
+  </data>
 </root>
