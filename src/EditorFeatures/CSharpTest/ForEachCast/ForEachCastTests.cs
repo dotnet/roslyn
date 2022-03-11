@@ -106,6 +106,120 @@ namespace ConsoleApplication1
         }
 
         [Fact]
+        public async Task ObjectArrayCollection()
+        {
+            var test = @"
+using System.Collections.Generic;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(object[] x)
+        {
+            [|foreach|] (string item in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(object[] x)
+        {
+            foreach (string item in x.Cast<string>())
+            {
+            }
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
+        }
+
+        [Fact]
+        public async Task IEnumerableOfObjectCollection()
+        {
+            var test = @"
+using System.Collections.Generic;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(IEnumerable<object> x)
+        {
+            [|foreach|] (string item in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(IEnumerable<object> x)
+        {
+            foreach (string item in x.Cast<string>())
+            {
+            }
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
+        }
+
+        [Fact]
+        public async Task IListOfObjectCollection()
+        {
+            var test = @"
+using System.Collections.Generic;
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(IList<object> x)
+        {
+            [|foreach|] (string item in x)
+            {
+            }
+        }
+    }
+}";
+            var fixedCode = @"
+using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApplication1
+{
+    class Program
+    {   
+        void Main(IList<object> x)
+        {
+            foreach (string item in x.Cast<string>())
+            {
+            }
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, fixedCode);
+            await TestNonLegacyAsync(test, fixedCode);
+        }
+
+        [Fact]
         public async Task NonGenericObjectCollection_Always()
         {
             var test = @"

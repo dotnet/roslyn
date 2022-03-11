@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
 
             // We can only fix this issue if the collection type implemented ienumerable and we have
             // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
-            var isFixable = collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType)) &&
+            var isFixable = (collectionType is IArrayTypeSymbol || collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType))) &&
                 semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
             var options = semanticModel.Compilation.Options;
