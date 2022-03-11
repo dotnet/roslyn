@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return WorkspaceKind.Host;
         }
 
-        public override void Register(Workspace workspace)
+        // Method purposely doesn't override the base so any changes to the method
+        // signature in the base class don't automatically break Razor.
+        public void Register(Workspace workspace)
         {
             base.Register(workspace);
         }
