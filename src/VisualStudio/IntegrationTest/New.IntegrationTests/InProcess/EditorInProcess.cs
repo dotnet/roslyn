@@ -34,6 +34,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -44,6 +45,7 @@ using Xunit;
 using IComponentModel = Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+using IPersistFile = Microsoft.VisualStudio.OLE.Interop.IPersistFile;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using SComponentModel = Microsoft.VisualStudio.ComponentModelHost.SComponentModel;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
@@ -71,6 +73,34 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 var asyncPackage = (AsyncPackage)editorPackage;
                 var collection = asyncPackage.GetPropertyValue<JoinableTaskCollection>("JoinableTaskCollection");
                 await collection.JoinTillEmptyAsync(cancellationToken);
+            }
+        }
+
+        public async Task<bool> IsSavedAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var vsView = await GetActiveVsTextViewAsync(cancellationToken);
+            ErrorHandler.ThrowOnFailure(vsView.GetBuffer(out var buffer));
+
+            // From CVsDocument::get_Saved
+            if (buffer is IVsPersistDocData persistDocData)
+            {
+                ErrorHandler.ThrowOnFailure(persistDocData.IsDocDataDirty(out var dirty));
+                return dirty == 0;
+            }
+            else if (buffer is IPersistFile persistFile)
+            {
+                return persistFile.IsDirty() == 0;
+            }
+            else if (buffer is IPersistFileFormat persistFileFormat)
+            {
+                ErrorHandler.ThrowOnFailure(persistFileFormat.IsDirty(out var dirty));
+                return dirty == 0;
+            }
+            else
+            {
+                throw new InvalidOperationException("Unsupported document");
             }
         }
 
@@ -239,6 +269,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             dte.ActiveDocument.Activate();
         }
 
+        public async Task SendExplicitFocusAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var textView = await GetActiveVsTextViewAsync(cancellationToken);
+            textView.SendExplicitFocus();
+        }
+
         public async Task<bool> IsUseSuggestionModeOnAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -293,6 +331,30 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
                 }
             }
+        }
+
+        public async Task<string[]> GetErrorTagsAsync(CancellationToken cancellationToken)
+            => await GetTagsAsync<IErrorTag>(filter: null, cancellationToken);
+
+        private static string PrintSpan(SnapshotSpan span)
+            => $"'{span.GetText().Replace("\\", "\\\\").Replace("\r", "\\r").Replace("\n", "\\n")}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+
+        private async Task<string[]> GetTagsAsync<TTag>(Predicate<TTag>? filter, CancellationToken cancellationToken)
+            where TTag : ITag
+        {
+            filter ??= _ => true;
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+
+            var viewTagAggregatorFactory = await GetComponentModelServiceAsync<IViewTagAggregatorFactoryService>(cancellationToken);
+            var aggregator = viewTagAggregatorFactory.CreateTagAggregator<TTag>(view);
+            var tags = aggregator
+                .GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length))
+                .Where(t => filter(t.Tag))
+                .Cast<IMappingTagSpan<ITag>>();
+            return tags.Select(tag => $"{tag.Tag}:{PrintSpan(tag.Span.GetSpans(view.TextBuffer).Single())}").ToArray();
         }
 
         private static bool IsDebuggerTextView(ITextView textView)
