@@ -61,8 +61,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
                 if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
                     tcs.SetResult(e.ActionSets.ToList());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.Canceled)
+                    tcs.TrySetCanceled();
                 else
-                    tcs.SetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
+                    tcs.TrySetException(new InvalidOperationException($"Light bulb transitioned to non-complete state: {e.Status}"));
 
                 asyncSession.SuggestedActionsUpdated -= handler;
             };

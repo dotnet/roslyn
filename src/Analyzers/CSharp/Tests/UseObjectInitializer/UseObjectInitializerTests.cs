@@ -566,6 +566,46 @@ class C
 }");
         }
 
+        [WorkItem(46670, "https://github.com/dotnet/roslyn/issues/46670")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestTriviaRemoveLeadingBlankLinesForFirstProperty()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = [|new|] C();
+
+        //Goo
+        c.i = 1;
+
+        //Bar
+        c.j = 2;
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    void M()
+    {
+        var c = new C
+        {
+            //Goo
+            i = 1,
+
+            //Bar
+            j = 2
+        };
+    }
+}");
+        }
+
         [WorkItem(15459, "https://github.com/dotnet/roslyn/issues/15459")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
         public async Task TestMissingInNonTopLevelObjectInitializer()

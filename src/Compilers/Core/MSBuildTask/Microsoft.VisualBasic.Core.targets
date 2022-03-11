@@ -8,7 +8,7 @@
                   @(Compile);
                   @(_CoreCompileResourceInputs);
                   $(ApplicationIcon);
-                  $(AssemblyOriginatorKeyFile);
+                  $(KeyOriginatorFile);
                   @(ReferencePathWithRefAssemblies);
                   @(CompiledLicenseFile);
                   @(LinkResource);

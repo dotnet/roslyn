@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var tokenText = token.Text;
             var offset = token.SpanStart;
 
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
@@ -186,14 +187,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<(char ch, TextSpan span)> charResults)
         {
             // Second pass.  Convert those characters to Runes.
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var runeResults);
+            var runeResults = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
             ConvertCharactersToRunes(charResults, runeResults);
 
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
         }
 
-        private static void ConvertCharactersToRunes(ArrayBuilder<(char ch, TextSpan span)> charResults, ArrayBuilder<VirtualChar> runeResults)
+        private static void ConvertCharactersToRunes(ArrayBuilder<(char ch, TextSpan span)> charResults, ImmutableSegmentedList<VirtualChar>.Builder runeResults)
         {
             for (var i = 0; i < charResults.Count;)
             {

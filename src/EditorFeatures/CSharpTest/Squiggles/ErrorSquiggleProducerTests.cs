@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
