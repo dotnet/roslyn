@@ -122,9 +122,10 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             // The user either always wants to write these casts explicitly, or they were calling a non-legacy API.
             // report the issue so they can insert the appropriate cast.
 
-            // We can only fix this issue if the collection type implemented ienumerable.  Then we can add a .Cast
-            // call to it.
-            var isFixable = collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType));
+            // We can only fix this issue if the collection type implemented ienumerable and we have
+            // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
+            var isFixable = collectionType.AllInterfaces.Any(i => i.Equals(ienumerableType)) &&
+                semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
 
             var options = semanticModel.Compilation.Options;
             context.ReportDiagnostic(DiagnosticHelper.Create(

@@ -68,17 +68,20 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             var expression = syntaxFacts.GetExpressionOfForeachStatement(forEachStatement);
             var loopOperation = (IForEachLoopOperation)semanticModel.GetRequiredOperation(forEachStatement, cancellationToken);
             var variableDeclarator = (IVariableDeclaratorOperation)loopOperation.LoopControlVariable;
+            var enumerableType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!);
+
+            // These were already verified to be non-null in the analyzer.
             Contract.ThrowIfNull(variableDeclarator.Symbol.Type);
+            Contract.ThrowIfNull(enumerableType);
 
             var elementType = GetForEachElementType(semanticModel, forEachStatement);
             var conversion = semanticModel.Compilation.ClassifyCommonConversion(elementType, variableDeclarator.Symbol.Type);
 
             var rewritten = GetRewrittenCollection(editor.Generator, expression, variableDeclarator.Symbol.Type, conversion);
-            rewritten = rewritten.WithAdditionalAnnotations(Simplifier.Annotation, Simplifier.AddImportsAnnotation);
 
-            var enumerableType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!);
-            if (enumerableType != null)
-                rewritten = rewritten.WithAdditionalAnnotations(SymbolAnnotation.Create(enumerableType));
+            // Add an annotation for System.Linq.Enumerable so that we add a `using System.Linq;` if not present.
+            rewritten = rewritten.WithAdditionalAnnotations(
+                Simplifier.Annotation, Simplifier.AddImportsAnnotation, SymbolAnnotation.Create(enumerableType));
 
             editor.ReplaceNode(expression, rewritten);
         }
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         {
             if (conversion.Exists && conversion.IsReference)
             {
-                // for a reference conversion we can insert `.Cast<DestType>()`
+                // for a reference cast we can insert `.Cast<DestType>()`
                 return generator.InvocationExpression(
                     generator.MemberAccessExpression(
                         collection,
@@ -101,7 +104,8 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             }
             else
             {
-                // otherwise we need to do `.Select(v => (DestType)v)`
+                // otherwise we need to ensure a language specific conversion by emitting the conversion into the code
+                // like so: `.Select(v => (DestType)v)`
                 return generator.InvocationExpression(
                     generator.MemberAccessExpression(
                         collection,
