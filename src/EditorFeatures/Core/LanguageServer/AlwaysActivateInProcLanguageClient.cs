@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
 
             serverCapabilities.ProjectContextProvider = true;
+            serverCapabilities.BreakableRangeProvider = true;
 
             var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
             if (isPullDiagnostics)
