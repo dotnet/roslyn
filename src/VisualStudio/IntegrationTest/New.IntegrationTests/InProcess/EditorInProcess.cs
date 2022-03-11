@@ -617,8 +617,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task InvokeCodeActionListAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler, cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService, cancellationToken);
+            await TestServices.Workarounds.WaitForLightBulbAsync(cancellationToken);
 
             await InvokeCodeActionListWithoutWaitingAsync(cancellationToken);
 

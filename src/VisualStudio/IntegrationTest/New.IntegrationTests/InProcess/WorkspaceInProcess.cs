@@ -46,6 +46,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             if (waitForWorkspaceFirst || featuresToWaitFor == FeatureAttribute.Workspace)
             {
                 await WaitForProjectSystemAsync(cancellationToken);
+                await TestServices.Shell.WaitForFileChangeNotificationsAsync(cancellationToken);
+                await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
             }
 
             var listenerProvider = await GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(cancellationToken);
