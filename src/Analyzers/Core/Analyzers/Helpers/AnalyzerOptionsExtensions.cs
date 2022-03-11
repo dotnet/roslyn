@@ -21,21 +21,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [DataContract]
     internal readonly record struct IdeAnalyzerOptions(
-        [property: DataMember(Order = 0)] bool FadeOutUnusedImports = true,
-        [property: DataMember(Order = 1)] bool FadeOutUnreachableCode = true,
-        [property: DataMember(Order = 2)] bool ReportInvalidPlaceholdersInStringDotFormatCalls = true,
-        [property: DataMember(Order = 3)] bool ReportInvalidRegexPatterns = true,
-        [property: DataMember(Order = 4)] bool ReportInvalidJsonPatterns = true,
-        [property: DataMember(Order = 5)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = true)
+        [property: DataMember(Order = 0)] bool CrashOnAnalyzerException = true,
+        [property: DataMember(Order = 1)] bool FadeOutUnusedImports = true,
+        [property: DataMember(Order = 2)] bool FadeOutUnreachableCode = true,
+        [property: DataMember(Order = 3)] bool ReportInvalidPlaceholdersInStringDotFormatCalls = true,
+        [property: DataMember(Order = 4)] bool ReportInvalidRegexPatterns = true,
+        [property: DataMember(Order = 5)] bool ReportInvalidJsonPatterns = true,
+        [property: DataMember(Order = 6)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = true)
     {
         public IdeAnalyzerOptions()
-            : this(FadeOutUnusedImports: true)
+            : this(CrashOnAnalyzerException: false)
         {
         }
 
         public static readonly IdeAnalyzerOptions Default = new();
 
         public static readonly IdeAnalyzerOptions CodeStyleDefault = new(
+            CrashOnAnalyzerException: false,
             FadeOutUnusedImports: false,
             FadeOutUnreachableCode: false,
             ReportInvalidPlaceholdersInStringDotFormatCalls: true,

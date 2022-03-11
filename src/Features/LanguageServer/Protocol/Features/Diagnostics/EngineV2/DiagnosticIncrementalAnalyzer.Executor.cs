@@ -294,7 +294,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             ideOptions,
                             analyzersToRun,
                             compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
-                            GlobalOptions.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException),
                             cancellationToken).ConfigureAwait(false);
 
                     var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);

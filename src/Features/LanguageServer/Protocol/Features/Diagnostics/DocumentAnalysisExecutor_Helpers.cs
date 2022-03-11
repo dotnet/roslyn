@@ -126,7 +126,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IdeAnalyzerOptions ideOptions,
             IEnumerable<DiagnosticAnalyzer> analyzers,
             bool includeSuppressedDiagnostics,
-            bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return ex =>
                 {
-                    if (ex is not OperationCanceledException && crashOnAnalyzerException)
+                    if (ex is not OperationCanceledException && ideOptions.CrashOnAnalyzerException)
                     {
                         // report telemetry
                         FatalError.ReportAndPropagate(ex);

@@ -11,6 +11,7 @@ internal static class IdeAnalyzerOptionsStorage
 {
     public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, string language)
         => new(
+            CrashOnAnalyzerException: globalOptions.GetOption(CrashOnAnalyzerException),
             FadeOutUnusedImports: globalOptions.GetOption(FadeOutUnusedImports, language),
             FadeOutUnreachableCode: globalOptions.GetOption(FadeOutUnreachableCode, language),
             ReportInvalidPlaceholdersInStringDotFormatCalls: globalOptions.GetOption(ReportInvalidPlaceholdersInStringDotFormatCalls, language),
@@ -21,6 +22,7 @@ internal static class IdeAnalyzerOptionsStorage
     // for testing only
     internal static void SetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, string language, IdeAnalyzerOptions options)
     {
+        globalOptions.SetGlobalOption(new OptionKey((IOption)CrashOnAnalyzerException, language), options.CrashOnAnalyzerException);
         globalOptions.SetGlobalOption(new OptionKey((IOption)FadeOutUnusedImports, language), options.FadeOutUnusedImports);
         globalOptions.SetGlobalOption(new OptionKey((IOption)FadeOutUnreachableCode, language), options.FadeOutUnreachableCode);
         globalOptions.SetGlobalOption(new OptionKey((IOption)ReportInvalidPlaceholdersInStringDotFormatCalls, language), options.ReportInvalidPlaceholdersInStringDotFormatCalls);
@@ -28,6 +30,10 @@ internal static class IdeAnalyzerOptionsStorage
         globalOptions.SetGlobalOption(new OptionKey((IOption)ReportInvalidJsonPatterns, language), options.ReportInvalidJsonPatterns);
         globalOptions.SetGlobalOption(new OptionKey((IOption)DetectAndOfferEditorFeaturesForProbableJsonStrings, language), options.DetectAndOfferEditorFeaturesForProbableJsonStrings);
     }
+
+    public static readonly Option2<bool> CrashOnAnalyzerException = new(
+        "InternalDiagnosticsOptions", "CrashOnAnalyzerException", IdeAnalyzerOptions.Default.CrashOnAnalyzerException,
+        storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Diagnostics\CrashOnAnalyzerException"));
 
     public static readonly PerLanguageOption2<bool> FadeOutUnusedImports = new(
         "FadingOptions", "FadeOutUnusedImports", IdeAnalyzerOptions.Default.FadeOutUnusedImports,

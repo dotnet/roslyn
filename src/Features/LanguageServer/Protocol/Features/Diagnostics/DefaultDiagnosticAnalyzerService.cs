@@ -162,11 +162,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzers.IsEmpty)
                     return ImmutableArray<DiagnosticData>.Empty;
 
-                var crashOnAnalyzerException = _service._globalOptions.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException);
                 var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project.Language);
 
                 var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                    project, ideOptions, analyzers, includeSuppressedDiagnostics: false, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    project, ideOptions, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
 
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
