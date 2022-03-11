@@ -49,6 +49,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.ErrorCode, null);
         }
 
+        public static ErrorSource? GetErrorSource(this ITableEntry tableEntry)
+        {
+            return tableEntry.GetValueOrNull<ErrorSource>(StandardTableKeyNames.ErrorSource);
+        }
+
         public static string? GetText(this ITableEntry tableEntry)
         {
             return tableEntry.GetValueOrDefault<string?>(StandardTableKeyNames.Text, null);
