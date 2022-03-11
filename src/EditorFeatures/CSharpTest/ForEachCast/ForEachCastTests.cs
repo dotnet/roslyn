@@ -481,30 +481,15 @@ namespace ConsoleApplication1
         void Main<A, B>()
         {
             var x = new List<A>();
-            {|CS0030:[|foreach|]|} (B s in x)
-            {
-            }
-        }
-    }
-}";
-            var fixedCode = @"
-using System.Collections.Generic;
-namespace ConsoleApplication1
-{
-    class Program
-    {   
-        void Main<A, B>()
-        {
-            var x = new List<A>();
-            foreach (B s in x.Select(v => {|CS0030:(B)v|}))
+            {|CS0030:foreach|} (B s in x)
             {
             }
         }
     }
 }";
 
-            await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestAlwaysAsync(test, test);
+            await TestNonLegacyAsync(test, test);
         }
 
         [Fact]
