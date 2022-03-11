@@ -19,25 +19,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
 
         public static Option2<bool> NavigateToDecompiledSources =
-                new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,
-                    storageLocation: new RoamingProfileStorageLocation($"TextEditor.NavigateToDecompiledSources"));
+            new("FeatureOnOffOptions", "NavigateToDecompiledSources", defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation($"TextEditor.NavigateToDecompiledSources"));
 
         public static Option2<bool> AlwaysUseDefaultSymbolServers =
             new("FeatureOnOffOptions", "AlwaysUseDefaultSymbolServers", defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation($"TextEditor.AlwaysUseDefaultSymbolServers"));
-
-        [ExportSolutionOptionProvider, Shared]
-        internal sealed class Metadata : IOptionProvider
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Metadata()
-            {
-            }
-
-            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
-                MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
-        }
     }
 }
