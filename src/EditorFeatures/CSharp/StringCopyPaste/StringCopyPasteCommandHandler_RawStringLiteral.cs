@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             LiteralExpressionSyntax stringExpressionBeforePaste)
         {
             var contentSpanBeforePaste = GetRawStringLiteralContentSpan(
-                snapshotBeforePaste.AsText(), stringExpressionBeforePaste, out var delimiterQuoteCount, out _);
+                snapshotBeforePaste.AsText(), stringExpressionBeforePaste, out var delimiterQuoteCount);
             var contentSpanAfterPaste = MapSpan(contentSpanBeforePaste, snapshotBeforePaste, snapshotAfterPaste);
             var longestQuoteSequence = GetLongestQuoteSequence(snapshotAfterPaste.GetSpan(contentSpanAfterPaste.ToSpan()));
 
@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         private static ImmutableArray<TextChange> GetTextChangesForRawStringLiteral(
+            Document documentBeforePaste,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             LiteralExpressionSyntax stringExpressionBeforePaste,
@@ -65,14 +66,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // final string literal will need (which also gives us the number of quotes to add to teh start/end).
             var quotesToAdd = GetQuotesToAddToRawLiteral(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste);
             return stringExpressionBeforePaste.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken
-                ? GetTextChangesForSingleLineRawStringLiteral(snapshotBeforePaste, stringExpressionBeforePaste, newLine, quotesToAdd, cancellationToken)
+                ? GetTextChangesForSingleLineRawStringLiteral(documentBeforePaste, snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newLine, quotesToAdd, cancellationToken)
                 : GetTextChangesForMultiLineRawStringLiteral(snapshotBeforePaste, stringExpressionBeforePaste, newLine, quotesToAdd);
         }
 
         // Pasting with single line case.
 
         private static ImmutableArray<TextChange> GetTextChangesForSingleLineRawStringLiteral(
+            Document documentBeforePaste,
             ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
             LiteralExpressionSyntax stringExpressionBeforePaste,
             string newLine,
             string? quotesToAdd,
@@ -84,16 +87,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Pasting any other content into a single-line raw literal is always legal and needs no extra work on our
             // part.
 
-            var contentSpan = GetRawStringLiteralContentSpan(
-                snapshotBeforePaste.AsText(), stringExpressionBeforePaste,
-                out _, out var mustBeMultiLine);
+            var contentSpan = GetRawStringLiteralContentSpan(snapshotBeforePaste.AsText(), stringExpressionBeforePaste);
+            var contentSpanAfterPaste = MapSpan(contentSpan, snapshotBeforePaste, snapshotAfterPaste);
 
-            if (!mustBeMultiLine)
+            if (!MustBeMultiLine(snapshotAfterPaste.GetSpan(contentSpanAfterPaste.ToSpan())))
                 return default;
 
-            var document = snapshotBeforePaste.GetOpenDocumentInCurrentContextWithChanges();
-            Contract.ThrowIfNull(document);
-            var indentationWhitespace = stringExpressionBeforePaste.Token.GetPreferredIndentation(document, cancellationToken);
+            var indentationWhitespace = stringExpressionBeforePaste.Token.GetPreferredIndentation(documentBeforePaste, cancellationToken);
 
             using var _1 = ArrayBuilder<TextChange>.GetInstance(out var finalTextChanges);
             using var _2 = PooledStringBuilder.GetInstance(out var buffer);
@@ -120,22 +120,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 {
                     var changeLine = lastChange.Lines[j];
                     buffer.Append(lastChange.ToString(changeLine.SpanIncludingLineBreak));
-                    buffer.Append(indentationWhitespace);
+
+                    // if we ended with a newline, make sure the next line is indented enough.
+                    if (HasNewLine(changeLine))
+                        buffer.Append(indentationWhitespace);
                 }
 
                 finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
             }
 
             // if the last change ended at the closing delimiter *and* ended with a newline, then we don't need to add a
-            // final one to place the closing quotes in the right location.
-            if (lastChange != null &&
-                HasNewLine(lastChange.Lines.Last()) &&
-                snapshotBeforePaste.Version.Changes.Last().OldEnd == contentSpan.End)
-            {
-
-                finalTextChanges.Add(new TextChange(new TextSpan(contentSpan.End, 0), indentationWhitespace));
-            }
-            else
+            // final newline-space at the end because we will have already done that.
+            if (!(lastChange != null &&
+                  snapshotBeforePaste.Version.Changes.Last().OldEnd == contentSpan.End &&
+                  HasNewLine(lastChange.Lines.Last())))
             {
                 finalTextChanges.Add(new TextChange(new TextSpan(contentSpan.End, 0), newLine + indentationWhitespace));
             }
@@ -144,6 +142,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 finalTextChanges.Add(new TextChange(new TextSpan(stringExpressionBeforePaste.Span.End, 0), quotesToAdd));
 
             return finalTextChanges.ToImmutable();
+        }
+
+        private static bool MustBeMultiLine(SnapshotSpan snapshotSpan)
+        {
+            // Empty raw string must be multiline.
+            if (snapshotSpan.IsEmpty)
+                return true;
+
+            // Or if it starts/ends with a quote 
+            if (snapshotSpan.Start.GetChar() == '"')
+                return true;
+
+            if ((snapshotSpan.End - 1).GetChar() == '"')
+                return true;
+
+            // or contains a newline
+            for (var i = snapshotSpan.Span.Start; i < snapshotSpan.Span.End; i++)
+            {
+                if (SyntaxFacts.IsNewLine(snapshotSpan.Snapshot[i]))
+                    return true;
+            }
+
+            return false;
         }
 
         // Pasting into multi line case.

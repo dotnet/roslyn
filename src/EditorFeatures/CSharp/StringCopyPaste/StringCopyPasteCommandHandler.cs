@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // contents, but this time properly escapes/manipulated so that it follows the rule of the particular token
             // kind.
             var escapedTextChanges = GetAppropriateTextChanges(
-                snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newLine, cancellationToken);
+                documentBeforePaste, snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newLine, cancellationToken);
             if (escapedTextChanges.IsDefaultOrEmpty)
                 return;
 
@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         private static ImmutableArray<TextChange> GetAppropriateTextChanges(
+            Document documentBeforePaste,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
 
                 if (literalExpression.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetTextChangesForRawStringLiteral(snapshotBeforePaste, snapshotAfterPaste, literalExpression, newLine, cancellationToken);
+                    return GetTextChangesForRawStringLiteral(documentBeforePaste, snapshotBeforePaste, snapshotAfterPaste, literalExpression, newLine, cancellationToken);
             }
             else if (stringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {

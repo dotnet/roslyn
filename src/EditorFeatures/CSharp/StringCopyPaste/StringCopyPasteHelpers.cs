@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             => literal.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken;
 
         public static TextSpan GetRawStringLiteralContentSpan(SourceText text, LiteralExpressionSyntax stringExpression)
-            => GetRawStringLiteralContentSpan(text, stringExpression, out _, out _);
+            => GetRawStringLiteralContentSpan(text, stringExpression, out _);
 
         /// <summary>
         /// Returns the section of a raw string literal between the <c>"""</c> delimiters.  This also includes the
@@ -150,8 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public static TextSpan GetRawStringLiteralContentSpan(
             SourceText text,
             LiteralExpressionSyntax stringExpression,
-            out int delimiterQuoteCount,
-            out bool mustBeMultiLine)
+            out int delimiterQuoteCount)
         {
             Contract.ThrowIfFalse(IsRawStringLiteral(stringExpression));
 
@@ -165,25 +164,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 end--;
 
             var contentSpan = TextSpan.FromBounds(start, end);
-
-            // If the string is empty, starts/ends with a quote, or contains a newline, then it has to be multiline.
-            mustBeMultiLine =
-                start == end ||
-                text[start] == '"' ||
-                text[end - 1] == '"';
-
-            if (!mustBeMultiLine)
-            {
-                for (var i = start; i < end; i++)
-                {
-                    if (SyntaxFacts.IsNewLine(text[i]))
-                    {
-                        mustBeMultiLine = true;
-                        break;
-                    }
-                }
-            }
-
             return contentSpan;
         }
 
