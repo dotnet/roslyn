@@ -93,10 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public readonly bool WrappingPreserveSingleLine;
 
         public CSharpSyntaxFormattingOptions(
-            bool useTabs,
-            int tabSize,
-            int indentationSize,
-            string newLine,
+            LineFormattingOptions lineFormatting,
             bool separateImportDirectiveGroups,
             SpacePlacement spacing,
             BinaryOperatorSpacingOptions spacingAroundBinaryOperator,
@@ -105,11 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             IndentationPlacement indentation,
             bool wrappingKeepStatementsOnSingleLine,
             bool wrappingPreserveSingleLine)
-            : base(useTabs,
-                  tabSize,
-                  indentationSize,
-                  newLine,
-                  separateImportDirectiveGroups)
+            : base(lineFormatting, separateImportDirectiveGroups)
         {
             Spacing = spacing;
             SpacingAroundBinaryOperator = spacingAroundBinaryOperator;
@@ -121,10 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         public static readonly CSharpSyntaxFormattingOptions Default = new(
-            useTabs: FormattingOptions2.UseTabs.DefaultValue,
-            tabSize: FormattingOptions2.TabSize.DefaultValue,
-            indentationSize: FormattingOptions2.IndentationSize.DefaultValue,
-            newLine: FormattingOptions2.NewLine.DefaultValue,
+            lineFormatting: LineFormattingOptions.Default,
             separateImportDirectiveGroups: GenerationOptions.SeparateImportDirectiveGroups.DefaultValue,
             spacing:
                 (CSharpFormattingOptions2.SpacingAfterMethodDeclarationName.DefaultValue ? SpacePlacement.AfterMethodDeclarationName : 0) |
@@ -178,10 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static CSharpSyntaxFormattingOptions Create(AnalyzerConfigOptions options)
             => new(
-                useTabs: options.GetOption(FormattingOptions2.UseTabs),
-                tabSize: options.GetOption(FormattingOptions2.TabSize),
-                indentationSize: options.GetOption(FormattingOptions2.IndentationSize),
-                newLine: options.GetOption(FormattingOptions2.NewLine),
+                LineFormattingOptions.Create(options),
                 separateImportDirectiveGroups: options.GetOption(GenerationOptions.SeparateImportDirectiveGroups),
                 spacing:
                     (options.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
