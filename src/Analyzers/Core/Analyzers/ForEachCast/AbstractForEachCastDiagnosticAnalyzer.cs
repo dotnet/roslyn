@@ -113,10 +113,10 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             //
             // So, to detect if we're in a legacy situation, we look for iterations that are returning an object-type
             // where the collection itself didn't implement `IEnumerable<T>` in some way.
-            if (option.Value == ForEachExplicitCastInSourcePreference.NonLegacy)
+            if (option.Value == ForEachExplicitCastInSourcePreference.NonLegacy &&
+                IsLegacyAPI(ienumerableOfTType, collectionType, collectionElementType))
             {
-                if (IsLegacyAPI(ienumerableOfTType, collectionType, collectionElementType))
-                    return;
+                return;
             }
 
             // The user either always wants to write these casts explicitly, or they were calling a non-legacy API.
