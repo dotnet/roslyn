@@ -42,8 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public ImmutableArray<TextChange> GetTextChanges(CancellationToken cancellationToken)
         {
+            // If we have a raw-string, then we always want to check for changes to make, even if the paste was
+            // technically legal.  This is because we may want to touch up things like indentation to make the
+            // pasted text look good for raw strings.
+            //
             // Check for certain things we always think we should escape.
-            if (!ShouldAlwaysEscapeTextFromUnknownSource())
+            if (!IsAnyRawStringExpression(StringExpressionBeforePaste) && !ShouldAlwaysEscapeTextForNonRawString())
             {
                 // If the pasting was successful, then no need to change anything.
                 if (PasteWasSuccessful(cancellationToken))
@@ -56,27 +60,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return GetAppropriateTextChanges(cancellationToken);
         }
 
-        private bool ShouldAlwaysEscapeTextFromUnknownSource()
+        private bool ShouldAlwaysEscapeTextForNonRawString()
         {
             if (StringExpressionBeforePaste is LiteralExpressionSyntax literal)
             {
                 // Pasting a control character into a normal string literal is normally not desired.  So even if this
                 // is legal, we still escape the contents to make the pasted code clear.
-                if (literal.Token.IsRegularStringLiteral() && ContainsControlCharacter(Changes))
-                    return true;
-
-                // Always assume passing into a raw string needs adjustment.
-                return IsRawStringLiteral(literal);
+                return literal.Token.IsRegularStringLiteral() && ContainsControlCharacter(Changes);
             }
             else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {
                 // Pasting a control character into a normal string literal is normally not desired.  So even if this
                 // is legal, we still escape the contents to make the pasted code clear.
-                if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken) && ContainsControlCharacter(Changes))
-                    return true;
-
-                // Always assume passing into a raw string needs adjustment.
-                return IsRawStringLiteral(interpolatedString);
+                return interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken) && ContainsControlCharacter(Changes);
             }
 
             throw ExceptionUtilities.UnexpectedValue(StringExpressionBeforePaste);

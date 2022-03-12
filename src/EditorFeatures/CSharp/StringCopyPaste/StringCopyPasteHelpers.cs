@@ -142,6 +142,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return (value[..start], value[start..]);
         }
 
+        public static bool IsAnyRawStringExpression(ExpressionSyntax expression)
+            => expression is LiteralExpressionSyntax literal
+                ? IsRawStringLiteral(literal)
+                : IsRawStringLiteral((InterpolatedStringExpressionSyntax)expression);
+
         public static bool IsRawStringLiteral(InterpolatedStringExpressionSyntax interpolatedString)
             => interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
 
