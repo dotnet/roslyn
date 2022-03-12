@@ -269,7 +269,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return longestCount;
         }
 
-        public static ExpressionSyntax? FindContainingStringExpression(
+        /// <summary>
+        /// Given a set of selections, finds the innermost string-literal/interpolation that they are all contained in.
+        /// If no such literal/interpolation exists, this returns null. 
+        /// </summary>
+        public static ExpressionSyntax? FindCommonContainingStringExpression(
             SyntaxNode root, NormalizedSnapshotSpanCollection selectionsBeforePaste)
         {
             ExpressionSyntax? expression = null;

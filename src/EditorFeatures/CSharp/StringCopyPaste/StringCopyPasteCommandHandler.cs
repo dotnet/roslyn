@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             [NotNullWhen(true)] out ExpressionSyntax? stringExpression)
         {
             // First, try to see if all the selections are at least contained within a single string literal expression.
-            stringExpression = FindContainingStringExpression(root, selectionsBeforePaste);
+            stringExpression = FindCommonContainingStringExpression(root, selectionsBeforePaste);
             if (stringExpression == null)
                 return false;
 
