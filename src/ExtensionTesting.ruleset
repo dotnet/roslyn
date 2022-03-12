@@ -91,7 +91,11 @@
     <Rule Id="SA1600" Action="None" />
     <Rule Id="SA1601" Action="None" />
     <Rule Id="SA1602" Action="None" />
+    <!-- SA1604: Element documentation should have summary -->
+    <Rule Id="SA1604" Action="None" />
     <Rule Id="SA1611" Action="None" />
+    <!-- SA1612: Element parameter documentation should match element parameters -->
+    <Rule Id="SA1612" Action="None" />
     <Rule Id="SA1615" Action="None" />
     <Rule Id="SX1101" Action="Warning" />
     <Rule Id="SX1309" Action="Warning" />

@@ -13,6 +13,7 @@ namespace Xunit
             MinVersion = VisualStudioVersion.Unspecified;
             MaxVersion = VisualStudioVersion.Unspecified;
             RootSuffix = null;
+            MaxAttempts = 0;
         }
 
         public VisualStudioVersion MinVersion
@@ -28,6 +29,12 @@ namespace Xunit
         }
 
         public string? RootSuffix
+        {
+            get;
+            set;
+        }
+
+        public int MaxAttempts
         {
             get;
             set;
