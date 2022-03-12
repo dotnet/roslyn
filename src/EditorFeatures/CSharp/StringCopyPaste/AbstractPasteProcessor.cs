@@ -85,9 +85,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         protected bool PasteWasSuccessful(CancellationToken cancellationToken)
         {
-            // try to find the same node after the paste.  If it's got no errors, and still ends at the same expected
-            // location, then it looks like what was pasted was entirely legal and should probably not be touched.
-
             var rootAfterPaste = DocumentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var stringExpressionAfterPaste = FindContainingStringExpression(rootAfterPaste, StringExpressionBeforePaste.SpanStart);
             if (stringExpressionAfterPaste == null)
