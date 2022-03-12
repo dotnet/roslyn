@@ -86,26 +86,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste))
-            {
-                nextCommandHandler();
-                return;
-            }
-
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
 
             var selectionsBeforePaste = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
-
-            // if we're not even sure where the user caret/selection is on this buffer, we can't proceed.
-            if (selectionsBeforePaste.Count == 0)
-                return;
-
             var snapshotBeforePaste = subjectBuffer.CurrentSnapshot;
 
             // Always let the real paste go through.  That way we always have a version of the document that doesn't
             // include our changes that we can undo back to.
             nextCommandHandler();
+
+            // If the user has the option off, then don't bother doing anything once we've sent the paste through.
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste))
+                return;
+
+            // if we're not even sure where the user caret/selection is on this buffer, we can't proceed.
+            if (selectionsBeforePaste.Count == 0)
+                return;
 
             var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
 
