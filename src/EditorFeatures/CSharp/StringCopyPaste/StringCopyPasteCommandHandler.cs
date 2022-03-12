@@ -26,6 +26,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 {
     using static StringCopyPasteHelpers;
 
+    /// <summary>
+    /// Command handler that both tracks 'copy' commands within VS to see what text the user copied (and from where),
+    /// but also then handles pasting that text back in a sensible fashion (e.g. escaping/unescaping/wrapping/indenting)
+    /// inside a string-literal.  Can also handle pasting code from unknown sources as well, though heuristics must be
+    /// applied in that case to make a best effort guess as to what the original text meant and how to preserve that
+    /// in the final context.
+    /// </summary>
+    /// <remarks>
+    /// Because we are revising what the normal editor does, we follow the standard behavior of first allowing the
+    /// editor to process paste commands, and then adding our own changes as an edit after that.  That way if the user
+    /// doesn't want the change we made, they can always undo to get the prior paste behavior.
+    /// </remarks>
     [Export(typeof(ICommandHandler))]
     [VSUtilities.ContentType(ContentTypeNames.CSharpContentType)]
     [VSUtilities.Name(nameof(StringCopyPasteCommandHandler))]
