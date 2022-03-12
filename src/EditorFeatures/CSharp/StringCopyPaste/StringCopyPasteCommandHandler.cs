@@ -134,6 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 textView.Options.GetNewLineCharacter());
             var textChanges = processor.GetTextChanges(cancellationToken);
 
+            // If we didn't get any viable changes back, don't do anything.
+            if (textChanges.IsDefaultOrEmpty)
+                return;
+
             var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(textChanges);
 
             // If we end up making the same changes as what the paste did, then no need to proceed.

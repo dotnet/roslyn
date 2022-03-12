@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         /// <summary>
         /// Rosly document corresponding to <see cref="SnapshotAfterPaste"/>.
+        /// </summary>
         protected readonly Document DocumentAfterPaste;
 
         /// <summary>
