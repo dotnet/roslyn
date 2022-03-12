@@ -217,6 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            if (binder.ContainingMember() is SourcePropertyAccessorSymbol accessor)
+            {
+                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+            }
+
             binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
             speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, GetRemappedSymbols(), position);
             return true;

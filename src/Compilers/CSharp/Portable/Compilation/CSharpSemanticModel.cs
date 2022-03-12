@@ -232,8 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
 
-            // PROTOTYPE(semi-auto-props): We should traverse until we get a property accessor, similar to Binder_Expressions. We may want to share the code.
-            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            if (binder.ContainingMember() is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
             {
                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
             }
@@ -251,8 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // PROTOTYPE(semi-auto-props): Traverse containing symbols chain, if necessary, and add tests.
-            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor)
+            if (binder.ContainingMember() is SourcePropertyAccessorSymbol accessor)
             {
                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
             }

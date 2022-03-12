@@ -3013,23 +3013,25 @@ public class C
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(newEqualsValueClause.Value);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
+            {
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
+            else
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
 
-            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal("?", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, typeInfoAsExpression.Type.TypeKind);
-            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
 
-            var typeInfoAsType = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
-            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+            var typeInfo = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
 
-            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
-            var aliasInfoAsType = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            Assert.Null(aliasInfoAsExpression);
-            Assert.Null(aliasInfoAsType);
+            var aliasInfo = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Null(aliasInfo);
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -3067,25 +3069,26 @@ public class C
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(newEqualsValueClause.Value);
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
 
-            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal("?", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, typeInfoAsExpression.Type.TypeKind);
-            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+            var typeInfo = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
 
-            var typeInfoAsType = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
-            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
-
-            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
-            var aliasInfoAsType = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
-            Assert.Null(aliasInfoAsExpression);
-            Assert.Null(aliasInfoAsType);
+            var aliasInfo = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Null(aliasInfo);
 
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 

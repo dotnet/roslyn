@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(rootBinder != null);
             Debug.Assert(rootBinder.IsSemanticModelBinder);
-            Debug.Assert(rootBinder.ContainingMemberOrLambda is not SourcePropertyAccessorSymbol { Property.IsIndexer: false } || hasSpeculativeFieldKeywordBinderInChain(rootBinder));
+            Debug.Assert(rootBinder.ContainingMember() is not SourcePropertyAccessorSymbol { Property.IsIndexer: false } || hasSpeculativeFieldKeywordBinderInChain(rootBinder));
             return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, parentSemanticModelOpt: parentSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt, speculatedPosition: position);
 
             static bool hasSpeculativeFieldKeywordBinderInChain(Binder? rootBinder)
