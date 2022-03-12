@@ -371,6 +371,7 @@ public class C
 }
 ";
             await VerifyItemExistsAsync(markup, "GetCAsync");
+            await VerifyItemIsAbsentAsync(markup, "GetTaskAsync");
         }
 
         [Fact(Skip = "not yet implemented"), Trait(Traits.Feature, Traits.Features.Completion)]
@@ -383,6 +384,7 @@ public class C
 }
 ";
             await VerifyItemExistsAsync(markup, "GetCAsync");
+            await VerifyItemIsAbsentAsync(markup, "GetTaskAsync");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1538,6 +1540,7 @@ class Index
 }
 ";
             await VerifyItemExistsAsync(markup, "Indices");
+            await VerifyItemExistsAsync(markup, "Enumerable");
         }
 
         [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
@@ -1552,6 +1555,7 @@ class Test
 }
 ";
             await VerifyItemExistsAsync(markup, "tests");
+            await VerifyItemExistsAsync(markup, "Enumerable");
         }
 
         [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
@@ -1569,6 +1573,7 @@ class Test
             await VerifyItemExistsAsync(markup, "cancellationTokens");
             await VerifyItemExistsAsync(markup, "cancellations");
             await VerifyItemExistsAsync(markup, "tokens");
+            await VerifyItemExistsAsync(markup, "Enumerable");
         }
 
         [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
@@ -1586,6 +1591,7 @@ class Test
             await VerifyItemExistsAsync(markup, "cancellationTokens");
             await VerifyItemExistsAsync(markup, "cancellations");
             await VerifyItemExistsAsync(markup, "tokens");
+            await VerifyItemExistsAsync(markup, "list");
         }
 
         [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
@@ -1618,6 +1624,7 @@ class Test
 }
 " + Span;
             await VerifyItemExistsAsync(markup, "tests");
+            await VerifyItemExistsAsync(markup, "span");
         }
 
         [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
@@ -1647,6 +1654,7 @@ class MyOwnCollection<T>
 }
 ";
             await VerifyItemExistsAsync(markup, "myClasses");
+            await VerifyItemExistsAsync(markup, "myOwnCollection");
         }
 
         [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
@@ -1678,6 +1686,7 @@ class MyOwnCollection<T>
 }
 ";
             await VerifyItemExistsAsync(markup, "myClasses");
+            await VerifyItemExistsAsync(markup, "myOwnCollection");
         }
 
         [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
@@ -1698,6 +1707,7 @@ class MyOwnCollection<T> : IEnumerable<T>
 }
 ";
             await VerifyItemExistsAsync(markup, "myClasses");
+            await VerifyItemExistsAsync(markup, "myOwnCollection");
         }
 
         [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
@@ -1718,6 +1728,7 @@ class MyOwnCollection<T> : IAsyncEnumerable<T>
 }
 " + IAsyncEnumerable;
             await VerifyItemExistsAsync(markup, "myClasses");
+            await VerifyItemExistsAsync(markup, "myOwnCollection");
         }
 
         [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
@@ -2188,6 +2199,8 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "ints");
+            await VerifyItemExistsAsync(markup, "immutableArray");
+            await VerifyItemIsAbsentAsync(markup, "nullable");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
@@ -2209,6 +2222,8 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "ints");
+            await VerifyItemExistsAsync(markup, "immutableArray");
+            await VerifyItemIsAbsentAsync(markup, "nullable");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
@@ -2230,6 +2245,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "ints");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
@@ -2250,6 +2266,8 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "ints");
+            await VerifyItemExistsAsync(markup, "immutableArray");
+            await VerifyItemIsAbsentAsync(markup, "nullable");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
@@ -2268,6 +2286,8 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "ints");
+            await VerifyItemExistsAsync(markup, "immutableArray");
+            await VerifyItemIsAbsentAsync(markup, "nullable");
         }
 
         [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
@@ -2288,6 +2308,8 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "ints");
+            await VerifyItemExistsAsync(markup, "enumerable");
+            await VerifyItemIsAbsentAsync(markup, "nullable");
         }
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
@@ -2305,6 +2327,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "ints");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
@@ -2322,6 +2345,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "objects");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
@@ -2339,6 +2363,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "strings");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
@@ -2356,6 +2381,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "values");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
@@ -2373,6 +2399,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "results");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
@@ -2390,6 +2417,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "args");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
@@ -2407,6 +2435,7 @@ public class Class1
 }
 ";
             await VerifyItemExistsAsync(markup, "types");
+            await VerifyItemExistsAsync(markup, "enumerable");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

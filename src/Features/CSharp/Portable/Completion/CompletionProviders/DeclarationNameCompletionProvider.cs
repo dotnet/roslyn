@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -117,10 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            var (type, plural) = UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes: new HashSet<ITypeSymbol>());
+            using var _1 = PooledDictionary<ITypeSymbol, bool>.GetInstance(out var results);
+            using var _2 = PooledHashSet<ITypeSymbol>.GetInstance(out var seenTypes);
+            UnwrapType(nameInfo.Type, semanticModel.Compilation, wasPlural: false, seenTypes, results);
 
-            var baseNames = NameGenerator.GetBaseNames(type, plural);
-            return baseNames;
+            using var _3 = ArrayBuilder<ImmutableArray<string>>.GetInstance(out var builder);
+            foreach (var (type, plural) in results)
+            {
+                builder.AddRange(NameGenerator.GetBaseNames(type, plural));
+            }
+
+            return builder.ToImmutable();
         }
 
         private static bool IsValidType([NotNullWhen(true)] ITypeSymbol? type)
@@ -177,30 +183,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return publicIcon;
         }
 
-        private (ITypeSymbol, bool plural) UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, HashSet<ITypeSymbol> seenTypes)
+        private void UnwrapType(ITypeSymbol type, Compilation compilation, bool wasPlural, PooledHashSet<ITypeSymbol> seenTypes, PooledDictionary<ITypeSymbol, bool> results)
         {
             // Consider C : Task<C>
             // Visiting the C in Task<C> will stackoverflow
+
+            // Consider: Container : IEnumerable<Container>
+            // Container |
+            // We don't want to suggest the plural version of a type that can be used singularly
             if (seenTypes.Contains(type))
             {
-                return (type, wasPlural);
-            }
-
-            // The main purpose of this is to prevent converting "string" to "chars", but it also simplifies logic for other basic types (int, double, object etc.)
-            if (type.IsSpecialType())
-            {
-                return (type, wasPlural);
+                return;
             }
 
             seenTypes.AddRange(type.GetBaseTypesAndThis());
 
+            // The main purpose of this is to prevent converting "string" to "chars", but it also simplifies logic for other basic types (int, double, object etc.)
+            if (type.IsSpecialType())
+            {
+                results[type] = wasPlural;
+                return;
+            }
+
             if (type is IArrayTypeSymbol arrayType)
             {
-                return UnwrapType(arrayType.ElementType, compilation, wasPlural: true, seenTypes: seenTypes);
+                UnwrapType(arrayType.ElementType, compilation, wasPlural: true, seenTypes, results);
+                return;
             }
 
             if (type is INamedTypeSymbol namedType && namedType.OriginalDefinition != null)
             {
+                if (IsCommonWrapperType(namedType, compilation))
+                {
+                    UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes, results);
+                    return;
+                }
+
                 // if namedType contains a valid GetEnumerator method, we want collectionType to be the type of
                 // the "Current" property of this enumerator. For example:
                 // if namedType is a Span<Person>, collectionType should be Person.
@@ -217,32 +235,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (collectionType is not null)
                 {
-                    // Consider: Container : IEnumerable<Container>
-                    // Container |
-                    // We don't want to suggest the plural version of a type that can be used singularly
-                    if (seenTypes.Contains(collectionType))
-                    {
-                        return (type, wasPlural);
-                    }
-
-                    return UnwrapType(collectionType, compilation, wasPlural: true, seenTypes: seenTypes);
+                    UnwrapType(collectionType, compilation, wasPlural: true, seenTypes, results);
                 }
 
-                var originalDefinition = namedType.OriginalDefinition;
+                // For types like List<int>, we'd like to provide both "list" and "ints".
+                // It's possible we add same type twice, which is OK. e.g. List<List<Test>>
+                results[type.OriginalDefinition] = wasPlural;
+                return;
+            }
+
+            results[type] = wasPlural;
+
+            static bool IsCommonWrapperType(INamedTypeSymbol typeSymbol, Compilation compilation)
+            {
+                var originalDefinition = typeSymbol.OriginalDefinition;
                 var taskOfTType = compilation.TaskOfTType();
                 var valueTaskType = compilation.ValueTaskOfTType();
                 var lazyOfTType = compilation.LazyOfTType();
 
-                if (Equals(originalDefinition, taskOfTType) ||
+                return Equals(originalDefinition, taskOfTType) ||
                     Equals(originalDefinition, valueTaskType) ||
                     Equals(originalDefinition, lazyOfTType) ||
-                    originalDefinition.SpecialType == SpecialType.System_Nullable_T)
-                {
-                    return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);
-                }
+                    originalDefinition.SpecialType == SpecialType.System_Nullable_T;
             }
-
-            return (type, wasPlural);
         }
 
         private static async Task GetRecommendedNamesAsync(
