@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslyn.VisualStudio.IntegrationTests;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 {
@@ -19,6 +20,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
 
         protected override string LanguageName => LanguageNames.CSharp;
 
+        [IdeFact]
         public virtual async Task VerifySyntaxErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;
@@ -54,6 +56,7 @@ namespace ConsoleApplication1
               HangMitigatingCancellationToken);
         }
 
+        [IdeFact]
         public virtual async Task VerifySemanticErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"using System;

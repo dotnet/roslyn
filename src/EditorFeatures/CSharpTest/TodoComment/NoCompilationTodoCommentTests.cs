@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -38,7 +37,6 @@ $@"<Workspace>
                 typeof(NoCompilationContentTypeLanguageService),
                 typeof(NoCompilationTodoCommentService)));
 
-            workspace.SetOptions(workspace.Options.WithChangedOption(TodoCommentOptions.TokenList, DefaultTokenList));
             return workspace;
         }
 

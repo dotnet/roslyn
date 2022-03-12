@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Project project,
             IEnumerable<DiagnosticAnalyzer> analyzers,
             bool includeSuppressedDiagnostics,
+            bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return ex =>
                 {
-                    if (ex is not OperationCanceledException && project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                    if (ex is not OperationCanceledException && crashOnAnalyzerException)
                     {
                         // report telemetry
                         FatalError.ReportAndPropagate(ex);
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Return true if the given <paramref name="analyzer"/> is not suppressed for the given project.
         /// NOTE: This API is intended to be used only for performance optimization.
         /// </summary>
-        public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project)
+        public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project, IGlobalOptionService globalOptions)
         {
             var options = project.CompilationOptions;
             if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Check if user has disabled analyzer execution for this project or via options.
-            if (!project.State.RunAnalyzers || SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.None)
+            if (!project.State.RunAnalyzers || globalOptions.GetBackgroundAnalysisScope(project.Language) == BackgroundAnalysisScope.None)
             {
                 return false;
             }

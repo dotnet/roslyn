@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Also returns empty diagnostics for suppressed analyzer.
         /// Returns null if the diagnostics need to be computed.
         /// </summary>
-        private static DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
+        private DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
             TextDocument document, StateSet stateSet,
             AnalysisKind kind, VersionStamp version,
             BackgroundAnalysisScope analysisScope, bool isActiveDocument,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
-                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project) ||
+                if (!DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project, GlobalOptions) ||
                     !IsAnalyzerEnabledForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
                 {
                     return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
@@ -288,7 +288,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     // since we might have up to date results for analyzers from compiler but not for 
                     // workspace analyzers.
                     var compilationWithReducedAnalyzers = (analyzersToRun.Length == 0) ? null :
-                        await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, analyzersToRun, compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+                        await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
+                            project,
+                            analyzersToRun,
+                            compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
+                            GlobalOptions.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException),
+                            cancellationToken).ConfigureAwait(false);
 
                     var result = await ComputeDiagnosticsAsync(compilationWithReducedAnalyzers, project, ideAnalyzers, forcedAnalysis, cancellationToken).ConfigureAwait(false);
                     return MergeExistingDiagnostics(version, existing, result);
@@ -461,7 +466,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        internal static bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
+        internal bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
         {
             if (forceAnalyzerRun)
             {
@@ -469,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            return SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.FullSolution;
+            return GlobalOptions.GetBackgroundAnalysisScope(project.Language) == BackgroundAnalysisScope.FullSolution;
         }
 
         private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

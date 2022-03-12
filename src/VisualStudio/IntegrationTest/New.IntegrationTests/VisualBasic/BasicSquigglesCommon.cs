@@ -4,7 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 {
@@ -17,6 +19,8 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [IdeFact]
         public virtual async Task VerifySyntaxErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"Class A
@@ -29,6 +33,8 @@ End Class", HangMitigatingCancellationToken);
                 HangMitigatingCancellationToken);
         }
 
+        [WorkItem(1825, "https://github.com/dotnet/roslyn-project-system/issues/1825")]
+        [IdeFact]
         public virtual async Task VerifySemanticErrorSquiggles()
         {
             await TestServices.Editor.SetTextAsync(@"Class A
