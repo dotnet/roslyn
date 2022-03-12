@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -117,10 +116,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// <param name="syntaxFacts">The syntax facts for the current language.</param>
         /// <returns>The replacement node to use in the rewritten syntax tree; otherwise, <see langword="null"/> to only
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
-        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts)
-        {
-            return null;
-        }
+        protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts) => null;
+
+        /// <summary>
+        /// For C# we need to "unwrap" GlobalStatementSyntax in order to properly detect if it is a foreach statement. See https://github.com/dotnet/roslyn/issues/60030
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        protected virtual SyntaxNode UnwrapGlobalStatementIfNecessary(SyntaxNode node) => node;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -189,12 +192,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return;
         }
 
-        private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        private bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             // Do not offer a fix to replace unused foreach iteration variable with discard.
             // User should probably replace it with a for loop based on the collection length.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return syntaxFacts.IsForEachStatement(diagnostic.Location.FindNode(cancellationToken));
+            return syntaxFacts.IsForEachStatement(UnwrapGlobalStatementIfNecessary(diagnostic.Location.FindNode(cancellationToken)));
         }
 
         private static string GetEquivalenceKey(UnusedValuePreference preference, bool isRemovableAssignment)
@@ -552,7 +555,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     else
                     {
                         var newParentNode = TryUpdateParentOfUpdatedNode(node.GetRequiredParent(), newNameNode, editor, syntaxFacts);
-                        if (newParentNode is object)
+                        if (newParentNode is not null)
                         {
                             nodeReplacementMap.Add(node.GetRequiredParent(), newParentNode);
                         }
