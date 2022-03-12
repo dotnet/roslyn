@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal sealed class ClassificationTypeDefinitions
     {
