@@ -78,6 +78,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         /// <summary>
+        /// Takes a span in <see cref="SnapshotBeforePaste"/> and maps it appropriately (in an <see
+        /// cref="SpanTrackingMode.EdgeInclusive"/> manner) to <see cref="SnapshotAfterPaste"/>.
+        /// </summary>
+        protected TextSpan MapSpanForward(TextSpan span)
+        {
+            var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+            return trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
+        }
+
+        /// <summary>
         /// Returns true if the paste resulted in legal code for the string literal.  The string literal is
         /// considered legal if it has the same span as the original string (adjusted as per the edit) and that
         /// there are no errors in it.  For this purposes of this check, errors in interpolation holes are not
@@ -95,16 +105,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var spanAfterPaste = MapSpanForward(StringExpressionBeforePaste.Span);
             return spanAfterPaste == stringExpressionAfterPaste.Span;
-        }
-
-        /// <summary>
-        /// Takes a span in <see cref="SnapshotBeforePaste"/> and maps it appropriately (in an <see
-        /// cref="SpanTrackingMode.EdgeInclusive"/> manner) to <see cref="SnapshotAfterPaste"/>.
-        /// </summary>
-        protected TextSpan MapSpanForward(TextSpan span)
-        {
-            var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-            return trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
         }
     }
 }
