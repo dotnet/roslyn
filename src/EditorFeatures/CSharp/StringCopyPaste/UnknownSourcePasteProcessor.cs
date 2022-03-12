@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -203,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     if (i == 0)
                     {
                         // on the first line, remove the common indentation if we can. Otherwise leave alone.
-                        if (fullChangeLineText.StartsWith(commonIndentationPrefix))
+                        if (fullChangeLineText.StartsWith(commonIndentationPrefix, StringComparison.OrdinalIgnoreCase))
                             buffer.Append(fullChangeLineText[commonIndentationPrefix.Length..]);
                         else
                             buffer.Append(fullChangeLineText);
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                         // Now, we want to actually insert any whitespace the line itself should have *if* it's got more
                         // than the common indentation whitespace.
-                        if (commonIndentationPrefix != null && lineLeadingWhitespace.StartsWith(commonIndentationPrefix))
+                        if (commonIndentationPrefix != null && lineLeadingWhitespace.StartsWith(commonIndentationPrefix, StringComparison.OrdinalIgnoreCase))
                             buffer.Append(lineLeadingWhitespace[commonIndentationPrefix.Length..]);
                     }
                     else if (!lastChange && lineWithoutLeadingWhitespace.Length > 0 && SyntaxFacts.IsNewLine(lineWithoutLeadingWhitespace[0]))
