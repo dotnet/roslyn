@@ -87,7 +87,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
             if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste))
+            {
+                nextCommandHandler();
                 return;
+            }
 
             var textView = args.TextView;
             var subjectBuffer = args.SubjectBuffer;
