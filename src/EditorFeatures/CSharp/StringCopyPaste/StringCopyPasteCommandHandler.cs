@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ExpressionSyntax stringExpressionBeforePaste,
             SourceText newTextAfterChanges)
         {
-            // We ended up with documents of different length after we escapes/manipulated the pasted text.  So the 
+            // We ended up with documents of different length after we escaped/manipulated the pasted text.  So the 
             // contents are definitely not the same.
             if (newTextAfterChanges.Length != snapshotAfterPaste.Length)
                 return false;
