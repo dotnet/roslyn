@@ -125,7 +125,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // When pasting, only do anything special if the user selections were entirely inside a single string
             // literal token.  Otherwise, we have a multi-selection across token kinds which will be extremely 
             // complex to try to reconcile.
-            if (!AllChangesInSameStringToken(rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste, out var stringExpressionBeforePaste))
+            var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(
+                rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste);
+            if (stringExpressionBeforePaste == null)
                 return;
 
             // If the user pasted something other than the last piece of text we're tracking, then that means some other
@@ -183,30 +185,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (newTextAfterChanges.Length != snapshotAfterPaste.Length)
                 return false;
 
-            var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(stringExpressionBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-            var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
+            var spanAfterPaste = MapSpan(stringExpressionBeforePaste.Span, snapshotBeforePaste, snapshotAfterPaste);
 
-            var originalStringContentsAfterPaste = snapshotAfterPaste.AsText().ToString(spanAfterPaste);
-            var newStringContentsAfterEdit = newTextAfterChanges.ToString(spanAfterPaste);
+            var originalStringContentsAfterPaste = snapshotAfterPaste.AsText().GetSubText(spanAfterPaste);
+            var newStringContentsAfterEdit = newTextAfterChanges.GetSubText(spanAfterPaste);
 
-            return originalStringContentsAfterPaste == newStringContentsAfterEdit;
+            return originalStringContentsAfterPaste.ContentEquals(newStringContentsAfterEdit);
         }
 
         /// <summary>
         /// Returns the <see cref="LiteralExpressionSyntax"/> or <see cref="InterpolatedStringExpressionSyntax"/> if the
         /// selections were all contained within a single literal in a compatible fashion.  For interpolated strings,
-        /// all the selections must be in the same <see cref="SyntaxKind.InterpolatedStringTextToken"/> token.
+        /// all the selections must be in the same 'text content span'.
         /// </summary>
-        private static bool AllChangesInSameStringToken(
+        private static ExpressionSyntax? TryGetCompatibleContainingStringExpression(
             SyntaxNode root,
             SourceText text,
-            NormalizedSnapshotSpanCollection selectionsBeforePaste,
-            [NotNullWhen(true)] out ExpressionSyntax? stringExpression)
+            NormalizedSnapshotSpanCollection selectionsBeforePaste)
         {
             // First, try to see if all the selections are at least contained within a single string literal expression.
-            stringExpression = FindCommonContainingStringExpression(root, selectionsBeforePaste);
+            var stringExpression = FindCommonContainingStringExpression(root, selectionsBeforePaste);
             if (stringExpression == null)
-                return false;
+                return null;
 
             // Now, given that string expression, find the inside 'text' spans of the expression.  These are the parts
             // of the literal between the quotes.  It does not include the interpolation holes in an interpolated
@@ -231,14 +231,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     });
 
                 if (currentIndex < 0)
-                    return false;
+                    return null;
 
                 spanIndex ??= currentIndex;
                 if (spanIndex != currentIndex)
-                    return false;
+                    return null;
             }
 
-            return true;
+            return stringExpression;
         }
 
 #if false
