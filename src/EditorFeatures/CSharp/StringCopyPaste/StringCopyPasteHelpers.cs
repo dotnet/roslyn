@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // Skip past the leading and trailing delimiters and add the span in between.
                 if (IsRawStringLiteral(literal))
                 {
-                    return ImmutableArray.Create(GetRawStringLiteralTextContentSpan(text, literal));
+                    return ImmutableArray.Create(GetRawStringLiteralTextContentSpan(text, literal, out _));
                 }
                 else
                 {
