@@ -605,12 +605,10 @@ namespace Roslyn.Test.Utilities
 
             internal void InitializeDiagnostics(BackgroundAnalysisScope scope, DiagnosticMode diagnosticMode, TestAnalyzerReferenceByLanguage references)
             {
-                TestWorkspace.TryApplyChanges(TestWorkspace.CurrentSolution.WithOptions(
-                TestWorkspace.Options
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope)
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope)
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript, scope)
-                    .WithChangedOption(InternalDiagnosticsOptions.NormalDiagnosticMode, diagnosticMode)));
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), scope);
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), scope);
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript), scope);
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), diagnosticMode);
 
                 TestWorkspace.TryApplyChanges(TestWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { references }));
 

@@ -62,7 +62,7 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
 
     protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, cancellationToken);
+        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, DiagnosticService.GlobalOptions, cancellationToken);
     }
 
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)

@@ -48,7 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
             private readonly Workspace _workspace;
-            private readonly IGlobalOptionService _globalOptions;
             private readonly OpenDocumentTracker<DiagnosticTableItem> _tracker;
 
             /// <summary>
@@ -58,11 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             /// </summary>
             private bool _isBuildRunning;
 
-            public LiveTableDataSource(Workspace workspace, IThreadingContext threadingContext, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
+            public LiveTableDataSource(Workspace workspace, IThreadingContext threadingContext, IDiagnosticService diagnosticService, string identifier, ExternalErrorDiagnosticUpdateSource? buildUpdateSource = null)
                 : base(workspace, threadingContext)
             {
                 _workspace = workspace;
-                _globalOptions = globalOptions;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticTableItem>(_workspace);
@@ -73,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 ConnectToBuildUpdateSource(buildUpdateSource);
             }
 
+            public IGlobalOptionService GlobalOptions => _diagnosticService.GlobalOptions;
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
             public override string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
             public override string Identifier => _identifier;
@@ -171,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
-                var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
+                var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
                 var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
                     workspace, projectId: null, documentId: null, diagnosticMode, cancellationToken: CancellationToken.None);
 
@@ -188,14 +187,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(_globalOptions, a), e, CancellationToken.None))
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(GlobalOptions, a), e, CancellationToken.None))
                 {
                     if (_workspace != e.Workspace)
                     {
                         return;
                     }
 
-                    var diagnostics = e.GetPushDiagnostics(_globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                    var diagnostics = e.GetPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
                     if (diagnostics.Length == 0)
                     {
                         OnDataRemoved(e);
@@ -216,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
-                return new TableEntriesSource(this, item.Workspace, _globalOptions, item.ProjectId, item.DocumentId, item.Id);
+                return new TableEntriesSource(this, item.Workspace, GlobalOptions, item.ProjectId, item.DocumentId, item.Id);
             }
 
             private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
