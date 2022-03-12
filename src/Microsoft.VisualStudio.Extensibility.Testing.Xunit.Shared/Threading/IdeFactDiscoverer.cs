@@ -57,13 +57,19 @@ namespace Xunit.Threading
         internal static IEnumerable<VisualStudioInstanceKey> GetSupportedInstances(ITestMethod testMethod, IAttributeInfo factAttribute)
         {
             var rootSuffix = GetRootSuffix(testMethod, factAttribute);
+            var maxAttempts = GetMaxAttempts(testMethod, factAttribute);
             return GetSupportedVersions(factAttribute, GetSettingsAttributes(testMethod).ToArray())
-                .Select(version => new VisualStudioInstanceKey(version, rootSuffix));
+                .Select(version => new VisualStudioInstanceKey(version, rootSuffix, maxAttempts));
         }
 
         private static string GetRootSuffix(ITestMethod testMethod, IAttributeInfo factAttribute)
         {
             return GetRootSuffix(factAttribute, GetSettingsAttributes(testMethod).ToArray());
+        }
+
+        private static int GetMaxAttempts(ITestMethod testMethod, IAttributeInfo factAttribute)
+        {
+            return GetMaxAttempts(factAttribute, GetSettingsAttributes(testMethod).ToArray());
         }
 
         private static IEnumerable<IAttributeInfo> GetSettingsAttributes(ITestMethod testMethod)
@@ -121,6 +127,16 @@ namespace Xunit.Threading
                 nameof(IIdeSettingsAttribute.RootSuffix),
                 static value => value is not null,
                 defaultValue: "Exp");
+        }
+
+        private static int GetMaxAttempts(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes)
+        {
+            return GetNamedArgument(
+                factAttribute,
+                settingsAttributes,
+                nameof(IIdeSettingsAttribute.MaxAttempts),
+                static value => value > 0,
+                defaultValue: 1);
         }
 
         private static TValue GetNamedArgument<TValue>(IAttributeInfo factAttribute, IAttributeInfo[] settingsAttributes, string argumentName, Func<TValue, bool> isValidValue, TValue defaultValue)
