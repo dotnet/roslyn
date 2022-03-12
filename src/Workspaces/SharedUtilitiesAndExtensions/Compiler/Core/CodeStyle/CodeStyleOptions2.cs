@@ -398,8 +398,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new EditorConfigStorageLocation<CodeStyleOption2<ForEachExplicitCastInSourcePreference>>(
                     "dotnet_style_prefer_foreach_explicit_cast_in_source",
                     s => ParseForEachExplicitCastInSourcePreference(s, s_forEachExplicitCastInSourceNonLegacyPreference),
-                    v => GetForEachExplicitCastInSourceEditorConfigString(v, s_forEachExplicitCastInSourceNonLegacyPreference)),
-                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.ForEachExplicitCastInSourcePreference"));
+                    v => GetForEachExplicitCastInSourceEditorConfigString(v, s_forEachExplicitCastInSourceNonLegacyPreference)));
 
         private static CodeStyleOption2<ForEachExplicitCastInSourcePreference> ParseForEachExplicitCastInSourcePreference(
             string optionString, CodeStyleOption2<ForEachExplicitCastInSourcePreference> defaultValue)
