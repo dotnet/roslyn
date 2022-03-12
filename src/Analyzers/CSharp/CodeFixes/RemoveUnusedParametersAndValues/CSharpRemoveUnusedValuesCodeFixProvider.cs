@@ -39,9 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues
             => CSharpSyntaxFormattingService.Instance;
 #endif
 
-        protected override SyntaxNode UnwrapGlobalStatementIfNecessary(SyntaxNode node)
-            => node is GlobalStatementSyntax globalStatement ? globalStatement.Statement : node;
-
         protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
             => SyntaxFactory.Block(statements);
 

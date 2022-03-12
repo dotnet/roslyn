@@ -118,13 +118,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         /// rewrite the node originally rewritten by <see cref="TryUpdateNameForFlaggedNode"/>.</returns>
         protected virtual SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts) => null;
 
-        /// <summary>
-        /// For C# we need to "unwrap" GlobalStatementSyntax in order to properly detect if it is a foreach statement. See https://github.com/dotnet/roslyn/issues/60030
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        protected virtual SyntaxNode UnwrapGlobalStatementIfNecessary(SyntaxNode node) => node;
-
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
@@ -192,12 +185,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return;
         }
 
-        private bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
+        private static bool IsForEachIterationVariableDiagnostic(Diagnostic diagnostic, Document document, CancellationToken cancellationToken)
         {
             // Do not offer a fix to replace unused foreach iteration variable with discard.
             // User should probably replace it with a for loop based on the collection length.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            return syntaxFacts.IsForEachStatement(UnwrapGlobalStatementIfNecessary(diagnostic.Location.FindNode(cancellationToken)));
+            return syntaxFacts.IsForEachStatement(diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken));
         }
 
         private static string GetEquivalenceKey(UnusedValuePreference preference, bool isRemovableAssignment)
