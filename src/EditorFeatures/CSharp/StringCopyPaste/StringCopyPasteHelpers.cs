@@ -108,7 +108,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         public static bool ContainsControlCharacter(INormalizedTextChangeCollection changes)
-            => changes.Any(c => ContainsControlCharacter(c.NewText));
+        {
+            foreach (var change in changes)
+            {
+                if (ContainsControlCharacter(change.NewText))
+                    return true;
+            }
+
+            return false;
+        }
 
         public static bool ContainsControlCharacter(string newText)
         {
