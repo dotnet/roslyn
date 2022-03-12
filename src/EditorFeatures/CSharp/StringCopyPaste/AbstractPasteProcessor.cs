@@ -97,6 +97,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return spanAfterPaste == stringExpressionAfterPaste.Span;
         }
 
+        /// <summary>
+        /// Takes a span in <see cref="SnapshotBeforePaste"/> and maps it appropriately (in an <see
+        /// cref="SpanTrackingMode.EdgeInclusive"/> manner) to <see cref="SnapshotAfterPaste"/>.
+        /// </summary>
         protected TextSpan MapSpanForward(TextSpan span)
         {
             var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
