@@ -9357,5 +9357,41 @@ public struct C
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.M").WithArguments("C.M()").WithLocation(29, 24)
                 );
         }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentWithExplicitThisInStaticMethodConversion()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public struct C
+{
+    private object field;
+    public void Method1(Action a)
+    {
+        a = new Action(this.M);
+        field = 1;
+    }
+
+    public void Method2(Action a, C c)
+    {
+        a = new Action(c.M);
+    }
+}
+public static class Extension
+{
+    public static void M(this C c)
+    {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS1113: Extension method 'Extension.M(C)' defined on value type 'C' cannot be used to create delegates
+                //         a = new Action(this.M);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "this.M").WithArguments("Extension.M(C)", "C").WithLocation(8, 24),
+                // (14,24): error CS1113: Extension method 'Extension.M(C)' defined on value type 'C' cannot be used to create delegates
+                //         a = new Action(c.M);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.M").WithArguments("Extension.M(C)", "C").WithLocation(14, 24)
+                );
+        }
     }
 }

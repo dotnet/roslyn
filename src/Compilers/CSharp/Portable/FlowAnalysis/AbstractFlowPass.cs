@@ -1520,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(receiver, method))
                 {
                     EnterRegionIfNeeded(methodGroup);
-                    VisitRvalue(methodGroup.ReceiverOpt);
+                    VisitRvalue(receiver);
                     LeaveRegionIfNeeded(methodGroup);
                 }
             }
