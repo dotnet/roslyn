@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -106,9 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         public static bool ContainsControlCharacter(INormalizedTextChangeCollection changes)
-        {
-            return changes.Any(c => ContainsControlCharacter(c.NewText));
-        }
+            => changes.Any(c => ContainsControlCharacter(c.NewText));
 
         public static bool ContainsControlCharacter(string newText)
         {
@@ -140,14 +140,87 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public static bool IsRawStringLiteral(LiteralExpressionSyntax literal)
             => literal.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken;
 
-        public static TextSpan GetRawStringLiteralContentSpan(SourceText text, LiteralExpressionSyntax stringExpression)
-            => GetRawStringLiteralContentSpan(text, stringExpression, out _);
+        /// <summary>
+        /// Given a string literal or interpolated string, returns the subspans of those expressions that are actual
+        /// text content spans.  For a string literal, this is the span between the quotes.  For an interpolated string
+        /// this is the text regions between the holes.  Note that for interpolated strings the content spans may be
+        /// empty (for example, between two adjacent holes).  We still want to know about those empty spans so that if a
+        /// paste happens into that empty region that we still escape properly.
+        /// </summary>
+        public static ImmutableArray<TextSpan> GetTextContentSpans(
+            SourceText text, ExpressionSyntax stringExpression)
+        {
+            if (stringExpression is LiteralExpressionSyntax literal)
+            {
+                // simple string literal (normal, verbatim or raw).
+                //
+                // Skip past the leading and trailing delimiters and add the span in between.
+                if (IsRawStringLiteral(literal))
+                {
+                    return ImmutableArray.Create(GetRawStringLiteralTextContentSpan(text, literal));
+                }
+                else
+                {
+                    var start = stringExpression.SpanStart;
+                    if (start < text.Length && text[start] == '@')
+                        start++;
+
+                    if (start < text.Length && text[start] == '"')
+                        start++;
+
+                    var end = stringExpression.Span.End;
+                    if (end > start && text[end - 1] == '"')
+                        end--;
+
+                    return ImmutableArray.Create(TextSpan.FromBounds(start, end));
+                }
+            }
+            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                // Interpolated string.  Normal, verbatim, or raw.
+                //
+                // Skip past the leading and trailing delimiters.
+                var start = stringExpression.SpanStart;
+                while (start < text.Length && text[start] is '@' or '$')
+                    start++;
+
+                while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
+                    start++;
+
+                var end = stringExpression.Span.End;
+                while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
+                    end--;
+
+                // Then walk the body of the interpolated string adding (possibly empty) spans for each chunk between
+                // interpolations.
+                using var result = TemporaryArray<TextSpan>.Empty;
+
+                var currentPosition = start;
+                for (var i = 0; i < interpolatedString.Contents.Count; i++)
+                {
+                    var content = interpolatedString.Contents[i];
+                    if (content is InterpolationSyntax)
+                    {
+                        result.Add(TextSpan.FromBounds(currentPosition, content.SpanStart));
+                        currentPosition = content.Span.End;
+                    }
+                }
+
+                // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
+                result.Add(TextSpan.FromBounds(currentPosition, end));
+                return result.ToImmutableAndClear();
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(stringExpression);
+            }
+        }
 
         /// <summary>
         /// Returns the section of a raw string literal between the <c>"""</c> delimiters.  This also includes the
         /// leading/trailing whitespace between the delimiters for a multi-line raw string literal.
         /// </summary>
-        public static TextSpan GetRawStringLiteralContentSpan(
+        public static TextSpan GetRawStringLiteralTextContentSpan(
             SourceText text,
             LiteralExpressionSyntax stringExpression,
             out int delimiterQuoteCount)

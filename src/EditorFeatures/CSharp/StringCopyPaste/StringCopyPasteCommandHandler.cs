@@ -116,27 +116,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             //else
             //{
 
-            ProcessPasteFromUnknownSource(
-                textView,
-                subjectBuffer,
-                snapshotBeforePaste,
-                selectionsBeforePaste,
-                textView.Options.GetNewLineCharacter(),
-                executionContext);
-            //}
-        }
-
-        private void ProcessPasteFromUnknownSource(
-            ITextView textView,
-            ITextBuffer subjectBuffer,
-            ITextSnapshot snapshotBeforePaste,
-            NormalizedSnapshotSpanCollection selectionsBeforePaste,
-            string newLine,
-            CommandExecutionContext executionContext)
-        {
             // Have to even be in a C# doc to be able to do anything here.
+
             var documentBeforePaste = snapshotBeforePaste.GetOpenDocumentInCurrentContextWithChanges();
-            if (documentBeforePaste == null)
+            var documentAfterPaste = snapshotAfterPaste.GetOpenDocumentInCurrentContextWithChanges();
+            if (documentBeforePaste == null || documentAfterPaste == null)
                 return;
 
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
@@ -149,28 +133,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (!AllChangesInSameStringToken(rootBeforePaste, snapshotBeforePaste.AsText(), selectionsBeforePaste, out var stringExpressionBeforePaste))
                 return;
 
-            var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
-            var documentAfterPaste = snapshotAfterPaste.GetOpenDocumentInCurrentContextWithChanges();
-            if (documentAfterPaste == null)
-                return;
+            var processor = new UnknownSourcePasteProcessor(
+                textView,
+                subjectBuffer,
+                snapshotBeforePaste,
+                snapshotAfterPaste,
+                documentBeforePaste,
+                documentAfterPaste,
+                stringExpressionBeforePaste);
 
-            // Check for certain things we always think we should escape.
-            if (!ShouldAlwaysEscapeTextFromUnknownSource(stringExpressionBeforePaste, snapshotBeforePaste.Version.Changes))
-            {
-                // If the pasting was successful, then no need to change anything.
-                if (PasteWasSuccessful(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, cancellationToken))
-                    return;
-            }
-
-            // Ok, the user pasted text that couldn't cleanly be added to this token without issue. Repaste the
-            // contents, but this time properly escapes/manipulated so that it follows the rule of the particular token
-            // kind.
-            var escapedTextChanges = GetAppropriateTextChanges(
-                documentBeforePaste, snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newLine, cancellationToken);
-            if (escapedTextChanges.IsDefaultOrEmpty)
-                return;
-
-            var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(escapedTextChanges);
+            var textChanges = processor.GetTextChanges(cancellationToken);
+            var newTextAfterChanges = snapshotBeforePaste.AsText().WithChanges(textChanges);
 
             // If we end up making the same changes as what the paste did, then no need to proceed.
             if (ContentsAreSame(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newTextAfterChanges))
@@ -212,103 +185,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return originalStringContentsAfterPaste == newStringContentsAfterEdit;
         }
 
-        private static bool ShouldAlwaysEscapeTextFromUnknownSource(ExpressionSyntax stringExpression, INormalizedTextChangeCollection changes)
-        {
-            if (stringExpression is LiteralExpressionSyntax literal)
-            {
-                // Pasting a control character into a normal string literal is normally not desired.  So even if this
-                // is legal, we still escape the contents to make the pasted code clear.
-                if (literal.Token.IsRegularStringLiteral() && ContainsControlCharacter(changes))
-                    return true;
-
-                // Always assume passing into a raw string needs adjustment.
-                return IsRawStringLiteral(literal);
-            }
-            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                // Pasting a control character into a normal string literal is normally not desired.  So even if this
-                // is legal, we still escape the contents to make the pasted code clear.
-                if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken) && ContainsControlCharacter(changes))
-                    return true;
-
-                // Always assume passing into a raw string needs adjustment.
-                return IsRawStringLiteral(interpolatedString);
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(stringExpression);
-        }
-
-        private static bool PasteWasSuccessful(
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
-            ExpressionSyntax stringExpressionBeforePaste,
-            CancellationToken cancellationToken)
-        {
-            // try to find the same token after the paste.  If it's got no errors, and still ends at the same expected
-            // location, then it looks like what was pasted was entirely legal and should probably not be touched.
-
-            var documentAfterPaste = snapshotAfterPaste.GetOpenDocumentInCurrentContextWithChanges();
-            Contract.ThrowIfNull(documentAfterPaste);
-            var rootAfterPaste = documentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
-
-            var stringExpressionAfterPaste = FindContainingStringExpression(rootAfterPaste, stringExpressionBeforePaste.SpanStart);
-            if (stringExpressionAfterPaste == null)
-                return false;
-
-            if (ContainsError(stringExpressionAfterPaste))
-                return false;
-
-            var trackingSpan = snapshotBeforePaste.CreateTrackingSpan(stringExpressionBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-            var spanAfterPaste = trackingSpan.GetSpan(snapshotAfterPaste).Span.ToTextSpan();
-            return spanAfterPaste == stringExpressionAfterPaste.Span;
-        }
-
-        private static ImmutableArray<TextChange> GetAppropriateTextChanges(
-            Document documentBeforePaste,
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
-            ExpressionSyntax stringExpressionBeforePaste,
-            string newLine,
-            CancellationToken cancellationToken)
-        {
-            // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
-            // same location the paste originally happened at.  For raw-strings things get more complex as we have to
-            // deal with things like indentation and potentially adding newlines to make things legal.
-            var changes = snapshotBeforePaste.Version.Changes;
-            if (stringExpressionBeforePaste is LiteralExpressionSyntax literalExpression)
-            {
-                if (literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken)
-                    return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral(), changes);
-
-                if (literalExpression.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetTextChangesForRawStringLiteral(documentBeforePaste, snapshotBeforePaste, snapshotAfterPaste, literalExpression, newLine, cancellationToken);
-            }
-            else if (stringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
-                    return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: false, changes);
-
-                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-                    return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: true, changes);
-
-                // if (interpolatedString.StringStartToken.Kind() )
-            }
-
-            Debug.Fail("Unhandled case: " + stringExpressionBeforePaste.Kind());
-            return default;
-        }
-
-        private static ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(
-            bool isVerbatim, INormalizedTextChangeCollection changes)
-        {
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
-
-            foreach (var change in changes)
-                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, change.NewText)));
-
-            return textChanges.ToImmutable();
-        }
-
         /// <summary>
         /// Returns the <see cref="LiteralExpressionSyntax"/> or <see cref="InterpolatedStringExpressionSyntax"/> if the
         /// selections were all contained within a single literal in a compatible fashion.  For interpolated strings,
@@ -328,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Now, given that string expression, find the inside 'text' spans of the expression.  These are the parts
             // of the literal between the quotes.  It does not include the interpolation holes in an interpolated
             // string.  These spans may be empty (for an empty string, or empty text gap between interpolations).
-            var contentSpans = GetContentSpans(text, stringExpression);
+            var contentSpans = GetTextContentSpans(text, stringExpression);
 
             // Now ensure that all the selections are contained within a single content span.
             int? spanIndex = null;
@@ -358,76 +234,173 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return true;
         }
 
-        private static ImmutableArray<TextSpan> GetContentSpans(
-            SourceText text, ExpressionSyntax stringExpression)
+        private abstract class AbstractPasteProcessor
         {
-            if (stringExpression is LiteralExpressionSyntax literal)
+            protected readonly ITextView TextView;
+            protected readonly ITextBuffer SubjectBuffer;
+
+            protected readonly ITextSnapshot SnapshotBeforePaste;
+            protected readonly ITextSnapshot SnapshotAfterPaste;
+
+            protected readonly Document DocumentBeforePaste;
+            protected readonly Document DocumentAfterPaste;
+
+            protected readonly ExpressionSyntax StringExpressionBeforePaste;
+
+            protected readonly INormalizedTextChangeCollection Changes;
+            protected readonly string NewLine;
+
+            protected AbstractPasteProcessor(
+                ITextView textView,
+                ITextBuffer subjectBuffer,
+                ITextSnapshot snapshotBeforePaste,
+                ITextSnapshot snapshotAfterPaste,
+                Document documentBeforePaste,
+                Document documentAfterPaste,
+                ExpressionSyntax stringExpressionBeforePaste)
             {
-                // simple string literal (normal, verbatim or raw).
-                //
-                // Skip past the leading and trailing delimiters and add the span in between.
-                if (IsRawStringLiteral(literal))
-                {
-                    return ImmutableArray.Create(GetRawStringLiteralContentSpan(text, literal));
-                }
-                else
-                {
-                    var start = stringExpression.SpanStart;
-                    if (start < text.Length && text[start] == '@')
-                        start++;
+                TextView = textView;
+                SubjectBuffer = subjectBuffer;
 
-                    if (start < text.Length && text[start] == '"')
-                        start++;
+                SnapshotBeforePaste = snapshotBeforePaste;
+                SnapshotAfterPaste = snapshotAfterPaste;
 
-                    var end = stringExpression.Span.End;
-                    if (end > start && text[end - 1] == '"')
-                        end--;
+                DocumentBeforePaste = documentBeforePaste;
+                DocumentAfterPaste = documentAfterPaste;
 
-                    return ImmutableArray.Create(TextSpan.FromBounds(start, end));
-                }
+                StringExpressionBeforePaste = stringExpressionBeforePaste;
+
+                Changes = snapshotBeforePaste.Version.Changes;
+                NewLine = textView.Options.GetNewLineCharacter();
             }
-            else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
+
+            /// <summary>
+            /// Returns true if the paste resulted in legal code for the string literal.  The string literal is
+            /// considered legal if it has the same span as the original string (adjusted as per the edit) and that
+            /// there are no errors in it.  For this purposes of this check, errors in interpolation holes are not
+            /// considered.  We only care about the textual content of the string.
+            /// </summary>
+            protected bool PasteWasSuccessful(CancellationToken cancellationToken)
             {
-                // Interpolated string.  Normal, verbatim, or raw.
-                //
-                // Skip past the leading and trailing delimiters.
-                var start = stringExpression.SpanStart;
-                while (start < text.Length && text[start] is '@' or '$')
-                    start++;
+                // try to find the same token after the paste.  If it's got no errors, and still ends at the same expected
+                // location, then it looks like what was pasted was entirely legal and should probably not be touched.
 
-                while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
-                    start++;
+                var documentAfterPaste = SnapshotAfterPaste.GetOpenDocumentInCurrentContextWithChanges();
+                Contract.ThrowIfNull(documentAfterPaste);
+                var rootAfterPaste = documentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
-                var end = stringExpression.Span.End;
-                while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
-                    end--;
+                var stringExpressionAfterPaste = FindContainingStringExpression(rootAfterPaste, StringExpressionBeforePaste.SpanStart);
+                if (stringExpressionAfterPaste == null)
+                    return false;
 
-                // Then walk the body of the interpolated string adding (possibly empty) spans for each chunk between
-                // interpolations.
-                using var result = TemporaryArray<TextSpan>.Empty;
+                if (ContainsError(stringExpressionAfterPaste))
+                    return false;
 
-                var currentPosition = start;
-                for (var i = 0; i < interpolatedString.Contents.Count; i++)
-                {
-                    var content = interpolatedString.Contents[i];
-                    if (content is InterpolationSyntax)
-                    {
-                        result.Add(TextSpan.FromBounds(currentPosition, content.SpanStart));
-                        currentPosition = content.Span.End;
-                    }
-                }
-
-                // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
-                result.Add(TextSpan.FromBounds(currentPosition, end));
-                return result.ToImmutableAndClear();
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(stringExpression);
+                var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(
+                    StringExpressionBeforePaste.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+                var spanAfterPaste = trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
+                return spanAfterPaste == stringExpressionAfterPaste.Span;
             }
         }
 
-        private bool PastedTextEqualsLastCopiedText(ITextBuffer subjectBuffer)
+        private class UnknownSourcePasteProcessor : AbstractPasteProcessor
+        {
+            public UnknownSourcePasteProcessor(
+                ITextView textView,
+                ITextBuffer subjectBuffer,
+                ITextSnapshot snapshotBeforePaste,
+                ITextSnapshot snapshotAfterPaste,
+                Document documentBeforePaste,
+                Document documentAfterPaste,
+                ExpressionSyntax stringExpressionBeforePaste)
+                : base(textView, subjectBuffer, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
+            {
+            }
+
+            public ImmutableArray<TextChange> GetTextChanges(CancellationToken cancellationToken)
+            {
+                // Check for certain things we always think we should escape.
+                if (!ShouldAlwaysEscapeTextFromUnknownSource())
+                {
+                    // If the pasting was successful, then no need to change anything.
+                    if (PasteWasSuccessful(cancellationToken))
+                        return default;
+                }
+
+                // Ok, the user pasted text that couldn't cleanly be added to this token without issue. Repaste the
+                // contents, but this time properly escapes/manipulated so that it follows the rule of the particular token
+                // kind.
+                return GetAppropriateTextChanges(cancellationToken);
+            }
+
+            private bool ShouldAlwaysEscapeTextFromUnknownSource()
+            {
+                if (StringExpressionBeforePaste is LiteralExpressionSyntax literal)
+                {
+                    // Pasting a control character into a normal string literal is normally not desired.  So even if this
+                    // is legal, we still escape the contents to make the pasted code clear.
+                    if (literal.Token.IsRegularStringLiteral() && ContainsControlCharacter(Changes))
+                        return true;
+
+                    // Always assume passing into a raw string needs adjustment.
+                    return IsRawStringLiteral(literal);
+                }
+                else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
+                {
+                    // Pasting a control character into a normal string literal is normally not desired.  So even if this
+                    // is legal, we still escape the contents to make the pasted code clear.
+                    if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken) && ContainsControlCharacter(changes))
+                        return true;
+
+                    // Always assume passing into a raw string needs adjustment.
+                    return IsRawStringLiteral(interpolatedString);
+                }
+
+                throw ExceptionUtilities.UnexpectedValue(StringExpressionBeforePaste);
+            }
+
+            private ImmutableArray<TextChange> GetAppropriateTextChanges(CancellationToken cancellationToken)
+            {
+                // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
+                // same location the paste originally happened at.  For raw-strings things get more complex as we have to
+                // deal with things like indentation and potentially adding newlines to make things legal.
+                if (StringExpressionBeforePaste is LiteralExpressionSyntax literalExpression)
+                {
+                    if (literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken)
+                        return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral());
+
+                    if (literalExpression.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+                        return GetTextChangesForRawStringLiteral(literalExpression, cancellationToken);
+                }
+                else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
+                {
+                    if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
+                        return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: false);
+
+                    if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+                        return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: true);
+
+                    // if (interpolatedString.StringStartToken.Kind() )
+                }
+
+                Debug.Fail("Unhandled case: " + StringExpressionBeforePaste.Kind());
+                return default;
+            }
+
+            private ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(
+                bool isVerbatim)
+            {
+                using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
+
+                foreach (var change in Changes)
+                    textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, change.NewText)));
+
+                return textChanges.ToImmutable();
+            }
+        }
+
+#if false
+            private bool PastedTextEqualsLastCopiedText(ITextBuffer subjectBuffer)
         {
             // If we have no history of any copied text, then there's nothing in the past we can compare to.
             if (_lastSelectedSpans == null)
@@ -460,5 +433,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             return true;
         }
+#endif
     }
 }

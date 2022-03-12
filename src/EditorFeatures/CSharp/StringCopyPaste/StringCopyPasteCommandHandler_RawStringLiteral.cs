@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ITextSnapshot snapshotAfterPaste,
             LiteralExpressionSyntax stringExpressionBeforePaste)
         {
-            var contentSpanBeforePaste = GetRawStringLiteralContentSpan(
+            var contentSpanBeforePaste = GetRawStringLiteralTextContentSpan(
                 snapshotBeforePaste.AsText(), stringExpressionBeforePaste, out var delimiterQuoteCount);
             var contentSpanAfterPaste = MapSpan(contentSpanBeforePaste, snapshotBeforePaste, snapshotAfterPaste);
             var longestQuoteSequence = GetLongestQuoteSequence(snapshotAfterPaste.GetSpan(contentSpanAfterPaste.ToSpan()));
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Pasting any other content into a single-line raw literal is always legal and needs no extra work on our
             // part.
 
-            var contentSpan = GetRawStringLiteralContentSpan(snapshotBeforePaste.AsText(), stringExpressionBeforePaste);
+            var contentSpan = GetRawStringLiteralTextContentSpan(snapshotBeforePaste.AsText(), stringExpressionBeforePaste);
             var contentSpanAfterPaste = MapSpan(contentSpan, snapshotBeforePaste, snapshotAfterPaste);
             var mustBeMultiLine = MustBeMultiLine(snapshotAfterPaste.GetSpan(contentSpanAfterPaste.ToSpan()));
 
