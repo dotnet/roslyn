@@ -257,20 +257,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             var snapshot = contentSpan.Snapshot;
             var longestCount = 0;
-            for (int i = contentSpan.Start.Position, n = contentSpan.End.Position; i < n;)
+            for (int currentIndex = contentSpan.Start.Position, contentEnd = contentSpan.End.Position; currentIndex < contentEnd;)
             {
-                if (snapshot[i] == '"')
+                if (snapshot[currentIndex] == '"')
                 {
-                    var j = i;
-                    while (j < n && snapshot[j] == '"')
-                        j++;
+                    var endQuoteIndex = currentIndex;
+                    while (endQuoteIndex < contentEnd && snapshot[endQuoteIndex] == '"')
+                        endQuoteIndex++;
 
-                    longestCount = Math.Max(longestCount, j - i);
-                    i = j;
+                    longestCount = Math.Max(longestCount, endQuoteIndex - currentIndex);
+                    currentIndex = endQuoteIndex;
                 }
                 else
                 {
-                    i++;
+                    currentIndex++;
                 }
             }
 
