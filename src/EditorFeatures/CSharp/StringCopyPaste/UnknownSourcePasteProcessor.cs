@@ -198,13 +198,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 buffer.Clear();
 
-                for (var j = 0; j < changeText.Lines.Count; j++)
+                for (var i = 0; i < changeText.Lines.Count; i++)
                 {
                     // The actual full line that was pasted in.
-                    var currentChangeLine = changeText.Lines[j];
+                    var currentChangeLine = changeText.Lines[i];
                     var fullChangeLineText = changeText.ToString(currentChangeLine.SpanIncludingLineBreak);
 
-                    if (j == 0)
+                    if (i == 0)
                     {
                         // on the first line, remove the common indentation if we can. Otherwise leave alone.
                         if (fullChangeLineText.StartsWith(commonIndentationPrefix))
@@ -284,9 +284,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (quotesToAdd != null)
                 finalTextChanges.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.SpanStart, 0), quotesToAdd));
 
-            for (var i = 0; i < Changes.Count; i++)
+            for (var changeIndex = 0; changeIndex < Changes.Count; changeIndex++)
             {
-                var change = Changes[i];
+                var change = Changes[changeIndex];
 
                 // Create a text object around the change text we're making.  This is a very simple way to get
                 // a nice view of the text lines in the change.
@@ -295,14 +295,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 var commonIndentationPrefix = GetCommonIndentationPrefix(changeText);
 
-                for (var j = 0; j < changeText.Lines.Count; j++)
+                for (var lineIndex = 0; lineIndex < changeText.Lines.Count; lineIndex++)
                 {
-                    var firstChange = i == 0 && j == 0;
-                    var lastChange = (i == Changes.Count - 1) &&
-                                     (j == changeText.Lines.Count - 1);
+                    var firstChange = changeIndex == 0 && lineIndex == 0;
+                    var lastChange = (changeIndex == Changes.Count - 1) &&
+                                     (lineIndex == changeText.Lines.Count - 1);
 
                     // The actual full line that was pasted in.
-                    var currentChangeLine = changeText.Lines[j];
+                    var currentChangeLine = changeText.Lines[lineIndex];
                     var fullChangeLineText = changeText.ToString(currentChangeLine.SpanIncludingLineBreak);
                     // The contents of the line, with all leading whitespace removed.
                     var (lineLeadingWhitespace, lineWithoutLeadingWhitespace) = ExtractWhitespace(fullChangeLineText);
