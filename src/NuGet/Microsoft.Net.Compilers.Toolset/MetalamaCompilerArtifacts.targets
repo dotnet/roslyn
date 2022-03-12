@@ -40,9 +40,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Microsoft.Bcl.HashCode.dll" />
-      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Newtonsoft.Json.dll" />
-      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\Metalama.Backstage.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Microsoft.Bcl.HashCode.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Newtonsoft.Json.dll" />
+      <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\Metalama.Backstage.dll" />
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Workspaces\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Workspaces.dll" />
       <CoreClrMetalamaCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Workspaces\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.dll" />
       <CoreClrMetalamaCompilerArtifact Include="$(PkgSystem_Composition_AttributedModel)\lib\netstandard1.0\System.Composition.AttributedModel.dll"/>

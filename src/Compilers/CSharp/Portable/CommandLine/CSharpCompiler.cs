@@ -23,6 +23,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    internal static class MetalamaInitializer
+    {
+        // This method exists so that the caller can be debugged even if the JIT compilation of the caller fails.
+        public static void Initialize()
+        {
+            // Ensure that our Metalama.Compiler.Interfaces (the one with type forwarders) get loaded first, and not the user-facing one, which
+            // is a reference assembly.
+            MetalamaCompilerInterfaces.Initialize();
+        }
+    }
+    
     internal abstract class CSharpCompiler : CommonCompiler
     {
         internal const string ResponseFileName = "csc.rsp";
@@ -33,9 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // <Metalama>
         static CSharpCompiler()
         {
+            // Debugger.Launch();
+            
             // Ensure that our Metalama.Compiler.Interfaces (the one with type forwarders) get loaded first, and not the user-facing one, which
             // is a reference assembly.
-            MetalamaCompilerInterfaces.Initialize();
+            MetalamaInitializer.Initialize();
         }
         // </Metalama>
 

@@ -71,8 +71,8 @@
       <_File Include="$(MSBuildProjectDirectory)\buildMultiTargeting\**\*.*" Condition="'$(TargetFramework)' == 'net472'" TargetDir="buildMultiTargeting" />
       <_File Include="@(CommonMetalamaCompilerArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
       <_File Include="@(DesktopMetalamaCompilerArtifact)" TargetDir="tasks/net472" Condition="'$(TargetFramework)' == 'net472'" />
-      <_File Include="@(CommonMetalamaCompilerArtifact)" TargetDir="tasks/netcoreapp3.1/bincore" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
-      <_File Include="@(CoreClrMetalamaCompilerArtifact)" TargetDir="tasks/netcoreapp3.1/bincore" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
+      <_File Include="@(CommonMetalamaCompilerArtifact)" TargetDir="tasks/net6.0/bincore" Condition="'$(TargetFramework)' == 'net6.0'" />
+      <_File Include="@(CoreClrMetalamaCompilerArtifact)" TargetDir="tasks/net6.0/bincore" Condition="'$(TargetFramework)' == 'net6.0'" />
       <!-- </Metalama> -->
 
       <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
