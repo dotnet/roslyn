@@ -79,33 +79,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private ImmutableArray<TextChange> GetAppropriateTextChanges(CancellationToken cancellationToken)
         {
+            if (IsAnyRawStringExpression(StringExpressionBeforePaste))
+                return GetTextChangesForRawString(cancellationToken);
+
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to
             // deal with things like indentation and potentially adding newlines to make things legal.
             if (StringExpressionBeforePaste is LiteralExpressionSyntax literalExpression)
             {
-                if (literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken)
-                    return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral());
-
-                if (literalExpression.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetTextChangesForRawString(cancellationToken);
+                Contract.ThrowIfFalse(literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken);
+                return GetEscapedTextChangesForNonRawString(literalExpression.Token.IsVerbatimStringLiteral());
             }
             else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {
                 if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
-                    return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: false);
+                    return GetEscapedTextChangesForNonRawString(isVerbatim: false);
 
                 if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-                    return GetEscapedTextChangesForNonRawStringLiteral(isVerbatim: true);
-
-                if (interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken)
-                    return GetTextChangesForRawString(cancellationToken);
+                    return GetEscapedTextChangesForNonRawString(isVerbatim: true);
             }
 
-            return default;
+            throw ExceptionUtilities.UnexpectedValue(StringExpressionBeforePaste);
         }
 
-        private ImmutableArray<TextChange> GetEscapedTextChangesForNonRawStringLiteral(bool isVerbatim)
+        private ImmutableArray<TextChange> GetEscapedTextChangesForNonRawString(bool isVerbatim)
         {
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
 
