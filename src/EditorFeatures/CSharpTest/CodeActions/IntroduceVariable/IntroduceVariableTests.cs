@@ -117,8 +117,8 @@ class C
 {
     void M(Action action)
     {
-        Action {|Rename:p|} = () => { var x[||] = y; };
-        M(p);
+        Action {|Rename:value|} = () => { var x[||] = y; };
+        M(value);
     }
 }");
         }
@@ -1450,8 +1450,8 @@ index: 1);
 {
     void Main()
     {
-        var {|Rename:p|} = new { A = 0 };
-        var a = p;
+        var {|Rename:value|} = new { A = 0 };
+        var a = value;
     }
 }");
         }
@@ -1474,8 +1474,8 @@ index: 1);
     static void Main(string[] args)
     {
         int[] a = null;
-        var {|Rename:vs|} = a = new[] { 1, 2, 3 };
-        int[] temp = checked(vs);
+        var {|Rename:ints|} = a = new[] { 1, 2, 3 };
+        int[] temp = checked(ints);
     }
 }",
 options: ImplicitTypingEverywhere());
@@ -1516,8 +1516,8 @@ options: ImplicitTypingEverywhere());
 {
     void Main()
     {
-        var {|Rename:p|} = new { X = 1 };
-        WriteLine(p);
+        var {|Rename:value|} = new { X = 1 };
+        WriteLine(value);
     }
 }");
         }
@@ -2567,8 +2567,8 @@ class Program
     {
         Func<int, Func<int, int>> f = x =>
         {
-            Func<int, int> {|Rename:p|} = y => y + 1;
-            return p;
+            Func<int, int> {|Rename:value|} = y => y + 1;
+            return value;
         };
     }
 }");
@@ -2596,8 +2596,8 @@ class Program
     {
         Func<int, Func<int, int>> f = x =>
         {
-            Func<int, int> {|Rename:p|} = y => x + 1;
-            return p;
+            Func<int, int> {|Rename:value|} = y => x + 1;
+            return value;
         };
     }
 }");
@@ -3060,7 +3060,7 @@ options: ImplicitTypingEverywhere());
     void Goo()
     {
         var {|Rename:v|} = int.Parse(""12345"");
-        var s = $""Alpha Beta { v } Gamma"";
+        var s = $""Alpha Beta {v} Gamma"";
     }
 }";
 
@@ -4964,8 +4964,8 @@ class C
             var expected =
             @"class C
 {
-    private static readonly (int, string) {|Rename:p|} = (1, ""hello"");
-    var i = p.ToString();
+    private static readonly (int, string) {|Rename:value|} = (1, ""hello"");
+    var i = value.ToString();
 }";
 
             await TestAsync(code, expected, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
@@ -5003,8 +5003,8 @@ class C
             var expected =
 @"class C
 {
-    private static readonly (int, string) {|Rename:p|} = (1, ""hello"");
-    var i = p.ToString();
+    private static readonly (int, string) {|Rename:value|} = (1, ""hello"");
+    var i = value.ToString();
 }";
 
             await TestInRegularAndScriptAsync(code, expected);
@@ -5022,8 +5022,8 @@ class C
             var expected =
 @"class C
 {
-    private static readonly (int a, string b) {|Rename:p|} = (a: 1, b: ""hello"");
-    var i = p.ToString();
+    private static readonly (int a, string b) {|Rename:value|} = (a: 1, b: ""hello"");
+    var i = value.ToString();
 }";
 
             await TestInRegularAndScriptAsync(code, expected);
@@ -5041,8 +5041,8 @@ class C
             var expected =
 @"class C
 {
-    private static readonly (int, string) {|Rename:p|} = (1, ""hello"");
-    var i = p.ToString() + p.ToString();
+    private static readonly (int, string) {|Rename:value|} = (1, ""hello"");
+    var i = value.ToString() + value.ToString();
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
@@ -5060,8 +5060,8 @@ class C
             var expected =
 @"class C
 {
-    private static readonly (int a, string b) {|Rename:p|} = (a: 1, b: ""hello"");
-    var i = p.ToString() + p.ToString();
+    private static readonly (int a, string b) {|Rename:value|} = (a: 1, b: ""hello"");
+    var i = value.ToString() + value.ToString();
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
@@ -5079,8 +5079,8 @@ class C
             var expected =
 @"class C
 {
-    private static readonly (int a, string b) {|Rename:p|} = (a: 1, b: ""hello"");
-    var i = p.ToString() + (c: 1, d: ""hello"").ToString();
+    private static readonly (int a, string b) {|Rename:value|} = (a: 1, b: ""hello"");
+    var i = value.ToString() + (c: 1, d: ""hello"").ToString();
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
@@ -5098,8 +5098,8 @@ class C
             var expected =
 @"class C
 {
-    private static readonly (int a, string) {|Rename:p|} = (a: 1, ""hello"");
-    var i = p.ToString() + p.ToString();
+    private static readonly (int a, string) {|Rename:value|} = (a: 1, ""hello"");
+    var i = value.ToString() + value.ToString();
 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
@@ -6074,8 +6074,8 @@ class C
     byte[] getArray() => null;
     void test()
     {
-        byte[] {|Rename:vs|} = getArray();
-        var goo = vs[0];
+        byte[] {|Rename:bytes|} = getArray();
+        var goo = bytes[0];
     }
 }");
         }

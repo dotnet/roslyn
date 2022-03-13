@@ -140,15 +140,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _fileName = Path.Combine(solutionPath, solutionFileName);
         }
 
-        public string[] GetAssemblyReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>()
-                .Where(x => x.SourceProject == null)
-                .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
-            return references;
-        }
-
         public void RenameFile(string projectName, string oldFileName, string newFileName)
         {
             var project = GetProject(projectName);
@@ -182,13 +173,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             ExecuteCommand("Project.EditProjectFile");
-        }
-
-        public string[] GetProjectReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
-            return references;
         }
 
         public void CreateSolution(string solutionName, string solutionElementString)
@@ -656,7 +640,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             switch (extension)
             {
                 case ".cs":
-                    itemTemplate = @"General\Visual C# Class";
+                    itemTemplate = @"General\C# Class";
                     break;
                 case ".csx":
                     itemTemplate = @"Script\Visual C# Script";

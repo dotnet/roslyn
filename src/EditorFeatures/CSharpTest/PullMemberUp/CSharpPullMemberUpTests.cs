@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 
         private async Task TestQuickActionNotProvidedAsync(
             string initialMarkup,
-            TestParameters parameters = default)
+            TestParameters? parameters = null)
         {
             var service = new TestPullMemberUpService(null, null);
-            parameters = parameters.WithFixProviderData(service);
+            var parametersValue = (parameters ?? TestParameters.Default).WithFixProviderData(service);
 
-            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
-            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parametersValue);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parametersValue);
             if (actions.Length == 1)
             {
                 // The dialog shows up, not quick action
@@ -4272,15 +4272,14 @@ public class Bar : BaseClass
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            TestParameters parameters = default,
+            TestParameters? parameters = null,
             OptionsCollection options = null)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,
-                index,
-                parameters.WithFixProviderData(service).WithOptions(options));
+                (parameters ?? TestParameters.Default).WithFixProviderData(service).WithOptions(options).WithIndex(index));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]

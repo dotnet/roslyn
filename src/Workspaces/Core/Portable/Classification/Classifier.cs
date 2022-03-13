@@ -57,9 +57,10 @@ namespace Microsoft.CodeAnalysis.Classification
             ClassificationOptions options,
             CancellationToken cancellationToken)
         {
-            var service = workspaceServices.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxClassificationService>();
+            var languageServices = workspaceServices.GetLanguageServices(semanticModel.Language);
+            var classsificationService = languageServices.GetRequiredService<ISyntaxClassificationService>();
 
-            var syntaxClassifiers = service.GetDefaultSyntaxClassifiers();
+            var syntaxClassifiers = classsificationService.GetDefaultSyntaxClassifiers();
 
             var extensionManager = workspaceServices.GetRequiredService<IExtensionManager>();
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
@@ -70,8 +71,15 @@ namespace Microsoft.CodeAnalysis.Classification
 
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
-            service.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
-            service.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
+            classsificationService.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
+            classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
+
+            var embeddedLanguageService = languageServices.GetService<IEmbeddedLanguageClassificationService>();
+            if (embeddedLanguageService != null)
+            {
+                // intentionally adding to the semanticClassifications array here.
+                embeddedLanguageService.AddEmbeddedLanguageClassifications(semanticModel, textSpan, options, semanticClassifications, cancellationToken);
+            }
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
             var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();

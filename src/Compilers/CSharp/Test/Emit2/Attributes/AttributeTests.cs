@@ -587,7 +587,223 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal("a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+        }
+
+        [Fact]
+        [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
+        public void TestComplexOrderedAttributeArguments()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+sealed class MarkAttribute : Attribute
+{
+    public MarkAttribute(int a, int b, int c)
+    {
+    }
+}
+
+[Mark(b: 0, c: 1, a: 2)]
+static class Program
+{
+    public static void Main()
+    {
+    }
+}", options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.Equal(new[] { 2, 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal("a: 2", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal("b: 0", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
+            Assert.Equal("c: 1", attributeData.GetAttributeArgumentSyntax(parameterIndex: 2, attributeSyntax).ToString());
+        }
+
+        [Fact]
+        public void TestBadParamsCtor()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+class AAttribute : Attribute
+{
+    private AAttribute(params int[] args) { }
+}
+
+[A(1, 2, 3)]
+class Program
+{
+}", options: TestOptions.DebugDll);
+
+            comp.VerifyDiagnostics(
+                // (9,2): error CS0122: 'AAttribute.AAttribute(params int[])' is inaccessible due to its protection level
+                // [A(1, 2, 3)]
+                Diagnostic(ErrorCode.ERR_BadAccess, "A(1, 2, 3)").WithArguments("AAttribute.AAttribute(params int[])").WithLocation(9, 2));
+
+            var program = (NamedTypeSymbol)comp.GetMember("Program");
+            var attributeData = (SourceAttributeData)program.GetAttributes()[0];
+            Assert.True(attributeData.ConstructorArgumentsSourceIndices.IsDefault);
+            Assert.True(attributeData.HasErrors);
+            Assert.Equal("AAttribute..ctor(params System.Int32[] args)", attributeData.AttributeConstructor.ToTestDisplayString());
+            Assert.Equal(1, attributeData.AttributeConstructor.ParameterCount);
+            Assert.Equal(new object[] { 1, 2, 3 }, attributeData.ConstructorArguments.Select(arg => arg.Value));
+            // `SourceAttributeData.GetAttributeArgumentSyntax` asserts in debug mode when the attributeData has errors, so we don't test it here.
+        }
+
+        [Fact]
+        public void TestCallWithOptionalParametersInsideAttribute()
+        {
+            var source = @"
+using System;
+
+class Attr : Attribute { public Attr(int x) { } }
+
+class C
+{
+    [Attr(M())]
+    void M0() { }
+
+    public static int M(int x = 0) => x;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr(M())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "M()").WithLocation(8, 11));
+
+            var m0 = comp.GetMember<MethodSymbol>("C.M0");
+            var attrs = m0.GetAttributes();
+            Assert.Equal(1, attrs.Length);
+            Assert.Equal(TypedConstantKind.Error, attrs[0].ConstructorArguments.Single().Kind);
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    [Attr()]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var m0 = semanticModel.GetDeclaredSymbol(root.DescendantNodes().OfType<MethodDeclarationSyntax>().Last());
+            var attrs = m0.GetAttributes();
+            Assert.Equal("M0", attrs.Single().ConstructorArguments.Single().Value);
+
+            var operation = semanticModel.GetOperation(attrSyntax);
+            // note: this operation tree should contain a constant string "M0" instead of null.
+            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
+            VerifyOperationTree(comp, operation, @"
+IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
+  Children(1):
+      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+");
+        }
+
+        [Fact]
+        public void TestAttributeCallerInfoSemanticModel_Speculative()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Attr : Attribute { public Attr([CallerMemberName] string s = null) { } }
+
+class C
+{
+    [Attr(""a"")]
+    void M0() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var root = tree.GetRoot();
+            var attrSyntax = root.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            var semanticModel = comp.GetSemanticModel(tree);
+            var newRoot = root.ReplaceNode(attrSyntax, attrSyntax.WithArgumentList(SyntaxFactory.ParseAttributeArgumentList("()")));
+            var newAttrSyntax = newRoot.DescendantNodes().OfType<AttributeSyntax>().Last();
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(attrSyntax.ArgumentList.Position, newAttrSyntax, out var speculativeModel));
+
+            var speculativeOperation = speculativeModel.GetOperation(newAttrSyntax);
+            // note: this operation tree should contain a constant string "M0" instead of null.
+            // this should ideally be fixed as part of https://github.com/dotnet/roslyn/issues/53618.
+            VerifyOperationTree(comp, speculativeOperation, @"
+IOperation:  (OperationKind.None, Type: Attr) (Syntax: 'Attr()')
+  Children(1):
+      IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: 'Attr()')
+");
+        }
+
+        [Fact]
+        public void NotNullIfNotNullDefinitionUsesCallerMemberName()
+        {
+            var definitionSource = @"
+using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
+
+namespace System.Diagnostics.CodeAnalysis
+{
+    public class NotNullIfNotNullAttribute : Attribute
+    {
+        public NotNullIfNotNullAttribute([CallerMemberName] string paramName = """") { }
+    }
+}
+
+public class C
+{
+    [return: NotNullIfNotNull]
+    public static string? M(string? M)
+    {
+        return M;
+    }
+}
+";
+
+            var usageSource = @"
+class Program
+{
+    void M0()
+    {
+        C.M(""a"").ToString();
+    }
+}";
+            CreateCompilation(new[] { definitionSource, usageSource }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+
+            var definitionComp = CreateCompilation(definitionSource, options: WithNullableEnable());
+
+            CreateCompilation(usageSource, references: new[] { definitionComp.ToMetadataReference() }, options: WithNullableEnable())
+                .VerifyDiagnostics();
+
+            CreateCompilation(usageSource, references: new[] { definitionComp.EmitToImageReference() }, options: WithNullableEnable())
+                .VerifyDiagnostics();
         }
 
         [Fact]
@@ -622,7 +838,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: new object[] { ""Hello"", ""World"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -659,7 +879,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = comp.SyntaxTrees[0].GetRoot().DescendantNodes().OfType<AttributeSyntax>().First();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: ""Hello""", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -695,7 +919,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -731,7 +959,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 0, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 0, 1 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"new object[] { ""Hello"" }", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]
@@ -766,7 +998,11 @@ static class Program
 
             var program = (NamedTypeSymbol)comp.GetMember("Program");
             var attributeData = (SourceAttributeData)program.GetAttributes()[0];
-            Assert.Equal(new[] { 1, -1 }, attributeData.ConstructorArgumentsSourceIndices);
+            Assert.Equal(new[] { 1, 0 }, attributeData.ConstructorArgumentsSourceIndices);
+
+            var attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference.GetSyntax();
+            Assert.Equal(@"a: true", attributeData.GetAttributeArgumentSyntax(parameterIndex: 0, attributeSyntax).ToString());
+            Assert.Equal(@"b: null", attributeData.GetAttributeArgumentSyntax(parameterIndex: 1, attributeSyntax).ToString());
         }
 
         [Fact]

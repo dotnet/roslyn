@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var options = ExtractMethodOptions.From(document.Project);
+            var options = context.Options.ExtractMethodOptions;
             var actions = await GetCodeActionsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
         private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
-             ExtractMethodOptions options,
+            ExtractMethodOptions options,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
