@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -16,14 +15,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 {
@@ -31,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
     internal class VisualStudioTodoCommentsService
         : ForegroundThreadAffinitizedObject,
-          ITodoCommentsListener,
           ITodoListProvider,
           IVsTypeScriptTodoCommentService,
           IEventListener<object>,
@@ -39,20 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly EventListenerTracker<ITodoListProvider> _eventListenerTracker;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly ConcurrentDictionary<DocumentId, ImmutableArray<TodoCommentData>> _documentToInfos = new();
-
-        /// <summary>
-        /// Remote service connection. Created on demand when we startup and then
-        /// kept around for the lifetime of this service.
-        /// </summary>
-        private RemoteServiceConnection<IRemoteTodoCommentsDiscoveryService>? _lazyConnection;
-
-        /// <summary>
-        /// Queue where we enqueue the information we get from OOP to process in batch in the future.
-        /// </summary>
-        private readonly TaskCompletionSource<AsyncBatchingWorkQueue<DocumentAndComments>> _workQueueSource
-            = new();
+        private readonly TodoCommentsListener _listener;
 
         public event EventHandler<TodoItemsUpdatedArgs>? TodoListUpdated;
 
@@ -60,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTodoCommentsService(
             VisualStudioWorkspaceImpl workspace,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
@@ -67,12 +51,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
         {
             _workspace = workspace;
             _eventListenerTracker = new EventListenerTracker<ITodoListProvider>(eventListeners, WellKnownEventListeners.TodoListProvider);
-            _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.TodoCommentList);
+
+            _listener = new TodoCommentsListener(
+                globalOptions,
+                workspace.Services,
+                asynchronousOperationListenerProvider,
+                onTodoCommentsUpdated: (documentId, oldComments, newComments) =>
+                {
+                    if (TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
+                    {
+                        TodoListUpdated?.Invoke(
+                            this, new TodoItemsUpdatedArgs(
+                                documentId, _workspace, _workspace.CurrentSolution,
+                                documentId.ProjectId, documentId, newComments));
+                    }
+                },
+                threadingContext.DisposalToken);
         }
 
         public void Dispose()
         {
-            _lazyConnection?.Dispose();
+            _listener.Dispose();
         }
 
         void IEventListener<object>.StartListening(Workspace workspace, object _)
@@ -87,7 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             // fire-and-forget method and we want to make sure nothing leaks out.
             try
             {
-                await StartWorkerAsync().ConfigureAwait(false);
+                // Now that we've started, let the VS todo list know to start listening to us
+                _eventListenerTracker.EnsureEventListener(_workspace, this);
+
+                await _listener.StartAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -97,134 +99,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
             {
                 // Otherwise report a watson for any other exception.  Don't bring down VS.  This is
                 // a BG service we don't want impacting the user experience.
-            }
-        }
-
-        private async Task StartWorkerAsync()
-        {
-            var cancellationToken = ThreadingContext.DisposalToken;
-
-            _workQueueSource.SetResult(
-                new AsyncBatchingWorkQueue<DocumentAndComments>(
-                    TimeSpan.FromSeconds(1),
-                    ProcessTodoCommentInfosAsync,
-                    _asyncListener,
-                    cancellationToken));
-
-            // Now that we've started, let the VS todo list know to start listening to us
-            _eventListenerTracker.EnsureEventListener(_workspace, this);
-
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                ComputeTodoCommentsInCurrentProcess(cancellationToken);
-                return;
-            }
-
-            // Pass ourselves in as the callback target for the OOP service.  As it discovers
-            // todo comments it will call back into us to notify VS about it.
-            _lazyConnection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callbackTarget: this);
-
-            // Now kick off scanning in the OOP process.
-            // If the call fails an error has already been reported and there is nothing more to do.
-            _ = await _lazyConnection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        private void ComputeTodoCommentsInCurrentProcess(CancellationToken cancellationToken)
-        {
-            var registrationService = _workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-            var analyzerProvider = new InProcTodoCommentsIncrementalAnalyzerProvider(this);
-
-            registrationService.AddAnalyzerProvider(
-                analyzerProvider,
-                new IncrementalAnalyzerProviderMetadata(
-                    nameof(InProcTodoCommentsIncrementalAnalyzerProvider),
-                    highPriorityForActiveFile: false,
-                    workspaceKinds: WorkspaceKind.Host));
-        }
-
-        private ValueTask ProcessTodoCommentInfosAsync(
-            ImmutableArray<DocumentAndComments> docAndCommentsArray, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var _1 = ArrayBuilder<DocumentAndComments>.GetInstance(out var filteredArray);
-            AddFilteredInfos(docAndCommentsArray, filteredArray);
-
-            foreach (var docAndComments in filteredArray)
-            {
-                var documentId = docAndComments.DocumentId;
-                var newComments = docAndComments.Comments;
-
-                var oldComments = _documentToInfos.TryGetValue(documentId, out var oldBoxedInfos)
-                    ? oldBoxedInfos
-                    : ImmutableArray<TodoCommentData>.Empty;
-
-                // only one thread can be executing ProcessTodoCommentInfosAsync at a time,
-                // so it's safe to remove/add here.
-                if (newComments.IsEmpty)
-                {
-                    _documentToInfos.TryRemove(documentId, out _);
-                }
-                else
-                {
-                    _documentToInfos[documentId] = newComments;
-                }
-
-                // If we have someone listening for updates, and our new items are different from
-                // our old ones, then notify them of the change.
-                if (this.TodoListUpdated != null && !oldComments.SequenceEqual(newComments))
-                {
-                    this.TodoListUpdated?.Invoke(
-                        this, new TodoItemsUpdatedArgs(
-                            documentId, _workspace, _workspace.CurrentSolution,
-                            documentId.ProjectId, documentId, newComments));
-                }
-            }
-
-            return ValueTaskFactory.CompletedTask;
-        }
-
-        private static void AddFilteredInfos(
-            ImmutableArray<DocumentAndComments> array,
-            ArrayBuilder<DocumentAndComments> filteredArray)
-        {
-            using var _ = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
-
-            // Walk the list of todo comments in reverse, and skip any items for a document once
-            // we've already seen it once.  That way, we're only reporting the most up to date
-            // information for a document, and we're skipping the stale information.
-            for (var i = array.Length - 1; i >= 0; i--)
-            {
-                var info = array[i];
-                if (seenDocumentIds.Add(info.DocumentId))
-                    filteredArray.Add(info);
-            }
-        }
-
-        public ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            return _documentToInfos.TryGetValue(documentId, out var values)
-                ? values
-                : ImmutableArray<TodoCommentData>.Empty;
-        }
-
-        /// <summary>
-        /// Callback from the OOP service back into us.
-        /// </summary>
-        public async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> infos, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var workQueue = await _workQueueSource.Task.ConfigureAwait(false);
-                workQueue.AddWork(new DocumentAndComments(documentId, infos));
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                // report NFW before returning back to the remote process
-                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -238,8 +112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
 
             await TodoComment.ConvertAsync(document, todoComments, converted, cancellationToken).ConfigureAwait(false);
 
-            await ReportTodoCommentDataAsync(
+            await _listener.ReportTodoCommentDataAsync(
                 document.Id, converted.ToImmutable(), cancellationToken).ConfigureAwait(false);
         }
+
+        public ImmutableArray<TodoCommentData> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            => _listener.GetTodoItems(documentId);
     }
 }
