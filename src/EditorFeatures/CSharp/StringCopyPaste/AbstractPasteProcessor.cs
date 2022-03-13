@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected bool PasteWasSuccessful(CancellationToken cancellationToken)
         {
             var rootAfterPaste = DocumentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var stringExpressionAfterPaste = FindContainingStringExpression(rootAfterPaste, StringExpressionBeforePaste.SpanStart);
+            var stringExpressionAfterPaste = FindContainingSupportedStringExpression(rootAfterPaste, StringExpressionBeforePaste.SpanStart);
             if (stringExpressionAfterPaste == null)
                 return false;
 
