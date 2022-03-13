@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // First, add any extra start quoted needed.
             if (quotesToAdd != null)
-                finalTextChanges.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.SpanStart, 0), quotesToAdd));
+                finalTextChanges.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
 
             // Then add the actual changes in the content.
             var isSingleLine =
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-                finalTextChanges.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.End, 0), quotesToAdd));
+                finalTextChanges.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
 
             return finalTextChanges.ToImmutable();
         }
