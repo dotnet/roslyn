@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Dictionary<IDiagnosticUpdateSource, Dictionary<Workspace, Dictionary<object, Data>>> _map;
 
         private readonly EventListenerTracker<IDiagnosticService> _eventListenerTracker;
-        private readonly IGlobalOptionService _globalOptions;
+
+        public IGlobalOptionService GlobalOptions { get; }
 
         private ImmutableHashSet<IDiagnosticUpdateSource> _updateSources;
 
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             IAsynchronousOperationListenerProvider listenerProvider,
             [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
-            _globalOptions = globalOptions;
+            GlobalOptions = globalOptions;
 
             // we use registry service rather than doing MEF import since MEF import method can have race issue where
             // update source gets created before aggregator - diagnostic service - is created and we will lose events fired before
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         [Obsolete]
         ImmutableArray<DiagnosticData> IDiagnosticService.GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            => GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode), cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
         public ValueTask<ImmutableArray<DiagnosticData>> GetPullDiagnosticsAsync(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
             => GetDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, forPullDiagnostics: true, diagnosticMode, cancellationToken);

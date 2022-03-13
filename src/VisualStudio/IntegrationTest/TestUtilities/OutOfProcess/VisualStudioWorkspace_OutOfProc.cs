@@ -77,17 +77,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetFullSolutionAnalysis(bool value)
         {
-            SetPerLanguageOption(
-                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
-                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
-                language: LanguageNames.CSharp,
-                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
-
-            SetPerLanguageOption(
-                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
-                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
-                language: LanguageNames.VisualBasic,
-                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
+            var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
         }
 
         public void SetFileScopedNamespaces(bool value)

@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
@@ -26,7 +28,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         InlineRenameSessionOptions_RenameOverloads,
         InlineRenameSessionOptions_RenameFile,
         InlineRenameSessionOptions_PreviewChanges,
-        MetadataAsSourceOptions_NavigateToDecompiledSources
+        MetadataAsSourceOptions_NavigateToDecompiledSources,
+        VisualStudioSyntaxTreeConfigurationService_EnableOpeningSourceGeneratedFilesInWorkspace,
+        SolutionCrawlerOptions_BackgroundAnalysisScopeOption,
     }
 
     public static class WellKnownGlobalOptions
@@ -43,6 +47,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile => InlineRenameSessionOptionsStorage.RenameFile,
                 WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges => InlineRenameSessionOptionsStorage.PreviewChanges,
                 WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources => MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
+                WellKnownGlobalOption.VisualStudioSyntaxTreeConfigurationService_EnableOpeningSourceGeneratedFilesInWorkspace => VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace,
+                WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption => SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
                 _ => throw ExceptionUtilities.Unreachable
             };
 

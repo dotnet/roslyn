@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
+        public IGlobalOptionService GlobalOptions { get; }
 
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
@@ -41,10 +43,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+            GlobalOptions = globalOptions;
 
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
@@ -53,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             registrationService.Register(this);
+            GlobalOptions = globalOptions;
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
