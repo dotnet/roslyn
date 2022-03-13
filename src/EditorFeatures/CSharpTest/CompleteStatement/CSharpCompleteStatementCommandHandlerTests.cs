@@ -1994,6 +1994,24 @@ public class SaleItem
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyAccessors8()
+        {
+            var code = @"
+public class C
+{
+   public static C MyProp { get; } = new C($$)
+}";
+
+            var expected = @"
+public class C
+{
+   public static C MyProp { get; } = new C();$$
+}";
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
         #endregion
 
         #region ParenthesizeExpression

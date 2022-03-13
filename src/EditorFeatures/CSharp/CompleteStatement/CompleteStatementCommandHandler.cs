@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
         private static bool CanHaveSemicolon(SyntaxNode currentNode)
         {
-            if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause))
+            if (currentNode.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.DelegateDeclaration, SyntaxKind.ArrowExpressionClause, SyntaxKind.PropertyDeclaration))
             {
                 return true;
             }
@@ -340,6 +340,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter
