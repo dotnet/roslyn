@@ -12336,12 +12336,12 @@ class TestStaticInterfaceMethods
         {
             if (d1 != (object)TestSimpleInterface<SimpleClass>())    
             {
-                System.Console.WriteLine(""d1 is not cheched!!!"");
+                System.Console.WriteLine(""d1 is not cached!!!"");
             }
 
             if (d2 != (object)TestSimpleInterface<SimpleStruct>())    
             {
-                System.Console.WriteLine(""d2 is not cheched!!!"");
+                System.Console.WriteLine(""d2 is not cached!!!"");
             }
         }
     }
@@ -12399,12 +12399,12 @@ class TestStaticInterfaceMethods
             (Func<string> d21, Func<string> d22) = TestSimpleInterface<SimpleClass, SimpleStruct>();
             if (d1 != (object)d21)    
             {
-                System.Console.WriteLine(""d1 is not cheched!!!"");
+                System.Console.WriteLine(""d1 is not cached!!!"");
             }
 
             if (d2 != (object)d22)    
             {
-                System.Console.WriteLine(""d2 is not cheched!!!"");
+                System.Console.WriteLine(""d2 is not cached!!!"");
             }
         }
     }
