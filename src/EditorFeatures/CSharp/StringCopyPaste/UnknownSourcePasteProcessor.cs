@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return GetEscapedTextChangesForNonRawStringLiteral(literalExpression.Token.IsVerbatimStringLiteral());
 
                 if (literalExpression.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
-                    return GetTextChangesForRawStringLiteral(literalExpression, cancellationToken);
+                    return GetTextChangesForRawStringLiteral(cancellationToken);
             }
             else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
             {
@@ -120,12 +120,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
         /// add to the start and end to keep things parsing properly.
         /// </summary>
-        private string? GetQuotesToAddToRawLiteral(LiteralExpressionSyntax stringLiteralBeforePaste)
+        private string? GetQuotesToAddToRawLiteral()
         {
-            var contentSpanBeforePaste = GetRawStringLiteralTextContentSpan(
-                SnapshotBeforePaste.AsText(), stringLiteralBeforePaste, out var delimiterQuoteCount);
-            var contentSpanAfterPaste = MapSpan(contentSpanBeforePaste, SnapshotBeforePaste, SnapshotAfterPaste);
-            var longestQuoteSequence = GetLongestQuoteSequence(SnapshotAfterPaste.GetSpan(contentSpanAfterPaste.ToSpan()));
+            var longestQuoteSequence = TextContentsSpansAfterPaste.Max(ts => GetLongestQuoteSequence(SnapshotAfterPaste.GetSpan(ts.ToSpan())));
 
             var quotesToAddCount = (longestQuoteSequence - delimiterQuoteCount) + 1;
             if (quotesToAddCount <= 0)
@@ -134,9 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return new string('"', quotesToAddCount);
         }
 
-        private ImmutableArray<TextChange> GetTextChangesForRawStringLiteral(
-            LiteralExpressionSyntax stringLiteralExpressionBeforePaste,
-            CancellationToken cancellationToken)
+        private ImmutableArray<TextChange> GetTextChangesForRawStringLiteral(CancellationToken cancellationToken)
         {
             // Can't really figure anything out if the raw string is in error.
             if (NodeOrTokenContainsError(StringExpressionBeforePaste))
@@ -151,14 +146,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // final string literal will need (which also gives us the number of quotes to add to teh start/end).
             var quotesToAdd = GetQuotesToAddToRawLiteral(stringLiteralExpressionBeforePaste);
             return stringLiteralExpressionBeforePaste.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken
-                ? GetTextChangesForSingleLineRawStringLiteral(stringLiteralExpressionBeforePaste, quotesToAdd, cancellationToken)
+                ? GetTextChangesForSingleLineRawStringLiteral(quotesToAdd, cancellationToken)
                 : GetTextChangesForMultiLineRawStringLiteral(quotesToAdd);
         }
 
         // Pasting with single line case.
 
         private ImmutableArray<TextChange> GetTextChangesForSingleLineRawStringLiteral(
-            LiteralExpressionSyntax stringLiteralExpressionBeforePaste,
             string? quotesToAdd,
             CancellationToken cancellationToken)
         {

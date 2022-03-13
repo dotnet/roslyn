@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// paste happens into that empty region that we still escape properly.
         /// </summary>
         public static ImmutableArray<TextSpan> GetTextContentSpans(
-            SourceText text, ExpressionSyntax stringExpression)
+            SourceText text, ExpressionSyntax stringExpression, out int delimiterQuoteCount)
         {
             if (stringExpression is LiteralExpressionSyntax literal)
             {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // Skip past the leading and trailing delimiters and add the span in between.
                 if (IsRawStringLiteral(literal))
                 {
-                    return ImmutableArray.Create(GetRawStringLiteralTextContentSpan(text, literal, out _));
+                    return ImmutableArray.Create(GetRawStringLiteralTextContentSpan(text, literal, out delimiterQuoteCount));
                 }
                 else
                 {
@@ -178,8 +178,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     if (start < text.Length && text[start] == '@')
                         start++;
 
+                    var position = start;
                     if (start < text.Length && text[start] == '"')
                         start++;
+                    delimiterQuoteCount = start - position;
 
                     var end = stringExpression.Span.End;
                     if (end > start && text[end - 1] == '"')
@@ -197,8 +199,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 while (start < text.Length && text[start] is '@' or '$')
                     start++;
 
+                var position = start;
                 while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
                     start++;
+                delimiterQuoteCount = start - position;
 
                 var end = stringExpression.Span.End;
                 while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
@@ -233,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// Returns the section of a raw string literal between the <c>"""</c> delimiters.  This also includes the
         /// leading/trailing whitespace between the delimiters for a multi-line raw string literal.
         /// </summary>
-        public static TextSpan GetRawStringLiteralTextContentSpan(
+        private static TextSpan GetRawStringLiteralTextContentSpan(
             SourceText text,
             LiteralExpressionSyntax stringExpression,
             out int delimiterQuoteCount)
