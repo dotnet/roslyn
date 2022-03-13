@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     public class PasteUnknownSourceIntoNormalInterpolatedStringTests
         : StringCopyPasteCommandHandlerUnknownSourceTests
     {
-        #region Paste from external source into normal interpolated string
+        #region Paste from external source into normal interpolated string no hole
 
         [WpfFact]
         public void TestNewLineIntoNormalInterpolatedString1()
