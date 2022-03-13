@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var commonIndentationPrefix = GetCommonIndentationPrefix(Changes);
 
-            for (var changeIndex = 0; changeIndex < Changes.Count; changeIndex++)
+            for (int changeIndex = 0, lastChangeIndex = Changes.Count; changeIndex < lastChangeIndex; changeIndex++)
             {
                 var change = Changes[changeIndex];
 
@@ -259,11 +259,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 var textOfCurrentChange = SourceText.From(change.NewText);
                 buffer.Clear();
 
-                for (var lineIndex = 0; lineIndex < textOfCurrentChange.Lines.Count; lineIndex++)
+                for (int lineIndex = 0, lastLineIndex = textOfCurrentChange.Lines.Count; lineIndex < lastLineIndex; lineIndex++)
                 {
                     var firstChange = changeIndex == 0 && lineIndex == 0;
-                    var lastChange = (changeIndex == Changes.Count - 1) &&
-                                     (lineIndex == textOfCurrentChange.Lines.Count - 1);
+                    var lastChange = (changeIndex == lastChangeIndex - 1) && (lineIndex == lastLineIndex - 1);
 
                     // The actual full line that was pasted in.
                     var currentChangeLine = textOfCurrentChange.Lines[lineIndex];
