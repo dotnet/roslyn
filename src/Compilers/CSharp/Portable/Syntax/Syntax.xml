@@ -517,6 +517,12 @@
         <summary>SyntaxToken representing the kind "await" keyword.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Expression" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>ExpressionSyntax representing the operand of the "await" operator.</summary>

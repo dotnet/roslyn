@@ -10571,8 +10571,12 @@ tryAgain:
                 newPrecedence = GetPrecedence(SyntaxKind.AwaitExpression);
                 var awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
                 awaitToken = CheckFeatureAvailability(awaitToken, MessageID.IDS_FeatureAsync);
+                var questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
+
+                // todo ask which id should be used for this feature
+                questionToken = CheckFeatureAvailability(questionToken, MessageID.IDS_FeatureAsync);
                 var operand = this.ParseSubExpression(newPrecedence);
-                leftOperand = _syntaxFactory.AwaitExpression(awaitToken, operand);
+                leftOperand = _syntaxFactory.AwaitExpression(awaitToken, questionToken, operand);
             }
             else if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
             {
