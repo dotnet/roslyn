@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
+
             _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             _correlationId = correlationId;
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             _projectCompilationsWithAnalyzers = new ConditionalWeakTable<Project, CompilationWithAnalyzers?>();
         }
 
+        internal IGlobalOptionService GlobalOptions => AnalyzerService.GlobalOptions;
         internal DiagnosticAnalyzerInfoCache DiagnosticAnalyzerInfoCache => _diagnosticAnalyzerRunner.AnalyzerInfoCache;
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/54400", Constraint = "Avoid calling GetAllHostStateSets on this hot path.")]
@@ -74,11 +76,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             return e.Option.Feature == nameof(SimplificationOptions) ||
                    e.Option.Feature == nameof(CodeStyleOptions) ||
-                   e.Option == SolutionCrawlerOptions.BackgroundAnalysisScopeOption ||
-                   e.Option == SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption ||
-#pragma warning disable CS0618 // Type or member is obsolete - F# is still on the older ClosedFileDiagnostic option.
-                   e.Option == SolutionCrawlerOptions.ClosedFileDiagnostic;
-#pragma warning restore CS0618 // Type or member is obsolete
+                   e.Option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
+                   e.Option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption;
         }
 
         private void OnProjectAnalyzerReferenceChanged(object? sender, ProjectAnalyzerReferenceChangedEventArgs e)

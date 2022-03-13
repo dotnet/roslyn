@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         : null;
                     var documentSpan = arguments.DocumentSpan;
                     var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                    var diagnosticComputer = new DiagnosticComputer(document, project, documentSpan, documentAnalysisKind, _analyzerInfoCache);
+                    var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache);
 
                     var result = await diagnosticComputer.GetDiagnosticsAsync(
                         arguments.AnalyzerIds,

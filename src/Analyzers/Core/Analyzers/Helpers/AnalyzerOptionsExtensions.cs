@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.Serialization;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
@@ -18,36 +19,31 @@ using TOption = Microsoft.CodeAnalysis.Options.IOption;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    [DataContract]
     internal readonly record struct IdeAnalyzerOptions(
-        bool FadeOutUnusedImports = true,
-        bool FadeOutUnreachableCode = true,
-        bool ReportInvalidPlaceholdersInStringDotFormatCalls = true,
-        bool ReportInvalidRegexPatterns = true)
+        [property: DataMember(Order = 0)] bool CrashOnAnalyzerException = true,
+        [property: DataMember(Order = 1)] bool FadeOutUnusedImports = true,
+        [property: DataMember(Order = 2)] bool FadeOutUnreachableCode = true,
+        [property: DataMember(Order = 3)] bool ReportInvalidPlaceholdersInStringDotFormatCalls = true,
+        [property: DataMember(Order = 4)] bool ReportInvalidRegexPatterns = true,
+        [property: DataMember(Order = 5)] bool ReportInvalidJsonPatterns = true,
+        [property: DataMember(Order = 6)] bool DetectAndOfferEditorFeaturesForProbableJsonStrings = true)
     {
         public IdeAnalyzerOptions()
-            : this(FadeOutUnusedImports: true)
+            : this(CrashOnAnalyzerException: false)
         {
         }
 
         public static readonly IdeAnalyzerOptions Default = new();
 
         public static readonly IdeAnalyzerOptions CodeStyleDefault = new(
+            CrashOnAnalyzerException: false,
             FadeOutUnusedImports: false,
             FadeOutUnreachableCode: false,
             ReportInvalidPlaceholdersInStringDotFormatCalls: true,
-            ReportInvalidRegexPatterns: true);
-
-#if !CODE_STYLE
-        public static IdeAnalyzerOptions FromProject(Project project)
-            => From(project.Solution.Options, project.Language);
-
-        public static IdeAnalyzerOptions From(OptionSet options, string language)
-            => new(
-                FadeOutUnusedImports: options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnusedImports, language),
-                FadeOutUnreachableCode: options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnreachableCode, language),
-                ReportInvalidPlaceholdersInStringDotFormatCalls: options.GetOption(Microsoft.CodeAnalysis.ValidateFormatString.ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, language),
-                ReportInvalidRegexPatterns: options.GetOption(Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices.RegularExpressionsOptions.ReportInvalidRegexPatterns, language));
-#endif
+            ReportInvalidRegexPatterns: true,
+            ReportInvalidJsonPatterns: true,
+            DetectAndOfferEditorFeaturesForProbableJsonStrings: true);
     }
 
     internal static partial class AnalyzerOptionsExtensions

@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -25,14 +24,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
         private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultDiagnosticAnalyzerService(
-            IDiagnosticUpdateSourceRegistrationService registrationService)
+            IDiagnosticUpdateSourceRegistrationService registrationService,
+            IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
             _analyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             registrationService.Register(this);
+            _globalOptions = globalOptions;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
@@ -159,8 +162,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzers.IsEmpty)
                     return ImmutableArray<DiagnosticData>.Empty;
 
+                var ideOptions = _service._globalOptions.GetIdeAnalyzerOptions(project.Language);
+
                 var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                    project, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+                    project, ideOptions, analyzers, includeSuppressedDiagnostics: false, cancellationToken).ConfigureAwait(false);
+
                 var analysisScope = new DocumentAnalysisScope(document, span: null, analyzers, kind);
                 var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true);
 
