@@ -146,12 +146,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             }
         }
 
+#if false
         private static void TestCopyPaste(string markup, string expectedMarkup, string afterUndo)
         {
             using var state = StringCopyPasteTestState.CreateTestState(markup);
 
             state.TestCopyPaste(expectedMarkup, pasteText: null, afterUndo);
         }
+#endif
     }
 
     [UseExportProvider]

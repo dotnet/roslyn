@@ -165,67 +165,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             if (stringExpression is LiteralExpressionSyntax literal)
             {
-                // simple string literal (normal, verbatim or raw).
-                //
-                // Skip past the leading and trailing delimiters and add the span in between.
-                if (IsRawStringLiteral(literal))
-                {
-                    return ImmutableArray.Create(GetRawStringLiteralTextContentSpan(text, literal, out delimiterQuoteCount));
-                }
-                else
-                {
-                    var start = stringExpression.SpanStart;
-                    if (start < text.Length && text[start] == '@')
-                        start++;
-
-                    var position = start;
-                    if (start < text.Length && text[start] == '"')
-                        start++;
-                    delimiterQuoteCount = start - position;
-
-                    var end = stringExpression.Span.End;
-                    if (end > start && text[end - 1] == '"')
-                        end--;
-
-                    return ImmutableArray.Create(TextSpan.FromBounds(start, end));
-                }
+                return ImmutableArray.Create(GetTextContentSpan(text, literal, out delimiterQuoteCount));
             }
             else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
             {
-                // Interpolated string.  Normal, verbatim, or raw.
-                //
-                // Skip past the leading and trailing delimiters.
-                var start = stringExpression.SpanStart;
-                while (start < text.Length && text[start] is '@' or '$')
-                    start++;
-
-                var position = start;
-                while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
-                    start++;
-                delimiterQuoteCount = start - position;
-
-                var end = stringExpression.Span.End;
-                while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
-                    end--;
-
-                // Then walk the body of the interpolated string adding (possibly empty) spans for each chunk between
-                // interpolations.
-                using var result = TemporaryArray<TextSpan>.Empty;
-
-                var currentPosition = start;
-                for (var i = 0; i < interpolatedString.Contents.Count; i++)
-                {
-                    var content = interpolatedString.Contents[i];
-                    if (content is InterpolationSyntax)
-                    {
-                        result.Add(TextSpan.FromBounds(currentPosition, content.SpanStart));
-                        currentPosition = content.Span.End;
-                    }
-                }
-
-                // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
-                result.Add(TextSpan.FromBounds(currentPosition, end));
-                return result.ToImmutableAndClear();
+                return GetTextContentSpans(text, interpolatedString, out delimiterQuoteCount);
             }
             else
             {
@@ -233,28 +177,92 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
-        /// <summary>
-        /// Returns the section of a raw string literal between the <c>"""</c> delimiters.  This also includes the
-        /// leading/trailing whitespace between the delimiters for a multi-line raw string literal.
-        /// </summary>
-        private static TextSpan GetRawStringLiteralTextContentSpan(
-            SourceText text,
-            LiteralExpressionSyntax stringExpression,
-            out int delimiterQuoteCount)
+        private static ImmutableArray<TextSpan> GetTextContentSpans(
+            SourceText text, InterpolatedStringExpressionSyntax interpolatedString, out int delimiterQuoteCount)
         {
-            Contract.ThrowIfFalse(IsRawStringLiteral(stringExpression));
-
-            var start = stringExpression.SpanStart;
-            while (start < text.Length && text[start] == '"')
+            // Interpolated string.  Normal, verbatim, or raw.
+            //
+            // Skip past the leading and trailing delimiters.
+            var start = interpolatedString.SpanStart;
+            while (start < text.Length && text[start] is '@' or '$')
                 start++;
 
-            delimiterQuoteCount = start - stringExpression.SpanStart;
-            var end = stringExpression.Span.End;
-            while (end > start && text[end - 1] == '"')
+            var position = start;
+            while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
+                start++;
+            delimiterQuoteCount = start - position;
+
+            var end = interpolatedString.Span.End;
+
+            end = SkipU8Suffix(text, start, end);
+            while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
                 end--;
 
-            var contentSpan = TextSpan.FromBounds(start, end);
-            return contentSpan;
+            using var result = TemporaryArray<TextSpan>.Empty;
+            var currentPosition = start;
+            for (var i = 0; i < interpolatedString.Contents.Count; i++)
+            {
+                var content = interpolatedString.Contents[i];
+                if (content is InterpolationSyntax)
+                {
+                    result.Add(TextSpan.FromBounds(currentPosition, content.SpanStart));
+                    currentPosition = content.Span.End;
+                }
+            }
+
+            // Then, once through the body, add a final span from the end of the last interpolation to the end delimiter.
+            result.Add(TextSpan.FromBounds(currentPosition, end));
+            return result.ToImmutableAndClear();
+        }
+
+        private static int SkipU8Suffix(SourceText text, int start, int end)
+        {
+            if (end > start && text[end - 1] == '8')
+                end--;
+            if (end > start && text[end - 1] is 'u' or 'U')
+                end--;
+            return end;
+        }
+
+        private static TextSpan GetTextContentSpan(SourceText text, LiteralExpressionSyntax literal, out int delimiterQuoteCount)
+        {
+            // simple string literal (normal, verbatim or raw).
+            //
+            // Skip past the leading and trailing delimiters and add the span in between.
+            if (IsRawStringLiteral(literal))
+            {
+                var start = literal.SpanStart;
+                while (start < text.Length && text[start] == '"')
+                    start++;
+                delimiterQuoteCount = start - literal.SpanStart;
+
+                var end = literal.Span.End;
+
+                end = SkipU8Suffix(text, start, end);
+                while (end > start && text[end - 1] == '"')
+                    end--;
+
+                return TextSpan.FromBounds(start, end);
+            }
+            else
+            {
+                var start = literal.SpanStart;
+                if (start < text.Length && text[start] == '@')
+                    start++;
+
+                var position = start;
+                if (start < text.Length && text[start] == '"')
+                    start++;
+                delimiterQuoteCount = start - position;
+
+                var end = literal.Span.End;
+
+                end = SkipU8Suffix(text, start, end);
+                if (end > start && text[end - 1] == '"')
+                    end--;
+
+                return TextSpan.FromBounds(start, end);
+            }
         }
 
         /// <summary>
@@ -262,16 +270,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// determine if a raw string literal needs to grow its delimiters to ensure that the quote sequence will no
         /// longer be a problem.
         /// </summary>
-        public static int GetLongestQuoteSequence(SnapshotSpan contentSpan)
+        public static int GetLongestQuoteSequence(SourceText text, TextSpan span)
         {
-            var snapshot = contentSpan.Snapshot;
             var longestCount = 0;
-            for (int currentIndex = contentSpan.Start.Position, contentEnd = contentSpan.End.Position; currentIndex < contentEnd;)
+            for (int currentIndex = span.Start, contentEnd = span.End; currentIndex < contentEnd;)
             {
-                if (snapshot[currentIndex] == '"')
+                if (text[currentIndex] == '"')
                 {
                     var endQuoteIndex = currentIndex;
-                    while (endQuoteIndex < contentEnd && snapshot[endQuoteIndex] == '"')
+                    while (endQuoteIndex < contentEnd && text[endQuoteIndex] == '"')
                         endQuoteIndex++;
 
                     longestCount = Math.Max(longestCount, endQuoteIndex - currentIndex);
@@ -475,5 +482,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public static TextSpan MapSpan(TextSpan span, ITextSnapshot from, ITextSnapshot to)
             => from.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive).GetSpan(to).Span.ToTextSpan();
+
+        public static bool RawContentMustBeMultiLine(SourceText text, ImmutableArray<TextSpan> spans)
+        {
+            Contract.ThrowIfTrue(spans.Length == 0);
+
+            // Empty raw string must be multiline.
+            if (spans.Length == 1 && spans[0].IsEmpty)
+                return true;
+
+            // Or if it starts/ends with a quote 
+            if (spans.First().Length > 0 && text[spans.First().Start] == '"')
+                return true;
+
+            if (spans.Last().Length > 0 && text[spans.Last().End - 1] == '"')
+                return true;
+
+            // or contains a newline
+            foreach (var span in spans)
+            {
+                for (var i = span.Start; i < span.End; i++)
+                {
+                    if (SyntaxFacts.IsNewLine(text[i]))
+                        return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

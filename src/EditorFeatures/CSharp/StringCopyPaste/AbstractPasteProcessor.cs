@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 {
@@ -33,12 +34,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly ITextSnapshot SnapshotAfterPaste;
 
         /// <summary>
-        /// Rosly document corresponding to <see cref="SnapshotBeforePaste"/>.
+        /// Roslyn SourceText corresponding to <see cref="SnapshotBeforePaste"/>.
+        /// </summary>
+        protected readonly SourceText TextBeforePaste;
+
+        /// <summary>
+        /// Roslyn SourceText corresponding to <see cref="SnapshotAfterPaste"/>.
+        /// </summary>
+        protected readonly SourceText TextAfterPaste;
+
+        /// <summary>
+        /// Roslyn document corresponding to <see cref="SnapshotBeforePaste"/>.
         /// </summary>
         protected readonly Document DocumentBeforePaste;
 
         /// <summary>
-        /// Rosly document corresponding to <see cref="SnapshotAfterPaste"/>.
+        /// Roslyn document corresponding to <see cref="SnapshotAfterPaste"/>.
         /// </summary>
         protected readonly Document DocumentAfterPaste;
 
@@ -73,6 +84,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly ImmutableArray<TextSpan> TextContentsSpansAfterPaste;
 
         /// <summary>
+        /// Number of quotes in the delimiter of the string being pasted into.  Given that the string should have no
+        /// errors in it, this quote count should be the same for the start and end delimiter.
+        /// </summary>
+        protected readonly int DelimiterQuoteCount;
+
+        /// <summary>
         /// The set of <see cref="ITextChange"/>'s that produced <see cref="SnapshotAfterPaste"/> from <see
         /// cref="SnapshotBeforePaste"/>.
         /// </summary>
@@ -89,14 +106,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             SnapshotBeforePaste = snapshotBeforePaste;
             SnapshotAfterPaste = snapshotAfterPaste;
 
+            TextBeforePaste = SnapshotBeforePaste.AsText();
+            TextAfterPaste = SnapshotAfterPaste.AsText();
+
             DocumentBeforePaste = documentBeforePaste;
             DocumentAfterPaste = documentAfterPaste;
 
             StringExpressionBeforePaste = stringExpressionBeforePaste;
             NewLine = newLine;
 
-            TextContentsSpansBeforePaste = GetTextContentSpans(snapshotBeforePaste.AsText(), stringExpressionBeforePaste);
+            TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount);
             TextContentsSpansAfterPaste = TextContentsSpansBeforePaste.SelectAsArray(MapSpanForward);
+
+            Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);
         }
 
         /// <summary>
