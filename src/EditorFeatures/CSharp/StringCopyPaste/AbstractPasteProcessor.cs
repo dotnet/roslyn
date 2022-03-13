@@ -90,6 +90,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly int DelimiterQuoteCount;
 
         /// <summary>
+        /// Number of dollar signs (<c>$</c>) in the starting delimiter of the string being pasted into.
+        /// </summary>
+        protected readonly int DelimiterDollarCount;
+
+        /// <summary>
         /// The set of <see cref="ITextChange"/>'s that produced <see cref="SnapshotAfterPaste"/> from <see
         /// cref="SnapshotBeforePaste"/>.
         /// </summary>
@@ -115,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             StringExpressionBeforePaste = stringExpressionBeforePaste;
             NewLine = newLine;
 
-            TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount);
+            TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount, out DelimiterDollarCount);
             TextContentsSpansAfterPaste = TextContentsSpansBeforePaste.SelectAsArray(MapSpanForward);
 
             Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);

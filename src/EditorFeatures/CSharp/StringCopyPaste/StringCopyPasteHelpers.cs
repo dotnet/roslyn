@@ -165,15 +165,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// paste happens into that empty region that we still escape properly.
         /// </summary>
         public static ImmutableArray<TextSpan> GetTextContentSpans(
-            SourceText text, ExpressionSyntax stringExpression, out int delimiterQuoteCount)
+            SourceText text, ExpressionSyntax stringExpression,
+            out int delimiterQuoteCount, out int delimiterDollarCount)
         {
             if (stringExpression is LiteralExpressionSyntax literal)
             {
-                return ImmutableArray.Create(GetTextContentSpan(text, literal, out delimiterQuoteCount));
+                delimiterDollarCount = 0;
+                return ImmutableArray.Create(GetStringLiteralTextContentSpan(text, literal, out delimiterQuoteCount));
             }
             else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
             {
-                return GetTextContentSpans(text, interpolatedString, out delimiterQuoteCount);
+                return GetInterpolatedStringTextContentSpans(text, interpolatedString, out delimiterQuoteCount, out delimiterDollarCount);
             }
             else
             {
@@ -181,8 +183,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
-        private static ImmutableArray<TextSpan> GetTextContentSpans(
-            SourceText text, InterpolatedStringExpressionSyntax interpolatedString, out int delimiterQuoteCount)
+        private static int SkipU8Suffix(SourceText text, int start, int end)
+        {
+            if (end > start && text[end - 1] == '8')
+                end--;
+            if (end > start && text[end - 1] is 'u' or 'U')
+                end--;
+            return end;
+        }
+
+        private static ImmutableArray<TextSpan> GetInterpolatedStringTextContentSpans(
+            SourceText text, InterpolatedStringExpressionSyntax interpolatedString,
+            out int delimiterQuoteCount, out int delimiterDollarCount)
         {
             // Interpolated string.  Normal, verbatim, or raw.
             //
@@ -190,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var start = interpolatedString.SpanStart;
             while (start < text.Length && text[start] is '@' or '$')
                 start++;
+            delimiterDollarCount = start - interpolatedString.SpanStart;
 
             var position = start;
             while (start < interpolatedString.StringStartToken.Span.End && text[start] == '"')
@@ -219,16 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return result.ToImmutableAndClear();
         }
 
-        private static int SkipU8Suffix(SourceText text, int start, int end)
-        {
-            if (end > start && text[end - 1] == '8')
-                end--;
-            if (end > start && text[end - 1] is 'u' or 'U')
-                end--;
-            return end;
-        }
-
-        private static TextSpan GetTextContentSpan(SourceText text, LiteralExpressionSyntax literal, out int delimiterQuoteCount)
+        private static TextSpan GetStringLiteralTextContentSpan(SourceText text, LiteralExpressionSyntax literal, out int delimiterQuoteCount)
         {
             // simple string literal (normal, verbatim or raw).
             //
@@ -275,14 +279,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// longer be a problem.
         /// </summary>
         public static int GetLongestQuoteSequence(SourceText text, TextSpan span)
+            => GetLongestCharacterSequence(text, span, '"');
+
+        public static int GetLongestDollarSignSequence(SourceText text, TextSpan span)
+            => GetLongestCharacterSequence(text, span, '$');
+
+        /// <summary>
+        /// Given a section of a document, finds the longest sequence of of a given <paramref name="character"/> in it.
+        /// Used to determine if a raw string literal needs to grow its delimiters to ensure that the sequence
+        /// will no longer be a problem.
+        /// </summary>
+        private static int GetLongestCharacterSequence(SourceText text, TextSpan span, char character)
         {
             var longestCount = 0;
             for (int currentIndex = span.Start, contentEnd = span.End; currentIndex < contentEnd;)
             {
-                if (text[currentIndex] == '"')
+                if (text[currentIndex] == character)
                 {
                     var endQuoteIndex = currentIndex;
-                    while (endQuoteIndex < contentEnd && text[endQuoteIndex] == '"')
+                    while (endQuoteIndex < contentEnd && text[endQuoteIndex] == character)
                         endQuoteIndex++;
 
                     longestCount = Math.Max(longestCount, endQuoteIndex - currentIndex);

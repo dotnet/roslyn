@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 documentAfterPaste,
                 stringExpressionBeforePaste,
                 textView.Options.GetNewLineCharacter());
-            var textChanges = processor.GetTextChanges(cancellationToken);
+            var textChanges = processor.GetEdits(cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
             if (textChanges.IsDefaultOrEmpty)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Now, given that string expression, find the inside 'text' spans of the expression.  These are the parts
             // of the literal between the quotes.  It does not include the interpolation holes in an interpolated
             // string.  These spans may be empty (for an empty string, or empty text gap between interpolations).
-            var contentSpans = GetTextContentSpans(text, stringExpression, out _);
+            var contentSpans = GetTextContentSpans(text, stringExpression, out _, out _);
 
             // Now ensure that all the selections are contained within a single content span.
             int? spanIndex = null;

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
         }
 
-        public ImmutableArray<TextChange> GetTextChanges(CancellationToken cancellationToken)
+        public ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
         {
             // If we have a raw-string, then we always want to check for changes to make, even if the paste was
             // technically legal.  This is because we may want to touch up things like indentation to make the
@@ -57,7 +57,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue. Repaste the
             // contents, but this time properly escapes/manipulated so that it follows the rule of the particular token
             // kind.
-            return GetAppropriateTextChanges(cancellationToken);
+
+            // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
+            // same location the paste originally happened at.  For raw-strings things get more complex as we have to
+            // deal with things like indentation and potentially adding newlines to make things legal.
+            return IsAnyRawStringExpression(StringExpressionBeforePaste)
+                ? GetEditsForRawString(cancellationToken)
+                : GetEditsForNonRawString();
         }
 
         private bool ShouldAlwaysEscapeTextForNonRawString()
@@ -67,17 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return !IsVerbatimStringExpression(StringExpressionBeforePaste) && ContainsControlCharacter(Changes);
         }
 
-        private ImmutableArray<TextChange> GetAppropriateTextChanges(CancellationToken cancellationToken)
-        {
-            // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
-            // same location the paste originally happened at.  For raw-strings things get more complex as we have to
-            // deal with things like indentation and potentially adding newlines to make things legal.
-            return IsAnyRawStringExpression(StringExpressionBeforePaste)
-                ? GetTextChangesForRawString(cancellationToken)
-                : GetTextChangesForNonRawString();
-        }
-
-        private ImmutableArray<TextChange> GetTextChangesForNonRawString()
+        private ImmutableArray<TextChange> GetEditsForNonRawString()
         {
             var isVerbatim = IsVerbatimStringExpression(StringExpressionBeforePaste);
 
@@ -93,18 +89,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
         /// add to the start and end to keep things parsing properly.
         /// </summary>
-        private string? GetQuotesToAddToRawLiteral()
+        private string? GetQuotesToAddToRawString()
         {
+            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
+
             var longestQuoteSequence = TextContentsSpansAfterPaste.Max(ts => GetLongestQuoteSequence(TextAfterPaste, ts));
 
             var quotesToAddCount = (longestQuoteSequence - DelimiterQuoteCount) + 1;
-            if (quotesToAddCount <= 0)
-                return null;
-
-            return new string('"', quotesToAddCount);
+            return quotesToAddCount <= 0 ? null : new string('"', quotesToAddCount);
         }
 
-        private ImmutableArray<TextChange> GetTextChangesForRawString(CancellationToken cancellationToken)
+        /// <summary>
+        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many dollar
+        /// signs to add to the start to keep things parsing properly.
+        /// </summary>
+        private string? GetDollarSignsToAddToRawString()
+        {
+            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
+
+            // Only have to do this for interpolated strings.  Non-interpolated raw strings
+            if (StringExpressionBeforePaste is not InterpolatedStringExpressionSyntax)
+                return null;
+
+            var longestDollarSequence = TextContentsSpansAfterPaste.Max(ts => GetLongestDollarSignSequence(TextAfterPaste, ts));
+
+            var dollarsToAddCount = (longestDollarSequence - DelimiterDollarCount) + 1;
+            return dollarsToAddCount <= 0 ? null : new string('"', dollarsToAddCount);
+        }
+
+        private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {
             // Can't really figure anything out if the raw string is in error.
             if (NodeOrTokenContainsError(StringExpressionBeforePaste))
@@ -117,12 +130,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // if the content we're going to add itself contains quotes, then figure out how many start/end quotes the
             // final string literal will need (which also gives us the number of quotes to add to teh start/end).
-            var quotesToAdd = GetQuotesToAddToRawLiteral();
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var finalTextChanges);
+            var quotesToAdd = GetQuotesToAddToRawString();
+            var dollarSignsToAdd = GetDollarSignsToAddToRawString();
 
-            // First, add any extra start quoted needed.
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var editsToMake);
+
+            // First, add any extra dollar signs needed.
+            if (dollarSignsToAdd != null)
+                editsToMake.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.Start, 0), dollarSignsToAdd));
+
+            // Then any quotes to your starting delimiter
             if (quotesToAdd != null)
-                finalTextChanges.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
+                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
 
             // Then add the actual changes in the content.
             var isSingleLine =
@@ -130,21 +149,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 StringExpressionBeforePaste is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedSingleLineRawStringStartToken };
 
             if (isSingleLine)
-                AddTextChangesForSingleLineRawStringLiteral(finalTextChanges, cancellationToken);
+                AddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
             else
-                AddTextChangesForMultiLineRawStringLiteral(finalTextChanges);
+                AddTextChangesForMultiLineRawStringLiteral(editsToMake);
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
-                finalTextChanges.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
+                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
 
-            return finalTextChanges.ToImmutable();
+            return editsToMake.ToImmutable();
         }
 
         // Pasting with single line case.
 
         private void AddTextChangesForSingleLineRawStringLiteral(
-            ArrayBuilder<TextChange> finalTextChanges,
+            ArrayBuilder<TextChange> editsToMake,
             CancellationToken cancellationToken)
         {
             // When pasting into a single-line raw literal we will keep it a single line if we can.  If the content
@@ -161,23 +180,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Then a newline and the indentation to start with.
             if (mustBeMultiLine)
-                finalTextChanges.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), NewLine + indentationWhitespace));
+                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), NewLine + indentationWhitespace));
 
-            SourceText? changeText = null;
+            SourceText? textOfCurrentChange = null;
             foreach (var change in Changes)
             {
                 // Create a text object around the change text we're making.  This is a very simple way to get
                 // a nice view of the text lines in the change.
-                changeText = SourceText.From(change.NewText);
-                var commonIndentationPrefix = GetCommonIndentationPrefix(changeText) ?? "";
+                textOfCurrentChange = SourceText.From(change.NewText);
+                var commonIndentationPrefix = GetCommonIndentationPrefix(textOfCurrentChange) ?? "";
 
                 buffer.Clear();
 
-                for (var i = 0; i < changeText.Lines.Count; i++)
+                for (var i = 0; i < textOfCurrentChange.Lines.Count; i++)
                 {
                     // The actual full line that was pasted in.
-                    var currentChangeLine = changeText.Lines[i];
-                    var fullChangeLineText = changeText.ToString(currentChangeLine.SpanIncludingLineBreak);
+                    var currentChangeLine = textOfCurrentChange.Lines[i];
+                    var fullChangeLineText = textOfCurrentChange.ToString(currentChangeLine.SpanIncludingLineBreak);
 
                     if (i == 0)
                     {
@@ -198,28 +217,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         buffer.Append(indentationWhitespace);
                 }
 
-                finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
+                editsToMake.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
             }
 
             // if the last change ended at the closing delimiter *and* ended with a newline, then we don't need to add a
             // final newline-space at the end because we will have already done that.
             if (mustBeMultiLine && !LastPastedLineAddedNewLine())
-                finalTextChanges.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), NewLine + indentationWhitespace));
+                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), NewLine + indentationWhitespace));
 
             return;
 
             bool LastPastedLineAddedNewLine()
             {
-                return changeText != null &&
+                return textOfCurrentChange != null &&
                     Changes.Last().OldEnd == TextContentsSpansBeforePaste.Last().End &&
-                      HasNewLine(changeText.Lines.Last());
+                      HasNewLine(textOfCurrentChange.Lines.Last());
             }
         }
 
         // Pasting into multi line case.
 
         private void AddTextChangesForMultiLineRawStringLiteral(
-            ArrayBuilder<TextChange> finalTextChanges)
+            ArrayBuilder<TextChange> editsToMake)
         {
             var endLine = TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.Span.End);
 
@@ -234,20 +253,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 // Create a text object around the change text we're making.  This is a very simple way to get
                 // a nice view of the text lines in the change.
-                var changeText = SourceText.From(change.NewText);
+                var textOfCurrentChange = SourceText.From(change.NewText);
                 buffer.Clear();
 
-                var commonIndentationPrefix = GetCommonIndentationPrefix(changeText);
+                var commonIndentationPrefix = GetCommonIndentationPrefix(textOfCurrentChange);
 
-                for (var lineIndex = 0; lineIndex < changeText.Lines.Count; lineIndex++)
+                for (var lineIndex = 0; lineIndex < textOfCurrentChange.Lines.Count; lineIndex++)
                 {
                     var firstChange = changeIndex == 0 && lineIndex == 0;
                     var lastChange = (changeIndex == Changes.Count - 1) &&
-                                     (lineIndex == changeText.Lines.Count - 1);
+                                     (lineIndex == textOfCurrentChange.Lines.Count - 1);
 
                     // The actual full line that was pasted in.
-                    var currentChangeLine = changeText.Lines[lineIndex];
-                    var fullChangeLineText = changeText.ToString(currentChangeLine.SpanIncludingLineBreak);
+                    var currentChangeLine = textOfCurrentChange.Lines[lineIndex];
+                    var fullChangeLineText = textOfCurrentChange.ToString(currentChangeLine.SpanIncludingLineBreak);
                     // The contents of the line, with all leading whitespace removed.
                     var (lineLeadingWhitespace, lineWithoutLeadingWhitespace) = ExtractWhitespace(fullChangeLineText);
 
@@ -323,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     }
                 }
 
-                finalTextChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
+                editsToMake.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
             }
         }
     }
