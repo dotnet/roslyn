@@ -62,20 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private bool ShouldAlwaysEscapeTextForNonRawString()
         {
-            if (StringExpressionBeforePaste is LiteralExpressionSyntax literal)
-            {
-                // Pasting a control character into a normal string literal is normally not desired.  So even if this
-                // is legal, we still escape the contents to make the pasted code clear.
-                return literal.Token.IsRegularStringLiteral() && ContainsControlCharacter(Changes);
-            }
-            else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                // Pasting a control character into a normal string literal is normally not desired.  So even if this
-                // is legal, we still escape the contents to make the pasted code clear.
-                return interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken) && ContainsControlCharacter(Changes);
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(StringExpressionBeforePaste);
+            // Pasting a control character into a normal string literal is normally not desired.  So even if this
+            // is legal, we still escape the contents to make the pasted code clear.
+            return !IsVerbatimStringExpression(StringExpressionBeforePaste) && ContainsControlCharacter(Changes);
         }
 
         private ImmutableArray<TextChange> GetAppropriateTextChanges(CancellationToken cancellationToken)
@@ -90,9 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private ImmutableArray<TextChange> GetTextChangesForNonRawString()
         {
-            var isVerbatim =
-                StringExpressionBeforePaste is LiteralExpressionSyntax literalExpression && literalExpression.Token.IsVerbatimStringLiteral() ||
-                StringExpressionBeforePaste is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedVerbatimStringStartToken };
+            var isVerbatim = IsVerbatimStringExpression(StringExpressionBeforePaste);
 
             using var textChanges = TemporaryArray<TextChange>.Empty;
 

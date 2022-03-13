@@ -142,6 +142,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return (value[..start], value[start..]);
         }
 
+        public static bool IsVerbatimStringExpression(ExpressionSyntax stringExpression)
+            => stringExpression is LiteralExpressionSyntax literalExpression && literalExpression.Token.IsVerbatimStringLiteral() ||
+               stringExpression is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedVerbatimStringStartToken };
+
         public static bool IsAnyRawStringExpression(ExpressionSyntax expression)
             => expression is LiteralExpressionSyntax literal
                 ? IsRawStringLiteral(literal)
