@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,9 +19,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     /// <summary>
     /// Code refactoring that converts a regular string containing braces to an interpolated string
     /// </summary>
-    internal abstract class AbstractConvertRegularStringToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString), Shared]
+    internal sealed class ConvertRegularStringToInterpolatedStringRefactoringProvider : CodeRefactoringProvider
     {
-        protected abstract bool SupportsConstantInterpolatedStrings(Document document);
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public ConvertRegularStringToInterpolatedStringRefactoringProvider()
+        {
+        }
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -48,7 +55,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            if (!SupportsConstantInterpolatedStrings(document))
+            if (!syntaxFacts.SupportsConstantInterpolatedStrings(document.Project.ParseOptions!))
             {
                 // If there is a const keyword, do not offer the refactoring (an interpolated string is not const)
                 var declarator = literalExpression.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
