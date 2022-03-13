@@ -317,43 +317,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public static ExpressionSyntax? FindContainingSupportedStringExpression(SyntaxNode root, int position)
         {
-            // When new string forms are added, support for them can be introduced here.  However, by checking the exact
-            // types of strings supported, downstream code can know exactly what forms they should be looking for and
-            // that nothing else may flow down to them.
             var node = root.FindToken(position).Parent;
             for (var current = node; current != null; current = current.Parent)
             {
-                if (current is LiteralExpressionSyntax
-                    {
-                        RawKind: (int)SyntaxKind.StringLiteralExpression,
-                        Token.RawKind: (int)SyntaxKind.StringLiteralToken or
-                                       (int)SyntaxKind.SingleLineRawStringLiteralToken or
-                                       (int)SyntaxKind.MultiLineRawStringLiteralToken,
-                    } literalExpression)
-                {
-                    return literalExpression;
-                }
+                if (current is LiteralExpressionSyntax literalExpression)
+                    return IsSupportedStringExpression(literalExpression) ? literalExpression : null;
 
-                if (current is InterpolatedStringExpressionSyntax
-                    {
-                        StringStartToken.RawKind: (int)SyntaxKind.InterpolatedStringStartToken or
-                                                  (int)SyntaxKind.InterpolatedVerbatimStringStartToken or
-                                                  (int)SyntaxKind.InterpolatedSingleLineRawStringStartToken or
-                                                  (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken,
-                    } interpolatedString)
-                {
-                    return interpolatedString;
-                }
+                if (current is InterpolatedStringExpressionSyntax interpolatedString)
+                    return IsSupportedStringExpression(interpolatedString) ? interpolatedString : null;
             }
 
             return null;
         }
 
+        public static bool IsSupportedStringExpression(ExpressionSyntax expression)
+        {
+            // When new string forms are added, support for them can be introduced here.  However, by checking the exact
+            // types of strings supported, downstream code can know exactly what forms they should be looking for and
+            // that nothing else may flow down to them.
+
+            if (expression is LiteralExpressionSyntax
+                {
+                    RawKind: (int)SyntaxKind.StringLiteralExpression,
+                    Token.RawKind: (int)SyntaxKind.StringLiteralToken or
+                                   (int)SyntaxKind.SingleLineRawStringLiteralToken or
+                                   (int)SyntaxKind.MultiLineRawStringLiteralToken,
+                })
+            {
+                return true;
+            }
+
+            if (expression is InterpolatedStringExpressionSyntax
+                {
+                    StringStartToken.RawKind: (int)SyntaxKind.InterpolatedStringStartToken or
+                                              (int)SyntaxKind.InterpolatedVerbatimStringStartToken or
+                                              (int)SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                                              (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken,
+                })
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static string EscapeForNonRawStringLiteral(bool isVerbatim, string value)
         {
+            // Verbatim strings are trivial.  They just need to escape `"` to `""`.
             if (isVerbatim)
                 return value.Replace("\"", "\"\"");
 
+            // Standard strings have a much larger set of cases to consider.
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
             // taken from object-display
