@@ -5,12 +5,11 @@
 #nullable disable
 
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
+namespace Microsoft.CodeAnalysis.Classification
 {
     internal sealed class ClassificationTypeDefinitions
     {
