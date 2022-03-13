@@ -183,12 +183,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), NewLine + indentationWhitespace));
 
             SourceText? textOfCurrentChange = null;
+            var commonIndentationPrefix = GetCommonIndentationPrefix(Changes) ?? "";
+
             foreach (var change in Changes)
             {
                 // Create a text object around the change text we're making.  This is a very simple way to get
                 // a nice view of the text lines in the change.
                 textOfCurrentChange = SourceText.From(change.NewText);
-                var commonIndentationPrefix = GetCommonIndentationPrefix(textOfCurrentChange) ?? "";
 
                 buffer.Clear();
 
@@ -247,6 +248,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             using var _ = PooledStringBuilder.GetInstance(out var buffer);
 
+            var commonIndentationPrefix = GetCommonIndentationPrefix(Changes);
+
             for (var changeIndex = 0; changeIndex < Changes.Count; changeIndex++)
             {
                 var change = Changes[changeIndex];
@@ -255,8 +258,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // a nice view of the text lines in the change.
                 var textOfCurrentChange = SourceText.From(change.NewText);
                 buffer.Clear();
-
-                var commonIndentationPrefix = GetCommonIndentationPrefix(textOfCurrentChange);
 
                 for (var lineIndex = 0; lineIndex < textOfCurrentChange.Lines.Count; lineIndex++)
                 {

@@ -499,16 +499,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// lines as they're also very common, but are clearly not a way of indicating indentation indent for the normal
         /// lines.
         /// </summary>
-        public static string? GetCommonIndentationPrefix(SourceText text)
+        public static string? GetCommonIndentationPrefix(INormalizedTextChangeCollection textChanges)
         {
             string? commonIndentPrefix = null;
+            var first = true;
 
-            for (int i = 1, n = text.Lines.Count; i < n; i++)
+            foreach (var change in textChanges)
             {
-                var line = text.Lines[i];
-                var nonWhitespaceIndex = GetFirstNonWhitespaceIndex(text, line);
-                if (nonWhitespaceIndex >= 0)
-                    commonIndentPrefix = GetCommonIndentationPrefix(commonIndentPrefix, text, TextSpan.FromBounds(line.Start, nonWhitespaceIndex));
+                var text = SourceText.From(change.NewText);
+                foreach (var line in text.Lines)
+                {
+                    if (first)
+                    {
+                        first = false;
+                        continue;
+                    }
+
+                    var nonWhitespaceIndex = GetFirstNonWhitespaceIndex(text, line);
+                    if (nonWhitespaceIndex >= 0)
+                        commonIndentPrefix = GetCommonIndentationPrefix(commonIndentPrefix, text, TextSpan.FromBounds(line.Start, nonWhitespaceIndex));
+                }
             }
 
             return commonIndentPrefix;
