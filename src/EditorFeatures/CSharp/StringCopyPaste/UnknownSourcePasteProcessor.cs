@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -79,37 +80,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private ImmutableArray<TextChange> GetAppropriateTextChanges(CancellationToken cancellationToken)
         {
-            if (IsAnyRawStringExpression(StringExpressionBeforePaste))
-                return GetTextChangesForRawString(cancellationToken);
-
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to
             // deal with things like indentation and potentially adding newlines to make things legal.
-            if (StringExpressionBeforePaste is LiteralExpressionSyntax literalExpression)
-            {
-                Contract.ThrowIfFalse(literalExpression.Token.Kind() == SyntaxKind.StringLiteralToken);
-                return GetEscapedTextChangesForNonRawString(literalExpression.Token.IsVerbatimStringLiteral());
-            }
-            else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedStringStartToken)
-                    return GetEscapedTextChangesForNonRawString(isVerbatim: false);
-
-                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-                    return GetEscapedTextChangesForNonRawString(isVerbatim: true);
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(StringExpressionBeforePaste);
+            return IsAnyRawStringExpression(StringExpressionBeforePaste)
+                ? GetTextChangesForRawString(cancellationToken)
+                : GetTextChangesForNonRawString();
         }
 
-        private ImmutableArray<TextChange> GetEscapedTextChangesForNonRawString(bool isVerbatim)
+        private ImmutableArray<TextChange> GetTextChangesForNonRawString()
         {
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
+            var isVerbatim =
+                StringExpressionBeforePaste is LiteralExpressionSyntax literalExpression && literalExpression.Token.IsVerbatimStringLiteral() ||
+                StringExpressionBeforePaste is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedVerbatimStringStartToken };
+
+            using var textChanges = TemporaryArray<TextChange>.Empty;
 
             foreach (var change in Changes)
                 textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, change.NewText)));
 
-            return textChanges.ToImmutable();
+            return textChanges.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -169,8 +159,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var indentationWhitespace = StringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(DocumentBeforePaste, cancellationToken);
 
-            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var finalTextChanges);
-            using var _2 = PooledStringBuilder.GetInstance(out var buffer);
+            using var finalTextChanges = TemporaryArray<TextChange>.Empty;
+            using var _ = PooledStringBuilder.GetInstance(out var buffer);
 
             // First, add any extra quotes if we need them.
             if (quotesToAdd != null)
@@ -226,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (quotesToAdd != null)
                 finalTextChanges.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.End, 0), quotesToAdd));
 
-            return finalTextChanges.ToImmutable();
+            return finalTextChanges.ToImmutableAndClear();
 
             bool LastPastedLineAddedNewLine()
             {
@@ -246,8 +236,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // The indentation whitespace every line of the final raw string needs.
             var indentationWhitespace = endLine.GetLeadingWhitespace();
 
-            using var _1 = ArrayBuilder<TextChange>.GetInstance(out var finalTextChanges);
-            using var _2 = PooledStringBuilder.GetInstance(out var buffer);
+            using var finalTextChanges = TemporaryArray<TextChange>.Empty;
+            using var _ = PooledStringBuilder.GetInstance(out var buffer);
 
             if (quotesToAdd != null)
                 finalTextChanges.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.SpanStart, 0), quotesToAdd));
@@ -353,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (quotesToAdd != null)
                 finalTextChanges.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.End, 0), quotesToAdd));
 
-            return finalTextChanges.ToImmutable();
+            return finalTextChanges.ToImmutableAndClear();
         }
     }
 }
