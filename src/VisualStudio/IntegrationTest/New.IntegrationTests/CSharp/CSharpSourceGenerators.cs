@@ -144,13 +144,7 @@ internal static class Program
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd12CmdID.NavigateTo, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendToNavigateToAsync(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKey.Enter);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo }, HangMitigatingCancellationToken);
-            await TestServices.Editor.WaitForEditorOperationsAsync(HangMitigatingCancellationToken);
-
-            // It's not clear why this delay is necessary. Navigation operations are expected to fully complete as part
-            // of one of the above waiters, but GetActiveWindowCaptionAsync appears to return "Program.cs" (the previous
-            // window caption) for a short delay after the above complete.
-            await Task.Delay(2000);
+            await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs [generated]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("HelloWorld", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));

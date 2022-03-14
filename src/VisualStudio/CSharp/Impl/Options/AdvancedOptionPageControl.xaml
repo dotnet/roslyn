@@ -64,9 +64,9 @@
                 <StackPanel>
                     <CheckBox x:Name="Split_string_literals_on_enter"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
-                    <CheckBox x:Name="Fixup_text_pasted_into_string_literals"
-                              x:Uid="Fixup_text_pasted_into_string_literals"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fixup_text_pasted_into_string_literals}" />
+                    <CheckBox x:Name="Fix_text_pasted_into_string_literals"
+                              x:Uid="Fix_text_pasted_into_string_literals"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fix_text_pasted_into_string_literals}" />
                     <CheckBox x:Name="ShowRemarksInQuickInfo"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
                     <CheckBox x:Name="RenameTrackingPreview"

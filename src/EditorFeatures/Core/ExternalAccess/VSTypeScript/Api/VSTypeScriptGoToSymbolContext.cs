@@ -4,7 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
+using Microsoft.CodeAnalysis.GoToDefinition;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {

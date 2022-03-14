@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+namespace Microsoft.CodeAnalysis.Formatting
 {
     [Export(typeof(IDocumentOptionsProviderFactory))]
     [Order(After = PredefinedDocumentOptionsProviderNames.EditorConfig)]
