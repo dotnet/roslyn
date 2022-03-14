@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     .WithTrailingTrivia(token.TrailingTrivia.FilterComments(addElasticMarker: true))
                     .WithLeadingTrivia(token.LeadingTrivia.FilterComments(addElasticMarker: true));
 
-        public static bool IsTypeOfCastContextWhereExpressionIsInNextLine(this SyntaxToken token)
+        public static bool IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine(this SyntaxToken token)
         {
             // If there's a string in the parenthesis in the code below, the parser would return
             // a CastExpression instead of ParenthesizedExpression. However, some features like keyword completion
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node.IsKind(SyntaxKind.IdentifierName)
                 && node.Parent is CastExpressionSyntax castExpression
                 && castExpression.Type == node
-                && castExpression.CloseParenToken.TrailingTrivia.GetFirstNewLine().HasValue;
+                && (castExpression.Expression.IsMissing || castExpression.CloseParenToken.TrailingTrivia.GetFirstNewLine().HasValue);
         }
     }
 }

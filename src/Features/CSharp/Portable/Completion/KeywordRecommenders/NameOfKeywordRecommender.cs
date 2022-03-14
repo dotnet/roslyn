@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 IsAttributeArgumentContext(context) ||
-                context.LeftToken.IsTypeOfCastContextWhereExpressionIsInNextLine();
+                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
         }
 
         private static bool IsAttributeArgumentContext(CSharpSyntaxContext context)

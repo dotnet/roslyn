@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsInstanceExpressionOrStatement(context) ||
                 IsThisParameterModifierContext(context) ||
                 IsConstructorInitializerContext(context) ||
-                context.IsInstanceContext && context.LeftToken.IsTypeOfCastContextWhereExpressionIsInNextLine();
+                context.IsInstanceContext && context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
         }
 
         private static bool IsInstanceExpressionOrStatement(CSharpSyntaxContext context)

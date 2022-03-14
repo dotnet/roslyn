@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.TargetToken.IsUnaryOperatorContext() ||
-                context.LeftToken.IsTypeOfCastContextWhereExpressionIsInNextLine();
+                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
         }
     }
 }

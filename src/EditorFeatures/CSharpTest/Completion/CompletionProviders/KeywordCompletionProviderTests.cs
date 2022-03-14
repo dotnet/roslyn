@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -544,7 +541,7 @@ $@"{declarationType} C {{
 
         [WorkItem(58921, "https://github.com/dotnet/roslyn/issues/58921")]
         [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestInCastExpressionThatMightBeParenthesizedExpression(bool hasNewline)
+        public async Task TestInCastExpressionThatMightBeParenthesizedExpression1(bool hasNewline)
         {
 
             var markup =
@@ -580,6 +577,43 @@ class C
                 await VerifyItemIsAbsentAsync(markup, "typeof");
                 await VerifyItemIsAbsentAsync(markup, "sizeof");
                 await VerifyItemIsAbsentAsync(markup, "nameof");
+            }
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(57886, "https://github.com/dotnet/roslyn/issues/57886")]
+        public async Task TestInCastExpressionThatMightBeParenthesizedExpression2(bool hasExpression)
+        {
+
+            var markup =
+$@"class C
+{{
+    bool Prop => (t$$)  { (hasExpression ? "n" : string.Empty) }
+    private int n;
+}}";
+            if (hasExpression)
+            {
+                await VerifyItemIsAbsentAsync(markup, "new");
+                await VerifyItemIsAbsentAsync(markup, "this");
+                await VerifyItemIsAbsentAsync(markup, "null");
+                await VerifyItemIsAbsentAsync(markup, "base");
+                await VerifyItemIsAbsentAsync(markup, "true");
+                await VerifyItemIsAbsentAsync(markup, "false");
+                await VerifyItemIsAbsentAsync(markup, "typeof");
+                await VerifyItemIsAbsentAsync(markup, "sizeof");
+                await VerifyItemIsAbsentAsync(markup, "nameof");
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "new");
+                await VerifyItemExistsAsync(markup, "this");
+                await VerifyItemExistsAsync(markup, "null");
+                await VerifyItemExistsAsync(markup, "base");
+                await VerifyItemExistsAsync(markup, "true");
+                await VerifyItemExistsAsync(markup, "false");
+                await VerifyItemExistsAsync(markup, "typeof");
+                await VerifyItemExistsAsync(markup, "sizeof");
+                await VerifyItemExistsAsync(markup, "nameof");
             }
         }
     }

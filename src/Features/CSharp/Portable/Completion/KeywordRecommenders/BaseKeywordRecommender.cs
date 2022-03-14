@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return
                     IsConstructorInitializerContext(context) ||
                     IsInstanceExpressionOrStatement(context) ||
-                    context.LeftToken.IsTypeOfCastContextWhereExpressionIsInNextLine();
+                    context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
             }
 
             return false;

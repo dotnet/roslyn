@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
         protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
-            => base.IsAwaitKeywordContext(syntaxContext) || syntaxContext.LeftToken.IsTypeOfCastContextWhereExpressionIsInNextLine();
+            => base.IsAwaitKeywordContext(syntaxContext) || syntaxContext.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
 
         /// <summary>
         /// Gets the span start where async keyword should go.
