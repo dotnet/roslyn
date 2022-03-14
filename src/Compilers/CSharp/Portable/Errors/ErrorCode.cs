@@ -2052,6 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_OperatorCantBeChecked = 9150, // PROTOTYPE(CheckedUserDefinedOperators) : pack numbers
         ERR_ImplicitConversionOperatorCantBeChecked = 9151,
+        ERR_CheckedOperatorNeedsMatch = 9152,
 
         #endregion
 

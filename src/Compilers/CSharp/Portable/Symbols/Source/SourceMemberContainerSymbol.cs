@@ -2256,13 +2256,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (symmetricCheck)
             {
                 var ops2 = this.GetOperators(operatorName2);
-                CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2);
-                CheckForUnmatchedOperator(diagnostics, ops2, ops1, operatorName1);
+                CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportOperatorNeedsMatch);
+                CheckForUnmatchedOperator(diagnostics, ops2, ops1, operatorName1, reportOperatorNeedsMatch);
             }
             else if (!ops1.IsEmpty)
             {
                 var ops2 = this.GetOperators(operatorName2);
-                CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2);
+                CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportCheckedOperatorNeedsMatch);
+            }
+
+            static void reportOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
+            {
+                // CS0216: The operator 'C.operator true(C)' requires a matching operator 'false' to also be defined
+                diagnostics.Add(ErrorCode.ERR_OperatorNeedsMatch, op1.Locations[0], op1,
+                    SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName2)));
+            }
+
+            static void reportCheckedOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
+            {
+                diagnostics.Add(ErrorCode.ERR_CheckedOperatorNeedsMatch, op1.Locations[0], op1);
             }
         }
 
@@ -2270,7 +2282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             ImmutableArray<MethodSymbol> ops1,
             ImmutableArray<MethodSymbol> ops2,
-            string operatorName2)
+            string operatorName2,
+            Action<BindingDiagnosticBag, string, MethodSymbol> reportMatchNotFoundError)
         {
             foreach (var op1 in ops1)
             {
@@ -2286,9 +2299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!foundMatch)
                 {
-                    // CS0216: The operator 'C.operator true(C)' requires a matching operator 'false' to also be defined
-                    diagnostics.Add(ErrorCode.ERR_OperatorNeedsMatch, op1.Locations[0], op1,
-                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName2)));
+                    reportMatchNotFoundError(diagnostics, operatorName2, op1);
                 }
             }
         }
