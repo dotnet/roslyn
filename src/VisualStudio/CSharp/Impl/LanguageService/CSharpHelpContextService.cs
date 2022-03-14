@@ -201,15 +201,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            // Workaround IsPredefinedOperator returning true for '<' in generics.
-            if (token is { RawKind: (int)SyntaxKind.LessThanToken, Parent: not BinaryExpressionSyntax })
-            {
-                text = null;
-                return false;
-            }
-
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
+            if (syntaxFacts.IsOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
             {
                 text = Keyword(syntaxFacts.GetText(token.RawKind));
                 return true;
@@ -236,6 +229,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 text = Keyword("=>");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList))
+            {
+                text = Keyword("generics");
                 return true;
             }
 

@@ -449,7 +449,46 @@ class Program
     {
         generic[||]<int>(0);
     }
-}", "Program.generic``1");
+}", "generics_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGenericAngle2()
+        {
+            await TestAsync(
+@"class Program
+{
+    static void generic<T>(T t)
+    {
+        generic<int[|>|](0);
+    }
+}", "generics_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGenericAngle3()
+        {
+            await TestAsync(
+@"class Program
+{
+    static void generic[|<|]T>(T t)
+    {
+        generic<int>(0);
+    }
+}", "generics_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGenericAngle4()
+        {
+            await TestAsync(
+@"class Program
+{
+    static void generic<T[|>|](T t)
+    {
+        generic<int>(0);
+    }
+}", "generics_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
