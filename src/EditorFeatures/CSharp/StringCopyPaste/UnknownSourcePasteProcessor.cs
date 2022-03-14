@@ -75,11 +75,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private ImmutableArray<TextChange> GetEditsForNonRawString()
         {
             var isVerbatim = IsVerbatimStringExpression(StringExpressionBeforePaste);
+            var isInterpolated = StringExpressionBeforePaste is InterpolatedStringExpressionSyntax;
 
             using var textChanges = TemporaryArray<TextChange>.Empty;
 
             foreach (var change in Changes)
-                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, change.NewText)));
+                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, isInterpolated, change.NewText)));
 
             return textChanges.ToImmutableAndClear();
         }

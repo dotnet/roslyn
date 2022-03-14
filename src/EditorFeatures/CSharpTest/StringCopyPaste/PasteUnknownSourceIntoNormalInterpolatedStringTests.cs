@@ -83,6 +83,86 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 afterUndo: @"var x = $""$$""");
         }
 
+        [WpfFact]
+        public void TestOpenCurlyIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{",
+                @"var x = $""$$""",
+                @"var x = $""{{$$""",
+                afterUndo: "var x = $\"{$$\"");
+        }
+
+        [WpfFact]
+        public void TestTwoOpenCurliesIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{",
+                @"var x = $""$$""",
+                @"var x = $""{{$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestTwoOpenCurliesAndContentIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{0",
+                @"var x = $""$$""",
+                @"var x = $""{{0$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestCloseCurlyIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "}",
+                @"var x = $""$$""",
+                @"var x = $""}}$$""",
+                afterUndo: "var x = $\"}$$\"");
+        }
+
+        [WpfFact]
+        public void TestTwoCloseCurliesIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "}}",
+                @"var x = $""$$""",
+                @"var x = $""}}$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestTwoCloseCurliesAndContentIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "}}0",
+                @"var x = $""$$""",
+                @"var x = $""}}0$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestCurlyWithContentIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "x{0}y",
+                @"var x = $""$$""",
+                @"var x = $""x{0}y$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
+        [WpfFact]
+        public void TestCurliesWithContentIntoNormalInterpolatedString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "x{{0}}y",
+                @"var x = $""$$""",
+                @"var x = $""x{{0}}y$$""",
+                afterUndo: "var x = $\"$$\"");
+        }
+
         #endregion
 
         #region Paste from external source into normal interpolated string before hole

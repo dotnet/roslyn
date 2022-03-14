@@ -380,11 +380,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
-        public static string EscapeForNonRawStringLiteral(bool isVerbatim, string value)
+        public static string EscapeForNonRawStringLiteral(bool isVerbatim, bool isInterpolated, string value)
         {
-            // Verbatim strings are trivial.  They just need to escape `"` to `""`.
             if (isVerbatim)
-                return value.Replace("\"", "\"\"");
+                return EscapeForNonRawVerbatimStringLiteral(isInterpolated, value);
 
             // Standard strings have a much larger set of cases to consider.
             using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -392,14 +391,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // taken from object-display
             for (var i = 0; i < value.Length; i++)
             {
-                var c = value[i];
-                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate)
+                var ch = value[i];
+                var nextCh = i == value.Length - 1 ? 0 : value[i + 1];
+
+                if (CharUnicodeInfo.GetUnicodeCategory(ch) == UnicodeCategory.Surrogate)
                 {
                     var category = CharUnicodeInfo.GetUnicodeCategory(value, i);
                     if (category == UnicodeCategory.Surrogate)
                     {
                         // an unpaired surrogate
-                        builder.Append("\\u" + ((int)c).ToString("x4"));
+                        builder.Append("\\u" + ((int)ch).ToString("x4"));
                     }
                     else if (NeedsEscaping(category))
                     {
@@ -411,17 +412,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     else
                     {
                         // copy a printable surrogate pair directly
-                        builder.Append(c);
+                        builder.Append(ch);
                         builder.Append(value[++i]);
                     }
                 }
-                else if (TryReplaceChar(c, out var replaceWith))
+                else if (TryReplaceChar(ch, out var replaceWith))
                 {
                     builder.Append(replaceWith);
                 }
                 else
                 {
-                    builder.Append(c);
+                    builder.Append(ch);
+
+                    // if we see a special character then skip the following one if the following one already escapes it.
+                    // Otherwise, if it's not already escaped, then escape it.
+                    if (isInterpolated && ch is '{' or '}')
+                    {
+                        if (nextCh == ch)
+                            i++;
+                        else
+                            builder.Append(ch);
+                    }
                 }
             }
 
@@ -490,6 +501,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         return false;
                 }
             }
+        }
+
+        private static string EscapeForNonRawVerbatimStringLiteral(bool isInterpolated, string value)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                var ch = value[i];
+                var nextCh = i == value.Length - 1 ? 0 : value[i + 1];
+
+                builder.Append(ch);
+
+                // if we see a special character then skip the following one if the following one already escapes it.
+                // Otherwise, if it's not already escaped, then escape it.
+                if (ch == '"')
+                {
+                    if (nextCh == ch)
+                        i++;
+                    else
+                        builder.Append(ch);
+                }
+                else if (isInterpolated && ch is '{' or '}')
+                {
+                    if (nextCh == ch)
+                        i++;
+                    else
+                        builder.Append(ch);
+                }
+            }
+
+            return builder.ToString();
         }
 
         /// <summary>
