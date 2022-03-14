@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 Dim solution = workspace.CurrentSolution
                 Dim csharpDocument = solution.Projects.Single(Function(p) p.Language = LanguageNames.CSharp).Documents.Single()
                 Dim vbDocument = solution.Projects.Single(Function(p) p.Language = LanguageNames.VisualBasic).Documents.Single()
-                Dim options = New DocumentHighlightingOptions()
+                Dim options = New HighlightingOptions()
 
                 Dim service = csharpDocument.GetLanguageService(Of IDocumentHighlightsService)
                 Dim highlights = Await service.GetDocumentHighlightsAsync(

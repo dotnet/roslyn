@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         {
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
+            private readonly Accessibility? _desiredAccessibility;
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly TextSpan _textSpan;
 
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document, TextSpan textSpan,
                 INamedTypeSymbol containingType,
+                Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> viableMembers,
                 ImmutableArray<PickMembersOption> pickMembersOptions)
             {
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 _document = document;
                 _textSpan = textSpan;
                 _containingType = containingType;
+                _desiredAccessibility = desiredAccessibility;
                 ViableMembers = viableMembers;
                 PickMembersOptions = pickMembersOptions;
             }
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var addNullChecks = (addNullChecksOption?.Value ?? false);
                 var state = await State.TryGenerateAsync(
-                    _service, _document, _textSpan, _containingType,
+                    _service, _document, _textSpan, _containingType, _desiredAccessibility,
                     result.Members, cancellationToken).ConfigureAwait(false);
 
                 if (state == null)

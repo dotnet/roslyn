@@ -10,17 +10,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString), [Shared]>
-    Friend Class VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider
+    Friend NotInheritable Class VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider
         Inherits AbstractConvertConcatenationToInterpolatedStringRefactoringProvider(Of ExpressionSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Protected Overrides Function SupportsConstantInterpolatedStrings(document As Document) As Boolean
-            Return False
-        End Function
 
         Protected Overrides Function GetTextWithoutQuotes(text As String, isVerbatim As Boolean, isCharacterLiteral As Boolean) As String
             If isCharacterLiteral Then
