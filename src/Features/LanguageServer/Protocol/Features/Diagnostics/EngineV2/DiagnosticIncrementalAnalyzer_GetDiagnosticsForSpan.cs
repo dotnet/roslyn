@@ -88,8 +88,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var stateSets = owner._stateManager
                                      .GetOrCreateStateSets(document.Project).Where(s => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(s.Analyzer, document.Project, owner.GlobalOptions));
 
-                var crashOnAnalyzerException = owner.GlobalOptions.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException);
-                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var ideOptions = owner.AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(document.Project.Language);
+
+                var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 return new LatestDiagnosticsForSpanGetter(
                     owner, compilationWithAnalyzers, document, stateSets, shouldIncludeDiagnostic, range,
@@ -98,18 +99,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private static async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(
                 Project project,
+                IdeAnalyzerOptions ideOptions,
                 IEnumerable<StateSet> stateSets,
                 bool includeSuppressedDiagnostics,
-                bool crashOnAnalyzerException,
                 CancellationToken cancellationToken)
             {
                 if (_lastProjectAndCompilationWithAnalyzers.TryGetTarget(out var projectAndCompilationWithAnalyzers) &&
                     projectAndCompilationWithAnalyzers?.Project == project)
                 {
-                    return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
+                    if (projectAndCompilationWithAnalyzers.CompilationWithAnalyzers == null)
+                    {
+                        return null;
+                    }
+
+                    if (((WorkspaceAnalyzerOptions)projectAndCompilationWithAnalyzers.CompilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions == ideOptions)
+                    {
+                        return projectAndCompilationWithAnalyzers.CompilationWithAnalyzers;
+                    }
                 }
 
-                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 _lastProjectAndCompilationWithAnalyzers.SetTarget(new ProjectAndCompilationWithAnalyzers(project, compilationWithAnalyzers));
                 return compilationWithAnalyzers;
             }

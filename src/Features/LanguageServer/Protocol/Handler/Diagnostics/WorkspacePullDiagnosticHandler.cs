@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService)
-            : base(serverKind, diagnosticService)
+        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+            : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
         {
         }
 
