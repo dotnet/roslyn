@@ -477,6 +477,17 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInEnum()
+        {
+            await TestAsync(
+@"
+enum E
+{
+    A [||]= 1
+}", "enum_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestFromIn()
         {
             await TestAsync(

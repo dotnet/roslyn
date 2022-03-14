@@ -237,6 +237,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         text = Keyword("propertyInitializer");
                         return true;
                     }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.EnumMemberDeclaration))
+                    {
+                        text = Keyword("enum");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator))
+                    {
+                        text = Keyword("=");
+                        return true;
+                    }
                 }
 
                 // EqualsToken in assignment expression is handled by syntaxFacts.IsOperator call above.
