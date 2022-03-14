@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\n",
 @"var x = """"""$$ """"""",
-"var x = \"\"\"\r\n    \n     \r\n   $$ \"\"\"",
+"var x = \"\"\"\r\n    \n    $$ \r\n    \"\"\"",
                 afterUndo:
 "var x = \"\"\"\n$$ \"\"\"");
         }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\r\n",
 @"var x = """"""$$ """"""",
-"var x = \"\"\"\r\n$$    \r\n     \r\n    \"\"\"",
+"var x = \"\"\"\r\n    \r\n    $$ \r\n    \"\"\"",
                 afterUndo:
 "var x = \"\"\"\r\n$$ \"\"\"");
         }
@@ -125,8 +125,8 @@ $$
                 pasteText: "\"",
 @"var x = """"""$$ """"""",
 @"var x = """"""
-    "" 
-   $$ """"""",
+    ""$$ 
+    """"""",
                 afterUndo:
 @"var x = """"""""$$ """"""");
         }
@@ -261,8 +261,8 @@ $$
 @"var x = """"""$$ """"""",
 @"var x = """"""
     abc
-    def 
-   $$ """"""",
+    def$$ 
+    """"""",
                 afterUndo:
 @"var x = """"""abc
 def$$ """"""");
@@ -339,8 +339,8 @@ $$bar""""""");
 @"var x = """"""
     abc
         def
-    ghi 
-   $$ """"""",
+    ghi$$ 
+    """"""",
                 afterUndo:
 @"var x = """"""abc
     def
@@ -373,8 +373,8 @@ ghi$$""""""");
 @"var x = """"""
     abc
     def
-    ghi 
-   $$ """"""",
+    ghi$$ 
+    """"""",
                 afterUndo:
 @"var x = """"""abc
     def
@@ -390,8 +390,8 @@ ghi$$""""""");
 @"var x = """"""
     abc
     def
-    ghi 
-   $$ """"""",
+    ghi$$ 
+    """"""",
                 afterUndo:
 @"var x = """"""abc
     def
@@ -407,8 +407,8 @@ ghi$$""""""");
 @"var x = """"""
     abc
     def
-    ghi 
-   $$ """"""",
+    ghi$$ 
+    """"""",
                 afterUndo:
 @"var x = """"""    abc
     def
@@ -441,8 +441,8 @@ ghi$$""""""");
 @"var x = """"""
         abc
     def
-    ghi 
-   $$ """"""",
+    ghi$$ 
+    """"""",
                 afterUndo:
 @"var x = """"""        abc
     def
@@ -489,8 +489,8 @@ def$$""""""");
 @"var x = """"""  $${|Selection:    |}  """"""",
 @"var x = """"""
       abc
-    def  
-  $$  """"""",
+    def$$  
+    """"""",
                 afterUndo:
 @"var x = """"""  abc
 def$$  """"""");
@@ -522,8 +522,8 @@ $$""""""");
 @"var x = """"""
       abc
     def
-      
-  $$  """"""",
+    $$  
+    """"""",
                 afterUndo:
 @"var x = """"""  abc
 def
@@ -538,8 +538,8 @@ $$  """"""");
 @"var x = """"""$${|Selection:    |}  """"""",
 @"var x = """"""
     abc
-    def  
-  $$  """"""",
+    def$$  
+    """"""",
                 afterUndo:
 @"var x = """"""abc
 def$$  """"""");

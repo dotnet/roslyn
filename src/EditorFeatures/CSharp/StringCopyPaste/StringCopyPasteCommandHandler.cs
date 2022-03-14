@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -155,13 +156,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (ContentsAreSame(snapshotBeforePaste, snapshotAfterPaste, stringExpressionBeforePaste, newTextAfterChanges))
                 return;
 
-            var newDocument = documentAfterPaste.WithText(newTextAfterChanges);
+            // Create two edits to make the change.  The first restores the buffer to the original snapshot (effectively
+            // undoing the first set of changes).  Then the second actually applies the change.
+            //
+            // Do this as direct edits, passing 'EditOptions.None' for the options, as we want to control the edits
+            // precisely and don't want any strange interpretation of where the caret should end up.  Other options
+            // (like DefaultMinimalChange) will attempt to diff/merge edits oddly sometimes which can lead the caret
+            // ending up before/after some merged change, which will no longer match the behavior of precise pastes.
+            //
+            // Wrap this all as a transaction so that these two edits appear to be one single change.  This also allows
+            // the user to do a single 'undo' that gets them back to the original paste made at the start of this
+            // method.
 
             using var transaction = new CaretPreservingEditTransaction(
                 CSharpEditorResources.Fixing_string_literal_after_paste,
                 textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
+            var edit1 = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+            foreach (var change in snapshotBeforePaste.Version.Changes)
+                edit1.Replace(change.NewSpan, change.OldText);
+            edit1.Apply();
+
+            var edit2 = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+            foreach (var change in textChanges)
+                edit2.Replace(change.Span.ToSpan(), change.NewText);
+            edit2.Apply();
+
             transaction.Complete();
         }
 

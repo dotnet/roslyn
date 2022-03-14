@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "{",
                 @"var x = $""$${0}""",
-                @"var x = $""{$${{0}""",
+                @"var x = $""{{$${0}""",
                 afterUndo: "var x = $\"{$${0}\"");
         }
 
