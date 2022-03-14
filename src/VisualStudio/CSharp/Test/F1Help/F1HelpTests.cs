@@ -344,7 +344,8 @@ $@"namespace N
         {{
             var two = 1 [|{operatorText}|] 1;
         }}
-    }}", $"{operatorText}_CSharpKeyword");
+    }}
+}}", $"{operatorText}_CSharpKeyword");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -369,7 +370,8 @@ $@"namespace N
         {{
             x [|{operatorText}|] x;
         }}
-    }}", $"{operatorText}_CSharpKeyword");
+    }}
+}}", $"{operatorText}_CSharpKeyword");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -388,7 +390,8 @@ $@"namespace N
         {{
             x = [|{operatorText}|]x;
         }}
-    }}", $"{operatorText}_CSharpKeyword");
+    }}
+}}", $"{operatorText}_CSharpKeyword");
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -405,7 +408,36 @@ $@"namespace N
         {{
             x = x[|{operatorText}|];
         }}
-    }}", $"{operatorText}_CSharpKeyword");
+    }}
+}}", $"{operatorText}_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsOperatorInParameter()
+        {
+            await TestAsync(
+@"namespace N
+{
+    class C
+    {
+        void goo(int x [|=|] 0)
+        {
+        }
+    }
+}", "optionalParameter_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsOperatorInPropertyInitializer()
+        {
+            await TestAsync(
+@"namespace N
+{
+    class C
+    {
+        int P { get; } [|=|] 5;
+    }
+}", "propertyInitializer_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]

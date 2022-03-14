@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -202,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
+            if (syntaxFacts.IsOperator(token))
             {
                 text = Keyword(syntaxFacts.GetText(token.RawKind));
                 return true;
@@ -217,6 +218,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.ColonToken) && token.Parent is NameColonSyntax)
             {
                 text = Keyword("namedParameter");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.EqualsToken))
+            {
+                if (token.Parent.IsKind(SyntaxKind.EqualsValueClause))
+                {
+                    if (token.Parent.Parent.IsKind(SyntaxKind.Parameter))
+                    {
+                        text = Keyword("optionalParameter");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+                    {
+                        text = Keyword("propertyInitializer");
+                        return true;
+                    }
+                }
+
+                // EqualsToken in assignment expression is handled by syntaxFacts.IsOperator call above.
+                // Here we try to handle other contexts of EqualsToken.
+                // If we hit this assert, there is a context of the EqualsToken that's not handled.
+                // In this case, we currently fallback to https://docs.microsoft.com/dotnet/csharp/language-reference/operators/assignment-operator
+                Debug.Fail("Falling back to F1 keyword for assignment token.");
+                text = Keyword("=");
                 return true;
             }
 
