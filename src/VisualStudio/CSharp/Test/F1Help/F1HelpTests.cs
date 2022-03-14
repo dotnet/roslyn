@@ -413,6 +413,44 @@ $@"namespace N
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestRelationalPattern()
+        {
+            await TestAsync(
+@"namespace N
+{
+    class C
+    {
+        void goo(string x)
+        {
+            if (x is { Length: [||]> 5 }) { }
+        }
+    }
+}", ">_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestGreaterThanInFunctionPointer()
+        {
+            await TestAsync(@"
+unsafe class C
+{
+    delegate*[||]<int> f;
+}
+", "");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLessThanInFunctionPointer()
+        {
+            await TestAsync(@"
+unsafe class C
+{
+    delegate*[||]<int> f;
+}
+", "");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestEqualsOperatorInParameter()
         {
             await TestAsync(
@@ -498,7 +536,7 @@ using System;
 class MyAttribute : Attribute
 {
 }
-", "");
+", "attributeNamedArgument_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -522,7 +560,63 @@ class C
         var x = new { X [||]= 0 };
     }
 }
-", "");
+", "anonymousObject_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInDocumentationComment()
+        {
+            await TestAsync(
+@"
+class C
+{
+    /// <summary>
+    /// <a b[||]=""c"" />
+    /// </summary>
+    void M()
+    {
+        var x = new { X [||]= 0 };
+    }
+}
+", "see");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInLet()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var y =
+            from x1 in x2
+            let x3 [||]= x4
+            select x5;
+    }
+}
+
+", "let_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestLetKeyword()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var y =
+            from x1 in x2
+            [||]let x3 = x4
+            select x5;
+    }
+}
+
+", "let_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]

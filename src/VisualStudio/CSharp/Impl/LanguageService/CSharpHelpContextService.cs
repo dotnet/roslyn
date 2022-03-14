@@ -28,6 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ExportLanguageService(typeof(IHelpContextService), LanguageNames.CSharp), Shared]
     internal class CSharpHelpContextService : AbstractHelpContextService
     {
+        // This redirects to https://docs.microsoft.com/visualstudio/ide/not-in-toc/default, indicating nothing is found.
+        private const string NotFoundHelpTerm = "vs.texteditor";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpHelpContextService()
@@ -58,8 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         result = TryGetText(previousToken, semanticModel, document, cancellationToken);
                 }
 
-                // This redirects to https://docs.microsoft.com/visualstudio/ide/not-in-toc/default, indicating nothing is found.
-                return result ?? "vs.texteditor";
+                return result ?? NotFoundHelpTerm;
             }
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -87,8 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return text.GetSubText(TextSpan.FromBounds(start, end)).ToString();
             }
 
-            // This redirects to https://docs.microsoft.com/visualstudio/ide/not-in-toc/default, indicating nothing is found.
-            return "vs.texteditor";
+            return NotFoundHelpTerm;
         }
 
         private string? TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
@@ -252,7 +253,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 {
                     if (token.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator))
                     {
-                        // PROTOTYPE: Redirect to https://docs.microsoft.com/dotnet/csharp/fundamentals/types/anonymous-types
+                        text = Keyword("anonymousObject");
+                        return true;
                     }
                     else if (token.Parent.Parent.IsKind(SyntaxKind.UsingDirective))
                     {
@@ -261,10 +263,21 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     }
                     else if (token.Parent.Parent.IsKind(SyntaxKind.AttributeArgument))
                     {
-                        // PROTOTYPE: Redirect to https://docs.microsoft.com/dotnet/csharp/programming-guide/concepts/attributes/creating-custom-attributes
+                        text = Keyword("attributeNamedArgument");
+                        return true;
                     }
                 }
-                // PROTOTYPE: EqualsToken in let clause, XmlAttribute.
+                else if (token.Parent.IsKind(SyntaxKind.LetClause))
+                {
+                    text = Keyword("let");
+                    return true;
+                }
+                else if (token.Parent is XmlAttributeSyntax)
+                {
+                    // redirects to https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags
+                    text = "see";
+                    return true;
+                }
 
                 // EqualsToken in assignment expression is handled by syntaxFacts.IsOperator call above.
                 // Here we try to handle other contexts of EqualsToken.
@@ -273,6 +286,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 Debug.Fail("Falling back to F1 keyword for assignment token.");
                 text = Keyword("=");
                 return true;
+            }
+
+            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken))
+            {
+                if (token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+                {
+                    // PROTOTYPE: Figure out where to redirect.
+
+                }
             }
 
             if (token.IsKind(SyntaxKind.QuestionToken) && token.Parent is ConditionalExpressionSyntax)
