@@ -7,6 +7,7 @@
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -31,7 +32,6 @@ using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             InitializeComponent();
 
-            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);

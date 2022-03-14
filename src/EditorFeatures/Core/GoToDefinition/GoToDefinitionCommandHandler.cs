@@ -5,6 +5,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
@@ -17,7 +18,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]

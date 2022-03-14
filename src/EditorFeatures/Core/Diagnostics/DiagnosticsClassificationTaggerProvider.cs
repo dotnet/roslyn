@@ -10,13 +10,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -24,7 +23,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]

@@ -46,7 +46,12 @@ namespace RunTests
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
+                    // https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest#syntax
+                    // We want to avoid matching other test classes whose names are prefixed with this test class's name.
+                    // For example, avoid running 'AttributeTests_WellKnownMember', when the request here is to run 'AttributeTests'.
+                    // We append a '.', assuming that all test methods in the class *will* match it, but not methods in other classes.
                     builder.Append(typeInfo.FullName);
+                    builder.Append('.');
                 }
                 builder.Append(sep);
 

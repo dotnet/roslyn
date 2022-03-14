@@ -258,8 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_composition)
                 ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
                 For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
-                    Dim key = New OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, language)
-                    workspace.SetOptions(workspace.Options.WithChangedOption(key, BackgroundAnalysisScope.OpenFiles))
+                    workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language), BackgroundAnalysisScope.OpenFiles)
                 Next
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
