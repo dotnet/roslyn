@@ -519,7 +519,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestGenericAngle()
+        public async Task TestGenericAngle_LessThanToken_TypeArgument()
         {
             await TestAsync(
 @"class Program
@@ -532,7 +532,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestGenericAngle2()
+        public async Task TestGenericAngle_GreaterThanToken_TypeArgument()
         {
             await TestAsync(
 @"class Program
@@ -545,7 +545,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestGenericAngle3()
+        public async Task TestGenericAngle_LessThanToken_TypeParameter()
         {
             await TestAsync(
 @"class Program
@@ -558,7 +558,7 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestGenericAngle4()
+        public async Task TestGenericAngle_GreaterThanToken_TypeParameter()
         {
             await TestAsync(
 @"class Program
