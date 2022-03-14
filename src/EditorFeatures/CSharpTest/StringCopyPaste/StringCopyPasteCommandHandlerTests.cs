@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
@@ -127,9 +128,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
             private static void GetCodeAndCaretPosition(string expectedMarkup, out string expected, out int caretPosition)
             {
+                expectedMarkup = expectedMarkup.Replace("$", "\uD7FF");
+
                 MarkupTestFile.GetPositionAndSpan(expectedMarkup, out expected, out int? cursorPosition, out var caretSpan);
-                if (cursorPosition != null)
-                    expected = expected.Insert(cursorPosition.Value, "$$");
+                Contract.ThrowIfTrue(cursorPosition != null);
+
+                expected = expected.Replace("\uD7FF", "$");
 
                 Assert.True(caretSpan.HasValue && caretSpan.Value.IsEmpty);
                 caretPosition = caretSpan!.Value.Start;

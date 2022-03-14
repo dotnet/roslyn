@@ -796,16 +796,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (isMarkup)
             {
+                // if the caller doesn't want us caring about positions, then replace any $'s with a character unlikely
+                // to ever show up in the doc naturally.  Then, after we convert things, change that character back. We
+                // do this as a single character so that all the positions of the spans do not change.
+                if ((string)markupAttribute == "SpansOnly")
+                    markupCode = markupCode.Replace("$", "\uD7FF");
+
                 TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
 
                 // if we were told SpansOnly then that means that $$ isn't actually a caret (but is something like a raw
                 // interpolated string delimiter.  In that case, if we did see a $$ add it back it at the location we
                 // found it, and set the cursor back to null as the test will be specifying that location manually
                 // itself.
-                if (&& cursorPosition != null)
+                if ((string)markupAttribute == "SpansOnly")
                 {
-                    code = code.Insert(cursorPosition.Value, "$$");
-                    cursorPosition = null;
+                    Contract.ThrowIfTrue(cursorPosition != null);
+                    code = code.Replace("\uD7FF", "$");
                 }
             }
             else

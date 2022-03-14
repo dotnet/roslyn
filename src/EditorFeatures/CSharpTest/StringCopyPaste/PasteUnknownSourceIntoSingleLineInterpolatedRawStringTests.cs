@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "{{{",
 @"var x = $""""""[||] """"""",
-@"var x = $$$$""""""""{{{ """"""""",
+@"var x = $$$$""""""{{{[||] """"""",
                 afterUndo:
 @"var x = $""""""{{{[||] """"""");
         }
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "{{{",
 @"var x = $"""""" [||]""""""",
-@"var x = $$$$"""""""" {{{[||]""""""",
+@"var x = $$$$"""""" {{{[||]""""""",
                 afterUndo:
 @"var x = $"""""" {{{[||]""""""");
         }
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "{{{",
 @"var x = $"""""" ""[||] """"""",
-@"var x = $$$$"""""""""" ""{{{[||] """"""""""",
+@"var x = $$$$"""""" ""{{{[||] """"""",
                 afterUndo:
 @"var x = $"""""" ""{{{[||] """"""");
         }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "{{{",
 @"var x = $"""""" ""[||]"" """"""",
-@"var x = $$$$"""""""""""" ""{{{[||]"" """"""""""""",
+@"var x = $$$$"""""" ""{{{[||]"" """"""",
                 afterUndo:
 @"var x = $"""""" ""{{{[||]"" """"""");
         }
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "{{{",
 @"var x = $"""""" [||]"" """"""",
-@"var x = $$$$"""""""""" {{{[||]"" """"""""""",
+@"var x = $$$$"""""" {{{[||]"" """"""",
                 afterUndo:
 @"var x = $"""""" {{{[||]"" """"""");
         }
