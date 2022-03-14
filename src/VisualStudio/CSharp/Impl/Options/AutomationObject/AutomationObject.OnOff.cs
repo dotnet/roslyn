@@ -14,6 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, value); }
         }
 
+        public int AutomaticallyFixStringContentsOnPaste
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste); }
+            set { SetBooleanOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, value); }
+        }
+
         public int DisplayLineSeparators
         {
             get { return GetBooleanOption(FeatureOnOffOptions.LineSeparator); }
