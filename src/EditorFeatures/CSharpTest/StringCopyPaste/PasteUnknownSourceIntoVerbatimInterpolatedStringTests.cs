@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
@@ -19,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\n",
                 @"var x = $@""$$""",
-                @"var x = $@""\n$$""",
-                afterUndo: "var x = $@\"\n$$\"");
+                "var x = $@\"\n$$\"",
+                afterUndo: @"var x = $@""$$""");
         }
 
         [WpfFact]
@@ -29,8 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\r\n",
                 @"var x = $@""$$""",
-                @"var x = $@""\r\n$$""",
-                afterUndo: "var x = $@\"\r\n$$\"");
+                "var x = $@\"\r\n$$\"",
+                afterUndo: @"var x = $@""$$""");
         }
 
         [WpfFact]
@@ -69,8 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
                 @"var x = $@""$$""",
-                @"var x = $@""\t\""\t$$""",
-                afterUndo: "var x = $@\"$$\"");
+                "var x = $@\"\t\"\"\t$$\"",
+                afterUndo: @"var x = $@""$$""");
         }
 
         [WpfFact]
@@ -173,8 +176,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\n",
                 @"var x = $@""$${0}""",
-                @"var x = $@""\n$${0}""",
-                afterUndo: "var x = $@\"\n$${0}\"");
+                "var x = $@\"\n$${0}\"",
+                afterUndo: @"var x = $@""$${0}""");
         }
 
         [WpfFact]
@@ -183,8 +186,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\r\n",
                 @"var x = $@""$${0}""",
-                @"var x = $@""\r\n$${0}""",
-                afterUndo: "var x = $@\"\r\n$${0}\"");
+                "var x = $@\"\r\n$${0}\"",
+                afterUndo: @"var x = $@""$${0}""");
         }
 
         [WpfFact]
@@ -213,8 +216,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\"",
                 @"var x = $@""$${0}""",
-                @"var x = $@""\""$${0}""",
-                afterUndo: "var x = $@\"\"$${0}\"");
+                @"var x = $@""""""$${0}""",
+                afterUndo: @"var x = $@""""$${0}""");
         }
 
         [WpfFact]
@@ -223,8 +226,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
                 @"var x = $@""$${0}""",
-                @"var x = $@""\t\""\""\t$${0}""",
-                afterUndo: "var x = $@\"\t\"\"\t$${0}\"");
+                "var x = $@\"\t\"\"\t$${0}\"",
+                afterUndo: @"var x = $@""$${0}""");
         }
 
         [WpfFact]
@@ -327,8 +330,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\n",
                 @"var x = $@""{0}$$""",
-                @"var x = $@""{0}\n$$""",
-                afterUndo: "var x = $@\"{0}\n$$\"");
+                "var x = $@\"{0}\n$$\"",
+                afterUndo: @"var x = $@""{0}$$""");
         }
 
         [WpfFact]
@@ -337,8 +340,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\r\n",
                 @"var x = $@""{0}$$""",
-                @"var x = $@""{0}\r\n$$""",
-                afterUndo: "var x = $@\"{0}\r\n$$\"");
+                "var x = $@\"{0}\r\n$$\"",
+                afterUndo: @"var x = $@""{0}$$""");
         }
 
         [WpfFact]
@@ -367,8 +370,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\"",
                 @"var x = $@""{0}$$""",
-                @"var x = $@""{0}\""$$""",
-                afterUndo: "var x = $@\"{0}\"$$\"");
+                @"var x = $@""{0}""""$$""",
+                afterUndo: @"var x = $@""{0}""$$""");
         }
 
         [WpfFact]
