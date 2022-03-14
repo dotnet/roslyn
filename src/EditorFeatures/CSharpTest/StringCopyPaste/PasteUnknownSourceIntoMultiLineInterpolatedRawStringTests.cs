@@ -210,6 +210,176 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
+        public void TestOpenBraceIntoMultiLineRawString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{",
+@"var x = $""""""
+    [||]
+    """"""",
+@"var x = $$""""""
+    {[||]
+    """"""",
+                afterUndo:
+@"var x = $""""""
+    {[||]
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenBraceIntoMultiLineRawString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{{",
+@"var x = $""""""
+    [||]
+    """"""",
+@"var x = $$$$""""""
+    {{{[||]
+    """"""",
+                afterUndo:
+@"var x = $""""""
+    {{{[||]
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenBraceIntoMultiLineRawString2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{{",
+@"var x = $$""""""
+    [||]
+    """"""",
+@"var x = $$$$""""""
+    {{{[||]
+    """"""",
+                afterUndo:
+@"var x = $$""""""
+    {{{[||]
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenBraceIntoMultiLineRawString2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{",
+@"var x = $$$""""""  
+    {[||]{
+    """"""  ",
+@"var x = $$$$""""""  
+    {{[||]{
+    """"""  ",
+                afterUndo:
+@"var x = $$$""""""  
+    {{[||]{
+    """"""  ");
+        }
+
+        [WpfFact]
+        public void TestInterpolationIntoMultiLineRawString3()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{0}",
+@"var x = $""""""  
+    [||]
+    """"""  ",
+@"var x = $""""""  
+    {0}[||]
+    """"""  ",
+                afterUndo:
+@"var x = $""""""  
+    [||]
+    """"""  ");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseIntoMultiLineRawString4()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{}",
+@"var x = $""""""  
+    [||]  
+    """"""  ",
+@"var x = $$""""""  
+    {}[||]  
+    """"""  ",
+                afterUndo:
+@"var x = $""""""  
+    {}[||]  
+    """"""  ");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoMultiLineRawString5()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{}",
+@"var x = $$""""""  
+    [||]
+    """"""  ",
+@"var x = $$$""""""  
+    {{}[||]
+    """"""  ",
+                afterUndo:
+@"var x = $$""""""  
+    {{}[||]
+    """"""  ");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoMultiLineRawString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{}}",
+@"var x = $""""""
+    [||]
+    """"""",
+@"var x = $$$""""""
+    {}}[||]
+    """"""",
+                afterUndo:
+@"var x = $""""""
+    {}}[||]
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoMultiLineRawString2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{}}",
+@"var x = $""""""
+    [||]
+    """"""",
+@"var x = $$$""""""
+    {{}}[||]
+    """"""",
+                afterUndo:
+@"var x = $""""""
+    {{}}[||]
+    """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleQuoteTripleOpenBraceIntoMultiLineRawString()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"\"\"{{{",
+@"var x = $""""""
+    [||]
+    """"""",
+@"var x = $$$$""""""""
+    """"""{{{[||]
+    """"""""",
+                afterUndo:
+@"var x = $""""""
+    """"""{{{[||]
+    """"""");
+        }
+
+        [WpfFact]
         public void TestComplexStringIntoMultiLineRawString()
         {
             TestPasteUnknownSource(

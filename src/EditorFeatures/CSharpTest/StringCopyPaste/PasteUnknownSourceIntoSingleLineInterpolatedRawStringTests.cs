@@ -243,6 +243,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
+        public void TestOpenQuoteAndTripleOpenBraceIntoSingleLineRawString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"{{{",
+@"var x = $""""""[||] """"""",
+@"var x = $$$$""""""
+    ""{{{[||] 
+    """"""",
+                afterUndo:
+@"var x = $""""""""{{{[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenQuoteAndTripleOpenBraceIntoSingleLineRawString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"\"\"{{{",
+@"var x = $""""""[||] """"""",
+@"var x = $$$$""""""""
+    """"""{{{[||] 
+    """"""""",
+                afterUndo:
+@"var x = $""""""""""""{{{[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenQuoteAndTripleOpenBraceIntoSingleLineRawString2()
+        {
+            TestPasteUnknownSource(
+                pasteText: " \"\"\"{{{",
+@"var x = $""""""[||] """"""",
+@"var x = $$$$"""""""" """"""{{{[||] """"""""",
+                afterUndo:
+@"var x = $"""""" """"""{{{[||] """"""");
+        }
+
+        [WpfFact]
         public void TestTripleOpenBraceIntoSingleLineRawString1_A()
         {
             TestPasteUnknownSource(

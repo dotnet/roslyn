@@ -129,14 +129,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (stringExpressionBeforePaste == null)
                 return;
 
-            // If the user pasted something other than the last piece of text we're tracking, then that means some other
-            // copy happened, and we can't do anything special here.
-            //if (PastedTextEqualsLastCopiedText(subjectBuffer))
-            //{
-            //    // ProcessPasteFromKnownSource();
-            //}
-            //else
-            //{
+            // TODO: add support for pasting content that came from within the editor.  We can exactly know what that
+            // content meant, and how to insert it into our string expression.
 
             var pasteWasSuccessful = PasteWasSuccessful(
                 snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
