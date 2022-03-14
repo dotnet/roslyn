@@ -104,8 +104,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             newTypeDocument = newTypeDocument.WithSyntaxRoot(annotatedRoot);
 
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(newTypeDocument, cancellationToken).ConfigureAwait(false);
             var simplified = await Simplifier.ReduceAsync(newTypeDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var formattedDocument = await Formatter.FormatAsync(simplified, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var formattedDocument = await Formatter.FormatAsync(simplified, formattingOptions, cancellationToken).ConfigureAwait(false);
 
             return (formattedDocument, typeAnnotation);
         }

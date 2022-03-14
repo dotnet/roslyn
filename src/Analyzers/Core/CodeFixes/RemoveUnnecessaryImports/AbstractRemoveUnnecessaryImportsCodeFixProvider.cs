@@ -39,7 +39,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         protected abstract string GetTitle();
 
+#if CODE_STYLE
         private async Task<Document> RemoveUnnecessaryImportsAsync(
+#else
+        private static async Task<Document> RemoveUnnecessaryImportsAsync(
+#endif
             Document document,
             CancellationToken cancellationToken)
         {

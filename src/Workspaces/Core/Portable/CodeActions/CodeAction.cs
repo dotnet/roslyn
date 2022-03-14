@@ -318,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             if (document.SupportsSyntaxTree)
             {
                 var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
                     document, Simplifier.AddImportsAnnotation, addImportOptions, cancellationToken).ConfigureAwait(false);
@@ -325,10 +326,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
 
                 // format any elastic whitespace
-                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, formattingOptions, cancellationToken).ConfigureAwait(false);
 
                 document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
             }
