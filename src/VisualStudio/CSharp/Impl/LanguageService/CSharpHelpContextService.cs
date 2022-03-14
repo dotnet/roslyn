@@ -51,14 +51,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(span, cancellationToken).ConfigureAwait(false);
 
                 var result = TryGetText(token, semanticModel, document, cancellationToken);
-                if (string.IsNullOrEmpty(result))
+                if (result is null)
                 {
                     var previousToken = token.GetPreviousToken();
                     if (previousToken.Span.IntersectsWith(span))
                         result = TryGetText(previousToken, semanticModel, document, cancellationToken);
                 }
 
-                return result;
+                // This redirects to https://docs.microsoft.com/visualstudio/ide/not-in-toc/default, indicating nothing is found.
+                return result ?? "vs.texteditor";
             }
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -86,10 +87,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return text.GetSubText(TextSpan.FromBounds(start, end)).ToString();
             }
 
-            return string.Empty;
+            // This redirects to https://docs.microsoft.com/visualstudio/ide/not-in-toc/default, indicating nothing is found.
+            return "vs.texteditor";
         }
 
-        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
+        private string? TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
         {
             if (TryGetTextForSpecialCharacters(token, out var text) ||
                 TryGetTextForContextualKeyword(token, out text) ||
@@ -102,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return text;
             }
 
-            return string.Empty;
+            return null;
         }
 
         private static bool TryGetTextForSpecialCharacters(SyntaxToken token, [NotNullWhen(true)] out string? text)

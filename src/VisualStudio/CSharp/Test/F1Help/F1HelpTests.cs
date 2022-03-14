@@ -1378,5 +1378,15 @@ class C
     object Goo() => null;
 }", "discard");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestNotFound()
+        {
+            await TestAsync(
+@"
+#if ANY[||]THING
+#endif
+", "vs.texteditor");
+        }
     }
 }
