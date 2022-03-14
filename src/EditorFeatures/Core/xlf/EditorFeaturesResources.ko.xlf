@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
         <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <target state="translated">캐럿에서 기호를 탐색할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
