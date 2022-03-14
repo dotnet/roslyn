@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!method.HasThisConstructorInitializer(out _)
                         && (!method.ContainingType.IsValueType
                             || method.IsStatic
-                            || compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors)))
+                            || compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs)))
                     {
                         return true;
                     }

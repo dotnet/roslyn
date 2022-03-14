@@ -1387,6 +1387,11 @@
         <target state="translated">异步方法生成器替代</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAutoDefaultStructs">
+        <source>auto default struct fields</source>
+        <target state="new">auto default struct fields</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">协变返回</target>
@@ -1415,11 +1420,6 @@
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="translated">全局 using 指令</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureImplicitInitializationInStructConstructors">
-        <source>implicit initialization in struct constructors</source>
-        <target state="new">implicit initialization in struct constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -3562,23 +3562,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedStructThis">
-        <source>Field '{0}' must be fully assigned before control is returned to the caller</source>
-        <target state="new">Field '{0}' must be fully assigned before control is returned to the caller</target>
+        <source>Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedStructThisAutoProperty">
-        <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</source>
-        <target state="new">Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</target>
+        <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedStructThisAutoProperty_Title">
-        <source>An auto-implemented property must be fully assigned before control is returned to the caller.</source>
-        <target state="new">An auto-implemented property must be fully assigned before control is returned to the caller.</target>
+        <source>Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before auto-implemented property is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedStructThis_Title">
-        <source>Fields of a struct must be fully assigned in a constructor before control is returned to the caller</source>
-        <target state="new">Fields of a struct must be fully assigned in a constructor before control is returned to the caller</target>
+        <source>Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Control is returned to caller before field is explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThis">
@@ -3662,13 +3662,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldStructThis">
-        <source>Use of possibly unassigned field '{0}'</source>
-        <target state="new">Use of possibly unassigned field '{0}'</target>
+        <source>Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldStructThis_Title">
-        <source>Use of possibly unassigned field</source>
-        <target state="new">Use of possibly unassigned field</target>
+        <source>Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Field is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationField_Title">
@@ -3692,13 +3692,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertyStructThis">
-        <source>Use of possibly unassigned auto-implemented property '{0}'</source>
-        <target state="new">Use of possibly unassigned auto-implemented property '{0}'</target>
+        <source>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertyStructThis_Title">
-        <source>Use of possibly unassigned auto-implemented property</source>
-        <target state="new">Use of possibly unassigned auto-implemented property</target>
+        <source>Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
+        <target state="new">Auto-implemented property is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationProperty_Title">
@@ -3707,13 +3707,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationStructThis">
-        <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="new">The 'this' object cannot be used before all of its fields have been assigned</target>
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationStructThis_Title">
-        <source>The 'this' object cannot be used in a constructor before all of its fields have been assigned</source>
-        <target state="new">The 'this' object cannot be used in a constructor before all of its fields have been assigned</target>
+        <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
+        <target state="new">The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThis">

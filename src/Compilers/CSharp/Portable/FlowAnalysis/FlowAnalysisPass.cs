@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="method">the method to be analyzed</param>
         /// <param name="block">the method's body</param>
+        /// <param name="compilationState">The state of compilation of the enclosing type</param>
         /// <param name="diagnostics">the receiver of the reported diagnostics</param>
         /// <param name="hasTrailingExpression">indicates whether this Script had a trailing expression</param>
         /// <param name="originalBodyNested">the original method body is the last statement in the block</param>

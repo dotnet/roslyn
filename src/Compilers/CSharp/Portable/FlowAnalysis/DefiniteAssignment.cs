@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int fieldSlot = VariableSlot(field, thisSlot);
                             if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {
-                                bool useImplicitInitialization = compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors);
+                                bool useImplicitInitialization = compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs);
                                 Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
                                 if (associatedPropertyOrEvent?.Kind == SymbolKind.Property)
                                 {
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compatImplicitlyInitializedFieldsOpt.IsDefault
                 || (implicitlyInitializedFieldsOpt is var strictFields && compatImplicitlyInitializedFieldsOpt.All(field => strictFields.Contains(field))));
 
-            if (MessageID.IDS_FeatureImplicitInitializationInStructConstructors.GetFeatureAvailabilityDiagnosticInfo(compilation) is { } diagnosticInfo)
+            if (MessageID.IDS_FeatureAutoDefaultStructs.GetFeatureAvailabilityDiagnosticInfo(compilation) is { } diagnosticInfo)
             {
                 // We only give the LangVersion error if "compat" initializations are present.
                 if (!compatImplicitlyInitializedFieldsOpt.IsDefault)
@@ -1159,12 +1159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var associatedSymbol = fieldSymbol.AssociatedSymbol;
                     if (associatedSymbol?.Kind == SymbolKind.Property)
                     {
-                        errorCode = adjustErrorForStructFieldOrProperty(isProperty: true, slot);
+                        errorCode = useWarningForStructField(slot) ? ErrorCode.WRN_UseDefViolationPropertyStructThis : ErrorCode.ERR_UseDefViolationProperty;
                         symbolName = associatedSymbol.Name;
                     }
                     else
                     {
-                        errorCode = adjustErrorForStructFieldOrProperty(isProperty: false, slot);
+                        errorCode = useWarningForStructField(slot) ? ErrorCode.WRN_UseDefViolationFieldStructThis : ErrorCode.ERR_UseDefViolationField;
                     }
                 }
                 else if (symbol.Kind == SymbolKind.Parameter &&
@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (((ParameterSymbol)symbol).IsThis)
                     {
-                        errorCode = adjustErrorForStructThis(symbol, slot);
+                        errorCode = useWarningForStructThis(symbol, slot) ? ErrorCode.WRN_UseDefViolationStructThis : ErrorCode.ERR_UseDefViolationThis;
                     }
                     else
                     {
@@ -1189,16 +1189,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // mark the variable's slot so that we don't complain about the variable again
             _alreadyReported[slot] = true;
 
-            bool doesNotNeedImplicitFieldInitialization()
-                => !_requireOutParamsAssigned
-                || CurrentSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct };
+            return;
 
-            ErrorCode adjustErrorForStructThis(Symbol thisParameter, int thisSlot)
+            bool needsImplicitFieldInitialization()
+                => _requireOutParamsAssigned
+                && CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct };
+
+            bool useWarningForStructThis(Symbol thisParameter, int thisSlot)
             {
-                if (doesNotNeedImplicitFieldInitialization())
+                if (!needsImplicitFieldInitialization())
                 {
-                    return ErrorCode.ERR_UseDefViolationThis;
+                    return false;
                 }
+
+                Debug.Assert(_emptyStructTypeCache
+                    .GetStructInstanceFields(thisParameter.ContainingType)
+                    .Any(field => VariableSlot(field, thisSlot) is var fieldSlot && (fieldSlot == -1 || !State.IsAssigned(fieldSlot))));
 
                 foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(thisParameter.ContainingType))
                 {
@@ -1216,47 +1222,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors))
-                {
-                    return ErrorCode.ERR_UseDefViolationThis;
-                }
-
-                return ErrorCode.WRN_UseDefViolationStructThis;
+                return compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs);
             }
 
-            ErrorCode adjustErrorForStructFieldOrProperty(bool isProperty, int fieldSlot)
+            bool useWarningForStructField(int fieldSlot)
             {
-                if (doesNotNeedImplicitFieldInitialization())
+                if (!needsImplicitFieldInitialization())
                 {
-                    return isProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField;
+                    return false;
                 }
 
                 var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol(), createIfMissing: false);
-                var localSlot = fieldSlot;
-                while (localSlot != -1 && variableBySlot[localSlot].ContainingSlot is int root && root != thisSlot)
+                while (fieldSlot != -1 && variableBySlot[fieldSlot].ContainingSlot is int containingSlot && containingSlot != thisSlot)
                 {
-                    if (root == localSlot)
+                    if (containingSlot == fieldSlot)
                     {
                         // the offending field access is not contained in 'this'.
-                        return isProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField;
+                        return false;
                     }
-                    localSlot = root;
+                    fieldSlot = containingSlot;
                 }
 
                 // the field was contained in 'this' by some level of nesting.
                 // we now have a slot for the field directly contained in 'this'.
                 // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
-                if (localSlot != -1)
+                if (fieldSlot != -1)
                 {
-                    AddImplicitlyInitializedField((FieldSymbol)variableBySlot[localSlot].Symbol);
+                    AddImplicitlyInitializedField((FieldSymbol)variableBySlot[fieldSlot].Symbol);
                 }
 
-                if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors))
-                {
-                    return isProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField;
-                }
-
-                return isProperty ? ErrorCode.WRN_UseDefViolationPropertyStructThis : ErrorCode.WRN_UseDefViolationFieldStructThis;
+                return compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs);
             }
         }
 
