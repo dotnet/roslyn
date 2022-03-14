@@ -1995,7 +1995,7 @@ public class SaleItem
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void PropertyAccessors8()
+        public void PropertyInitializer1()
         {
             var code = @"
 public class C
@@ -2010,6 +2010,25 @@ public class C
 }";
 
             VerifyTypingSemicolon(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void PropertyAttribute1()
+        {
+            var code = @"
+public class C
+{
+    public int P
+    {
+        [My(typeof(C$$))]
+        get
+        {
+            return 0;
+        }
+    }
+}";
+
+            VerifyNoSpecialSemicolonHandling(code);
         }
 
         #endregion
