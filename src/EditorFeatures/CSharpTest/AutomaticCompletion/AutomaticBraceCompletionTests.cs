@@ -1121,7 +1121,7 @@ class Goo
             Assert.NotNull(session);
 
             session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp), false);
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.IndentationSize, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1148,7 +1148,7 @@ $$
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.IndentationSize, LanguageNames.CSharp), FormattingOptions.IndentStyle.None);
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1181,7 +1181,7 @@ $$
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.IndentationSize, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());
@@ -1222,7 +1222,7 @@ $$
             using var session = CreateSession(code);
             Assert.NotNull(session);
 
-            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.IndentationSize, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
+            session.Workspace.GlobalOptions.SetGlobalOption(new OptionKey(FormattingOptions.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Block);
 
             CheckStart(session.Session);
             Assert.Equal(expected, session.Session.SubjectBuffer.CurrentSnapshot.GetText());

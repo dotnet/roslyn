@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
 
+        internal static readonly PerLanguageOption2<IndentStyle> SmartIndent2 = new(
+            "FormattingOptions", FormattingOptionGroups.IndentationAndSpacing, "SmartIndent", defaultValue: IndentStyle.Smart);
+
         /// <inheritdoc cref="AutoFormattingOptions.IndentStyle"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } = (PerLanguageOption<IndentStyle>)SmartIndent2!;
-
-        internal static readonly PerLanguageOption2<IndentStyle> SmartIndent2 = new(
-            "FormattingOptions", FormattingOptionGroups.IndentationAndSpacing, "SmartIndent", defaultValue: IndentStyle.Smart);
     }
 }
