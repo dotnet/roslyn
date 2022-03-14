@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private class GeneratedFileReplacingCompilationTracker : ICompilationTracker
         {
-            private readonly ICompilationTracker _underlyingTracker;
             private readonly SourceGeneratedDocumentState _replacedGeneratedDocumentState;
 
             private AsyncLazy<Checksum>? _lazyDependentChecksum;
@@ -32,17 +31,18 @@ namespace Microsoft.CodeAnalysis
             [DisallowNull]
             private Compilation? _compilationWithReplacement;
 
+            public ICompilationTracker UnderlyingTracker { get; }
             public SkeletonReferenceCache SkeletonReferenceCache { get; }
-            public ProjectState ProjectState => _underlyingTracker.ProjectState;
+            public ProjectState ProjectState => UnderlyingTracker.ProjectState;
 
             public GeneratedFileReplacingCompilationTracker(ICompilationTracker underlyingTracker, SourceGeneratedDocumentState replacementDocumentState)
             {
-                _underlyingTracker = underlyingTracker;
+                UnderlyingTracker = underlyingTracker;
                 _replacedGeneratedDocumentState = replacementDocumentState;
                 SkeletonReferenceCache = underlyingTracker.SkeletonReferenceCache.Clone();
             }
 
-            public GeneratorDriver? GeneratorDriver => _underlyingTracker.GeneratorDriver;
+            public GeneratorDriver? GeneratorDriver => UnderlyingTracker.GeneratorDriver;
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis
                     return _compilationWithReplacement;
                 }
 
-                var underlyingCompilation = await _underlyingTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                var underlyingSourceGeneratedDocuments = await _underlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
+                var underlyingCompilation = await UnderlyingTracker.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
+                var underlyingSourceGeneratedDocuments = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
 
                 underlyingSourceGeneratedDocuments.TryGetState(_replacedGeneratedDocumentState.Id, out var existingState);
 
@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-                => _underlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
+                => UnderlyingTracker.GetDependentVersionAsync(solution, cancellationToken);
 
             public Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken)
-                => _underlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
+                => UnderlyingTracker.GetDependentSemanticVersionAsync(solution, cancellationToken);
 
             public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
             {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
 
             private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
                 => Checksum.Create(
-                    await _underlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
+                    await UnderlyingTracker.GetDependentChecksumAsync(solution, cancellationToken).ConfigureAwait(false),
                     await _replacedGeneratedDocumentState.GetChecksumAsync(cancellationToken).ConfigureAwait(false));
 
             public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis
 
             public async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                var underlyingGeneratedDocumentStates = await _underlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
+                var underlyingGeneratedDocumentStates = await UnderlyingTracker.GetSourceGeneratedDocumentStatesAsync(solution, cancellationToken).ConfigureAwait(false);
 
                 if (underlyingGeneratedDocumentStates.Contains(_replacedGeneratedDocumentState.Id))
                 {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
 
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                return _underlyingTracker.HasSuccessfullyLoadedAsync(solution, cancellationToken);
+                return UnderlyingTracker.HasSuccessfullyLoadedAsync(solution, cancellationToken);
             }
 
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return _underlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+                    return UnderlyingTracker.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
                 }
             }
         }

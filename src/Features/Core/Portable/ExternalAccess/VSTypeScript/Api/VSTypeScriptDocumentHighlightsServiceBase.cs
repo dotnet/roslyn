@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken);
 
         Task<ImmutableArray<DocumentHighlights>> IDocumentHighlightsService.GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, DocumentHighlightingOptions options, CancellationToken cancellationToken)
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
             => GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken);
     }
 }

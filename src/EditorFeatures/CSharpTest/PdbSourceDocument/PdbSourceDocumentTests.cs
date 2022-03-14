@@ -384,6 +384,35 @@ public class C
         }
 
         [Fact]
+        public async Task ReferenceAssembly_WithImplementation()
+        {
+            var source = @"
+public class C
+{
+    // A change
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                // Laziest. Nuget package directory layout. Ever.
+                Directory.CreateDirectory(Path.Combine(path, "ref"));
+                Directory.CreateDirectory(Path.Combine(path, "lib"));
+
+                // Compile reference assembly
+                var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(Path.Combine(path, "ref"), Location.Embedded, Location.OnDisk, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+
+                // Compile implementation assembly
+                CompileTestSource(Path.Combine(path, "lib"), sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+            });
+        }
+
+        [Fact]
         public async Task NoPdb_NullResult()
         {
             var source = @"
