@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                     : XElement.Parse(string.Format(@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
-        <Document>{0}</Document>
+        <Document Markup=""SpansOnly"">{0}</Document>
     </Project>
 </Workspace>", markup));
 
@@ -118,22 +118,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
             private void ValidateBefore(string expectedMarkup)
             {
-                MarkupTestFile.GetSpan(expectedMarkup, out var expected, out var caretSpan);
-                Assert.True(caretSpan.IsEmpty);
+                GetCodeAndCaretPosition(expectedMarkup, out var expected, out var caretPosition);
                 var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
 
                 Assert.Equal(expected, finalText);
-                Assert.Equal(caretSpan.Start, this.TextView.Caret.Position.BufferPosition.Position);
+                Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
+            }
+
+            private static void GetCodeAndCaretPosition(string expectedMarkup, out string expected, out int caretPosition)
+            {
+                MarkupTestFile.GetPositionAndSpan(expectedMarkup, out expected, out int? cursorPosition, out var caretSpan);
+                if (cursorPosition != null)
+                    expected = expected.Insert(cursorPosition.Value, "$$");
+
+                Assert.True(caretSpan.HasValue && caretSpan.Value.IsEmpty);
+                caretPosition = caretSpan!.Value.Start;
             }
 
             private void ValidateAfter(string afterUndoMarkup)
             {
-                MarkupTestFile.GetSpan(afterUndoMarkup, out var expected, out var caretSpan);
-                Assert.True(caretSpan.IsEmpty);
+                GetCodeAndCaretPosition(afterUndoMarkup, out var expected, out var caretPosition);
                 var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
 
                 Assert.Equal(expected, finalText);
-                Assert.Equal(caretSpan.Start, this.TextView.Caret.Position.BufferPosition.Position);
+                Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
             }
 
             private static void SetSelection(

@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -137,13 +138,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             //else
             //{
 
+            var pasteWasSuccessful = PasteWasSuccessful(
+                snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
+
             var processor = new UnknownSourcePasteProcessor(
                 snapshotBeforePaste,
                 snapshotAfterPaste,
                 documentBeforePaste,
                 documentAfterPaste,
                 stringExpressionBeforePaste,
-                textView.Options.GetNewLineCharacter());
+                textView.Options.GetNewLineCharacter(),
+                pasteWasSuccessful);
             var textChanges = processor.GetEdits(cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
@@ -183,6 +188,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             edit2.Apply();
 
             transaction.Complete();
+        }
+
+        /// <summary>
+        /// Returns true if the paste resulted in legal code for the string literal.  The string literal is
+        /// considered legal if it has the same span as the original string (adjusted as per the edit) and that
+        /// there are no errors in it.  For this purposes of this check, errors in interpolation holes are not
+        /// considered.  We only care about the textual content of the string.
+        /// </summary>
+        private static bool PasteWasSuccessful(
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
+            Document documentAfterPaste,
+            ExpressionSyntax stringExpressionBeforePaste,
+            CancellationToken cancellationToken)
+        {
+            var rootAfterPaste = documentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var stringExpressionAfterPaste = FindContainingSupportedStringExpression(rootAfterPaste, stringExpressionBeforePaste.SpanStart);
+            if (stringExpressionAfterPaste == null)
+                return false;
+
+            if (ContainsError(stringExpressionAfterPaste))
+                return false;
+
+            var spanAfterPaste = MapSpan(stringExpressionBeforePaste.Span, snapshotBeforePaste, snapshotAfterPaste);
+            return spanAfterPaste == stringExpressionAfterPaste.Span;
         }
 
         /// <summary>

@@ -84,6 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly ImmutableArray<TextSpan> TextContentsSpansAfterPaste;
 
         /// <summary>
+        /// Whether or not the string expression remained successfully parseable after the paste.  <see
+        /// cref="ComputePasteWasSuccessful(CancellationToken)"/>.  If it can still be successfully parsed subclasses
+        /// can adjust their view on which pieces of content need to be escaped or not.
+        /// </summary>
+        protected readonly bool PasteWasSuccessful;
+
+        /// <summary>
         /// Number of quotes in the delimiter of the string being pasted into.  Given that the string should have no
         /// errors in it, this quote count should be the same for the start and end delimiter.
         /// </summary>
@@ -106,7 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
-            string newLine)
+            string newLine,
+            bool pasteWasSuccessful)
         {
             SnapshotBeforePaste = snapshotBeforePaste;
             SnapshotAfterPaste = snapshotAfterPaste;
@@ -123,6 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount, out DelimiterDollarCount);
             TextContentsSpansAfterPaste = TextContentsSpansBeforePaste.SelectAsArray(MapSpanForward);
 
+            PasteWasSuccessful = pasteWasSuccessful;
+
             Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);
         }
 
@@ -134,26 +144,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
             return trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
-        }
-
-        /// <summary>
-        /// Returns true if the paste resulted in legal code for the string literal.  The string literal is
-        /// considered legal if it has the same span as the original string (adjusted as per the edit) and that
-        /// there are no errors in it.  For this purposes of this check, errors in interpolation holes are not
-        /// considered.  We only care about the textual content of the string.
-        /// </summary>
-        protected bool PasteWasSuccessful(CancellationToken cancellationToken)
-        {
-            var rootAfterPaste = DocumentAfterPaste.GetRequiredSyntaxRootSynchronously(cancellationToken);
-            var stringExpressionAfterPaste = FindContainingSupportedStringExpression(rootAfterPaste, StringExpressionBeforePaste.SpanStart);
-            if (stringExpressionAfterPaste == null)
-                return false;
-
-            if (ContainsError(stringExpressionAfterPaste))
-                return false;
-
-            var spanAfterPaste = MapSpanForward(StringExpressionBeforePaste.Span);
-            return spanAfterPaste == stringExpressionAfterPaste.Span;
         }
     }
 }

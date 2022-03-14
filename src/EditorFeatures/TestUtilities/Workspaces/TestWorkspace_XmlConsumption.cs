@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
 
             var markupAttribute = documentElement.Attribute(MarkupAttributeName);
-            var isMarkup = markupAttribute == null || (bool)markupAttribute == true;
+            var isMarkup = markupAttribute == null || (string)markupAttribute == "true" || (string)markupAttribute == "SpansOnly";
 
             string code;
             int? cursorPosition;
@@ -797,6 +797,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (isMarkup)
             {
                 TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+
+                // if we were told SpansOnly then that means that $$ isn't actually a caret (but is something like a raw
+                // interpolated string delimiter.  In that case, if we did see a $$ add it back it at the location we
+                // found it, and set the cursor back to null as the test will be specifying that location manually
+                // itself.
+                if (&& cursorPosition != null)
+                {
+                    code = code.Insert(cursorPosition.Value, "$$");
+                    cursorPosition = null;
+                }
             }
             else
             {

@@ -281,8 +281,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public static int GetLongestQuoteSequence(SourceText text, TextSpan span)
             => GetLongestCharacterSequence(text, span, '"');
 
-        public static int GetLongestDollarSignSequence(SourceText text, TextSpan span)
-            => GetLongestCharacterSequence(text, span, '$');
+        public static int GetLongestOpenBraceSequence(SourceText text, TextSpan span)
+            => GetLongestCharacterSequence(text, span, '{');
+
+        public static int GetLongestCloseBraceSequence(SourceText text, TextSpan span)
+            => GetLongestCharacterSequence(text, span, '}');
 
         /// <summary>
         /// Given a section of a document, finds the longest sequence of of a given <paramref name="character"/> in it.

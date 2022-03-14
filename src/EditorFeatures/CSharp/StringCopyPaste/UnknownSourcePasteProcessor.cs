@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
-            string newLine)
-            : base(snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste, newLine)
+            string newLine,
+            bool pasteWasSuccessful)
+            : base(snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste, newLine, pasteWasSuccessful)
         {
         }
 
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (!IsAnyRawStringExpression(StringExpressionBeforePaste) && !ShouldAlwaysEscapeTextForNonRawString())
             {
                 // If the pasting was successful, then no need to change anything.
-                if (PasteWasSuccessful(cancellationToken))
+                if (PasteWasSuccessful)
                     return default;
             }
 
@@ -111,10 +112,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (StringExpressionBeforePaste is not InterpolatedStringExpressionSyntax)
                 return null;
 
-            var longestDollarSequence = TextContentsSpansAfterPaste.Max(ts => GetLongestDollarSignSequence(TextAfterPaste, ts));
+            var longestBraceSequence = TextContentsSpansAfterPaste.Max(
+                ts => Math.Max(
+                    GetLongestOpenBraceSequence(TextAfterPaste, ts),
+                    GetLongestCloseBraceSequence(TextAfterPaste, ts)));
 
-            var dollarsToAddCount = (longestDollarSequence - DelimiterDollarCount) + 1;
-            return dollarsToAddCount <= 0 ? null : new string('"', dollarsToAddCount);
+            var dollarsToAddCount = (longestBraceSequence - DelimiterDollarCount) + 1;
+            return dollarsToAddCount <= 0 ? null : new string('$', dollarsToAddCount);
         }
 
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
@@ -129,9 +133,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return default;
 
             // if the content we're going to add itself contains quotes, then figure out how many start/end quotes the
-            // final string literal will need (which also gives us the number of quotes to add to teh start/end).
-            var quotesToAdd = GetQuotesToAddToRawString();
-            var dollarSignsToAdd = GetDollarSignsToAddToRawString();
+            // final string literal will need (which also gives us the number of quotes to add to the start/end).
+            //
+            // note: we don't have to do this if the paste was successful.  Instead, we'll just process the contents,
+            // adjusting whitespace below.
+            var quotesToAdd = PasteWasSuccessful ? null : GetQuotesToAddToRawString();
+            var dollarSignsToAdd = PasteWasSuccessful ? null : GetDollarSignsToAddToRawString();
 
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var editsToMake);
 
@@ -149,9 +156,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 StringExpressionBeforePaste is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedSingleLineRawStringStartToken };
 
             if (isSingleLine)
-                AddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
+                AdjsutWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
             else
-                AddTextChangesForMultiLineRawStringLiteral(editsToMake);
+                AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(editsToMake);
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)
@@ -162,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         // Pasting with single line case.
 
-        private void AddTextChangesForSingleLineRawStringLiteral(
+        private void AdjsutWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(
             ArrayBuilder<TextChange> editsToMake,
             CancellationToken cancellationToken)
         {
@@ -238,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         // Pasting into multi line case.
 
-        private void AddTextChangesForMultiLineRawStringLiteral(
+        private void AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(
             ArrayBuilder<TextChange> editsToMake)
         {
             var endLine = TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.Span.End);

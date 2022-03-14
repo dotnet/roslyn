@@ -221,6 +221,149 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
+        public void TestOpenCurlyIntoSingleLineRawString_A()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{",
+@"var x = $""""""[||] """"""",
+@"var x = $$""""""{[||] """"""",
+                afterUndo:
+@"var x = $""""""{[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenCurlyIntoSingleLineRawString_B()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{",
+@"var x = $"""""" [||]""""""",
+@"var x = $$"""""" {[||]""""""",
+                afterUndo:
+@"var x = $"""""" {[||]""""""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenBraceIntoSingleLineRawString1_A()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{{",
+@"var x = $""""""[||] """"""",
+@"var x = $$$$""""""""{{{ """"""""",
+                afterUndo:
+@"var x = $""""""{{{[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenBraceIntoSingleLineRawString1_B()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{{",
+@"var x = $"""""" [||]""""""",
+@"var x = $$$$"""""""" {{{[||]""""""",
+                afterUndo:
+@"var x = $"""""" {{{[||]""""""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenBraceIntoSingleLineRawString3()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{{",
+@"var x = $"""""" ""[||] """"""",
+@"var x = $$$$"""""""""" ""{{{[||] """"""""""",
+                afterUndo:
+@"var x = $"""""" ""{{{[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenBraceIntoSingleLineRawString4()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{{",
+@"var x = $"""""" ""[||]"" """"""",
+@"var x = $$$$"""""""""""" ""{{{[||]"" """"""""""""",
+                afterUndo:
+@"var x = $"""""" ""{{{[||]"" """"""");
+        }
+
+        [WpfFact]
+        public void TestTripleOpenBraceIntoSingleLineRawString5()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{{",
+@"var x = $"""""" [||]"" """"""",
+@"var x = $$$$"""""""""" {{{[||]"" """"""""""",
+                afterUndo:
+@"var x = $"""""" {{{[||]"" """"""");
+        }
+
+        [WpfFact]
+        public void TestInterpolationIntoSingleLineRawString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{0}",
+@"var x = $"""""" [||] """"""",
+@"var x = $"""""" {0}[||] """"""",
+                afterUndo:
+@"var x = $"""""" [||] """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoSingleLineRawString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{}",
+@"var x = $"""""" [||] """"""",
+@"var x = $$"""""" {}[||] """"""",
+                afterUndo:
+@"var x = $"""""" {}[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoSingleLineRawString2()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{}",
+@"var x = $$"""""" [||] """"""",
+@"var x = $$"""""" {}[||] """"""",
+                afterUndo:
+@"var x = $$"""""" [||] """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoSingleLineRawString3()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{}",
+@"var x = $$"""""" [||] """"""",
+@"var x = $$$"""""" {{}[||] """"""",
+                afterUndo:
+@"var x = $$"""""" {{}[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoSingleLineRawString4()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{}}",
+@"var x = $$"""""" [||] """"""",
+@"var x = $$$"""""" {}}[||] """"""",
+                afterUndo:
+@"var x = $$"""""" {}}[||] """"""");
+        }
+
+        [WpfFact]
+        public void TestOpenCloseBraceIntoSingleLineRawString5()
+        {
+            TestPasteUnknownSource(
+                pasteText: "{{}}",
+@"var x = $$"""""" [||] """"""",
+@"var x = $$$"""""" {{}}[||] """"""",
+                afterUndo:
+@"var x = $$"""""" {{}}[||] """"""");
+        }
+
+        [WpfFact]
         public void TestComplexStringIntoSingleLineRawString()
         {
             TestPasteUnknownSource(
