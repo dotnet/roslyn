@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int slot = VariableSlot(field, thisSlot);
                     if (slot == -1 || !State.IsAssigned(slot))
                     {
-                        Debug.Assert((object)field.ContainingType == CurrentSymbol.EnclosingThisSymbol().Type);
+                        Debug.Assert(CurrentSymbol.EnclosingThisSymbol().Type.GetMembers(field.Name).Contains(field, ReferenceEqualityComparer.Instance));
                         AddImplicitlyInitializedField(field);
                     }
                 }
@@ -1233,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol(), createIfMissing: false);
                 var localSlot = fieldSlot;
-                while (localSlot != -1 && RootSlot(localSlot) is int root && root != thisSlot)
+                while (localSlot != -1 && variableBySlot[localSlot].ContainingSlot is int root && root != thisSlot)
                 {
                     if (root == localSlot)
                     {
@@ -1248,15 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
                 if (localSlot != -1)
                 {
-                    var fieldToInitialize = (FieldSymbol)variableBySlot[localSlot].Symbol;
-                    // We expect this condition to only be false in error scenarios,
-                    // but the erroneous bound node may be further up in the bound tree,
-                    // and not assert-able from here.
-                    // See `FlowDiagnosticTests.AutoPropInitialization5`.
-                    if ((object)fieldToInitialize.ContainingType == CurrentSymbol.EnclosingThisSymbol()!.Type)
-                    {
-                        AddImplicitlyInitializedField(fieldToInitialize);
-                    }
+                    AddImplicitlyInitializedField((FieldSymbol)variableBySlot[localSlot].Symbol);
                 }
 
                 if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureImplicitInitializationInStructConstructors))
