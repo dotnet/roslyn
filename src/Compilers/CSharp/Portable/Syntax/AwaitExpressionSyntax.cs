@@ -4,14 +4,30 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+namespace Microsoft.CodeAnalysis.CSharp.Syntax
+{
+    public partial class AwaitExpressionSyntax
+    {
+        public AwaitExpressionSyntax Update(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+            => Update(awaitKeyword, this.QuestionToken, expression);
+    }
+}
+
 namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class SyntaxFactory
     {
         public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
             => AwaitExpression(awaitKeyword, default, expression);
-        public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, IdentifierNameSyntax identifierNameSyntax)
-            => AwaitExpression(awaitKeyword, default, identifierNameSyntax);
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+{
+    internal partial class ContextAwareSyntax
+    {
+        public AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, ExpressionSyntax expression)
+            => AwaitExpression(awaitKeyword, null, expression);
     }
 }
 
