@@ -27,20 +27,23 @@ public struct A
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public struct A
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "A").WithLocation(2, 15),
                 // (4,7): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     A a = new A();   // CS8036
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 7),
                 // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
                 //     A a = new A();   // CS8036
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-                // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+                // (4,7): warning CS0169: The field 'A.a' is never used
                 //     A a = new A();   // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
         [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
         [Fact()]
-        public void TestInitEventStruct()
+        public void TestInitEventStruct_01()
         {
             var text = @"
 struct S {
@@ -53,9 +56,39 @@ struct S {
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S {
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 8),
                 // (3,25): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     event System.Action E = null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "E").WithArguments("struct field initializers", "10.0").WithLocation(3, 25));
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S {
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 8));
+        }
+
+        [Fact()]
+        public void TestInitEventStruct_02()
+        {
+            var text = @"
+struct S {
+    event System.Action E = null;
+    public S() { }
+    void M()
+    {
+        E();
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,25): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     event System.Action E = null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "E").WithArguments("struct field initializers", "10.0").WithLocation(3, 25),
+                // (4,12): error CS8773: Feature 'parameterless struct constructors' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public S() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "S").WithArguments("parameterless struct constructors", "10.0").WithLocation(4, 12));
 
             CreateCompilation(text).VerifyDiagnostics();
         }
@@ -360,7 +393,7 @@ class Test
             var @struct = c2.GlobalNamespace.GetMember<RetargetingNamedTypeSymbol>("S");
             var method = (RetargetingMethodSymbol)@struct.GetMembers().Single();
 
-            Assert.True(method.IsDefaultValueTypeConstructor(requireZeroInit: false));
+            Assert.True(method.IsDefaultValueTypeConstructor());
 
             //TODO (tomat)
             CompileAndVerify(c2).VerifyIL("C.M", @"
@@ -634,6 +667,9 @@ public struct X1
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(1, 8),
                 // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int I { get { throw null; } set {} } = 9;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
@@ -643,6 +679,9 @@ public struct X1
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
+                // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(1, 8),
                 // (3,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16));

@@ -37,6 +37,16 @@
         <target state="translated">应用 Me 资格首选项</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Apply_isnot_preferences">
+        <source>Apply IsNot preferences</source>
+        <target state="new">Apply IsNot preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_creation_preferences">
+        <source>Apply object creation preferences</source>
+        <target state="new">Apply object creation preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_DirectCast">
         <source>Change to 'DirectCast'</source>
         <target state="translated">更改为 "DirectCast"</target>
@@ -1043,15 +1053,15 @@ Do...Loop {While | Until} &lt;condition&gt;</target>
       <trans-unit id="Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Until_condition_Loop">
         <source>Repeats a block of statements until a Boolean condition becomes true.
 Do Until &lt;condition&gt;...Loop</source>
-        <target state="translated">在布尔条件变为 true 之前重复语句块。
-Do Until &lt;condition&gt;...Loop</target>
+        <target state="translated">重复语句块，直到布尔条件变为 true。
+直到&lt;条件&gt;...环</target>
         <note />
       </trans-unit>
       <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_While_condition_Loop">
         <source>Repeats a block of statements while a Boolean condition is true.
 Do While &lt;condition&gt;...Loop</source>
-        <target state="translated">在布尔条件为 true 时重复语句块。
-Do While &lt;condition&gt;...Loop</target>
+        <target state="translated">当布尔条件为 true 时重复语句块。
+&lt;条件时执行操作&gt;...环</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduces_a_group_of_statements_in_an_SharpIf_statement_that_is_compiled_if_no_previous_condition_evaluates_to_True">
@@ -1233,15 +1243,15 @@ Option Infer {On | Off}</target>
       <trans-unit id="Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Until_condition">
         <source>Repeats a block of statements until a Boolean condition becomes true.
 Do...Loop Until &lt;condition&gt;</source>
-        <target state="translated">在布尔条件变为 true 之前重复语句块。
-Do...Loop Until &lt;condition&gt;</target>
+        <target state="translated">重复语句块，直到布尔条件变为 true。
+...循环到&lt;条件&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_Loop_While_condition">
         <source>Repeats a block of statements while a Boolean condition is true.
 Do...Loop While &lt;condition&gt;</source>
-        <target state="translated">在布尔条件为 true 时重复语句块。
-Do...Loop While &lt;condition&gt;</target>
+        <target state="translated">当布尔条件为 true 时重复语句块。
+...循环 While&lt;条件&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Provides_a_way_to_refer_to_the_current_instance_of_a_class_or_structure_that_is_the_instance_in_which_the_code_is_running">
@@ -1443,7 +1453,7 @@ New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</targ
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">运行引用单个对象或结构的一系列语句。
-With &lt;object&gt;...End With</target>
+使用&lt;object&gt;...结尾为</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">

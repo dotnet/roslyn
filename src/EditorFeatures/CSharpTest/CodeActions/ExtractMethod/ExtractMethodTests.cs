@@ -4618,7 +4618,6 @@ class Ignored2 { }
             }.RunAsync();
         }
 
-        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TopLevelMethod_StaticMethod()
         {
@@ -4666,6 +4665,32 @@ public class Class
         return s;
     }
 }", parameters: new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
+
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        public async Task AttributeArgumentWithLambdaBody()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return [|null|]; })] object obj)
+    {
+    }
+}",
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return {|Rename:NewMethod|}(); })] object obj)
+    {
+    }
+
+    private static object NewMethod()
+    {
+        return null;
+    }
+}");
         }
     }
 }

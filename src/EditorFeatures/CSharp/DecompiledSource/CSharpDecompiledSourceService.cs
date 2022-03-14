@@ -48,26 +48,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
 
-            MetadataReference metadataReference = null;
-            string assemblyLocation = null;
+            var metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
+            var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
+
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly)
+            if (isReferenceAssembly &&
+                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
             {
                 try
                 {
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
                 }
-            }
-
-            if (assemblyLocation == null)
-            {
-                metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
             }
 
             // Decompile
@@ -85,11 +81,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
             var formattedDoc = await Formatter.FormatAsync(
-                 document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                 options: null,
+                 document,
+                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options,
                  CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
                  cancellationToken).ConfigureAwait(false);
 
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             if (file is null && assemblyLocation is null)
             {
-                throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                throw new NotSupportedException(FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
             }
 
             file ??= new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);

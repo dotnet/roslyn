@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
-
+    using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
     using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static RegexTree TryParse(VirtualCharSequence text, RegexOptions options)
+        public static RegexTree? TryParse(VirtualCharSequence text, RegexOptions options)
         {
             if (text.IsDefault)
             {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // However, we're the topmost call and have not consumed an open paren.  And, we want
             // this call to consume all the way to the end, eating up excess close-paren tokens that
             // are encountered.
-            var expression = this.ParseAlternatingSequences(consumeCloseParen: true);
+            var expression = this.ParseAlternatingSequences(consumeCloseParen: true, isConditional: false);
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
             Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
 
@@ -236,13 +236,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private RegexExpressionNode ParseAlternatingSequences(bool consumeCloseParen)
+        private RegexAlternationNode ParseAlternatingSequences(
+            bool consumeCloseParen, bool isConditional)
         {
             try
             {
                 _recursionDepth++;
                 StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-                return ParseAlternatingSequencesWorker(consumeCloseParen);
+                return ParseAlternatingSequencesWorker(consumeCloseParen, isConditional);
             }
             finally
             {
@@ -251,26 +252,38 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         /// <summary>
-        /// Parses out code of the form: ...|...|...
-        /// This is the type of code you have at the top level of a regex, or inside any grouping
-        /// contruct.  Note that sequences can be empty in .NET regex.  i.e. the following is legal:
-        /// 
+        /// Parses out code of the form: ...|...|... This is the type of code you have at the top level of a regex, or
+        /// inside any grouping construct.  Note that sequences can be empty in .NET regex.  i.e. the following is
+        /// legal:
+        ///
         ///     ...||...
-        /// 
+        ///
         /// An empty sequence just means "match at every position in the test string".
         /// </summary>
-        private RegexExpressionNode ParseAlternatingSequencesWorker(bool consumeCloseParen)
+        private RegexAlternationNode ParseAlternatingSequencesWorker(
+            bool consumeCloseParen, bool isConditional)
         {
-            RegexExpressionNode current = ParseSequence(consumeCloseParen);
+            using var _ = ArrayBuilder<RegexNodeOrToken>.GetInstance(out var builder);
+            builder.Add(ParseSequence(consumeCloseParen));
 
             while (_currentToken.Kind == RegexKind.BarToken)
             {
                 // Trivia allowed between the | and the next token.
-                current = new RegexAlternationNode(
-                    current, ConsumeCurrentToken(allowTrivia: true), ParseSequence(consumeCloseParen));
+                var barToken = ConsumeCurrentToken(allowTrivia: true);
+                if (isConditional && builder.Count >= 3)
+                {
+                    // a conditional alternative expression only allows two cases (the true and false branches). We
+                    // already have seen both once we have 3 items (`t | f`).  Error on any further cases we see.
+                    barToken = barToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
+                        FeaturesResources.Too_many_bars_in_conditional_grouping,
+                        barToken.GetSpan()));
+                }
+
+                builder.Add(barToken);
+                builder.Add(ParseSequence(consumeCloseParen));
             }
 
-            return current;
+            return new RegexAlternationNode(new RegexAlternatingSequenceList(builder.ToImmutable()));
         }
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
@@ -282,9 +295,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 builder.Add(ParsePrimaryExpressionAndQuantifiers(last));
             }
 
-            // We wil commonly get tons of text nodes in a row.  For example, the
-            // regex `abc` will be three text nodes in a row.  To help save on memory
-            // try to merge that into one single text node.
+            // We will commonly get tons of text nodes in a row.  For example, the regex `abc` will be three text nodes
+            // in a row.  To help save on memory try to merge that into one single text node.
             using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var sequence);
             MergeTextNodes(builder, sequence);
 
@@ -402,7 +414,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return true;
         }
 
-        private RegexExpressionNode ParsePrimaryExpressionAndQuantifiers(RegexExpressionNode lastExpression)
+        private RegexExpressionNode ParsePrimaryExpressionAndQuantifiers(RegexExpressionNode? lastExpression)
         {
             var current = ParsePrimaryExpression(lastExpression);
             if (current.Kind == RegexKind.SimpleOptionsGrouping)
@@ -557,36 +569,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             ConsumeCurrentToken(allowTrivia);
         }
 
-        private RegexPrimaryExpressionNode ParsePrimaryExpression(RegexExpressionNode lastExpression)
+        private RegexPrimaryExpressionNode ParsePrimaryExpression(RegexExpressionNode? lastExpression)
         {
-            switch (_currentToken.Kind)
+            return _currentToken.Kind switch
             {
-                case RegexKind.DotToken:
-                    return ParseWildcard();
-                case RegexKind.CaretToken:
-                    return ParseStartAnchor();
-                case RegexKind.DollarToken:
-                    return ParseEndAnchor();
-                case RegexKind.BackslashToken:
-                    return ParseEscape(_currentToken, allowTriviaAfterEnd: true);
-                case RegexKind.OpenBracketToken:
-                    return ParseCharacterClass();
-                case RegexKind.OpenParenToken:
-                    return ParseGrouping();
-                case RegexKind.CloseParenToken:
-                    return ParseUnexpectedCloseParenToken();
-                case RegexKind.OpenBraceToken:
-                    return ParsePossibleUnexpectedNumericQuantifier(lastExpression);
-                case RegexKind.AsteriskToken:
-                case RegexKind.PlusToken:
-                case RegexKind.QuestionToken:
-                    return ParseUnexpectedQuantifier(lastExpression);
-                default:
-                    return ParseText();
-            }
+                RegexKind.DotToken => ParseWildcard(),
+                RegexKind.CaretToken => ParseStartAnchor(),
+                RegexKind.DollarToken => ParseEndAnchor(),
+                RegexKind.BackslashToken => ParseEscape(_currentToken, allowTriviaAfterEnd: true),
+                RegexKind.OpenBracketToken => ParseCharacterClass(),
+                RegexKind.OpenParenToken => ParseGrouping(),
+                RegexKind.CloseParenToken => ParseUnexpectedCloseParenToken(),
+                RegexKind.OpenBraceToken => ParsePossibleUnexpectedNumericQuantifier(lastExpression),
+                RegexKind.AsteriskToken or RegexKind.PlusToken or RegexKind.QuestionToken => ParseUnexpectedQuantifier(lastExpression),
+                _ => ParseText(),
+            };
         }
 
-        private RegexPrimaryExpressionNode ParsePossibleUnexpectedNumericQuantifier(RegexExpressionNode lastExpression)
+        private RegexPrimaryExpressionNode ParsePossibleUnexpectedNumericQuantifier(RegexExpressionNode? lastExpression)
         {
             // Native parser looks for something like {0,1} in a top level sequence and reports
             // an explicit error that that's not allowed.  However, something like {0, 1} is fine
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // When parsing out the sequence don't grab the close paren, that will be for our caller
             // to get.
-            var expression = this.ParseAlternatingSequences(consumeCloseParen: false);
+            var expression = this.ParseAlternatingSequences(consumeCloseParen: false, isConditional: false);
             _options = currentOptions;
             return expression;
         }
@@ -880,6 +880,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 var pos = _lexer.Position;
                 var comment = _lexer.ScanComment(options: default);
+                Contract.ThrowIfFalse(comment.HasValue);
                 _lexer.Position = pos;
 
                 if (comment.Value.Diagnostics.Length > 0)
@@ -931,26 +932,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private RegexExpressionNode ParseConditionalGroupingResult()
         {
             var currentOptions = _options;
-            var result = this.ParseAlternatingSequences(consumeCloseParen: false);
+            var result = this.ParseAlternatingSequences(consumeCloseParen: false, isConditional: true);
             _options = currentOptions;
-
-            result = CheckConditionalAlternation(result);
-            return result;
-        }
-
-        private static RegexExpressionNode CheckConditionalAlternation(RegexExpressionNode result)
-        {
-            if (result is RegexAlternationNode topAlternation &&
-                topAlternation.Left is RegexAlternationNode)
-            {
-                return new RegexAlternationNode(
-                    topAlternation.Left,
-                    topAlternation.BarToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
-                        FeaturesResources.Too_many_bars_in_conditional_grouping,
-                        topAlternation.BarToken.GetSpan())),
-                    topAlternation.Right);
-            }
-
             return result;
         }
 
@@ -1269,9 +1252,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ParseCharacterClassComponents(builder);
             }
 
-            // We wil commonly get tons of text nodes in a row.  For example, the
-            // regex `[abc]` will be three text nodes in a row.  To help save on memory
-            // try to merge that into one single text node.
+            // We will commonly get tons of text nodes in a row.  For example, the regex `[abc]` will be three text
+            // nodes in a row.  To help save on memory try to merge that into one single text node.
             using var _2 = ArrayBuilder<RegexExpressionNode>.GetInstance(out var contents);
             MergeTextNodes(builder, contents);
 
@@ -1337,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
         }
 
-        private static bool IsEscapedMinus(RegexNode node)
+        private static bool IsEscapedMinus([NotNullWhen(true)] RegexNode? node)
             => node is RegexSimpleEscapeNode simple && IsTextChar(simple.TypeToken, '-');
 
         private bool TryGetRangeComponentValue(RegexExpressionNode component, out int ch)
@@ -1405,16 +1387,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 #if DEBUG
                     Debug.Assert(sequence.ChildCount > 0);
                     for (int i = 0, n = sequence.ChildCount - 1; i < n; i++)
-                    {
                         Debug.Assert(IsEscapedMinus(sequence.ChildAt(i).Node));
-                    }
 #endif
 
                     var last = sequence.ChildAt(sequence.ChildCount - 1).Node;
+                    Contract.ThrowIfNull(last);
                     if (IsEscapedMinus(last))
-                    {
                         break;
-                    }
 
                     return TryGetRangeComponentValueWorker(last, out ch);
             }
@@ -1459,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             throw new InvalidOperationException();
         }
 
-        private bool HasProblem(RegexNodeOrToken component)
+        private static bool HasProblem(RegexNodeOrToken component)
         {
             if (component.IsNode)
             {
@@ -1758,7 +1737,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
             var start = _lexer.Position;
 
-            var numberToken = _lexer.TryScanNumber().Value;
+            var number = _lexer.TryScanNumber();
+            Contract.ThrowIfNull(number);
+            var numberToken = number.Value;
             var capVal = (int)numberToken.Value;
             if (HasCapture(capVal) ||
                 capVal <= 9)
@@ -2008,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             out RegexToken openBraceToken,
             out RegexToken categoryToken,
             out RegexToken closeBraceToken,
-            out string message)
+            [NotNullWhen(false)] out string? message)
         {
             openBraceToken = default;
             categoryToken = default;
@@ -2052,7 +2033,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return true;
         }
 
-        private RegexTextNode ParseUnexpectedQuantifier(RegexExpressionNode lastExpression)
+        private RegexTextNode ParseUnexpectedQuantifier(RegexExpressionNode? lastExpression)
         {
             // This is just a bogus element in the higher level sequence.  Allow trivia 
             // after this to abide by the spirit of the native parser.
@@ -2061,7 +2042,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
-        private static void CheckQuantifierExpression(RegexExpressionNode current, ref RegexToken token)
+        private static void CheckQuantifierExpression(RegexExpressionNode? current, ref RegexToken token)
         {
             if (current == null ||
                 current.Kind == RegexKind.SimpleOptionsGrouping)
@@ -2069,8 +2050,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     FeaturesResources.Quantifier_x_y_following_nothing, token.GetSpan()));
             }
-            else if (current is RegexQuantifierNode or
-                     RegexLazyQuantifierNode)
+            else if (current is RegexQuantifierNode or RegexLazyQuantifierNode)
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     string.Format(FeaturesResources.Nested_quantifier_0, token.VirtualChars.First()), token.GetSpan()));

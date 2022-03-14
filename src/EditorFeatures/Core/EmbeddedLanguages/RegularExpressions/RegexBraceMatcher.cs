@@ -8,12 +8,12 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
 {
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
     using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
@@ -31,10 +31,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            if (!options.HighlightRelatedRegexComponentsUnderCursor)
-            {
+            if (!options.HighlightingOptions.HighlightRelatedRegexComponentsUnderCursor)
                 return null;
-            }
 
             var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
             return tree == null ? null : GetMatchingBraces(tree, position);
@@ -42,24 +40,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
         private static BraceMatchingResult? GetMatchingBraces(RegexTree tree, int position)
         {
-            var virtualChar = tree.Text.FirstOrNull(vc => vc.Span.Contains(position));
+            var virtualChar = tree.Text.Find(position);
             if (virtualChar == null)
-            {
                 return null;
-            }
 
             var ch = virtualChar.Value;
-            switch (ch.Value)
+            return ch.Value switch
             {
-                case '(':
-                case ')':
-                    return FindGroupingBraces(tree, ch) ?? FindCommentBraces(tree, ch);
-                case '[':
-                case ']':
-                    return FindCharacterClassBraces(tree, ch);
-                default:
-                    return null;
-            }
+                '(' or ')' => FindGroupingBraces(tree, ch) ?? FindCommentBraces(tree, ch),
+                '[' or ']' => FindCharacterClassBraces(tree, ch),
+                _ => null,
+            };
         }
 
         private static BraceMatchingResult? CreateResult(RegexToken open, RegexToken close)
@@ -71,9 +62,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             var trivia = FindTrivia(tree.Root, ch);
             if (trivia?.Kind != RegexKind.CommentTrivia)
-            {
                 return null;
-            }
 
             var firstChar = trivia.Value.VirtualChars[0];
             var lastChar = trivia.Value.VirtualChars[trivia.Value.VirtualChars.Length - 1];
@@ -106,9 +95,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             where TNode : RegexNode
         {
             if (node is TNode nodeMatch && predicate(nodeMatch, ch))
-            {
                 return nodeMatch;
-            }
 
             foreach (var child in node)
             {
@@ -116,9 +103,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 {
                     var result = FindNode(child.Node, ch, predicate);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
             }
 
@@ -133,9 +118,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 {
                     var result = FindTrivia(child.Node, ch);
                     if (result != null)
-                    {
                         return result;
-                    }
                 }
                 else
                 {
@@ -144,9 +127,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                                  TryGetTrivia(token.TrailingTrivia, ch);
 
                     if (trivia != null)
-                    {
                         return trivia;
-                    }
                 }
             }
 
@@ -158,9 +139,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             foreach (var trivia in triviaList)
             {
                 if (trivia.VirtualChars.Contains(ch))
-                {
                     return trivia;
-                }
             }
 
             return null;

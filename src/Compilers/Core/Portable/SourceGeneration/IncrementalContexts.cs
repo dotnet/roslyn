@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct IncrementalGeneratorInitializationContext
     {
-        private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
+        private readonly ArrayBuilder<SyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
         private readonly string _sourceExtension;
 
-        internal IncrementalGeneratorInitializationContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, string sourceExtension)
+        internal IncrementalGeneratorInitializationContext(ArrayBuilder<SyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, string sourceExtension)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis
 
         public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(_syntaxInputBuilder, RegisterOutput);
 
-        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput));
+        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
 
-        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput));
+        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions));
 
-        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput));
+        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts));
 
-        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput));
+        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions));
 
-        public IncrementalValueProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValueProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput));
+        public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences));
 
         public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Source, _sourceExtension);
 
@@ -147,15 +147,18 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly DriverStateTable.Builder? TableBuilder;
 
-        public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, AdditionalSourcesCollection sources)
+        internal readonly GeneratorRunStateTable.Builder GeneratorRunStateBuilder;
+
+        public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, GeneratorRunStateTable.Builder generatorRunStateBuilder, AdditionalSourcesCollection sources)
         {
             TableBuilder = tableBuilder;
+            GeneratorRunStateBuilder = generatorRunStateBuilder;
             Sources = sources;
             Diagnostics = DiagnosticBag.GetInstance();
         }
 
-        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics) ToImmutableAndFree()
-                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree());
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps) ToImmutableAndFree()
+                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree());
 
         internal void Free()
         {

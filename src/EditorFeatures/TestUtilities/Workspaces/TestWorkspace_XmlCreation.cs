@@ -4,12 +4,10 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 
@@ -22,20 +20,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             CompilationOptions compilationOptions = null,
             ParseOptions parseOptions = null,
             string[] files = null,
+            string[] sourceGeneratedFiles = null,
             string[] metadataReferences = null,
             string extension = null,
-            bool commonReferences = true)
+            bool commonReferences = true,
+            bool isMarkup = true)
         {
             var documentElements = new List<XElement>();
 
+            var index = 0;
+            extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
             if (files != null)
             {
-                var index = 0;
-                extension ??= (language == LanguageNames.CSharp) ? CSharpExtension : VisualBasicExtension;
-
                 foreach (var file in files)
                 {
-                    documentElements.Add(CreateDocumentElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
+                    documentElements.Add(CreateDocumentElement(
+                        file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions, isMarkup));
+                }
+            }
+
+            if (sourceGeneratedFiles != null)
+            {
+                foreach (var file in sourceGeneratedFiles)
+                {
+                    documentElements.Add(CreateDocumentFromSourceGeneratorElement(file, GetDefaultTestSourceDocumentName(index++, extension), parseOptions));
                 }
             }
 
@@ -163,10 +171,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private static XElement CreateMetadataReference(string path)
             => new XElement(MetadataReferenceElementName, path);
 
-        protected static XElement CreateDocumentElement(string code, string filePath, ParseOptions parseOptions = null)
+        protected static XElement CreateDocumentElement(
+            string code, string filePath, ParseOptions parseOptions = null, bool isMarkup = true)
         {
-            return new XElement(DocumentElementName,
+            var element = new XElement(DocumentElementName,
                 new XAttribute(FilePathAttributeName, filePath),
+                CreateParseOptionsElement(parseOptions),
+                code.Replace("\r\n", "\n"));
+
+            if (!isMarkup)
+                element.Add(new XAttribute(MarkupAttributeName, isMarkup));
+
+            return element;
+        }
+
+        protected static XElement CreateDocumentFromSourceGeneratorElement(string code, string hintName, ParseOptions parseOptions = null)
+        {
+            return new XElement(DocumentFromSourceGeneratorElementName,
+                new XAttribute(FilePathAttributeName, hintName),
                 CreateParseOptionsElement(parseOptions),
                 code.Replace("\r\n", "\n"));
         }

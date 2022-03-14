@@ -16,8 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\CSharpAddAccessibilityModifiersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\CSharpAddBracesCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceTransform.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\CSharpConvertTypeOfToNameOfCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertSwitchStatementToExpression\ConvertSwitchStatementToExpressionCodeFixProvider.Rewriter.cs" />
@@ -38,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\CSharpRemoveUnreachableCodeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersCodeFixProvider.cs" />
@@ -45,6 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\CSharpSimplifyPropertyPatternCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransposeRecordKeyword\CSharpTransposeRecordKeywordCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundCoalesceAssignmentCodeFixProvider.cs" />
@@ -53,6 +53,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\CSharpUseConditionalExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseParameterNullChecking\CSharpUseParameterNullCheckingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyCodeFixProvider.cs" />

@@ -4842,7 +4842,7 @@ namespace N
 /// </summary>
 class Base
 {
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
@@ -4856,7 +4856,7 @@ class Base
 class Base
 {
     public void Foo(string s) { }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -6195,7 +6195,7 @@ class Base
     {
         var v = nameof([|System|].Int32);
     }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
@@ -6209,6 +6209,54 @@ class Program
     static void Main(string[] args)
     {
         [|Console.Equals|]("""");
+    }
+}");
+        }
+
+        [WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.CompilerServices;
+
+public ref struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe ref struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)(delegate*<ref byte, ref byte>)&Unsafe.As<byte, byte>)(ref *(byte*)a)|].Goo();
+        }
+    }
+}");
+        }
+
+        [WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)&Unsafe.As<byte, A>)(ref *(byte*)a)|].Goo();
+        }
     }
 }");
         }

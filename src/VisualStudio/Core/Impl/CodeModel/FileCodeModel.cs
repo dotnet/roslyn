@@ -10,7 +10,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -31,19 +33,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     {
         internal static ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> Create(
             CodeModelState state,
-            object parent,
+            object? parent,
             DocumentId documentId,
+            bool isSourceGeneratorOutput,
             ITextManagerAdapter textManagerAdapter)
         {
-            return new FileCodeModel(state, parent, documentId, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
+            // Keep track that code model was accessed.  We want to get a sense of how widespread usage of it still is.
+            Logger.Log(FunctionId.CodeModel_FileCodeModel_Create);
+            return new FileCodeModel(state, parent, documentId, isSourceGeneratorOutput, textManagerAdapter).GetComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>();
         }
 
-        private readonly ComHandle<object, object> _parentHandle;
+        private readonly ComHandle<object?, object?> _parentHandle;
 
         /// <summary>
         /// Don't use directly. Instead, call <see cref="GetDocumentId()"/>.
         /// </summary>
         private DocumentId? _documentId;
+        private readonly bool _isSourceGeneratedOutput;
 
         // Note: these are only valid when the underlying file is being renamed. Do not use.
         private ProjectId? _incomingProjectId;
@@ -65,16 +71,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private FileCodeModel(
             CodeModelState state,
-            object parent,
+            object? parent,
             DocumentId documentId,
+            bool isSourceGeneratedOutput,
             ITextManagerAdapter textManagerAdapter)
             : base(state)
         {
             RoslynDebug.AssertNotNull(documentId);
             RoslynDebug.AssertNotNull(textManagerAdapter);
 
-            _parentHandle = new ComHandle<object, object>(parent);
+            _parentHandle = new ComHandle<object?, object?>(parent);
             _documentId = documentId;
+            _isSourceGeneratedOutput = isSourceGeneratedOutput;
             TextManagerAdapter = textManagerAdapter;
 
             _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>(state.ThreadingContext);
@@ -262,6 +270,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private void InitializeEditor()
         {
+            // If this is a source generated file, we can't edit it, so just block this at the very start.
+            // E_FAIL is probably as a good as anything else, is and is also what we use files that go missing
+            // so it's consistent for "this file isn't something you can use."
+            if (_isSourceGeneratedOutput)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
             _editCount++;
 
             if (_editCount == 1)
@@ -362,7 +378,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                workspace.TryApplyChanges(document.Project.Solution);
+                var applied = workspace.TryApplyChanges(document.Project.Solution);
+                if (!applied)
+                {
+                    FatalError.ReportAndPropagate(new Exception("Failed to apply the workspace changes."), ErrorSeverity.Critical);
+                }
             }
         }
 
@@ -387,6 +407,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (!TryGetDocumentId(out _) && _previousDocument != null)
             {
                 document = _previousDocument;
+            }
+            else if (_isSourceGeneratedOutput)
+            {
+                document = State.ThreadingContext.JoinableTaskFactory.Run(
+                    () => Workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(GetDocumentId(), CancellationToken.None).AsTask());
             }
             else
             {
@@ -609,14 +634,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             get { return NamespaceCollection.Create(this.State, this, this, SyntaxNodeKey.Empty); }
         }
 
-#nullable disable
-
-        public EnvDTE.ProjectItem Parent
+        public EnvDTE.ProjectItem? Parent
         {
             get { return _parentHandle.Object as EnvDTE.ProjectItem; }
         }
-
-#nullable restore
 
         public void Remove(object element)
         {

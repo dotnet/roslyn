@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
 
             internal void AssertCodeIs(string expectedCode)
             {
-                Assert.Equal(expectedCode, TextView.TextSnapshot.GetText());
+                MarkupTestFile.GetPosition(expectedCode, out var massaged, out int caretPosition);
+                Assert.Equal(massaged, TextView.TextSnapshot.GetText());
+                Assert.Equal(caretPosition, TextView.Caret.Position.BufferPosition.Position);
             }
 
             public void SendTypeChar(char ch)
@@ -64,12 +66,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;
+@"namespace N;$$
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -88,7 +89,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;
+@"namespace N;$$
 {
     class C
     {
@@ -109,12 +110,11 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A.B;
+@"namespace A.B;$$
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -130,7 +130,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A.;B
+@"namespace A.;$$B
 {
     class C
     {
@@ -151,7 +151,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A;.B
+@"namespace A;$$.B
 {
     class C
     {
@@ -172,7 +172,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace ;A.B
+@"namespace ;$$A.B
 {
     class C
     {
@@ -193,12 +193,11 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace A.B;
+@"namespace A.B;$$  
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -214,7 +213,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace ;N
+@"namespace ;$$N
 {
     class C
     {
@@ -238,7 +237,7 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;
+@"namespace N;$$
 {
     namespace N2
     {
@@ -266,7 +265,7 @@ namespace N2
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N;
+@"namespace N;$$
 {
 }
 
@@ -299,12 +298,11 @@ namespace N$$
 using A;
 using B;
 
-namespace N;
+namespace N;$$
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -325,15 +323,14 @@ namespace N$$
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
 @"
-namespace N;
+namespace N;$$
 
 using A;
 using B;
 
 class C
 {
-}
-");
+}");
         }
 
         [WpfFact]
@@ -349,12 +346,11 @@ class C
 
             testState.SendTypeChar(';');
             testState.AssertCodeIs(
-@"namespace N; // Goo
+@"namespace N;$$ // Goo
 
 class C
 {
-}
-");
+}");
         }
     }
 }

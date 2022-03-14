@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BlockSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ConversionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions_GetAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperatorPrecedence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParseOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StatementSyntaxExtensions.cs" />
@@ -52,6 +54,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.Parsers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />

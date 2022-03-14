@@ -4,21 +4,20 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -97,11 +96,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             var whitespaceView = GetWhitespaceView();
             var codeStyleView = GetCodeStyleView();
+            var namingStyleView = GetNamingStyleView();
             var analyzerView = GetAnalyzerView();
 
             _control = new SettingsEditorControl(
                  whitespaceView,
                  codeStyleView,
+                 namingStyleView,
                  analyzerView,
                  _workspace,
                  _fileName,
@@ -136,6 +137,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 return GetView<CodeStyleSetting>(
                     static (dataProvider, controlProvider, tableMangerProvider) => new CodeStyleSettingsViewModel(dataProvider, controlProvider, tableMangerProvider),
                     static viewModel => new CodeStyleSettingsView(viewModel));
+            }
+
+            ISettingsEditorView GetNamingStyleView()
+            {
+                return GetView<NamingStyleSetting>(
+                    static (dataProvider, controlProvider, tableMangerProvider) => new NamingStyleSettingsViewModel(dataProvider, controlProvider, tableMangerProvider),
+                    static viewModel => new NamingStyleSettingsView(viewModel));
             }
 
             ISettingsEditorView GetAnalyzerView()

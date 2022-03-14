@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -13,11 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
     /// </summary>
     internal partial class StackTraceExplorer : UserControl
     {
-        private readonly StackTraceExplorerViewModel _viewModel;
+        public readonly StackTraceExplorerViewModel ViewModel;
 
         public StackTraceExplorer(StackTraceExplorerViewModel viewModel)
         {
-            DataContext = _viewModel = viewModel;
+            DataContext = ViewModel = viewModel;
             InitializeComponent();
 
             DataObject.AddPastingHandler(this, OnPaste);
@@ -31,12 +34,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public void OnPaste()
         {
-            _viewModel.OnPaste();
+            var text = Clipboard.GetText();
+            ViewModel.OnPaste_CallOnUIThread(text);
         }
 
         private void ListViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (_viewModel.Selection is StackFrameViewModel stackFrameViewModel)
+            if (ViewModel.Selection is StackFrameViewModel stackFrameViewModel)
             {
                 stackFrameViewModel.NavigateToSymbol();
             }
@@ -44,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         internal void OnClear()
         {
-            _viewModel.OnClear();
+            ViewModel.OnClear();
         }
     }
 }

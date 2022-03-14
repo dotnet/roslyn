@@ -7,20 +7,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DesignerAttribute;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -110,14 +109,20 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         {
             var source = @"
 
+// HACK: Test
 // TODO: Test";
 
             using var workspace = CreateWorkspace();
-            workspace.SetOptions(workspace.Options.WithChangedOption(TodoCommentOptions.TokenList, "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0"));
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), "HACK:1");
             workspace.InitializeDocuments(LanguageNames.CSharp, files: new[] { source }, openDocuments: false);
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
+
+            // Start solution crawler in the remote workspace:
+            await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
+                CancellationToken.None).ConfigureAwait(false);
 
             // Ensure remote workspace is in sync with normal workspace.
             var solution = workspace.CurrentSolution;
@@ -125,48 +130,54 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, solution.WorkspaceVersion, CancellationToken.None);
 
-            var callback = new TodoCommentsListener();
-
             var cancellationTokenSource = new CancellationTokenSource();
 
-            using var connection = client.CreateConnection<IRemoteTodoCommentsDiscoveryService>(callback);
+            var resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
 
-            var invokeTask = connection.TryInvokeAsync(
-                (service, callbackId, cancellationToken) => service.ComputeTodoCommentsAsync(callbackId, cancellationToken),
-                cancellationTokenSource.Token);
+            using var listener = new TodoCommentsListener(
+                workspace.GlobalOptions,
+                workspace.Services,
+                workspace.GetService<IAsynchronousOperationListenerProvider>(),
+                onTodoCommentsUpdated: (documentId, _, newComments) => resultSource.SetResult((documentId, newComments)),
+                disposalToken: cancellationTokenSource.Token);
 
-            var data = await callback.Data.WithTimeout(TimeSpan.FromMinutes(1));
-            Assert.Equal(solution.Projects.Single().Documents.Single().Id, data.Item1);
-            Assert.Equal(1, data.Item2.Length);
+            await listener.StartAsync();
 
-            var commentInfo = data.Item2[0];
+            var (documentId, items) = await resultSource.Task.WithTimeout(TimeSpan.FromMinutes(1));
+            Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
+            Assert.Equal(1, items.Length);
+
             Assert.Equal(new TodoCommentData(
-                documentId: solution.Projects.Single().Documents.Single().Id,
+                documentId: documentId,
                 priority: 1,
-                message: "TODO: Test",
+                message: "HACK: Test",
                 mappedFilePath: null,
                 originalFilePath: "test1.cs",
                 originalLine: 2,
                 mappedLine: 2,
                 originalColumn: 3,
-                mappedColumn: 3), commentInfo);
+                mappedColumn: 3), items[0]);
+
+            resultSource = new TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)>();
+
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(TodoCommentOptionsStorage.TokenList), "TODO:1");
+
+            (documentId, items) = await resultSource.Task.WithTimeout(TimeSpan.FromMinutes(1));
+            Assert.Equal(solution.Projects.Single().Documents.Single().Id, documentId);
+            Assert.Equal(1, items.Length);
+
+            Assert.Equal(new TodoCommentData(
+                documentId: documentId,
+                priority: 1,
+                message: "TODO: Test",
+                mappedFilePath: null,
+                originalFilePath: "test1.cs",
+                originalLine: 3,
+                mappedLine: 3,
+                originalColumn: 3,
+                mappedColumn: 3), items[0]);
 
             cancellationTokenSource.Cancel();
-
-            Assert.True(await invokeTask);
-        }
-
-        private class TodoCommentsListener : ITodoCommentsListener
-        {
-            private readonly TaskCompletionSource<(DocumentId, ImmutableArray<TodoCommentData>)> _dataSource = new();
-
-            public Task<(DocumentId, ImmutableArray<TodoCommentData>)> Data => _dataSource.Task;
-
-            public ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
-            {
-                _dataSource.SetResult((documentId, data));
-                return ValueTaskFactory.CompletedTask;
-            }
         }
 
         private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, Workspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
@@ -194,6 +205,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
             var remoteWorkspace = client.GetRemoteWorkspace();
+
+            // Start solution crawler in the remote workspace:
+            await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
+                (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
+                CancellationToken.None).ConfigureAwait(false);
 
             var cancellationTokenSource = new CancellationTokenSource();
             var solution = workspace.CurrentSolution;
@@ -301,6 +317,54 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // incrementally update
             solution = await VerifyIncrementalUpdatesAsync(remoteWorkspace, client, solution, applyInBatch, csAddition: "\r\nclass Addition { }", vbAddition: "\r\nClass VB\r\nEnd Class");
+
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+        }
+
+        [Fact]
+        [WorkItem(52578, "https://github.com/dotnet/roslyn/issues/52578")]
+        public async Task TestIncrementalUpdateHandlesReferenceReversal()
+        {
+            using var workspace = CreateWorkspace();
+
+            using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+            var remoteWorkspace = client.GetRemoteWorkspace();
+
+            var solution = workspace.CurrentSolution;
+            solution = AddProject(solution, LanguageNames.CSharp, documents: Array.Empty<string>(), additionalDocuments: Array.Empty<string>(), p2pReferences: Array.Empty<ProjectId>());
+            var projectId1 = solution.ProjectIds.Single();
+            solution = AddProject(solution, LanguageNames.CSharp, documents: Array.Empty<string>(), additionalDocuments: Array.Empty<string>(), p2pReferences: Array.Empty<ProjectId>());
+            var projectId2 = solution.ProjectIds.Where(id => id != projectId1).Single();
+
+            var project1ToProject2 = new ProjectReference(projectId2);
+            var project2ToProject1 = new ProjectReference(projectId1);
+
+            // Start with projectId1 -> projectId2
+            solution = solution.AddProjectReference(projectId1, project1ToProject2);
+
+            // verify initial setup
+            await UpdatePrimaryWorkspace(client, solution);
+            await VerifyAssetStorageAsync(client, solution, includeProjectCones: false);
+
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            // reverse project references and incrementally update
+            solution = solution.RemoveProjectReference(projectId1, project1ToProject2);
+            solution = solution.AddProjectReference(projectId2, project2ToProject1);
+            await UpdatePrimaryWorkspace(client, solution);
+
+            Assert.Equal(
+                await solution.State.GetChecksumAsync(CancellationToken.None),
+                await remoteWorkspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None));
+
+            // reverse project references again and incrementally update
+            solution = solution.RemoveProjectReference(projectId2, project2ToProject1);
+            solution = solution.AddProjectReference(projectId1, project1ToProject2);
+            await UpdatePrimaryWorkspace(client, solution);
 
             Assert.Equal(
                 await solution.State.GetChecksumAsync(CancellationToken.None),

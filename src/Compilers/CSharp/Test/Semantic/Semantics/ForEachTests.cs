@@ -1626,7 +1626,7 @@ class C
         foreach (var x in a) { }
     }
 
-    class var { }
+    class @var { }
 }
 ";
             var boundNode = GetBoundForEachStatement(text);
@@ -3073,7 +3073,7 @@ namespace System.Collections
 }";
 
             var comp = CreateEmptyCompilation(text, new[] { reference1 });
-            CompileAndVerify(comp, verify: Verification.Fails).
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).
             VerifyIL("C.M", @"
 {
   // Code size       28 (0x1c)

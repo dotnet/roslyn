@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis
         NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T> previousTable, CancellationToken cancellationToken);
 
         IIncrementalGeneratorNode<T> WithComparer(IEqualityComparer<T> comparer);
+
+        IIncrementalGeneratorNode<T> WithTrackingName(string name);
 
         void RegisterOutput(IIncrementalGeneratorOutputNode output);
     }

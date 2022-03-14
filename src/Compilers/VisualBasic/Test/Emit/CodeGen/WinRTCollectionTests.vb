@@ -4207,9 +4207,12 @@ End Class
                     </file>
                 </compilation>
 
+            ' PEVerify:
+            ' [ : AllMembers::ValidateMethod][mdToken=0x6000003]  [HRESULT 0x8000000F] - Typename or Namespace was not found in metadata file.
+            ' [ : AllMembers::TestExpressionTreeCompiler][mdToken=0x6000005][offset 0x00000007] Unable to resolve token.
             Dim verifier = CompileAndVerify(source,
                 references:=LegacyRefs,
-                verify:=Verification.Fails)
+                verify:=Verification.FailsPEVerify)
             AssertNoErrorsOrWarnings(verifier)
             verifier.VerifyIL("AllMembers.TestExpressionTreeCompiler", <![CDATA[
 {

@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_CompilationAvailable">
         <source>Project semantics availability</source>
-        <target state="new">Project semantics availability</target>
+        <target state="translated">Disponibilidade da semântica do projeto</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
@@ -112,11 +112,6 @@
         <target state="translated">Classificação semântica</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">Cache de classificação semântica</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Provedor de ativos</target>
@@ -124,7 +119,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
-        <target state="new">Stack Trace Explorer</target>
+        <target state="translated">Explorador de Rastreamento de Pilha</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

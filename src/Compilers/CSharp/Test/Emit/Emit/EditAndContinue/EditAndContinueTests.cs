@@ -1185,7 +1185,7 @@ class C
         }
 
         [Fact]
-        public void Lambda_SynthesizedDelegate()
+        public void Lambda_SynthesizedDelegate_01()
         {
             var source0 = MarkedSource(@"
 class C
@@ -1271,6 +1271,409 @@ class C
             diff2.VerifySynthesizedMembers(
                 "C: {<>c}",
                 "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate_02()
+        {
+            var source0 = MarkedSource(
+@"class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(int* a, int b) => *a</N:0>;
+    }
+}");
+            var source1 = MarkedSource(
+@"class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(int* a, int b) => b</N:0>;
+        var y = <N:1>(int a, int* b) => a</N:1>;
+        var z = <N:2>(int* a) => a</N:2>;
+    }
+}");
+            var source2 = MarkedSource(
+@"class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(int* a, int b) => b</N:0>;
+        var y = <N:1>(int a, int* b) => *b</N:1>;
+        var z = <N:2>(int* a) => a</N:2>;
+    }
+}");
+            var source3 = MarkedSource(
+@"class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(int* a, int b) => b</N:0>;
+        var y = <N:1>(int a, int* b) => b</N:1>;
+        var z = <N:2>(int* a) => a</N:2>;
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+            var compilation3 = compilation2.WithSource(source3.Tree);
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
+            var method3 = compilation3.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "C", "<>c");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousDelegate1", "<>f__AnonymousDelegate2");
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", ".ctor", "Invoke", "<F>b__0_1#1", "<F>b__0_2#1");
+
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            EncValidation.VerifyModuleMvid(2, reader1, reader2);
+
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "F", "<F>b__0_0", "<F>b__0_1#1", "<F>b__0_2#1");
+
+            diff2.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1#1, <>9__0_2#1, <F>b__0_0, <F>b__0_1#1, <F>b__0_2#1}");
+
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+
+            Assert.False(diff3.EmitResult.Success);
+            diff3.EmitResult.Diagnostics.Verify(
+                // error CS8984: Cannot update because an inferred delegate type has changed.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate_03()
+        {
+            var source0 = MarkedSource(
+@"class A { }
+struct B<T> { }
+class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(B<A>* a, int b) => a</N:0>;
+    }
+}");
+            var source1 = MarkedSource(
+@"class A { }
+struct B<T> { }
+class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(B<A>* a, int b) => b</N:0>;
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0", "A", "B`1", "C", "<>c");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", ".ctor", "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            Assert.False(diff1.EmitResult.Success);
+            diff1.EmitResult.Diagnostics.Verify(
+                // error CS8984: Cannot update because an inferred delegate type has changed.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate_04()
+        {
+            var source0 = MarkedSource(
+@"class A { }
+struct B<T> { }
+class C
+{
+    static unsafe void F()
+    {
+    }
+}");
+            var source1 = MarkedSource(
+@"class A { }
+struct B<T> { }
+class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(B<A>* a, int b) => a</N:0>;
+    }
+}");
+            var source2 = MarkedSource(
+@"class A { }
+struct B<T> { }
+class C
+{
+    static unsafe void F()
+    {
+        var x = <N:0>(B<A>* a, int b) => b</N:0>;
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "A", "B`1", "C");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "F", ".ctor");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousDelegate0", "<>c");
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", ".ctor", "Invoke", ".cctor", ".ctor", "<F>b__0#1");
+
+            diff1.VerifySynthesizedMembers(
+               "C.<>c: {<>9__0#1, <F>b__0#1}",
+               "C: {<>c}");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            Assert.False(diff2.EmitResult.Success);
+            diff2.EmitResult.Diagnostics.Verify(
+                // error CS8984: Cannot update because an inferred delegate type has changed.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate_05()
+        {
+            var source0 = MarkedSource(
+@"class C<T> where T : unmanaged
+{
+    static unsafe void F<U>() where U : unmanaged
+    {
+        var x = <N:0>(T t, U* u) => *u</N:0>;
+    }
+}");
+            var source1 = MarkedSource(
+@"class C<T> where T : unmanaged
+{
+    static unsafe void F<U>() where U : unmanaged
+    {
+        var x = <N:0>(T t, U* u) => default(U)</N:0>;
+        var y = <N:1>(U u, T* t) => *t</N:1>;
+    }
+}");
+            var source2 = MarkedSource(
+@"class C<T> where T : unmanaged
+{
+    static unsafe void F<U>() where U : unmanaged
+    {
+        var x = <N:0>(T t, U* u) => *u</N:0>;
+        var y = <N:1>(U u, T* t) => *t</N:1>;
+    }
+}");
+            var source3 = MarkedSource(
+@"class C<T> where T : unmanaged
+{
+    static unsafe void F<U>() where U : unmanaged
+    {
+        var x = <N:0>(T t, U* u) => *u</N:0>;
+        var y = <N:1>(U u, T* t) => t</N:1>;
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithAllowUnsafe(true).WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source2.Tree);
+            var compilation3 = compilation2.WithSource(source3.Tree);
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var method2 = compilation2.GetMember<MethodSymbol>("C.F");
+            var method3 = compilation3.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>f__AnonymousDelegate0`2", "EmbeddedAttribute", "IsUnmanagedAttribute", "C`1", "<>c__0`1");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", ".ctor", ".ctor", "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousDelegate1`2");
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0", ".ctor", "Invoke", "<F>b__0_1#1");
+
+            diff1.VerifySynthesizedMembers(
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "Microsoft: {CodeAnalysis}",
+                "System.Runtime: {CompilerServices}",
+                "C<T>: {<>c__0}",
+                "<global namespace>: {Microsoft, System}",
+                "System: {Runtime}",
+                "System.Runtime.CompilerServices: {IsUnmanagedAttribute}",
+                "C<T>.<>c__0<U>: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method1, method2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));
+
+            using var md2 = diff2.GetMetadata();
+            var reader2 = md2.Reader;
+            readers = new[] { reader0, reader1, reader2 };
+
+            EncValidation.VerifyModuleMvid(2, reader1, reader2);
+
+            CheckNames(readers, reader2.GetTypeDefNames());
+            CheckNames(readers, reader2.GetMethodDefNames(), "F", "<F>b__0_0", "<F>b__0_1#1");
+
+            diff2.VerifySynthesizedMembers(
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "System: {Runtime}",
+                "<global namespace>: {Microsoft, System}",
+                "C<T>: {<>c__0}",
+                "System.Runtime.CompilerServices: {IsUnmanagedAttribute}",
+                "System.Runtime: {CompilerServices}",
+                "Microsoft: {CodeAnalysis}",
+                "C<T>.<>c__0<U>: {<>9__0_0, <>9__0_1#1, <F>b__0_0, <F>b__0_1#1}");
+
+            var diff3 = compilation3.EmitDifference(
+                diff2.NextGeneration,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method2, method3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables: true)));
+
+            Assert.False(diff3.EmitResult.Success);
+            diff3.EmitResult.Diagnostics.Verify(
+                // error CS8984: Cannot update because an inferred delegate type has changed.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged).WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void Lambda_SynthesizedDelegate_06()
+        {
+            var source0 = MarkedSource(
+@"class C
+{
+    void F()
+    {
+        var x = <N:0>(int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9, int p10, int p11, int p12, int p13, int p14, int p15, int p16, int p17) => 1</N:0>;
+    }
+}");
+            var source1 = MarkedSource(
+@"class C
+{
+    void F()
+    {
+        var x = <N:0>(int p1, int p2, int p3, int p4, int p5, int p6, int p7, int p8, int p9, int p10, int p11, int p12, int p13, int p14, int p15, int p16, int p17) => 1</N:0>;
+
+        System.Console.WriteLine(1);
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var reader0 = md0.MetadataReader;
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "<>F`18", "C", "<>c");
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "Invoke", "F", ".ctor", ".cctor", ".ctor", "<F>b__0_0");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // Verify delta metadata contains expected rows.
+            using var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+            var readers = new[] { reader0, reader1 };
+
+            EncValidation.VerifyModuleMvid(1, reader0, reader1);
+
+            CheckNames(readers, reader1.GetTypeDefNames());
+            CheckNames(readers, reader1.GetMethodDefNames(), "F", "<F>b__0_0");
+
+            diff1.VerifySynthesizedMembers(
+                "C.<>c: {<>9__0_0, <F>b__0_0}",
+                "C: {<>c}");
         }
 
         [WorkItem(962219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962219")]
@@ -4933,6 +5336,10 @@ struct S
 {
     int a = 1;
     int b = 2;
+    public S(int a)
+    {
+        this.a = a;
+    }
 }
 ";
             var source1 =
@@ -4941,7 +5348,10 @@ struct S
 {
     int a = 1;
     int b = 2;
-
+    public S(int a)
+    {
+        this.a = a;
+    }
     public S()
     {
         b = 3;
@@ -4952,8 +5362,8 @@ struct S
             var compilation0 = CreateCompilation(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
-            var ctor0 = compilation0.GetMember<MethodSymbol>("S..ctor");
-            var ctor1 = compilation1.GetMember<MethodSymbol>("S..ctor");
+            var ctor0 = compilation0.GetMember<NamedTypeSymbol>("S").InstanceConstructors.Single(m => m.ParameterCount == 0);
+            var ctor1 = compilation1.GetMember<NamedTypeSymbol>("S").InstanceConstructors.Single(m => m.ParameterCount == 0);
 
             var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
 
@@ -4970,7 +5380,7 @@ struct S
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1)));
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, ctor1)));
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
@@ -4985,11 +5395,12 @@ struct S
             CheckEncLog(reader1,
                 Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(6, TableIndex.TypeRef),
-                Handle(1, TableIndex.MethodDef),
+                Handle(2, TableIndex.MethodDef),
                 Handle(2, TableIndex.AssemblyRef));
         }
 
@@ -8849,7 +9260,7 @@ public struct S
 }";
             var compilationPIA = CreateCompilation(sourcePIA, options: TestOptions.DebugDll);
             var referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes: true);
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
+            var compilation0 = CreateCompilation(source0, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll, references: new MetadataReference[] { referencePIA, CSharpRef });
             var compilation1A = compilation0.WithSource(source1A);
             var compilation1B = compilation0.WithSource(source1B);
 
@@ -12485,7 +12896,8 @@ namespace N
                 Row(4, TableIndex.TypeSpec, EditAndContinueOperation.Default),
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default), // R.PrintMembers
-                Row(3, TableIndex.Param, EditAndContinueOperation.Default));
+                Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             CheckEncMap(reader1,
                 Handle(20, TableIndex.TypeRef),
@@ -12493,6 +12905,7 @@ namespace N
                 Handle(22, TableIndex.TypeRef),
                 Handle(10, TableIndex.MethodDef),
                 Handle(3, TableIndex.Param),
+                Handle(21, TableIndex.CustomAttribute),
                 Handle(3, TableIndex.StandAloneSig),
                 Handle(4, TableIndex.TypeSpec),
                 Handle(2, TableIndex.AssemblyRef));

@@ -11,10 +11,12 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Runtime.Serialization.Formatters;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -102,7 +104,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             {
                 AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
 
-                WatsonTraceListener.Install();
+                TestTraceListener.Install();
 
                 _service = new IntegrationService();
 
@@ -117,9 +119,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
                 _serviceChannel.StartListening(null);
 
-                var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
-                var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
-                asyncCompletionTracker.StartListening();
+                // Async initialization is a workaround for deadlock loading ExtensionManagerPackage prior to
+                // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
+                _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                {
+                    await TaskScheduler.Default;
+
+                    var componentModel = await AsyncServiceProvider.GlobalProvider.GetServiceAsync<SComponentModel, IComponentModel>().ConfigureAwait(false);
+                    Assumes.Present(componentModel);
+
+                    var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
+                    asyncCompletionTracker.StartListening();
+                });
 
                 SwapAvailableCommands(_startMenuCmd, _stopMenuCmd);
             }
@@ -149,7 +160,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             }
         }
 
-        private void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
+        private static void SwapAvailableCommands(MenuCommand commandToDisable, MenuCommand commandToEnable)
         {
             commandToDisable.Enabled = false;
             commandToDisable.Visible = false;

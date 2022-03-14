@@ -2852,9 +2852,9 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,7): error CS8860: Types and aliases should not be named 'record'.
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 24),
@@ -2873,6 +2873,13 @@ class C
                 );
 
             comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(2, 7)
+            );
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             comp.VerifyDiagnostics();
         }
 
@@ -2886,7 +2893,7 @@ struct record { }
             comp.VerifyDiagnostics(
                 // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // struct record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 8)
                 );
         }
 
@@ -2900,7 +2907,7 @@ interface record { }
             comp.VerifyDiagnostics(
                 // (2,11): warning CS8860: Types and aliases should not be named 'record'.
                 // interface record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 11)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 11)
                 );
         }
 
@@ -2914,7 +2921,7 @@ enum record { }
             comp.VerifyDiagnostics(
                 // (2,6): warning CS8860: Types and aliases should not be named 'record'.
                 // enum record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 6)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 6)
                 );
         }
 
@@ -2928,7 +2935,7 @@ delegate void record();
             comp.VerifyDiagnostics(
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // delegate void record();
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 15)
                 );
         }
 
@@ -2955,7 +2962,7 @@ using record = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using record = System.Console;").WithLocation(2, 1),
                 // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // using record = System.Console;
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 7)
                 );
         }
 
@@ -2999,16 +3006,16 @@ class C3
             comp.VerifyDiagnostics(
                 // (2,9): warning CS8860: Types and aliases should not be named 'record'.
                 // class C<record> { } // 1
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 9),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 9),
                 // (5,18): warning CS8860: Types and aliases should not be named 'record'.
                 //     class Nested<record> { } // 2
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 18),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(5, 18),
                 // (9,17): warning CS8860: Types and aliases should not be named 'record'.
                 //     void Method<record>() { } // 3
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(9, 17),
                 // (13,20): warning CS8860: Types and aliases should not be named 'record'.
                 //         void local<record>() // 4
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(13, 20)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(13, 20)
                 );
         }
 
@@ -3078,31 +3085,31 @@ partial class C3
             comp.VerifyDiagnostics(
                 // (3,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class C<record> { } // 1
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 17),
                 // (5,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class D<record> { } // 2
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(5, 17),
                 // (8,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class D<record> { } // 3
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(8, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(8, 17),
                 // (9,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class D<record> { } // 4
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(9, 17),
                 // (16,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial class Nested<record> { } // 5
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(16, 26),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(16, 26),
                 // (22,25): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method<record>() { } // 6
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(22, 25),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(22, 25),
                 // (25,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method2<record>(); // 7
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(25, 26),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(25, 26),
                 // (27,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method3<record>(); // 8
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(27, 26),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(27, 26),
                 // (30,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method4<record>() { } // 9
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(30, 26)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(30, 26)
                 );
         }
 
@@ -3116,7 +3123,7 @@ record record { }
             comp.VerifyDiagnostics(
                 // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // record record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 8)
                 );
         }
 
@@ -3131,10 +3138,10 @@ partial class record { }
             comp.VerifyDiagnostics(
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 15),
                 // (3,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 15)
                 );
         }
 
@@ -3159,7 +3166,7 @@ partial class record { }
             comp.VerifyDiagnostics(
                 // (3,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 15)
                 );
         }
 
@@ -3174,7 +3181,7 @@ partial class @record { }
             comp.VerifyDiagnostics(
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 15)
                 );
         }
 
@@ -3213,7 +3220,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 7)
                 );
             CompileAndVerify(comp, expectedOutput: "RAN");
         }
@@ -26093,7 +26100,7 @@ public record D : B {}
             var test = @"
 namespace x
 {
-    public record iii
+    public record @iii
     {
         ~iiii(){}
         public static void Main()
@@ -26281,11 +26288,9 @@ class Attr3 : System.Attribute {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(1, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(1, analyzer.FireCount10);
             Assert.Equal(1, analyzer.FireCount11);
             Assert.Equal(1, analyzer.FireCount12);
             Assert.Equal(1, analyzer.FireCount13);
-            Assert.Equal(1, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(1, analyzer.FireCount17);
@@ -26317,11 +26322,9 @@ class Attr3 : System.Attribute {}
             public int FireCount7;
             public int FireCount8;
             public int FireCount9;
-            public int FireCount10;
             public int FireCount11;
             public int FireCount12;
             public int FireCount13;
-            public int FireCount14;
             public int FireCount15;
             public int FireCount16;
             public int FireCount17;
@@ -26483,9 +26486,6 @@ class Attr3 : System.Attribute {}
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case "B..ctor([System.Int32 Y = 1])":
-                        Interlocked.Increment(ref FireCount10);
-                        break;
                     case "B":
                         Interlocked.Increment(ref FireCount11);
                         break;
@@ -26494,9 +26494,6 @@ class Attr3 : System.Attribute {}
                         break;
                     case "C":
                         Interlocked.Increment(ref FireCount13);
-                        break;
-                    case "A..ctor([System.Int32 X = 0])":
-                        Interlocked.Increment(ref FireCount14);
                         break;
                     default:
                         Assert.True(false);
@@ -27543,11 +27540,9 @@ interface I1 {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(0, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(0, analyzer.FireCount10);
             Assert.Equal(0, analyzer.FireCount11);
             Assert.Equal(0, analyzer.FireCount12);
             Assert.Equal(0, analyzer.FireCount13);
-            Assert.Equal(0, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(0, analyzer.FireCount17);
@@ -28319,7 +28314,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact, WorkItem(53912, "https://github.com/dotnet/roslyn/issues/53912")]
@@ -28350,7 +28349,8 @@ namespace NamespaceA
 
             var actual = GetDocumentationCommentText(comp);
             // the cref becomes `P:...`
-            var expected = (@"<?xml version=""1.0""?>
+            var expected =
+@"<?xml version=""1.0""?>
 <doc>
     <assembly>
         <name>Test</name>
@@ -28372,6 +28372,11 @@ namespace NamespaceA
             A property
             </param>
         </member>
+        <member name=""P:NamespaceA.LinkDestinationRecord.Prop1"">
+            <summary>
+            A property
+            </summary>
+        </member>
         <member name=""T:NamespaceA.LinkingClass"">
             <summary>
             Simple class.
@@ -28381,7 +28386,7 @@ namespace NamespaceA
             <inheritdoc cref=""P:NamespaceA.LinkDestinationRecord.Prop1"" />
         </member>
     </members>
-</doc>");
+</doc>";
             Assert.Equal(expected, actual);
         }
 
@@ -28423,7 +28428,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28711,7 +28720,11 @@ namespace System.Runtime.CompilerServices
 ", cConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28754,7 +28767,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28798,7 +28815,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28842,7 +28863,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28890,7 +28915,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28937,7 +28966,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28991,7 +29024,12 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+    <summary>Description2 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -29093,7 +29131,11 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -29140,7 +29182,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:Outer.C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]

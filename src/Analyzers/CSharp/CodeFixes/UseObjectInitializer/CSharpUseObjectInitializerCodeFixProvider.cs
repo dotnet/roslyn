@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
-            ObjectCreationExpressionSyntax,
+            BaseObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         }
 
         protected override StatementSyntax GetNewStatement(
-            StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation,
+            StatementSyntax statement, BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             return statement.ReplaceNode(
@@ -38,26 +39,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 GetNewObjectCreation(objectCreation, matches));
         }
 
-        private static ObjectCreationExpressionSyntax GetNewObjectCreation(
-            ObjectCreationExpressionSyntax objectCreation,
+        private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
-                objectCreation, CreateExpressions(matches));
+                objectCreation, CreateExpressions(objectCreation, matches));
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+                BaseObjectCreationExpressionSyntax objectCreation,
+                ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
-            var nodesAndTokens = new List<SyntaxNodeOrToken>();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+            UseInitializerHelpers.AddExistingItems(objectCreation, nodesAndTokens);
+
             for (var i = 0; i < matches.Length; i++)
             {
                 var match = matches[i];
                 var expressionStatement = match.Statement;
                 var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
+                var trivia = match.MemberAccessExpression.GetLeadingTrivia();
+
+                var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
                 var newAssignment = assignment.WithLeft(
-                    match.MemberAccessExpression.Name.WithLeadingTrivia(match.MemberAccessExpression.GetLeadingTrivia()));
+                    match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia));
 
                 if (i < matches.Length - 1)
                 {

@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis
         private interface ICompilationTracker
         {
             ProjectState ProjectState { get; }
+            GeneratorDriver? GeneratorDriver { get; }
 
             SkeletonReferenceCache SkeletonReferenceCache { get; }
 

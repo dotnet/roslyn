@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ImplementInterface;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             var actions = token.Parent.GetAncestorsOrThis<TypeSyntax>()
                                       .Where(_interfaceName)
-                                      .Select(n => service.GetCodeActions(document, model, n, cancellationToken))
+                                      .Select(n => service.GetCodeActions(document, context.Options.ImplementTypeOptions, model, n, cancellationToken))
                                       .FirstOrDefault(a => !a.IsEmpty);
 
             if (actions.IsDefaultOrEmpty)

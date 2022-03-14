@@ -40,11 +40,10 @@ namespace Microsoft.CodeAnalysis.InlineHints
             CancellationToken cancellationToken);
 
         protected abstract bool IsIndexer(SyntaxNode node, IParameterSymbol parameter);
+        protected abstract string GetReplacementText(string parameterName);
 
-        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, InlineParameterHintsOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         {
-            var options = InlineParameterHintsOptions.From(document.Project);
-            var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var displayAllOverride = _globalOptions.GetOption(InlineHintsGlobalStateOption.DisplayAllOverride);
 
             var enabledForParameters = displayAllOverride || options.EnabledForParameters;
@@ -104,9 +103,12 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
+                        var inlineHintText = GetReplacementText(parameter.Name);
+                        var textSpan = new TextSpan(position, 0);
                         result.Add(new InlineHint(
-                            new TextSpan(position, 0),
+                            textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),
+                            new TextChange(textSpan, inlineHintText),
                             InlineHintHelpers.GetDescriptionFunction(position, parameter.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
                     }
                 }

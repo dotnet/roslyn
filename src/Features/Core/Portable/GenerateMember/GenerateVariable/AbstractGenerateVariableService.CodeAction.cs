@@ -52,11 +52,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
-                var options = new CodeGenerationOptions(
+                var context = new CodeGenerationContext(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation(),
-                    options: await _semanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+                    contextLocation: _state.IdentifierToken.GetLocation());
 
                 if (_generateProperty)
                 {
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         setMethod: setAccessor);
 
                     return await CodeGenerator.AddPropertyDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, propertySymbol, options, cancellationToken).ConfigureAwait(false);
+                        solution, _state.TypeToGenerateIn, propertySymbol, context, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         name: _state.IdentifierToken.ValueText);
 
                     return await CodeGenerator.AddFieldDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, fieldSymbol, options, cancellationToken).ConfigureAwait(false);
+                        solution, _state.TypeToGenerateIn, fieldSymbol, context, cancellationToken).ConfigureAwait(false);
                 }
             }
 

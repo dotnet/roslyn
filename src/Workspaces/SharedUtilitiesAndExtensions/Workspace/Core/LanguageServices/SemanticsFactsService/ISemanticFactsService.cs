@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLabelContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         bool IsAttributeNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
-        bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken);
-
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location,
             SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);

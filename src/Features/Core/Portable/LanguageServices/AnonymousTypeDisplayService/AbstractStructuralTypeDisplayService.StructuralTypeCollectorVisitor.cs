@@ -80,12 +80,19 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                 if (_seenTypes.Add(symbol))
                 {
-                    if (symbol.IsNormalAnonymousType())
+                    if (symbol.IsAnonymousType())
                     {
                         _namedTypes.Add(symbol, (order: _namedTypes.Count, count: 1));
 
-                        foreach (var property in symbol.GetValidAnonymousTypeProperties())
-                            property.Accept(this);
+                        if (symbol.IsDelegateType())
+                        {
+                            symbol.DelegateInvokeMethod?.Accept(this);
+                        }
+                        else
+                        {
+                            foreach (var property in symbol.GetValidAnonymousTypeProperties())
+                                property.Accept(this);
+                        }
                     }
                     else if (symbol.IsTupleType)
                     {
@@ -93,10 +100,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
                         foreach (var field in symbol.TupleElements)
                             field.Accept(this);
-                    }
-                    else if (symbol.IsAnonymousDelegateType())
-                    {
-                        symbol.DelegateInvokeMethod?.Accept(this);
                     }
                     else
                     {

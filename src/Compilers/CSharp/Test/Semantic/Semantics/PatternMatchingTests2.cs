@@ -847,7 +847,7 @@ namespace N
             if (!object.Equals(expected, actual)) throw new Exception($""Expected: '{expected}', Actual: '{actual}'"");
         }
     }
-    class var { }
+    class @var { }
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(

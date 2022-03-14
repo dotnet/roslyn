@@ -342,6 +342,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var workspace = TestWorkspace.CreateCSharp(code);
             using var remoteWorkspace = CreateRemoteWorkspace();
 
+            // Start solution crawler in the remote workspace:
+            remoteWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(remoteWorkspace);
+
             // create solution service
             var solution = workspace.CurrentSolution;
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
@@ -486,18 +489,29 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 .AddAnalyzerReference(new AnalyzerFileReference(typeof(Microsoft.CodeAnalysis.TestSourceGenerator.HelloWorldGenerator).Assembly.Location, new TestAnalyzerAssemblyLoader()))
                 .Solution;
 
+            // First sync the solution over that has a generator
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 0, projectId: null, CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
 
+            // Now freeze with some content
             var documentIdentity = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).First().Identity;
-            var frozenText = SourceText.From("// Hello, World!");
-            solution = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText).Project.Solution;
+            var frozenText1 = SourceText.From("// Hello, World!");
+            var frozenSolution1 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText1).Project.Solution;
 
-            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-            solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: 1, projectId: null, CancellationToken.None);
+            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution1);
+            solutionChecksum = await frozenSolution1.State.GetChecksumAsync(CancellationToken.None);
+            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 1, projectId: null, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+
+            // Try freezing with some different content from the original solution
+            var frozenText2 = SourceText.From("// Hello, World! A second time!");
+            var frozenSolution2 = solution.WithFrozenSourceGeneratedDocument(documentIdentity, frozenText2).Project.Solution;
+
+            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, frozenSolution2);
+            solutionChecksum = await frozenSolution2.State.GetChecksumAsync(CancellationToken.None);
+            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 2, projectId: null, CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
         }
 
@@ -796,6 +810,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.IsAssignableFrom<RemoteWorkspace>(recoveredSolution.Workspace);
             var primaryWorkspace = recoveredSolution.Workspace;
             Assert.Equal(solutionChecksum, await recoveredSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Same(primaryWorkspace.PrimaryBranchId, recoveredSolution.BranchId);
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -806,12 +821,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var recoveredNewSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, newSolutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await recoveredNewSolution.State.GetChecksumAsync(CancellationToken.None));
+            Assert.NotSame(primaryWorkspace.PrimaryBranchId, recoveredNewSolution.BranchId);
 
             // do same once updating primary workspace
             await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, newSolutionChecksum, solution.WorkspaceVersion + 1, CancellationToken.None);
             var third = await remoteWorkspace.GetSolutionAsync(assetProvider, newSolutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, projectId: null, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
+            Assert.Same(primaryWorkspace.PrimaryBranchId, third.BranchId);
 
             newSolutionValidator?.Invoke(recoveredNewSolution);
         }

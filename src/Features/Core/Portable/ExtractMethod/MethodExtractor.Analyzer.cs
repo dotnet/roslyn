@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     return true;
                 }
 
-                if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.DontPutOutOrRefOnStruct)
+                if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.Options.DontPutOutOrRefOnStruct)
                 {
                     variableStyle = AlwaysReturn(variableStyle);
                     return true;

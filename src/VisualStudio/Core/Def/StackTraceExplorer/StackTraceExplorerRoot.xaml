@@ -17,7 +17,6 @@
              platformimaging:ImageThemingUtilities.ImageBackgroundColor="{StaticResource {x:Static vsshell:VsColors.ToolWindowBackgroundKey}}">
     <UserControl.Resources>
         <ResourceDictionary>
-            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}" />
             <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogCheckBoxStyleKey}}" />
             <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogComboBoxStyleKey}}" />
             <Style TargetType="TextBox" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTextBoxStyleKey}}" />
@@ -36,13 +35,62 @@
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0" />
             </Style>
+
+            <Style TargetType="Button" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogButtonStyleKey}}">
+                <Setter Property="Background" Value="Transparent" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" MinHeight="20" MinWidth="20" Margin="5">
+            <Button Click="Clear_Click" x:Name="ClearButton">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.ClearCollection}" Margin="0 0 5 0" />
+                        <TextBlock Text="{Binding ElementName=Root, Path=Clear_Text}" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+        </StackPanel>
         <TabControl x:Name="TabControl"
+            Grid.Row="1"
             TabStripPlacement="Top"
             ItemsSource="{Binding Tabs, Mode=OneWay}"
             SelectedItem="{Binding SelectedTab, Mode=TwoWay}">
+
+            <!-- Container template for the tab control header to allow for horizontal scrolling of tabs -->
+            <TabControl.Template>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto"  VerticalScrollBarVisibility="Hidden" >
+                            <TabPanel x:Name="HeaderPanel"
+                              Panel.ZIndex ="1" 
+                              KeyboardNavigation.TabIndex="1"
+                              Grid.Column="0"
+                              Grid.Row="0"
+                              Margin="2,2,2,0"
+                              IsItemsHost="true"/>
+                        </ScrollViewer>
+                        <ContentPresenter x:Name="PART_SelectedContentHost"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                      Margin="{TemplateBinding Padding}"
+                                      ContentSource="SelectedContent" Grid.Row="1"/>
+                    </Grid>
+                </ControlTemplate>
+            </TabControl.Template>
 
             <TabControl.ItemContainerStyle>
                 <Style TargetType="TabItem">
@@ -61,14 +109,41 @@
                                         <RowDefinition Height="auto" />
                                         <RowDefinition Height="auto" />
                                     </Grid.RowDefinitions>
-                                    <ContentPresenter  Grid.Row="0" x:Name="contentPresenter" ContentSource="Header" Focusable="False" HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="16" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter  
+                                        Grid.Row="0" 
+                                        x:Name="contentPresenter" 
+                                        ContentSource="Header" 
+                                        Focusable="False" 
+                                        HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
+                                        Margin="5 0 5 0" 
+                                        RecognizesAccessKey="True" 
+                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                        VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+
+                                    <Button Grid.Row="0" Grid.Column="1" Command="{Binding CloseClick}" Margin="0" Padding="0" BorderThickness="0" Width="16" MinWidth="16" MinHeight="16" Height="16">
+                                        <Button.Template>
+                                            <ControlTemplate>
+                                                <Grid Background="{TemplateBinding Background}">
+                                                    <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" Margin="0" Width="14" Height="14" />
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
                                     <!-- the line under the text to indicate that this label is selected -->
                                     <Rectangle
                                         x:Name="_underline"
                                         Grid.Row="1"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="2"
                                         Height="3"
                                         Visibility="Collapsed"
-                                        Width="{Binding ActualWidth, ElementName=contentPresenter}"
+                                        Width="96"
                                         HorizontalAlignment="Center"
                                         Fill="{DynamicResource {x:Static vsui:CommonDocumentColors.InnerTabInactiveHoverTextBrushKey}}"/>
                                 </Grid>
@@ -102,59 +177,6 @@
                         </Setter.Value>
                     </Setter>
                 </Style>
-                <!--<Style TargetType="TabItem" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTabItemNavigationStyleKey}}">
-                    <Setter Property="Header" Value="{Binding Header}" />
-                    <Setter Property="Content" Value="{Binding Content}" />
-                    <Setter Property="AutomationProperties.Name" Value="{Binding Title}" />
-                    <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveBackgroundBrushKey}}" />
-                    <Setter Property="BorderBrush" Value="Transparent" />
-                    <Setter Property="BorderThickness" Value="1" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveTextBrushKey}}" />
-                    <Setter Property="Padding" Value="6,3,6,3" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="TabItem">
-                                <Border x:Name="PART_Border"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        Padding="{TemplateBinding Padding}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="16" />
-                                        </Grid.ColumnDefinitions>
-                                        <Label Content="{Binding Header}" Padding="0" Margin="0" />
-                                        <imaging:CrispImage Moniker="{x:Static imagecatalog:KnownMonikers.Close}" Grid.Column="1" Margin="4, 0, 0, 0" Width="12">
-                                            <imaging:CrispImage.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Background" Value="{DynamicResource {x:Static platformimaging:ImageThemingUtilities.ImageBackgroundColorProperty}}" />
-                                                </Trigger>
-                                            </imaging:CrispImage.Triggers>
-                                        </imaging:CrispImage>
-                                    </Grid>
-                                </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabActiveBackgroundBrushKey}}" />
-                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabActiveTextBrushKey}}" />
-                                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabActiveBorderBrushKey}}" />
-                                        </Trigger>
-                                        <MultiTrigger>
-                                            <MultiTrigger.Conditions>
-                                                <Condition Property="IsMouseOver" Value="True" />
-                                                <Condition Property="IsSelected" Value="False" />
-                                            </MultiTrigger.Conditions>
-                                            <MultiTrigger.Setters>
-                                                <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveHoverBackgroundBrushKey}}" />
-                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:CommonControlsColors.InnerTabInactiveHoverTextBrushKey}}" />
-                                            </MultiTrigger.Setters>
-                                        </MultiTrigger>
-                                    </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>-->
             </TabControl.ItemContainerStyle>
         </TabControl>
     </Grid>

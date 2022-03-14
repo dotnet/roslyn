@@ -4,20 +4,34 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
+using System.Windows.Input;
+using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
-    internal class InputInProcess : InProcComponent
+    [TestService]
+    internal partial class InputInProcess
     {
-        public InputInProcess(TestServices testServices)
-            : base(testServices)
-        {
-            SendKeys = new(testServices);
-        }
+        private SendKeysImpl? _lazySendKeys;
+        private SendKeysToNavigateToImpl? _lazySendKeysToNavigateTo;
 
-        private SendKeysImpl SendKeys { get; }
+        private SendKeysImpl SendKeys => _lazySendKeys ?? throw ExceptionUtilities.Unreachable;
+        private SendKeysToNavigateToImpl SendKeysToNavigateTo => _lazySendKeysToNavigateTo ?? throw ExceptionUtilities.Unreachable;
+
+        protected override async Task InitializeCoreAsync()
+        {
+            await base.InitializeCoreAsync();
+            _lazySendKeys = new SendKeysImpl(TestServices);
+            _lazySendKeysToNavigateTo = new SendKeysToNavigateToImpl(TestServices);
+        }
 
         internal async Task SendAsync(params object[] keys)
         {
@@ -25,6 +39,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             await TaskScheduler.Default;
 
             SendKeys.Send(keys);
+        }
+
+        internal async Task SendToNavigateToAsync(params object[] keys)
+        {
+            // AbstractSendKeys runs synchronously, so switch to a background thread before the call
+            await TaskScheduler.Default;
+
+            SendKeysToNavigateTo.Send(keys);
         }
 
         private class SendKeysImpl : AbstractSendKeys
@@ -49,6 +71,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 TestServices.JoinableTaskFactory.Run(async () =>
                 {
                     await WaitForApplicationIdleAsync(cancellationToken);
+                });
+            }
+        }
+
+        private class SendKeysToNavigateToImpl : SendKeysImpl
+        {
+            public SendKeysToNavigateToImpl(TestServices testServices)
+                : base(testServices)
+            {
+            }
+
+            protected override void ActivateMainWindow()
+            {
+                // Take no direct action, but assert the correct item already has focus
+                TestServices.JoinableTaskFactory.Run(async () =>
+                {
+                    await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    var searchBox = Assert.IsAssignableFrom<TextBox>(Keyboard.FocusedElement);
+                    Assert.Equal("PART_SearchBox", searchBox.Name);
                 });
             }
         }

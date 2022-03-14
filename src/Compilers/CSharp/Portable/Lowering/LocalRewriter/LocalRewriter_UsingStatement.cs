@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isNullableValueType)
             {
                 // local.HasValue
-                ifCondition = MakeNullableHasValue(syntax, local);
+                ifCondition = _factory.MakeNullableHasValue(syntax, local);
             }
             else if (local.Type.IsValueType)
             {
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // local != null
-                ifCondition = MakeNullCheck(syntax, local, BinaryOperatorKind.NotEqual);
+                ifCondition = _factory.MakeNullCheck(syntax, local, BinaryOperatorKind.NotEqual);
             }
 
             BoundStatement finallyStatement;

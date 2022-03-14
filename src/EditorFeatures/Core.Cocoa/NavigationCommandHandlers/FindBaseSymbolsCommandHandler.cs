@@ -6,11 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         AbstractNavigationCommandHandler<FindBaseSymbolsCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
 
         public override string DisplayName => nameof(FindBaseSymbolsCommandHandler);
 
@@ -35,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FindBaseSymbolsCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
             : base(streamingPresenters)
         {
             Contract.ThrowIfNull(listenerProvider);
 
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
+            _globalOptions = globalOptions;
         }
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                                 return;
                             }
 
-                            var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
+                            var definitionItem = overriddenSymbol.ToNonClassifiedDefinitionItem(document.Project.Solution, includeHiddenLocations: true);
                             await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
 
                             // try getting the next one

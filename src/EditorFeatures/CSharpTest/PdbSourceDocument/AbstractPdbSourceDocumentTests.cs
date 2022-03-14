@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -96,17 +97,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 buildReferenceAssembly,
                 windowsPdb: false);
 
-            await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult);
+            await GenerateFileAndVerifyAsync(project, symbol, sourceLocation, source, expectedSpan, expectNullResult);
         }
 
         protected static async Task GenerateFileAndVerifyAsync(
             Project project,
             ISymbol symbol,
+            Location sourceLocation,
             string expected,
             Text.TextSpan expectedSpan,
             bool expectNullResult)
         {
-            var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult);
+            var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, sourceLocation, expectNullResult);
 
             if (actual is null)
                 return;
@@ -121,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         protected static async Task<(SourceText?, TextSpan)> GetGeneratedSourceTextAsync(
             Project project,
             ISymbol symbol,
+            Location sourceLocation,
             bool expectNullResult)
         {
             using var workspace = (TestWorkspace)project.Solution.Workspace;
@@ -140,6 +143,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                     Assert.NotSame(NullResultMetadataAsSourceFileProvider.NullResult, file);
                 }
 
+                if (sourceLocation == Location.OnDisk)
+                {
+                    Assert.True(file.DocumentTitle.Contains($"[{FeaturesResources.external}]"));
+                }
+                else
+                {
+                    Assert.True(file.DocumentTitle.Contains($"[{FeaturesResources.embedded}]"));
+                }
+
                 AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
 
                 var masWorkspace = service.TryGetWorkspace();
@@ -147,6 +159,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
 
                 Assert.Equal(document.FilePath, file.FilePath);
+
+                // Mapping the project from the generated document should map back to the original project
+                var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
+                var mappedProject = provider.MapDocument(document);
+                Assert.NotNull(mappedProject);
+                Assert.Equal(project.Id, mappedProject!.Id);
 
                 var actual = await document.GetTextAsync();
                 var actualSpan = file!.IdentifierLocation.SourceSpan;
@@ -236,7 +254,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 .AddReferences(project.MetadataReferences);
 
             IEnumerable<EmbeddedText>? embeddedTexts;
-            if (sourceLocation == Location.OnDisk)
+            if (buildReferenceAssembly)
+            {
+                embeddedTexts = null;
+            }
+            else if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
                 File.WriteAllText(sourceCodePath, source.ToString(), source.Encoding);

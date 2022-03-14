@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -28,7 +27,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
-Imports Moq
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 
@@ -167,61 +165,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Return Workspace.CurrentSolution.Projects.Single().CompilationOptions
         End Function
 
-        <PartNotDiscoverable>
-        <Export>
-        <Export(GetType(SVsServiceProvider))>
-        Friend Class MockServiceProvider
-            Implements IServiceProvider
-            Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
-            Implements IAsyncServiceProvider
-
-            Private ReadOnly _exportProvider As Composition.ExportProvider
-            Private ReadOnly _fileChangeEx As MockVsFileChangeEx = New MockVsFileChangeEx
-
-            Public MockMonitorSelection As IVsMonitorSelection
-
-            <ImportingConstructor>
-            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-            Public Sub New(exportProvider As Composition.ExportProvider)
-                _exportProvider = exportProvider
-            End Sub
-
-            Public Function GetService(serviceType As Type) As Object Implements IServiceProvider.GetService
-                Select Case serviceType
-                    Case GetType(SVsSolution)
-                        ' Return a loose mock that just is a big no-op
-                        Dim solutionMock As New Mock(Of IVsSolution2)(MockBehavior.Loose)
-                        Return solutionMock.Object
-
-                    Case GetType(SComponentModel)
-                        Return GetComponentModelMock()
-
-                    Case GetType(SVsShellMonitorSelection)
-                        Return MockMonitorSelection
-
-                    Case GetType(SVsXMLMemberIndexService)
-                        Return New MockXmlMemberIndexService
-
-                    Case GetType(SVsSmartOpenScope)
-                        Return New MockVsSmartOpenScope
-
-                    Case GetType(SVsFileChangeEx)
-                        Return _fileChangeEx
-
-                    Case Else
-                        Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
-                End Select
-            End Function
-
-            Public Function GetServiceAsync(serviceType As Type) As Task(Of Object) Implements IAsyncServiceProvider.GetServiceAsync
-                Return System.Threading.Tasks.Task.FromResult(GetService(serviceType))
-            End Function
-
-            Friend Function GetComponentModelMock() As IComponentModel
-                Return New MockComponentModel(_exportProvider)
-            End Function
-        End Class
-
         Private Class MockShellMonitorSelection
             Implements IVsMonitorSelection
 
@@ -262,18 +205,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             End Function
         End Class
 
-        Private Class MockXmlMemberIndexService
-            Implements IVsXMLMemberIndexService
-
-            Public Function CreateXMLMemberIndex(pszBinaryName As String, ByRef ppIndex As IVsXMLMemberIndex) As Integer Implements IVsXMLMemberIndexService.CreateXMLMemberIndex
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function GetMemberDataFromXML(pszXML As String, ByRef ppObj As IVsXMLMemberData) As Integer Implements IVsXMLMemberIndexService.GetMemberDataFromXML
-                Throw New NotImplementedException()
-            End Function
-        End Class
-
         Friend Async Function GetFileChangeServiceAsync() As Task(Of MockVsFileChangeEx)
             ' Ensure we've pushed everything to the file change watcher
             Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
@@ -292,13 +223,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Dim service = Await GetFileChangeServiceAsync()
             service.FireStaleUpdate(path, unsubscribingAction)
         End Function
-
-        Private Class MockVsSmartOpenScope
-            Implements IVsSmartOpenScope
-
-            Public Function OpenScope(wszScope As String, dwOpenFlags As UInteger, ByRef riid As Guid, ByRef ppIUnk As Object) As Integer Implements IVsSmartOpenScope.OpenScope
-                Throw New NotImplementedException()
-            End Function
-        End Class
     End Class
 End Namespace
