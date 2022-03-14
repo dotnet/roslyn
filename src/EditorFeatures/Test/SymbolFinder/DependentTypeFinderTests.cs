@@ -615,6 +615,7 @@ enum E
         }
 
         [Theory, CombinatorialData]
+        [WorkItem(1464142, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1464142")]
         public async Task DependentTypeFinderSkipsNoCompilationLanguages(TestHost host)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(host);
