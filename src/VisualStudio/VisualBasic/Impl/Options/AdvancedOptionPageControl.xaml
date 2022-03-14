@@ -12,7 +12,6 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <!-- We have a Margin here, to get some distance to the Scrollbar See: https://github.com/dotnet/roslyn/issues/14979-->
         <StackPanel Margin="0,0,3,0">
-
             <GroupBox x:Uid="AnalysisGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
                 <StackPanel>
@@ -45,6 +44,27 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics}" />
                     <CheckBox x:Name="Skip_analyzers_for_implicitly_triggered_builds"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="EditorHelpGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+                <StackPanel>
+                    <CheckBox x:Name="EnableLineCommit"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableLineCommit}" />
+                    <CheckBox x:Name="EnableEndConstruct"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableEndConstruct}" />
+                    <CheckBox x:Name="AutomaticInsertionOfInterfaceAndMustOverrideMembers"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
+                    <CheckBox x:Name="ShowRemarksInQuickInfo"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
+                    <CheckBox x:Name="RenameTrackingPreview"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
+                    <CheckBox x:Name="Underline_reassigned_variables"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
+                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
@@ -124,28 +144,6 @@
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
                     <CheckBox x:Name="InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments}" />
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="EditorHelpGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
-                <StackPanel>
-                    <CheckBox x:Name="EnableLineCommit"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableLineCommit}" />
-                    <CheckBox x:Name="EnableEndConstruct"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_EnableEndConstruct}" />
-                    <CheckBox x:Name="AutomaticInsertionOfInterfaceAndMustOverrideMembers"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
-                    <CheckBox x:Name="ShowRemarksInQuickInfo"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
-                    <CheckBox x:Name="RenameTrackingPreview"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
-                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
-                    <CheckBox x:Name="Underline_reassigned_variables"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
             

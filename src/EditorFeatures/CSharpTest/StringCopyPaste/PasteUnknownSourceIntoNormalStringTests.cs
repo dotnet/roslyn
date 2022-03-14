@@ -42,6 +42,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
+        public void TestBackslashTIntoNormalString1()
+        {
+            TestPasteUnknownSource(
+                pasteText: @"\t",
+                @"var x = ""[||]""",
+                @"var x = ""\t[||]""",
+                afterUndo: @"var x = ""[||]""");
+        }
+
+        [WpfFact]
         public void TestSingleQuoteIntoNormalString()
         {
             TestPasteUnknownSource(

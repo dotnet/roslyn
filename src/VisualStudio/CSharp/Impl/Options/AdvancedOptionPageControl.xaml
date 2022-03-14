@@ -59,6 +59,26 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="EditorHelpGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
+                <StackPanel>
+                    <CheckBox x:Name="Split_string_literals_on_enter"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
+                    <CheckBox x:Name="Fixup_text_pasted_into_string_literals"
+                              x:Uid="Fixup_text_pasted_into_string_literals"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fixup_text_pasted_into_string_literals}" />
+                    <CheckBox x:Name="ShowRemarksInQuickInfo"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
+                    <CheckBox x:Name="RenameTrackingPreview"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
+                    <CheckBox x:Name="Underline_reassigned_variables"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
+                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Using_Directives}">
                 <StackPanel>
@@ -130,7 +150,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
                 </StackPanel>
             </GroupBox>
-
             <GroupBox x:Uid="CommentsGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Comments}">
                 <StackPanel>
@@ -142,25 +161,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments}"/>
                 </StackPanel>
             </GroupBox>
-
-            <GroupBox x:Uid="EditorHelpGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_EditorHelp}">
-                <StackPanel>
-                    <CheckBox x:Name="ShowRemarksInQuickInfo"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ShowRemarksInQuickInfo}" />
-                    <CheckBox x:Name="RenameTrackingPreview"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
-                    <CheckBox x:Name="Split_string_literals_on_enter"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
-                    <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
-                    <CheckBox x:Name="Underline_reassigned_variables"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
-                </StackPanel>
-            </GroupBox>
-
             <GroupBox x:Uid="RegularExpressionsGroupBox"
                         Header="{x:Static local:AdvancedOptionPageStrings.Option_Regular_Expressions}">
                 <StackPanel>

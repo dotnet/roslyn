@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         /// <summary>
         /// Whether or not the string expression remained successfully parseable after the paste.  <see
-        /// cref="ComputePasteWasSuccessful(CancellationToken)"/>.  If it can still be successfully parsed subclasses
+        /// cref="StringCopyPasteCommandHandler.PasteWasSuccessful"/>.  If it can still be successfully parsed subclasses
         /// can adjust their view on which pieces of content need to be escaped or not.
         /// </summary>
         protected readonly bool PasteWasSuccessful;

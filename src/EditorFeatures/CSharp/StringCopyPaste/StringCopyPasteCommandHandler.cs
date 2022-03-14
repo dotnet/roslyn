@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             nextCommandHandler();
 
             // If the user has the option off, then don't bother doing anything once we've sent the paste through.
-            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste))
+            if (!_globalOptions.GetOption(FeatureOnOffOptions.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp))
                 return;
 
             // if we're not even sure where the user caret/selection is on this buffer, we can't proceed.
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// there are no errors in it.  For this purposes of this check, errors in interpolation holes are not
         /// considered.  We only care about the textual content of the string.
         /// </summary>
-        private static bool PasteWasSuccessful(
+        internal static bool PasteWasSuccessful(
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             Document documentAfterPaste,
