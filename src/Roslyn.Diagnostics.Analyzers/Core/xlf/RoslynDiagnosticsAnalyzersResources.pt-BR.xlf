@@ -299,7 +299,7 @@
       </trans-unit>
       <trans-unit id="Run iterations">
         <source>Run iterations</source>
-        <target state="new">Run iterations</target>
+        <target state="translated">Executar iterações</target>
         <note />
       </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
