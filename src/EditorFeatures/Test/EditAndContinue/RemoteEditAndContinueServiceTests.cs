@@ -80,7 +80,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockDiagnosticService = new MockDiagnosticAnalyzerService();
+            var mockDiagnosticService = new MockDiagnosticAnalyzerService(globalOptions);
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
             {

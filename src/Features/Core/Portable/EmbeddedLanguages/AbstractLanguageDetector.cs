@@ -12,9 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
-    internal abstract class AbstractLanguageDetector<TOptions, TTree>
+    internal abstract class AbstractLanguageDetector<TOptions>
         where TOptions : struct, Enum
-        where TTree : class
     {
         protected readonly EmbeddedLanguageInfo Info;
 
@@ -34,11 +33,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// them.  That way users can get a decent experience even on downlevel frameworks.
         /// </summary>
         protected abstract bool IsArgumentToWellKnownAPI(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
-
-        /// <summary>
-        /// Tries to parse out an appropriate language tree given the characters in this string literal.
-        /// </summary>
-        protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
 
         /// <summary>
         /// Giving a sibling argument expression to the string literal, attempts to determine if they correspond to
@@ -115,20 +109,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                    IsArgumentToWellKnownAPI(token, token.Parent.Parent, semanticModel, cancellationToken, out options);
         }
 
-        /// <summary>
-        /// Attempts to parse the string-literal-like <paramref name="token"/> into an embedded language tree.  The
-        /// token must either be in a location semantically known to accept this language, or it must have an
-        /// appropriate comment on it stating that it should be interpreted as this language.
-        /// </summary>
-        public TTree? TryParseString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            if (!this.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var options))
-                return null;
-
-            var chars = Info.VirtualCharService.TryConvertToVirtualChars(token);
-            return TryParse(chars, options);
-        }
-
         protected TOptions? GetOptionsFromSiblingArgument(
             SyntaxNode argument,
             SemanticModel semanticModel,
@@ -188,6 +168,38 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             }
 
             return null;
+        }
+    }
+
+    internal abstract class AbstractLanguageDetector<TOptions, TTree> :
+        AbstractLanguageDetector<TOptions>
+        where TOptions : struct, Enum
+        where TTree : class
+    {
+        protected AbstractLanguageDetector(
+            EmbeddedLanguageInfo info,
+            ImmutableArray<string> languageIdentifiers)
+            : base(info, languageIdentifiers)
+        {
+        }
+
+        /// <summary>
+        /// Tries to parse out an appropriate language tree given the characters in this string literal.
+        /// </summary>
+        protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
+
+        /// <summary>
+        /// Attempts to parse the string-literal-like <paramref name="token"/> into an embedded language tree.  The
+        /// token must either be in a location semantically known to accept this language, or it must have an
+        /// appropriate comment on it stating that it should be interpreted as this language.
+        /// </summary>
+        public TTree? TryParseString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!this.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var options))
+                return null;
+
+            var chars = Info.VirtualCharService.TryConvertToVirtualChars(token);
+            return TryParse(chars, options);
         }
     }
 }

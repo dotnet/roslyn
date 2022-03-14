@@ -37,8 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsSingleLineStatementContext As Boolean
         Public ReadOnly IsMultiLineStatementContext As Boolean
 
-        Public ReadOnly IsGlobalStatementContext As Boolean
-
         Public ReadOnly IsTypeDeclarationKeywordContext As Boolean
         Public ReadOnly IsTypeMemberDeclarationKeywordContext As Boolean
         Public ReadOnly IsInterfaceMemberDeclarationKeywordContext As Boolean
@@ -66,6 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isPreProcessorExpressionContext As Boolean,
             isRightOfNameSeparator As Boolean,
             isSingleLineStatementContext As Boolean,
+            isGlobalStatementContext As Boolean,
             isExpressionContext As Boolean,
             isAttributeNameContext As Boolean,
             isEnumTypeMemberAccessContext As Boolean,
@@ -92,6 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPreProcessorExpressionContext,
                 isRightOfNameSeparator,
                 isStatementContext:=isSingleLineStatementContext,
+                isGlobalStatementContext:=isGlobalStatementContext,
                 isAnyExpressionContext:=isExpressionContext,
                 isAttributeNameContext:=isAttributeNameContext,
                 isEnumTypeMemberAccessContext:=isEnumTypeMemberAccessContext,
@@ -113,8 +113,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Me.IsSingleLineStatementContext = isSingleLineStatementContext
             Me.IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
-
-            Me.IsGlobalStatementContext = syntaxTree.IsGlobalStatementContext(position, cancellationToken)
 
             Me.IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
             Me.IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
@@ -155,6 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isPreProcessorExpressionContext:=syntaxTree.IsInPreprocessorExpressionContext(position, cancellationToken),
                 isRightOfNameSeparator:=syntaxTree.IsRightOfDot(position, cancellationToken),
                 isSingleLineStatementContext:=syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken),
+                isGlobalStatementContext:=syntaxTree.IsGlobalStatementContext(position, cancellationToken),
                 isExpressionContext:=syntaxTree.IsExpressionContext(position, targetToken, cancellationToken, semanticModel),
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),

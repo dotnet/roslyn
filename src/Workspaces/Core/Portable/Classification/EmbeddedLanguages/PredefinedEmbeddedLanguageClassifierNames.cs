@@ -6,12 +6,6 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class PredefinedEmbeddedLanguageClassifierNames
     {
-        /// <summary>
-        /// A special built-in classifier for classifying escapes in strings and character literals if no other embedded
-        /// language classifiers handle it.
-        /// </summary>
-        public const string Fallback = nameof(Fallback);
-
         public const string Regex = nameof(Regex);
 
         public const string Json = nameof(Json);

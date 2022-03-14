@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             set => _visualStudioProject.HasAllInformation = value;
         }
 
-        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid, string? binOutputPath)
+        public CPSProject(VisualStudioProject visualStudioProject, VisualStudioWorkspaceImpl visualStudioWorkspace, IProjectCodeModelFactory projectCodeModelFactory, Guid projectGuid)
         {
             _visualStudioProject = visualStudioProject;
             _visualStudioWorkspace = visualStudioWorkspace;
@@ -80,8 +80,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 return (prefix != null) ? new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, visualStudioProject.Language, visualStudioWorkspace) : null;
             });
 
-            visualStudioWorkspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(visualStudioProject.Id, new CPSCodeModelInstanceFactory(this));
 
             // If we have a command line parser service for this language, also set up our ability to process options if they come in
@@ -94,7 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
 
             Guid = projectGuid;
-            BinOutputPath = binOutputPath;
         }
 
         public string? BinOutputPath
