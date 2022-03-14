@@ -206,6 +206,26 @@ namespace Analyzer.Utilities
         public const string ExcludeOrDefaultMethods = "exclude_ordefault_methods";
 
         /// <summary>
+        /// String option to configure names of method symbols (separated by '|') that marks all of the parameters with IEnumerable type
+        /// would be enumerated.
+        /// Configurable rule: CA1851 (https://docs.microsoft.com/visualstudio/code-quality/ca1851).
+        /// </summary>
+        public const string EnumerationMethods = "enumeration_methods";
+
+        /// <summary>
+        /// String option to configure names of method symbols (separated by '|') that accepting parameter with IEnumerable type and return a new IEnumerable type, like 'Select' and 'Where'.
+        /// Configurable rule: CA1851 (https://docs.microsoft.com/visualstudio/code-quality/ca1851).
+        /// </summary>
+        public const string LinqChainMethods = "linq_chain_methods";
+
+        /// <summary>
+        /// Boolean option to configure the assumption that IEnumerable type arguments would be enumerated by method invocation or not.
+        /// It does not affect linq_chain_methods.
+        /// Configurable rule: CA1851 (https://docs.microsoft.com/visualstudio/code-quality/ca1851).
+        /// </summary>
+        public const string AssumeMethodEnumeratesArguments = "assume_method_enumerates_arguments";
+
+        /// <summary>
         /// String option to configure names of additional "None" enum case (separated by '|') for CA1008.
         /// </summary>
         public const string AdditionalEnumNoneNames = "additional_enum_none_names";
