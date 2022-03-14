@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\n",
 @"var x = """"""
-    $$
+    [||]
     """"""",
-"var x = \"\"\"\r\n    \n    $$\r\n    \"\"\"",
+"var x = \"\"\"\r\n    \n    [||]\r\n    \"\"\"",
                 afterUndo:
-"var x = \"\"\"\r\n    \n$$\r\n    \"\"\"");
+"var x = \"\"\"\r\n    \n[||]\r\n    \"\"\"");
         }
 
         [WpfFact]
@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "\r\n",
 @"var x = """"""
-    $$
+    [||]
     """"""",
-"var x = \"\"\"\r\n    \r\n    $$\r\n    \"\"\"",
+"var x = \"\"\"\r\n    \r\n    [||]\r\n    \"\"\"",
                 afterUndo:
-"var x = \"\"\"\r\n    \r\n$$\r\n    \"\"\"");
+"var x = \"\"\"\r\n    \r\n[||]\r\n    \"\"\"");
         }
 
         [WpfFact]
@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "    ",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
-        $$
+        [||]
     """"""",
                 afterUndo:
 @"var x = """"""
-    $$
+    [||]
     """"""");
         }
 
@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "    \r\n",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
     
-    $$
+    [||]
     """"""",
                 afterUndo:
 @"var x = """"""
         
-$$
+[||]
     """"""");
         }
 
@@ -79,14 +79,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "'",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
-    '$$
+    '[||]
     """"""",
                 afterUndo:
 @"var x = """"""
-    $$
+    [||]
     """"""");
         }
 
@@ -96,14 +96,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
-    ""$$
+    ""[||]
     """"""",
                 afterUndo:
 @"var x = """"""
-    $$
+    [||]
     """"""");
         }
 
@@ -113,14 +113,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""""
-    """"""$$
+    """"""[||]
     """"""""",
                 afterUndo:
 @"var x = """"""
-    """"""$$
+    """"""[||]
     """"""");
         }
 
@@ -130,14 +130,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
 @"var x = """"""  
-    $$
+    [||]
     """"""  ",
 @"var x = """"""""  
-    """"""$$
+    """"""[||]
     """"""""  ",
                 afterUndo:
 @"var x = """"""  
-    """"""$$
+    """"""[||]
     """"""  ");
         }
 
@@ -147,14 +147,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
 @"var x = """"""  
-    ""$$
+    ""[||]
     """"""  ",
 @"var x = """"""""""  
-    """"""""$$
+    """"""""[||]
     """"""""""  ",
                 afterUndo:
 @"var x = """"""  
-    """"""""$$
+    """"""""[||]
     """"""  ");
         }
 
@@ -164,14 +164,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
 @"var x = """"""  
-    ""$$""  
+    ""[||]""  
     """"""  ",
 @"var x = """"""""""""  
-    """"""""$$""  
+    """"""""[||]""  
     """"""""""""  ",
                 afterUndo:
 @"var x = """"""  
-    """"""""$$""  
+    """"""""[||]""  
     """"""  ");
         }
 
@@ -181,14 +181,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
 @"var x = """"""  
-    $$""
+    [||]""
     """"""  ",
 @"var x = """"""""""  
-    """"""$$""
+    """"""[||]""
     """"""""""  ",
                 afterUndo:
 @"var x = """"""  
-    """"""$$""
+    """"""[||]""
     """"""  ");
         }
 
@@ -198,14 +198,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"\"\"\"",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""""""
-    """"""""$$
+    """"""""[||]
     """"""""""",
                 afterUndo:
 @"var x = """"""
-    """"""""$$
+    """"""""[||]
     """"""");
         }
 
@@ -215,14 +215,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "  \"\"  ",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
-    """"  $$
+    """"  [||]
     """"""",
                 afterUndo:
 @"var x = """"""
-      """"  $$
+      """"  [||]
     """"""");
         }
 
@@ -232,14 +232,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "abc",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
-    abc$$
+    abc[||]
     """"""",
                 afterUndo:
 @"var x = """"""
-    $$
+    [||]
     """"""");
         }
 
@@ -249,16 +249,16 @@ $$
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
     abc
-    def$$
+    def[||]
     """"""",
                 afterUndo:
 @"var x = """"""
     abc
-def$$
+def[||]
     """"""");
         }
 
@@ -268,16 +268,16 @@ def$$
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
 @"var x = """"""
-$$
+[||]
     """"""",
 @"var x = """"""
     abc
-    def$$
+    def[||]
     """"""",
                 afterUndo:
 @"var x = """"""
 abc
-def$$
+def[||]
     """"""");
         }
 
@@ -286,17 +286,17 @@ def$$
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""$$
+@"var x = """"""[||]
 
     """"""",
 @"var x = """"""
     abc
-    def$$
+    def[||]
 
     """"""",
                 afterUndo:
 @"var x = """"""abc
-def$$
+def[||]
 
     """"""");
         }
@@ -307,16 +307,16 @@ def$$
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
 @"var x = """"""
-    goo$$
+    goo[||]
     """"""",
 @"var x = """"""
     gooabc
-    def$$
+    def[||]
     """"""",
                 afterUndo:
 @"var x = """"""
     gooabc
-def$$
+def[||]
     """"""");
         }
 
@@ -326,16 +326,16 @@ def$$
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
 @"var x = """"""
-    goo$$bar
+    goo[||]bar
     """"""",
 @"var x = """"""
     gooabc
-    def$$bar
+    def[||]bar
     """"""",
                 afterUndo:
 @"var x = """"""
     gooabc
-def$$bar
+def[||]bar
     """"""");
         }
 
@@ -345,18 +345,18 @@ def$$bar
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef\r\n",
 @"var x = """"""
-    goo$$bar
+    goo[||]bar
     """"""",
 @"var x = """"""
     gooabc
     def
-    $$bar
+    [||]bar
     """"""",
                 afterUndo:
 @"var x = """"""
     gooabc
 def
-$$bar
+[||]bar
     """"""");
         }
 
@@ -366,18 +366,18 @@ $$bar
             TestPasteUnknownSource(
                 pasteText: "abc\r\n    def\r\nghi",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
     abc
         def
-    ghi$$
+    ghi[||]
     """"""",
                 afterUndo:
 @"var x = """"""
     abc
     def
-ghi$$
+ghi[||]
     """"""");
         }
 
@@ -387,16 +387,16 @@ ghi$$
             TestPasteUnknownSource(
                 pasteText: "abc\r\n    def\r\n    ghi",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
     abc
     def
-    ghi$$
+    ghi[||]
     """"""",
                 afterUndo:
 @"var x = """"""
-    $$
+    [||]
     """"""");
         }
 
@@ -406,18 +406,18 @@ ghi$$
             TestPasteUnknownSource(
                 pasteText: "    abc\r\n    def\r\n    ghi",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
     abc
     def
-    ghi$$
+    ghi[||]
     """"""",
                 afterUndo:
 @"var x = """"""
         abc
     def
-    ghi$$
+    ghi[||]
     """"""");
         }
 
@@ -427,18 +427,18 @@ ghi$$
             TestPasteUnknownSource(
                 pasteText: "        abc\r\n    def\r\n    ghi",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
         abc
     def
-    ghi$$
+    ghi[||]
     """"""",
                 afterUndo:
 @"var x = """"""
             abc
     def
-    ghi$$
+    ghi[||]
     """"""");
         }
 
@@ -447,16 +447,16 @@ ghi$$
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""$${|Selection:
+@"var x = """"""[||]{|Selection:
 
     |}""""""",
 @"var x = """"""
     abc
     def
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""abc
-def$$""""""");
+def[||]""""""");
         }
 
         [WpfFact]
@@ -464,18 +464,18 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef\r\n",
-@"var x = """"""$${|Selection:
+@"var x = """"""[||]{|Selection:
 
     |}""""""",
 @"var x = """"""
     abc
     def
     
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""abc
 def
-$$""""""");
+[||]""""""");
         }
 
         [WpfFact]
@@ -483,16 +483,16 @@ $$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""$${|Selection:
+@"var x = """"""[||]{|Selection:
 
  |}   """"""",
 @"var x = """"""
     abc
     def
- $$   """"""",
+ [||]   """"""",
                 afterUndo:
 @"var x = """"""abc
-def$$   """"""");
+def[||]   """"""");
         }
 
         [WpfFact]
@@ -500,15 +500,15 @@ def$$   """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "bar",
-@"var x = """"""$$
+@"var x = """"""[||]
     goo
     """"""",
 @"var x = """"""
-    bar$$
+    bar[||]
     goo
     """"""",
                 afterUndo:
-@"var x = """"""bar$$
+@"var x = """"""bar[||]
     goo
     """"""");
         }
@@ -518,14 +518,14 @@ def$$   """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"",
-@"var x = """"""$${|Selection:
+@"var x = """"""[||]{|Selection:
 
     |}""""""",
 @"var x = """"""
     """"
-    $$""""""",
+    [||]""""""",
                 afterUndo:
-@"var x = """"""""""$$""""""");
+@"var x = """"""""""[||]""""""");
         }
 
         [WpfFact]
@@ -533,14 +533,14 @@ def$$   """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
-@"var x = """"""$${|Selection:
+@"var x = """"""[||]{|Selection:
 
     |}""""""",
 @"var x = """"""""
     """"""
-    ""$$""""""",
+    ""[||]""""""",
                 afterUndo:
-@"var x = """"""""""""$$""""""");
+@"var x = """"""""""""[||]""""""");
         }
     }
 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
@@ -117,20 +118,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
             private void ValidateBefore(string expectedMarkup)
             {
-                MarkupTestFile.GetPosition(expectedMarkup, out var expected, out int caretPosition);
+                MarkupTestFile.GetSpan(expectedMarkup, out var expected, out var caretSpan);
+                Assert.True(caretSpan.IsEmpty);
                 var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
 
                 Assert.Equal(expected, finalText);
-                Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
+                Assert.Equal(caretSpan.Start, this.TextView.Caret.Position.BufferPosition.Position);
             }
 
             private void ValidateAfter(string afterUndoMarkup)
             {
-                MarkupTestFile.GetPosition(afterUndoMarkup, out var expected, out int caretPosition);
+                MarkupTestFile.GetSpan(afterUndoMarkup, out var expected, out var caretSpan);
+                Assert.True(caretSpan.IsEmpty);
                 var finalText = this.SubjectBuffer.CurrentSnapshot.GetText();
 
                 Assert.Equal(expected, finalText);
-                Assert.Equal(caretPosition, this.TextView.Caret.Position.BufferPosition.Position);
+                Assert.Equal(caretSpan.Start, this.TextView.Caret.Position.BufferPosition.Position);
             }
 
             private static void SetSelection(

@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-                @"var x = ""$$""",
-                @"var x = ""\n$$""",
-                afterUndo: "var x = \"\n$$\"");
+                @"var x = ""[||]""",
+                @"var x = ""\n[||]""",
+                afterUndo: "var x = \"\n[||]\"");
         }
 
         [WpfFact]
@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\r\n",
-                @"var x = ""$$""",
-                @"var x = ""\r\n$$""",
-                afterUndo: "var x = \"\r\n$$\"");
+                @"var x = ""[||]""",
+                @"var x = ""\r\n[||]""",
+                afterUndo: "var x = \"\r\n[||]\"");
         }
 
         [WpfFact]
@@ -36,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t",
-                @"var x = ""$$""",
-                @"var x = ""\t$$""",
-                afterUndo: "var x = \"\t$$\"");
+                @"var x = ""[||]""",
+                @"var x = ""\t[||]""",
+                afterUndo: "var x = \"\t[||]\"");
         }
 
         [WpfFact]
@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "'",
-                @"var x = ""$$""",
-                @"var x = ""'$$""",
-                afterUndo: "var x = \"$$\"");
+                @"var x = ""[||]""",
+                @"var x = ""'[||]""",
+                afterUndo: "var x = \"[||]\"");
         }
 
         [WpfFact]
@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\"",
-                @"var x = ""$$""",
-                @"var x = ""\""$$""",
-                afterUndo: "var x = \"\"$$\"");
+                @"var x = ""[||]""",
+                @"var x = ""\""[||]""",
+                afterUndo: "var x = \"\"[||]\"");
         }
 
         [WpfFact]
@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
-                @"var x = ""$$""",
-                @"var x = ""\t\""\""\t$$""",
-                afterUndo: "var x = \"\t\"\"\t$$\"");
+                @"var x = ""[||]""",
+                @"var x = ""\t\""\""\t[||]""",
+                afterUndo: "var x = \"\t\"\"\t[||]\"");
         }
 
         [WpfFact]
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "abc",
-                @"var x = ""$$""",
-                @"var x = ""abc$$""",
-                afterUndo: @"var x = ""$$""");
+                @"var x = ""[||]""",
+                @"var x = ""abc[||]""",
+                afterUndo: @"var x = ""[||]""");
         }
     }
 }

@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-@"var x = """"""$$ """"""",
-"var x = \"\"\"\r\n    \n    $$ \r\n    \"\"\"",
+@"var x = """"""[||] """"""",
+"var x = \"\"\"\r\n    \n    [||] \r\n    \"\"\"",
                 afterUndo:
-"var x = \"\"\"\n$$ \"\"\"");
+"var x = \"\"\"\n[||] \"\"\"");
         }
 
         [WpfFact]
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-@"var x = """""" $$""""""",
-"var x = \"\"\"\r\n     \n    \r\n    $$\"\"\"",
+@"var x = """""" [||]""""""",
+"var x = \"\"\"\r\n     \n    \r\n    [||]\"\"\"",
                 afterUndo:
-"var x = \"\"\" \n$$\"\"\"");
+"var x = \"\"\" \n[||]\"\"\"");
         }
 
         [WpfFact]
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\r\n",
-@"var x = """"""$$ """"""",
-"var x = \"\"\"\r\n    \r\n    $$ \r\n    \"\"\"",
+@"var x = """"""[||] """"""",
+"var x = \"\"\"\r\n    \r\n    [||] \r\n    \"\"\"",
                 afterUndo:
-"var x = \"\"\"\r\n$$ \"\"\"");
+"var x = \"\"\"\r\n[||] \"\"\"");
         }
 
         [WpfFact]
@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\r\n",
-@"var x = """""" $$""""""",
-"var x = \"\"\"\r\n     \r\n    \r\n    $$\"\"\"",
+@"var x = """""" [||]""""""",
+"var x = \"\"\"\r\n     \r\n    \r\n    [||]\"\"\"",
                 afterUndo:
-"var x = \"\"\" \r\n$$\"\"\"");
+"var x = \"\"\" \r\n[||]\"\"\"");
         }
 
         [WpfFact]
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "    ",
-@"var x = """"""$$ """"""",
-@"var x = """"""    $$ """"""",
+@"var x = """"""[||] """"""",
+@"var x = """"""    [||] """"""",
                 afterUndo:
-@"var x = """"""$$ """"""");
+@"var x = """"""[||] """"""");
         }
 
         [WpfFact]
@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "    ",
-@"var x = """""" $$""""""",
-@"var x = """"""     $$""""""",
+@"var x = """""" [||]""""""",
+@"var x = """"""     [||]""""""",
                 afterUndo:
-@"var x = """""" $$""""""");
+@"var x = """""" [||]""""""");
         }
 
         [WpfFact]
@@ -83,16 +83,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             TestPasteUnknownSource(
                 pasteText: "    \r\n",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""
     
-    $$
+    [||]
     """"""",
                 afterUndo:
 @"var x = """"""
         
-$$
+[||]
     """"""");
         }
 
@@ -101,10 +101,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "'",
-@"var x = """"""$$ """"""",
-@"var x = """"""'$$ """"""",
+@"var x = """"""[||] """"""",
+@"var x = """"""'[||] """"""",
                 afterUndo:
-@"var x = """"""$$ """"""");
+@"var x = """"""[||] """"""");
         }
 
         [WpfFact]
@@ -112,10 +112,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "'",
-@"var x = """""" $$""""""",
-@"var x = """""" '$$""""""",
+@"var x = """""" [||]""""""",
+@"var x = """""" '[||]""""""",
                 afterUndo:
-@"var x = """""" $$""""""");
+@"var x = """""" [||]""""""");
         }
 
         [WpfFact]
@@ -123,12 +123,12 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "\"",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""
-    ""$$ 
+    ""[||] 
     """"""",
                 afterUndo:
-@"var x = """"""""$$ """"""");
+@"var x = """"""""[||] """"""");
         }
 
         [WpfFact]
@@ -136,12 +136,12 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "\"",
-@"var x = """""" $$""""""",
+@"var x = """""" [||]""""""",
 @"var x = """"""
      ""
-    $$""""""",
+    [||]""""""",
                 afterUndo:
-@"var x = """""" ""$$""""""");
+@"var x = """""" ""[||]""""""");
         }
 
         [WpfFact]
@@ -149,12 +149,12 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""""
-    """"""$$ 
+    """"""[||] 
     """"""""",
                 afterUndo:
-@"var x = """"""""""""$$ """"""");
+@"var x = """"""""""""[||] """"""");
         }
 
         [WpfFact]
@@ -162,12 +162,12 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
-@"var x = """""" $$""""""",
+@"var x = """""" [||]""""""",
 @"var x = """"""""
      """"""
-    ""$$""""""",
+    ""[||]""""""",
                 afterUndo:
-@"var x = """""" """"""$$""""""");
+@"var x = """""" """"""[||]""""""");
         }
 
         [WpfFact]
@@ -175,10 +175,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
-@"var x = """""" ""$$ """"""",
-@"var x = """""""""" """"""""$$ """"""""""",
+@"var x = """""" ""[||] """"""",
+@"var x = """""""""" """"""""[||] """"""""""",
                 afterUndo:
-@"var x = """""" """"""""$$ """"""");
+@"var x = """""" """"""""[||] """"""");
         }
 
         [WpfFact]
@@ -186,10 +186,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
-@"var x = """""" ""$$"" """"""",
-@"var x = """""""""""" """"""""$$"" """"""""""""",
+@"var x = """""" ""[||]"" """"""",
+@"var x = """""""""""" """"""""[||]"" """"""""""""",
                 afterUndo:
-@"var x = """""" """"""""$$"" """"""");
+@"var x = """""" """"""""[||]"" """"""");
         }
 
         [WpfFact]
@@ -197,10 +197,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
-@"var x = """""" $$"" """"""",
-@"var x = """""""""" """"""$$"" """"""""""",
+@"var x = """""" [||]"" """"""",
+@"var x = """""""""" """"""[||]"" """"""""""",
                 afterUndo:
-@"var x = """""" """"""$$"" """"""");
+@"var x = """""" """"""[||]"" """"""");
         }
 
         [WpfFact]
@@ -209,14 +209,14 @@ $$
             TestPasteUnknownSource(
                 pasteText: "\"\"\"\"",
 @"var x = """"""
-    $$
+    [||]
     """"""",
 @"var x = """"""""""
-    """"""""$$
+    """"""""[||]
     """"""""""",
                 afterUndo:
 @"var x = """"""
-    """"""""$$
+    """"""""[||]
     """"""");
         }
 
@@ -225,10 +225,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "  \"\"  ",
-@"var x = """"""$$ """"""",
-@"var x = """"""  """"  $$ """"""",
+@"var x = """"""[||] """"""",
+@"var x = """"""  """"  [||] """"""",
                 afterUndo:
-@"var x = """"""$$ """"""");
+@"var x = """"""[||] """"""");
         }
 
         [WpfFact]
@@ -236,10 +236,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "abc",
-@"var x = """"""$$ """"""",
-@"var x = """"""abc$$ """"""",
+@"var x = """"""[||] """"""",
+@"var x = """"""abc[||] """"""",
                 afterUndo:
-@"var x = """"""$$ """"""");
+@"var x = """"""[||] """"""");
         }
 
         [WpfFact]
@@ -247,10 +247,10 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "abc",
-@"var x = """""" $$""""""",
-@"var x = """""" abc$$""""""",
+@"var x = """""" [||]""""""",
+@"var x = """""" abc[||]""""""",
                 afterUndo:
-@"var x = """""" $$""""""");
+@"var x = """""" [||]""""""");
         }
 
         [WpfFact]
@@ -258,14 +258,14 @@ $$
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""
     abc
-    def$$ 
+    def[||] 
     """"""",
                 afterUndo:
 @"var x = """"""abc
-def$$ """"""");
+def[||] """"""");
         }
 
         [WpfFact]
@@ -273,14 +273,14 @@ def$$ """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """""" $$""""""",
+@"var x = """""" [||]""""""",
 @"var x = """"""
      abc
     def
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """""" abc
-def$$""""""");
+def[||]""""""");
         }
 
         [WpfFact]
@@ -288,14 +288,14 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""goo$$""""""",
+@"var x = """"""goo[||]""""""",
 @"var x = """"""
     gooabc
     def
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""gooabc
-def$$""""""");
+def[||]""""""");
         }
 
         [WpfFact]
@@ -303,14 +303,14 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""goo$$bar""""""",
+@"var x = """"""goo[||]bar""""""",
 @"var x = """"""
     gooabc
-    def$$bar
+    def[||]bar
     """"""",
                 afterUndo:
 @"var x = """"""gooabc
-def$$bar""""""");
+def[||]bar""""""");
         }
 
         [WpfFact]
@@ -318,16 +318,16 @@ def$$bar""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef\r\n",
-@"var x = """"""goo$$bar""""""",
+@"var x = """"""goo[||]bar""""""",
 @"var x = """"""
     gooabc
     def
-    $$bar
+    [||]bar
     """"""",
                 afterUndo:
 @"var x = """"""gooabc
 def
-$$bar""""""");
+[||]bar""""""");
         }
 
         [WpfFact]
@@ -335,16 +335,16 @@ $$bar""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\n    def\r\nghi",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""
     abc
         def
-    ghi$$ 
+    ghi[||] 
     """"""",
                 afterUndo:
 @"var x = """"""abc
     def
-ghi$$ """"""");
+ghi[||] """"""");
         }
 
         [WpfFact]
@@ -352,16 +352,16 @@ ghi$$ """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\n    def\r\nghi",
-@"var x = """""" $$""""""",
+@"var x = """""" [||]""""""",
 @"var x = """"""
      abc
         def
     ghi
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """""" abc
     def
-ghi$$""""""");
+ghi[||]""""""");
         }
 
         [WpfFact]
@@ -369,16 +369,16 @@ ghi$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\n    def\r\n    ghi",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""
     abc
     def
-    ghi$$ 
+    ghi[||] 
     """"""",
                 afterUndo:
 @"var x = """"""abc
     def
-    ghi$$ """"""");
+    ghi[||] """"""");
         }
 
         [WpfFact]
@@ -386,16 +386,16 @@ ghi$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\n    def\r\n    ghi",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""
     abc
     def
-    ghi$$ 
+    ghi[||] 
     """"""",
                 afterUndo:
 @"var x = """"""abc
     def
-    ghi$$ """"""");
+    ghi[||] """"""");
         }
 
         [WpfFact]
@@ -403,16 +403,16 @@ ghi$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "    abc\r\n    def\r\n    ghi",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""
     abc
     def
-    ghi$$ 
+    ghi[||] 
     """"""",
                 afterUndo:
 @"var x = """"""    abc
     def
-    ghi$$ """"""");
+    ghi[||] """"""");
         }
 
         [WpfFact]
@@ -420,16 +420,16 @@ ghi$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "    abc\r\n    def\r\n    ghi",
-@"var x = """""" $$""""""",
+@"var x = """""" [||]""""""",
 @"var x = """"""
      abc
     def
     ghi
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""     abc
     def
-    ghi$$""""""");
+    ghi[||]""""""");
         }
 
         [WpfFact]
@@ -437,16 +437,16 @@ ghi$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "        abc\r\n    def\r\n    ghi",
-@"var x = """"""$$ """"""",
+@"var x = """"""[||] """"""",
 @"var x = """"""
         abc
     def
-    ghi$$ 
+    ghi[||] 
     """"""",
                 afterUndo:
 @"var x = """"""        abc
     def
-    ghi$$ """"""");
+    ghi[||] """"""");
         }
 
         [WpfFact]
@@ -454,16 +454,16 @@ ghi$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "        abc\r\n    def\r\n    ghi",
-@"var x = """""" $$""""""",
+@"var x = """""" [||]""""""",
 @"var x = """"""
          abc
     def
     ghi
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""         abc
     def
-    ghi$$""""""");
+    ghi[||]""""""");
         }
 
         [WpfFact]
@@ -471,14 +471,14 @@ ghi$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""$${|Selection:    |}""""""",
+@"var x = """"""[||]{|Selection:    |}""""""",
 @"var x = """"""
     abc
     def
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""abc
-def$$""""""");
+def[||]""""""");
         }
 
         [WpfFact]
@@ -486,14 +486,14 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""  $${|Selection:    |}  """"""",
+@"var x = """"""  [||]{|Selection:    |}  """"""",
 @"var x = """"""
       abc
-    def$$  
+    def[||]  
     """"""",
                 afterUndo:
 @"var x = """"""  abc
-def$$  """"""");
+def[||]  """"""");
         }
 
         [WpfFact]
@@ -501,16 +501,16 @@ def$$  """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef\r\n",
-@"var x = """"""$${|Selection:    |}""""""",
+@"var x = """"""[||]{|Selection:    |}""""""",
 @"var x = """"""
     abc
     def
     
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""abc
 def
-$$""""""");
+[||]""""""");
         }
 
         [WpfFact]
@@ -518,16 +518,16 @@ $$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef\r\n",
-@"var x = """"""  $${|Selection:    |}  """"""",
+@"var x = """"""  [||]{|Selection:    |}  """"""",
 @"var x = """"""
       abc
     def
-    $$  
+    [||]  
     """"""",
                 afterUndo:
 @"var x = """"""  abc
 def
-$$  """"""");
+[||]  """"""");
         }
 
         [WpfFact]
@@ -535,14 +535,14 @@ $$  """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""$${|Selection:    |}  """"""",
+@"var x = """"""[||]{|Selection:    |}  """"""",
 @"var x = """"""
     abc
-    def$$  
+    def[||]  
     """"""",
                 afterUndo:
 @"var x = """"""abc
-def$$  """"""");
+def[||]  """"""");
         }
 
         [WpfFact]
@@ -550,14 +550,14 @@ def$$  """"""");
         {
             TestPasteUnknownSource(
                 pasteText: "abc\r\ndef",
-@"var x = """"""  $${|Selection:    |}""""""",
+@"var x = """"""  [||]{|Selection:    |}""""""",
 @"var x = """"""
       abc
     def
-    $$""""""",
+    [||]""""""",
                 afterUndo:
 @"var x = """"""  abc
-def$$""""""");
+def[||]""""""");
         }
 
         [WpfFact]
@@ -565,12 +565,12 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "\"bar",
-@"var x = """"""$$goo""""""",
+@"var x = """"""[||]goo""""""",
 @"var x = """"""
-    ""bar$$goo
+    ""bar[||]goo
     """"""",
                 afterUndo:
-@"var x = """"""""bar$$goo""""""");
+@"var x = """"""""bar[||]goo""""""");
         }
 
         [WpfFact]
@@ -578,12 +578,12 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "bar\"",
-@"var x = """"""goo$$""""""",
+@"var x = """"""goo[||]""""""",
 @"var x = """"""
     goobar""
-    $$""""""",
+    [||]""""""",
                 afterUndo:
-@"var x = """"""goobar""$$""""""");
+@"var x = """"""goobar""[||]""""""");
         }
 
         [WpfFact]
@@ -591,12 +591,12 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"",
-@"var x = """"""$${|Selection:    |}""""""",
+@"var x = """"""[||]{|Selection:    |}""""""",
 @"var x = """"""
     """"
-    $$""""""",
+    [||]""""""",
                 afterUndo:
-@"var x = """"""""""$$""""""");
+@"var x = """"""""""[||]""""""");
         }
 
         [WpfFact]
@@ -604,12 +604,12 @@ def$$""""""");
         {
             TestPasteUnknownSource(
                 pasteText: "\"\"\"",
-@"var x = """"""$${|Selection:    |}""""""",
+@"var x = """"""[||]{|Selection:    |}""""""",
 @"var x = """"""""
     """"""
-    ""$$""""""",
+    ""[||]""""""",
                 afterUndo:
-@"var x = """"""""""""$$""""""");
+@"var x = """"""""""""[||]""""""");
         }
     }
 }
