@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal interface IVSTypeScriptGoToDefinitionServiceFactoryImplementation
     {
-        IVSTypeScriptGoToDefinitionService CreateLanguageService(HostLanguageServices languageServices);
+        IVSTypeScriptGoToDefinitionService? CreateLanguageService(HostLanguageServices languageServices);
     }
 }

@@ -226,6 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? _context.SemanticModel.LookupStaticMembers(_context.LeftToken.SpanStart)
                 : _context.SemanticModel.LookupSymbols(_context.LeftToken.SpanStart);
 
+            // filter our top level locals if we're inside a type declaration.
+            if (_context.ContainingTypeDeclaration != null)
+                symbols = symbols.WhereAsArray(s => s.ContainingSymbol.Name != WellKnownMemberNames.TopLevelStatementsEntryPointMethodName);
+
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
             var contextOuterTypes = _context.GetOuterTypes(_cancellationToken);

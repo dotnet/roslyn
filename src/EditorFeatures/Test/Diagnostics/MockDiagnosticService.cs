@@ -25,12 +25,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private DiagnosticData? _diagnostic;
 
+        public IGlobalOptionService GlobalOptions { get; }
+
         public event EventHandler<DiagnosticsUpdatedArgs>? DiagnosticsUpdated;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MockDiagnosticService()
+        public MockDiagnosticService(IGlobalOptionService globalOptions)
         {
+            GlobalOptions = globalOptions;
         }
 
         [Obsolete]
