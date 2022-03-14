@@ -64,17 +64,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.Equal(expectedIndentation, actualIndentation.Value);
         }
 
-        protected static void TestIndentation(
+        protected void TestIndentation(
             TestWorkspace workspace,
             int indentationLine,
             int? expectedIndentation,
             FormattingOptions.IndentStyle indentStyle,
             bool useTabs)
         {
-            workspace.GlobalOptions.SetGlobalOption(new OptionKey(AutoFormattingOptionsStorage.SmartIndent, LanguageNames.CSharp), indentStyle);
+            var language = GetLanguageName();
+            workspace.GlobalOptions.SetGlobalOption(new OptionKey(AutoFormattingOptionsStorage.SmartIndent, language), indentStyle);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
+                .WithChangedOption(FormattingOptions2.UseTabs, language, useTabs)));
 
             var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
             var bufferGraph = new Mock<IBufferGraph>(MockBehavior.Strict);

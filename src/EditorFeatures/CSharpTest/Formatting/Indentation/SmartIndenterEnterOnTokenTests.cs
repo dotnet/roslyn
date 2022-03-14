@@ -1523,7 +1523,7 @@ class C
             Assert.Equal(expectedIndentation.Value, actualIndentation);
         }
 
-        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -1533,7 +1533,7 @@ class C
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, indentStyle).ConfigureAwait(false);
         }
 
-        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
