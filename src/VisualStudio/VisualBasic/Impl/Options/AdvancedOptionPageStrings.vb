@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.ColorSchemes
+Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -297,11 +297,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
             ServicesVSResources.Visual_Studio_2017
 
-        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As SchemeName =
-            SchemeName.VisualStudio2019
+        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As ColorSchemeName =
+            ColorSchemeName.VisualStudio2019
 
-        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
-            SchemeName.VisualStudio2017
+        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As ColorSchemeName =
+            ColorSchemeName.VisualStudio2017
 
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental

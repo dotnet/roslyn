@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateToDecompiledSources"));
 
         public static readonly Option2<bool> NavigateAsynchronously = new(
-            FeatureName, "NavigateAsynchronously", defaultValue: false,
+            FeatureName, "NavigateAsynchronously", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
 
         public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(

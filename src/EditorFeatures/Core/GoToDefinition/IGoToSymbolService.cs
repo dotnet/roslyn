@@ -5,10 +5,9 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition;
+
+internal interface IGoToSymbolService : ILanguageService
 {
-    internal interface IGoToSymbolService : ILanguageService
-    {
-        Task GetSymbolsAsync(GoToSymbolContext context);
-    }
+    Task GetSymbolsAsync(GoToSymbolContext context);
 }

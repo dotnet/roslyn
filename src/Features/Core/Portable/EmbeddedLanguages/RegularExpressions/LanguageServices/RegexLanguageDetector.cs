@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
     /// </summary>
     internal sealed class RegexLanguageDetector : AbstractLanguageDetector<RegexOptions, RegexTree>
     {
-        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "regex", "regexp");
+        public static readonly ImmutableArray<string> LanguageIdentifiers = ImmutableArray.Create("Regex", "Regexp");
 
         private const string _patternName = "pattern";
 

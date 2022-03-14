@@ -9,7 +9,8 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
-    <ExportEmbeddedLanguageClassifier(PredefinedEmbeddedLanguageClassifierNames.Json, LanguageNames.VisualBasic), [Shared]>
+    <ExportEmbeddedLanguageClassifierInternal(
+        PredefinedEmbeddedLanguageClassifierNames.Json, LanguageNames.VisualBasic, True, "Json"), [Shared]>
     Friend Class VisualBasicJsonEmbeddedLanguageClassifier
         Inherits AbstractJsonEmbeddedLanguageClassifier
 
