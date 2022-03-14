@@ -297,6 +297,11 @@
         <target state="translated">비동기 테스트 메서드에는 'Async' 접미사가 필요하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Run iterations">
+        <source>Run iterations</source>
+        <target state="new">Run iterations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">TemporaryArray&lt;T&gt;.AsRef()의 인스턴스는 'using' 변수여야 합니다.</target>
