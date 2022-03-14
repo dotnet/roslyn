@@ -488,6 +488,44 @@ enum E
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInAttribute()
+        {
+            await TestAsync(
+@"
+using System;
+
+[AttributeUsage(AttributeTargets.Class, Inherited [|=|] true)]
+class MyAttribute : Attribute
+{
+}
+", "");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInUsingAlias()
+        {
+            await TestAsync(
+@"
+using SC [||]= System.Console;
+", "using_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestEqualsInAnonymousObjectMemberDeclarator()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M()
+    {
+        var x = new { X [||]= 0 };
+    }
+}
+", "");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestFromIn()
         {
             await TestAsync(

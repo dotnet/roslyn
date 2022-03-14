@@ -248,6 +248,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         return true;
                     }
                 }
+                else if (token.Parent.IsKind(SyntaxKind.NameEquals))
+                {
+                    if (token.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator))
+                    {
+                        // PROTOTYPE: Redirect to https://docs.microsoft.com/dotnet/csharp/fundamentals/types/anonymous-types
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.UsingDirective))
+                    {
+                        text = Keyword("using");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.AttributeArgument))
+                    {
+                        // PROTOTYPE: Redirect to https://docs.microsoft.com/dotnet/csharp/programming-guide/concepts/attributes/creating-custom-attributes
+                    }
+                }
+                // PROTOTYPE: EqualsToken in let clause, XmlAttribute.
 
                 // EqualsToken in assignment expression is handled by syntaxFacts.IsOperator call above.
                 // Here we try to handle other contexts of EqualsToken.
