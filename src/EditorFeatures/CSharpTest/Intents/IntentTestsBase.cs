@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             string markup,
             string expectedText,
             OptionsCollection? options = null,
-            string? serializedData = null,
+            string? intentData = null,
             string? priorText = null)
         {
-            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, new string[] { expectedText }, options, serializedData, priorText);
+            return VerifyExpectedTextAsync(intentName, markup, new string[] { }, new string[] { expectedText }, options, intentData, priorText);
         }
 
         internal static async Task VerifyExpectedTextAsync(
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             string[] additionalDocuments,
             string[] expectedTexts,
             OptionsCollection? options = null,
-            string? serializedData = null,
+            string? intentData = null,
             string? priorText = null)
         {
             var documentSet = additionalDocuments.Prepend(activeDocument).ToArray();
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                 currentSnapshot,
                 ImmutableArray.Create(rewindTextChange),
                 priorSelection,
-                serializedData);
+                intentData: intentData);
             var results = await intentSource.ComputeIntentsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
 
             // For now, we're just taking the first result to match intellicode behavior.

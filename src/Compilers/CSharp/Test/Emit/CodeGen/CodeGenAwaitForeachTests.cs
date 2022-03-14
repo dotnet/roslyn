@@ -6161,7 +6161,7 @@ public static class Extensions
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123");
+            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.FailsILVerify);
         }
 
         [Fact]

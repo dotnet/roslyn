@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,20 +20,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentDocumentHighlightName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentHighlightsHandler)), Shared]
+    [Method(Methods.TextDocumentDocumentHighlightName)]
     internal class DocumentHighlightsHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
     {
         private readonly IHighlightingService _highlightingService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentHighlightsHandler(IHighlightingService highlightingService)
+        public DocumentHighlightsHandler(IHighlightingService highlightingService, IGlobalOptionService globalOptions)
         {
             _highlightingService = highlightingService;
+            _globalOptions = globalOptions;
         }
-
-        public override string Method => Methods.TextDocumentDocumentHighlightName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -80,10 +81,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             });
         }
 
-        private static async Task<ImmutableArray<DocumentHighlight>> GetReferenceHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DocumentHighlight>> GetReferenceHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
         {
             var documentHighlightService = document.GetRequiredLanguageService<IDocumentHighlightsService>();
-            var options = DocumentHighlightingOptions.From(document.Project);
+            var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
             var highlights = await documentHighlightService.GetDocumentHighlightsAsync(
                 document,
                 position,

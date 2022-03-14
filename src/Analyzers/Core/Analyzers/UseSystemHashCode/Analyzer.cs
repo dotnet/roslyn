@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -35,18 +36,18 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
         public static bool TryGetAnalyzer(Compilation compilation, [NotNullWhen(true)] out Analyzer analyzer)
         {
+            analyzer = default;
             var objectType = compilation.GetSpecialType(SpecialType.System_Object);
             // This may not find anything.  However, CanAnalyze checks for this. So
             // we represent the value as non-nullable for all future code.
-            var objectGetHashCodeMethod = objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() as IMethodSymbol;
-            var equalityComparerType = compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName!);
-            var systemHashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
+            var equalityComparerType = compilation.GetBestTypeByMetadataName(typeof(EqualityComparer<>).FullName!);
 
-            if (systemHashCodeType == null || objectGetHashCodeMethod == null)
-            {
-                analyzer = default;
+            if (objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() is not IMethodSymbol objectGetHashCodeMethod)
                 return false;
-            }
+
+            var systemHashCodeType = compilation.GetBestTypeByMetadataName("System.HashCode");
+            if (systemHashCodeType == null)
+                return false;
 
             analyzer = new Analyzer(compilation, objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
             return true;

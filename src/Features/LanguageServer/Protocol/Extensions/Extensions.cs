@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static Uri GetURI(this TextDocument document)
         {
             Contract.ThrowIfNull(document.FilePath);
-            return ProtocolConversions.GetUriFromFilePath(document.FilePath);
+            return document is SourceGeneratedDocument
+                ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
+                : ProtocolConversions.GetUriFromFilePath(document.FilePath);
         }
 
         public static Uri? TryGetURI(this TextDocument document, RequestContext? context = null)

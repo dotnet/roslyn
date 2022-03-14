@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
@@ -211,12 +212,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                         ' Don't allow adding parameters to Property Getter/Setter
                         Return destinationMember
                     Case Else
-                        Return AddParametersToMethod(Of TDeclarationNode)(methodStatement, methodBlock, parameters, options)
+                        Return AddParametersToMethod(Of TDeclarationNode)(methodStatement, methodBlock, parameters, options, cancellationToken)
                 End Select
             Else
                 Dim propertyBlock = TryCast(destinationMember, PropertyBlockSyntax)
                 If propertyBlock IsNot Nothing Then
-                    Return AddParametersToProperty(Of TDeclarationNode)(propertyBlock, parameters, options)
+                    Return AddParametersToProperty(Of TDeclarationNode)(propertyBlock, parameters, options, cancellationToken)
                 End If
             End If
 
@@ -236,15 +237,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Overloads Shared Function AddParametersToMethod(Of TDeclarationNode As SyntaxNode)(methodStatement As MethodBaseSyntax,
-                                                                methodBlock As MethodBlockBaseSyntax,
-                                                                parameters As IEnumerable(Of IParameterSymbol),
-                                                                options As VisualBasicCodeGenerationOptions) As TDeclarationNode
-            Dim newParameterList = AddParameters(methodStatement.ParameterList, parameters, options)
-            Dim finalStatement = methodStatement.WithParameterList(newParameterList)
+        Private Overloads Shared Function AddParametersToMethod(Of TDeclarationNode As SyntaxNode)(
+                methodStatement As MethodBaseSyntax,
+                methodBlock As MethodBlockBaseSyntax,
+                parameters As IEnumerable(Of IParameterSymbol),
+                options As VisualBasicCodeGenerationOptions,
+                cancellationToken As CancellationToken) As TDeclarationNode
+            Dim finalStatement = AddParameterToMethodBase(methodStatement, parameters, options, cancellationToken)
 
-            Dim result As Object
-
+            Dim result As StatementSyntax
             If methodBlock IsNot Nothing Then
                 Select Case methodBlock.Kind
                     Case SyntaxKind.SubBlock,
@@ -272,37 +273,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Overloads Shared Function AddParametersToProperty(Of TDeclarationNode As SyntaxNode)(
-                                                                propertyBlock As PropertyBlockSyntax,
-                                                                parameters As IEnumerable(Of IParameterSymbol),
-                                                                options As VisualBasicCodeGenerationOptions) As TDeclarationNode
+                propertyBlock As PropertyBlockSyntax,
+                parameters As IEnumerable(Of IParameterSymbol),
+                options As VisualBasicCodeGenerationOptions,
+                cancellationToken As CancellationToken) As TDeclarationNode
             Dim propertyStatement = propertyBlock.PropertyStatement
-            Dim newParameterList = AddParameters(propertyStatement.ParameterList, parameters, options)
-            Dim newPropertyStatement = propertyStatement.WithParameterList(newParameterList)
+            Dim newPropertyStatement = AddParameterToMethodBase(propertyStatement, parameters, options, cancellationToken)
             Dim newPropertyBlock As SyntaxNode = propertyBlock.WithPropertyStatement(newPropertyStatement)
             Return DirectCast(newPropertyBlock, TDeclarationNode)
         End Function
 
-        Private Overloads Shared Function AddParameters(parameterList As ParameterListSyntax, parameters As IEnumerable(Of IParameterSymbol), options As VisualBasicCodeGenerationOptions) As ParameterListSyntax
-            Dim nodesAndTokens = If(parameterList IsNot Nothing,
-                    New List(Of SyntaxNodeOrToken)(parameterList.Parameters.GetWithSeparators()),
-                    New List(Of SyntaxNodeOrToken))
+        Private Overloads Shared Function AddParameterToMethodBase(Of TMethodBase As MethodBaseSyntax)(
+                methodBase As TMethodBase,
+                parameters As IEnumerable(Of IParameterSymbol),
+                options As VisualBasicCodeGenerationOptions,
+                cancellationToken As CancellationToken) As TMethodBase
 
-            Dim currentParamsCount = If(parameterList IsNot Nothing, parameterList.Parameters.Count, 0)
-            Dim seenOptional = currentParamsCount > 0 AndAlso parameterList.Parameters(currentParamsCount - 1).Default IsNot Nothing
+            Dim parameterList = methodBase.ParameterList
 
+            Dim parameterCount = If(parameterList IsNot Nothing, parameterList.Parameters.Count, 0)
+            Dim seenOptional = parameterCount > 0 AndAlso parameterList.Parameters(parameterCount - 1).Default IsNot Nothing
+
+            Dim editor = New SyntaxEditor(methodBase, VisualBasicSyntaxGenerator.Instance)
             For Each parameter In parameters
-                If nodesAndTokens.Count > 0 AndAlso nodesAndTokens.Last().Kind() <> SyntaxKind.CommaToken Then
-                    nodesAndTokens.Add(SyntaxFactory.Token(SyntaxKind.CommaToken))
-                End If
-
                 Dim parameterSyntax = ParameterGenerator.GenerateParameter(parameter, seenOptional, options)
-                nodesAndTokens.Add(parameterSyntax)
+
+                AddParameterEditor.AddParameter(
+                    VisualBasicSyntaxFacts.Instance,
+                    editor,
+                    methodBase,
+                    parameterCount,
+                    parameterSyntax,
+                    cancellationToken)
+
                 seenOptional = seenOptional OrElse parameterSyntax.Default IsNot Nothing
+                parameterCount += 1
             Next
 
-            Return If(parameterList IsNot Nothing,
-                       SyntaxFactory.ParameterList(parameterList.OpenParenToken, SyntaxFactory.SeparatedList(Of ParameterSyntax)(nodesAndTokens), parameterList.CloseParenToken),
-                       SyntaxFactory.ParameterList(parameters:=SyntaxFactory.SeparatedList(Of ParameterSyntax)(nodesAndTokens)))
+            Return DirectCast(editor.GetChangedRoot(), TMethodBase)
         End Function
 
         Public Overrides Function AddAttributes(Of TDeclarationNode As SyntaxNode)(

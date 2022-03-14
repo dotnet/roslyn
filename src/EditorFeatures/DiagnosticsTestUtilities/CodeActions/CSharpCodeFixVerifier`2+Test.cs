@@ -16,6 +16,8 @@ using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 #if !CODE_STYLE
 using Roslyn.Utilities;
@@ -73,6 +75,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;
 
+#if !CODE_STYLE
+            internal CodeActionOptions CodeActionOptions
+            {
+                get => _sharedState.CodeActionOptions;
+                set => _sharedState.CodeActionOptions = value;
+            }
+#endif
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {
@@ -97,7 +106,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.IdeAnalyzerOptions);
+
+            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
+                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
+
+            protected override FixAllContext CreateFixAllContext(
+                Document? document,
+                Project project,
+                CodeFixProvider codeFixProvider,
+                FixAllScope scope,
+                string? codeActionEquivalenceKey,
+                IEnumerable<string> diagnosticIds,
+                FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
+                CancellationToken cancellationToken)
+                => new(new FixAllState(
+                    fixAllProvider: null,
+                    document,
+                    project,
+                    codeFixProvider,
+                    scope,
+                    codeActionEquivalenceKey,
+                    diagnosticIds,
+                    fixAllDiagnosticProvider,
+                    _ => _sharedState.CodeActionOptions),
+                  new ProgressTracker(), cancellationToken);
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)

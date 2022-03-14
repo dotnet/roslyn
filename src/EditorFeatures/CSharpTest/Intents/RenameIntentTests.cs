@@ -150,11 +150,11 @@ public class RenameIntentTests : IntentTestsBase
 
     private static Task VerifyExpectedRenameAsync(string initialText, string expectedText, string priorText, string newName)
     {
-        return VerifyExpectedTextAsync(WellKnownIntents.Rename, initialText, expectedText, serializedData: $"{{ \"newName\": \"{newName}\" }}", priorText: priorText);
+        return VerifyExpectedTextAsync(WellKnownIntents.Rename, initialText, expectedText, intentData: $"{{ \"newName\": \"{newName}\" }}", priorText: priorText);
     }
 
     private static Task VerifyExpectedRenameAsync(string initialText, string[] additionalText, string[] expectedTexts, string priorText, string newName)
     {
-        return VerifyExpectedTextAsync(WellKnownIntents.Rename, initialText, additionalText, expectedTexts, serializedData: $"{{ \"newName\": \"{newName}\" }}", priorText: priorText);
+        return VerifyExpectedTextAsync(WellKnownIntents.Rename, initialText, additionalText, expectedTexts, intentData: $"{{ \"newName\": \"{newName}\" }}", priorText: priorText);
     }
 }

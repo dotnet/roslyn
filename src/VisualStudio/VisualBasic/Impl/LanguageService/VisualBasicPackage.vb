@@ -23,13 +23,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     ' The option page configuration is duplicated in PackageRegistration.pkgdef.
     '
     ' VB option pages tree
-    '   Basic
+    '   Visual Basic
     '     General (from editor)
     '     Scroll Bars (from editor)
     '     Tabs (from editor)
     '     Advanced
     '     Code Style (category)
     '       General
+    '       Naming
+    '     IntelliSense
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>

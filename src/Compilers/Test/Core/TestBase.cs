@@ -151,6 +151,11 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v4_0_30319_17929 => s_systemCoreRef_v4_0_30319_17929.Value;
 
+        private static readonly Lazy<MetadataReference> s_systemRuntimeSerializationRef_v4_0_30319_17929 = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntimeSerialization).GetReference(display: "System.Runtime.Serialization.v4_0_30319_17929.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+        public static MetadataReference SystemRuntimeSerializationRef_v4_0_30319_17929 => s_systemRuntimeSerializationRef_v4_0_30319_17929.Value;
+
         private static readonly Lazy<MetadataReference> s_systemCoreRef_v46 = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemCore).GetReference(display: "System.Core.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);

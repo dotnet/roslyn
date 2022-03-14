@@ -2190,5 +2190,107 @@ class C { }",
                 Verbatim("\""),
                 Punctuation.Semicolon);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        public async Task TestStaticConstructorClass(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class C
+{
+    static C() { }
+}",
+                testHost,
+Keyword("class"),
+Class("C"),
+Punctuation.OpenCurly,
+Keyword("static"),
+Class("C"),
+Static("C"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        public async Task TestStaticConstructorInterface(TestHost testHost)
+        {
+            await TestAsync(
+@"
+interface C
+{
+    static C() { }
+}",
+                testHost,
+Keyword("interface"),
+Interface("C"),
+Punctuation.OpenCurly,
+Keyword("static"),
+Interface("C"),
+Static("C"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        public async Task TestArgsInTopLevel(TestHost testHost)
+        {
+            await TestAsync(
+@"
+[|foreach (var arg in args)
+{
+}|]",
+                testHost,
+                parseOptions: null,
+ControlKeyword("foreach"),
+Punctuation.OpenParen,
+Keyword("var"),
+Local("arg"),
+ControlKeyword("in"),
+Keyword("args"),
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        public async Task TestArgsInNormalProgram(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|foreach (var arg in args)
+        {
+        }|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+ControlKeyword("foreach"),
+Punctuation.OpenParen,
+Keyword("var"),
+Local("arg"),
+ControlKeyword("in"),
+Parameter("args"),
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly);
+        }
     }
 }

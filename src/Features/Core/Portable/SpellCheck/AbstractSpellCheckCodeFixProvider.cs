@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SpellCheck
@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
+            if (!document.CanApplyChange())
+                return;
+
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
 

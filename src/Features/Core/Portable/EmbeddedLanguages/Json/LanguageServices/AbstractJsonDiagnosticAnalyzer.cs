@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         protected AbstractJsonDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    EnforceOnBuildValues.Json,
-                   JsonFeatureOptions.ReportInvalidJsonPatterns,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Invalid_JSON_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.JSON_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(JsonFeatureOptions.ReportInvalidJsonPatterns, syntaxTree.Options.Language);
+            var option = context.Options.GetIdeOptions().ReportInvalidJsonPatterns;
             if (!option)
                 return;
 
@@ -69,9 +69,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 else
                 {
                     var token = child.AsToken();
-                    if (token.RawKind == _info.StringLiteralTokenKind)
+                    if (_info.IsAnyStringLiteral(token.RawKind))
                     {
-                        var tree = detector.TryParseString(token, context.SemanticModel, cancellationToken);
+                        var tree = detector.TryParseString(token, context.SemanticModel, includeProbableStrings: false, cancellationToken);
                         if (tree != null)
                         {
                             foreach (var diag in tree.Diagnostics)

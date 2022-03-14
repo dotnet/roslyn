@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
@@ -26,9 +25,10 @@ internal class RenameIntentProvider : IIntentProvider
     {
     }
 
-    public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, string? serializedIntentData, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(Document priorDocument, TextSpan priorSelection, Document currentDocument, IntentDataProvider intentDataProvider, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(serializedIntentData);
+        var renameIntentData = intentDataProvider.GetIntentData<RenameIntentData>();
+        Contract.ThrowIfNull(renameIntentData);
 
         var renameService = priorDocument.Project.LanguageServices.GetRequiredService<IEditorInlineRenameService>();
         var renameInfo = await renameService.GetRenameInfoAsync(priorDocument, priorSelection.Start, cancellationToken).ConfigureAwait(false);
@@ -37,7 +37,6 @@ internal class RenameIntentProvider : IIntentProvider
             return ImmutableArray<IntentProcessorResult>.Empty;
         }
 
-        var renameIntentData = JsonConvert.DeserializeObject<RenameIntentData>(serializedIntentData);
         Contract.ThrowIfNull(renameIntentData);
 
         var options = new SymbolRenameOptions(
@@ -52,14 +51,5 @@ internal class RenameIntentProvider : IIntentProvider
         return ImmutableArray.Create(new IntentProcessorResult(renameReplacementInfo.NewSolution, renameReplacementInfo.DocumentIds.ToImmutableArray(), EditorFeaturesResources.Rename, WellKnownIntents.Rename));
     }
 
-    private class RenameIntentData
-    {
-        public string NewName { get; }
-
-        [JsonConstructor]
-        public RenameIntentData([JsonProperty("newName", Required = Required.Always)] string newName)
-        {
-            NewName = newName;
-        }
-    }
+    private record RenameIntentData(string NewName);
 }

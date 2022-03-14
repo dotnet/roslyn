@@ -9,8 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     /// <summary>
     /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal sealed class SimpleFindUsagesContext : FindUsagesContext
     {
         private readonly object _gate = new();
+        private readonly IGlobalOptionService _globalOptions;
+
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
             ImmutableArray.CreateBuilder<DefinitionItem>();
 
@@ -26,12 +29,15 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
         public SimpleFindUsagesContext(IGlobalOptionService globalOptions)
-            : base(globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
+
+        public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
         public override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
         {

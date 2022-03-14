@@ -1369,12 +1369,10 @@ class C
         ]
     }
 }";
-            // Expected indentation probably should be 12 instead
-            // Tracked by https://github.com/dotnet/roslyn/issues/57244
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
                 code,
                 indentationLine: 7,
-                expectedIndentation: 8);
+                expectedIndentation: 12);
         }
 
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]

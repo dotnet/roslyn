@@ -10,7 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -283,26 +285,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var currentParameterList = destination.GetParameterList();
 
-            if (currentParameterList == null)
-            {
-                return destination;
-            }
+            var parameterCount = currentParameterList != null ? currentParameterList.Parameters.Count : 0;
+            var seenOptional = currentParameterList != null && parameterCount > 0 && currentParameterList.Parameters[^1].Default != null;
+            var isFirstParam = parameterCount == 0;
 
-            var currentParamsCount = currentParameterList.Parameters.Count;
-            var seenOptional = currentParamsCount > 0 && currentParameterList.Parameters[currentParamsCount - 1].Default != null;
-            var isFirstParam = currentParamsCount == 0;
-            var newParams = ArrayBuilder<SyntaxNode>.GetInstance();
-
+            var editor = new SyntaxEditor(destination, CSharpSyntaxGenerator.Instance);
             foreach (var parameter in parameters)
             {
                 var parameterSyntax = ParameterGenerator.GetParameter(parameter, options, isExplicit: false, isFirstParam: isFirstParam, seenOptional: seenOptional);
 
+                AddParameterEditor.AddParameter(
+                    CSharpSyntaxFacts.Instance,
+                    editor,
+                    destination,
+                    parameterCount,
+                    parameterSyntax,
+                    cancellationToken);
+
+                parameterCount++;
                 isFirstParam = false;
                 seenOptional = seenOptional || parameterSyntax.Default != null;
-                newParams.Add(parameterSyntax);
             }
 
-            var finalMember = CSharpSyntaxGenerator.Instance.AddParameters(destination, newParams.ToImmutableAndFree());
+            var finalMember = editor.GetChangedRoot();
 
             return Cast<TDeclarationNode>(finalMember);
         }

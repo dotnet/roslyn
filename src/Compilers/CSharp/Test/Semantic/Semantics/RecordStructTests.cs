@@ -3766,7 +3766,7 @@ record struct A(int I, string S);
         }
 
         [Fact]
-        public void Deconstruct_WihtNonReadOnlyGetter_GeneratedAsNonReadOnly()
+        public void Deconstruct_WithNonReadOnlyGetter_GeneratedAsNonReadOnly()
         {
             var src = @"
 record struct A(int I, string S)
@@ -11158,6 +11158,197 @@ record struct S3(char A)
                 // (4,18): error CS0514: 'S': static constructor cannot have an explicit 'this' or 'base' constructor call
                 //     static S() : this() { }
                 Diagnostic(ErrorCode.ERR_StaticConstructorWithExplicitConstructorCall, "this").WithArguments("S").WithLocation(4, 18));
+        }
+
+        [Fact]
+        public void StructNamedRecord()
+        {
+            var source = "struct record { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void ClassNamedRecord()
+        {
+            var source = "class record { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+        }
+
+        [Fact]
+        public void StructNamedRecord_WithTypeParameters()
+        {
+            var source = "struct record<T> { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void ClassNamedRecord_WithTypeParameters()
+        {
+            var source = "class record<T> { } ";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record<T> { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (1,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 7)
+                );
+        }
+
+        [Fact]
+        public void StructNamedRecord_WithBaseList()
+        {
+            var source = @"
+interface I { }
+struct record : I { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record : I { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void StructNamedRecord_WithBaseList_Generic()
+        {
+            var source = @"
+interface I { }
+struct record<T> : I { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+        }
+
+        [Fact]
+        public void ClassNamedRecord_WithBaseList_Generic()
+        {
+            var source = @"
+interface I { }
+class record<T> : I { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record<T> : I { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(3, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 7)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,7): warning CS8860: Types and aliases should not be named 'record'.
+                // class record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 7)
+                );
         }
     }
 }
