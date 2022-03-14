@@ -673,6 +673,70 @@ class Program
 }", "System.Int32");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldReturn_OnYield()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        [|yield|] return 0;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldReturn_OnReturn()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        yield [|return|] 0;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldBreak_OnYield()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        [|yield|] break;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestYieldBreak_OnBreak()
+        {
+            await TestAsync(@"
+using System.Collections.Generic;
+
+public class C
+{
+    public IEnumerable<int> M()
+    {
+        yield [|break|] 0;
+    }
+}
+", "yield_CSharpKeyword");
+        }
+
         [WorkItem(862396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862396")]
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public async Task TestNoToken()
@@ -683,7 +747,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}[||]", "");
+}[||]", "vs.texteditor");
         }
 
         [WorkItem(862328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862328")]
@@ -821,7 +885,7 @@ class Program
         {
         }
     }
-}", "");
+}", "vs.texteditor");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]

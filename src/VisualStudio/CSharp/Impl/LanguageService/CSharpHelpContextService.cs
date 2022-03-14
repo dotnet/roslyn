@@ -350,6 +350,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 case SyntaxKind.StaticKeyword when token.Parent is UsingDirectiveSyntax:
                     text = "using-static_CSharpKeyword";
                     return true;
+                case SyntaxKind.ReturnKeyword when token.Parent.IsKind(SyntaxKind.YieldReturnStatement):
+                case SyntaxKind.BreakKeyword when token.Parent.IsKind(SyntaxKind.YieldBreakStatement):
+                    text = "yield_CSharpKeyword";
+                    return true;
             }
 
             text = null;
