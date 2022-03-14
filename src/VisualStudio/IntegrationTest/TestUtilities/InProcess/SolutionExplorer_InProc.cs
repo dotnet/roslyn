@@ -640,7 +640,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             switch (extension)
             {
                 case ".cs":
-                    itemTemplate = @"General\Visual C# Class";
+                    itemTemplate = @"General\C# Class";
                     break;
                 case ".csx":
                     itemTemplate = @"Script\Visual C# Script";

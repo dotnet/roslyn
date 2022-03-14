@@ -6,7 +6,7 @@ using System;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+namespace Microsoft.CodeAnalysis.Formatting
 {
     internal partial class FormatCommandHandler
     {

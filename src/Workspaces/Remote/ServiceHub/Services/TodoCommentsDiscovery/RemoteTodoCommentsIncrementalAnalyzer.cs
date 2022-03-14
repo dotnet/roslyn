@@ -23,11 +23,14 @@ namespace Microsoft.CodeAnalysis.Remote
             _callbackId = callbackId;
         }
 
-        protected override async ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
-        {
-            await _callback.InvokeAsync(
+        protected override ValueTask ReportTodoCommentDataAsync(DocumentId documentId, ImmutableArray<TodoCommentData> data, CancellationToken cancellationToken)
+            => _callback.InvokeAsync(
                 (callback, cancellationToken) => callback.ReportTodoCommentDataAsync(_callbackId, documentId, data, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
+                cancellationToken);
+
+        protected override ValueTask<TodoCommentOptions> GetOptionsAsync(CancellationToken cancellationToken)
+            => _callback.InvokeAsync(
+                (callback, cancellationToken) => callback.GetOptionsAsync(_callbackId, cancellationToken),
+                cancellationToken);
     }
 }

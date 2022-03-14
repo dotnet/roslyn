@@ -539,5 +539,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         NavigateToExternalSources = 531,
 
         StackTraceToolWindow_ShowOnActivated = 540,
+
+        CodeModel_FileCodeModel_Create = 550,
     }
 }
