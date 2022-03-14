@@ -314,19 +314,98 @@ class Program<T> wh[||]ere T : class
 }", "N.C`1.goo``3");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        public async Task TestOperator()
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("/")]
+        [InlineData("^")]
+        [InlineData(">")]
+        [InlineData(">=")]
+        [InlineData("!=")]
+        [InlineData("<")]
+        [InlineData("<=")]
+        [InlineData("<<")]
+        [InlineData(">>")]
+        [InlineData("*")]
+        [InlineData("%")]
+        [InlineData("&&")]
+        [InlineData("||")]
+        [InlineData("==")]
+        public async Task TestBinaryOperator(string operatorText)
         {
             await TestAsync(
-@"namespace N
-{
+$@"namespace N
+{{
     class C
-    {
+    {{
         void goo()
-        {
-            var two = 1 [|+|] 1;
+        {{
+            var two = 1 [|{operatorText}|] 1;
+        }}
+    }}", $"{operatorText}_CSharpKeyword");
         }
-    }", "+_CSharpKeyword");
+
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("+=")]
+        [InlineData("-=")]
+        [InlineData("/=")]
+        [InlineData("*=")]
+        [InlineData("%=")]
+        [InlineData("&=")]
+        [InlineData("|=")]
+        [InlineData("^=")]
+        [InlineData("<<=")]
+        [InlineData(">>=")]
+        public async Task TestCompoundOperator(string operatorText)
+        {
+            await TestAsync(
+$@"namespace N
+{{
+    class C
+    {{
+        void goo(int x)
+        {{
+            x [|{operatorText}|] x;
+        }}
+    }}", $"{operatorText}_CSharpKeyword");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("++")]
+        [InlineData("--")]
+        [InlineData("!")]
+        [InlineData("~")]
+        public async Task TestPrefixOperator(string operatorText)
+        {
+            await TestAsync(
+$@"namespace N
+{{
+    class C
+    {{
+        void goo(int x)
+        {{
+            x = [|{operatorText}|]x;
+        }}
+    }}", $"{operatorText}_CSharpKeyword");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [InlineData("++")]
+        [InlineData("--")]
+        public async Task TestPostfixOperator(string operatorText)
+        {
+            await TestAsync(
+$@"namespace N
+{{
+    class C
+    {{
+        void goo(int x)
+        {{
+            x = x[|{operatorText}|];
+        }}
+    }}", $"{operatorText}_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
