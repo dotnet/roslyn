@@ -121,7 +121,7 @@ jobs:
     testArguments: -testCoreClr -testIOperation -testCompilerOnly
 
 # This leg runs almost all the compiler tests supported on CoreCLR, but
-#   with additional validation for used assemblies and GetEmitDiagnostics
+#  with additional validation for used assemblies and GetEmitDiagnostics
 - template: eng/pipelines/test-windows-job.yml
   parameters:
     testRunName: 'Test Windows CoreCLR TestUsedAssemblies Debug'
