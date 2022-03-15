@@ -2850,4 +2850,129 @@ public class RequiredMemberAttribute : Attribute
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(6, 6)
         );
     }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_01()
+    {
+        var code = @"
+#pragma warning disable CS0649 // Field is never assigned to
+#nullable enable
+class C
+{
+    public required string P1 { get; set; }
+    public required string F1;
+    public string P2 { get; set; }
+    public string F2;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (8,19): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public string P2 { get; set; }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(8, 19),
+            // (9,19): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public string F2;
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(9, 19)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_02()
+    {
+        var code = @"
+#pragma warning disable CS0649 // Field is never assigned to
+#nullable enable
+class C
+{
+    public required string P1 { get; set; }
+    public required string F1;
+    public string P2 { get; set; }
+    public string F2;
+
+    public C()
+    {
+    }
+
+    public C(int _) {}
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (11,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(11, 12),
+            // (11,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public C()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(11, 12),
+            // (15,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public C(int _) {}
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(15, 12),
+            // (15,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public C(int _) {}
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(15, 12)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_03()
+    {
+        var code = @"
+#pragma warning disable CS0649 // Field is never assigned to
+#nullable enable
+struct S
+{
+    public required string P1 { get; set; }
+    public required string F1;
+    public string P2 { get; set; }
+    public string F2;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_04()
+    {
+        var code = @"
+#pragma warning disable CS0649 // Field is never assigned to
+#nullable enable
+struct S
+{
+    public required string P1 { get; set; }
+    public required string F1;
+    public string P2 { get; set; }
+    public string F2;
+
+    public S() {}
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        // PROTOTYPE(req): These errors should change with Rikki's DA changes.
+        comp.VerifyDiagnostics(
+            // (11,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public S() {}
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P2").WithLocation(11, 12),
+            // (11,12): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public S() {}
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F2").WithLocation(11, 12),
+            // (11,12): error CS0171: Field 'S.F1' must be fully assigned before control is returned to the caller
+            //     public S() {}
+            Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F1").WithLocation(11, 12),
+            // (11,12): error CS0843: Auto-implemented property 'S.P2' must be fully assigned before control is returned to the caller.
+            //     public S() {}
+            Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P2").WithLocation(11, 12),
+            // (11,12): error CS0171: Field 'S.F2' must be fully assigned before control is returned to the caller
+            //     public S() {}
+            Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F2").WithLocation(11, 12),
+            // (11,12): error CS0843: Auto-implemented property 'S.P1' must be fully assigned before control is returned to the caller.
+            //     public S() {}
+            Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P1").WithLocation(11, 12)
+        );
+    }
 }

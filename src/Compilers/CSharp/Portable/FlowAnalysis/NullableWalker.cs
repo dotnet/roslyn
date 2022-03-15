@@ -669,6 +669,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
+
+                if (symbol.IsRequired())
+                {
+                    return;
+                }
+
                 var annotations = symbol.GetFlowAnalysisAnnotations();
                 if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
