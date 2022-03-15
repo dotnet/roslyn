@@ -1176,5 +1176,49 @@ public class C
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(48910, "https://github.com/dotnet/roslyn/issues/59317")>
+        Public Async Function TestMultipleNamedArgumentsWithIncorrectArgumentCount() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+public class C
+{
+    static void F(int a, bool b, string c)
+    {
+    }
+
+    public static void Main()
+    {
+        F({|a:|}1, 2, b: true, c: "str");
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+           <Workspace>
+               <Project Language="C#" CommonReferences="true">
+                   <Document>
+public class C
+{
+    static void F(int a, bool b, string c)
+    {
+    }
+
+    public static void Main()
+    {
+        F(a: 1, 2, b: true, c: "str");
+    }
+}
+                    </Document>
+               </Project>
+           </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
     End Class
 End Namespace
