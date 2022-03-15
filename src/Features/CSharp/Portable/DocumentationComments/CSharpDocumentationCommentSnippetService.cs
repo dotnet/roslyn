@@ -97,18 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
 
         protected override List<string> GetDocumentationCommentStubLines(MemberDeclarationSyntax member, string existingCommentText)
         {
-            // Ensure there is at least one space after the ///
-            existingCommentText = existingCommentText switch
-            {
-                { Length: 0 } => " ",
-                [not ' ', ..] => " " + existingCommentText,
-                _ => existingCommentText
-            };
-
             var list = new List<string>
             {
                 "/// <summary>",
-                "///" + (existingCommentText.Length == 0 ? " " : existingCommentText),
+                "///" + (existingCommentText.StartsWith(" ") ? existingCommentText : $" {existingCommentText}"),
                 "/// </summary>"
             };
 
