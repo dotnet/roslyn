@@ -155,6 +155,7 @@ class C
     public static int operator $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterOperator_02()
         {
             await VerifyKeywordAsync(
@@ -209,6 +210,7 @@ class C
     public static int I1.operator $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterOperator_ExplicitImplementation_02()
         {
             await VerifyKeywordAsync(
@@ -216,6 +218,7 @@ class C
     public static int /* some comment */ I1.operator $$");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterOperator_ExplicitImplementation_03()
         {
             await VerifyKeywordAsync(
