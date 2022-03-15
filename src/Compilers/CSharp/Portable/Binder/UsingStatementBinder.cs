@@ -93,6 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isExpression = !isUsingDeclaration && syntax.Kind() != SyntaxKind.VariableDeclaration;
             bool hasAwait = awaitKeyword != default;
 
+            if (isUsingDeclaration)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUsingDeclarations, diagnostics, usingKeyword.GetLocation());
+            }
+            else if (hasAwait)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureAsyncUsing, diagnostics, awaitKeyword.GetLocation());
+            }
+
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
 
             TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
@@ -200,13 +209,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUsingDeclarations)
+                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
                                                        ? diagnostics
                                                        : BindingDiagnosticBag.Discarded;
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics);
                     if (disposeMethod is object)
                     {
-                        MessageID.IDS_FeatureUsingDeclarations.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
+                        MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
                         ImmutableArray<int> argsToParams = default;

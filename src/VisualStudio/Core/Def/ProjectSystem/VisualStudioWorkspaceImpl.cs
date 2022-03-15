@@ -167,7 +167,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
                 new ExternalErrorDiagnosticUpdateSource(
-                    _globalOptions,
                     this,
                     exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),

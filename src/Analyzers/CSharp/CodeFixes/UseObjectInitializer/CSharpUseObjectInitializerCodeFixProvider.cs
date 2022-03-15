@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
@@ -59,9 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 var match = matches[i];
                 var expressionStatement = match.Statement;
                 var assignment = (AssignmentExpressionSyntax)expressionStatement.Expression;
+                var trivia = match.MemberAccessExpression.GetLeadingTrivia();
+
+                var newTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;
 
                 var newAssignment = assignment.WithLeft(
-                    match.MemberAccessExpression.Name.WithLeadingTrivia(match.MemberAccessExpression.GetLeadingTrivia()));
+                    match.MemberAccessExpression.Name.WithLeadingTrivia(newTrivia));
 
                 if (i < matches.Length - 1)
                 {

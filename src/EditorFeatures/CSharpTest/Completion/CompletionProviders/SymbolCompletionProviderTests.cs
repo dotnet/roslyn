@@ -11868,5 +11868,69 @@ class MyClass
 }}";
             await VerifyItemExistsAsync(source, "MyValue");
         }
+
+        [Fact]
+        public async Task TopLevelSymbolsAvailableAtTopLevel()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+}}
+
+$$
+
+class MyClass
+{{
+    public static void F()
+    {{
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "goo");
+            await VerifyItemExistsAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsAvailableInsideTopLevelFunction()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+    $$
+}}
+
+class MyClass
+{{
+    public static void F()
+    {{
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "goo");
+            await VerifyItemExistsAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsNotAvailableInOtherTypes()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+}}
+
+class MyClass
+{{
+    public static void F()
+    {{
+        $$
+    }}
+}}";
+            await VerifyItemIsAbsentAsync(source, "goo");
+            await VerifyItemIsAbsentAsync(source, "Bar");
+        }
     }
 }

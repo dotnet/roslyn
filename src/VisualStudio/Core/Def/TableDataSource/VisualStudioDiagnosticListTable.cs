@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
         private readonly ITableManagerProvider _tableManagerProvider;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -42,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             // actual type cast doesn't work. (https://github.com/microsoft/vs-mef/issues/138)
             // workaround by getting the service as object and cast to actual interface
             _asyncServiceProvider = (IAsyncServiceProvider)asyncServiceProvider;
-            _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _tableManagerProvider = tableManagerProvider;
         }
@@ -66,7 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var table = new VisualStudioDiagnosticListTable(
                 (VisualStudioWorkspaceImpl)workspace,
                 _threadingContext,
-                _globalOptions,
                 diagnosticService,
                 _tableManagerProvider,
                 errorList);
@@ -82,7 +79,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public VisualStudioDiagnosticListTable(
                 VisualStudioWorkspaceImpl workspace,
                 IThreadingContext threadingContext,
-                IGlobalOptionService globalOptions,
                 IDiagnosticService diagnosticService,
                 ITableManagerProvider provider,
                 IErrorList errorList)
@@ -90,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 _errorList = errorList;
 
-                _liveTableSource = new LiveTableDataSource(workspace, threadingContext, globalOptions, diagnosticService, IdentifierString, workspace.ExternalErrorDiagnosticUpdateSource);
+                _liveTableSource = new LiveTableDataSource(workspace, threadingContext, diagnosticService, IdentifierString, workspace.ExternalErrorDiagnosticUpdateSource);
                 _buildTableSource = new BuildTableDataSource(workspace, threadingContext, workspace.ExternalErrorDiagnosticUpdateSource);
 
                 AddInitialTableSource(Workspace.CurrentSolution, GetCurrentDataSource());
@@ -110,14 +106,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             /// this is for test only
-            private VisualStudioDiagnosticListTable(Workspace workspace, IThreadingContext threadingContext, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+            private VisualStudioDiagnosticListTable(Workspace workspace, IThreadingContext threadingContext, IDiagnosticService diagnosticService, ITableManagerProvider provider)
                 : base(workspace, provider)
             {
                 _liveTableSource = null!;
                 _buildTableSource = null!;
                 _errorList = null!;
 
-                AddInitialTableSource(workspace.CurrentSolution, new LiveTableDataSource(workspace, threadingContext, globalOptions, diagnosticService, IdentifierString));
+                AddInitialTableSource(workspace.CurrentSolution, new LiveTableDataSource(workspace, threadingContext, diagnosticService, IdentifierString));
             }
 
             /// this is for test only
@@ -190,9 +186,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             internal static class TestAccessor
             {
-                public static VisualStudioDiagnosticListTable Create(Workspace workspace, IThreadingContext threadingContext, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+                public static VisualStudioDiagnosticListTable Create(Workspace workspace, IThreadingContext threadingContext, IDiagnosticService diagnosticService, ITableManagerProvider provider)
                 {
-                    return new VisualStudioDiagnosticListTable(workspace, threadingContext, globalOptions, diagnosticService, provider);
+                    return new VisualStudioDiagnosticListTable(workspace, threadingContext, diagnosticService, provider);
                 }
 
                 public static VisualStudioDiagnosticListTable Create(Workspace workspace, IThreadingContext threadingContext, ExternalErrorDiagnosticUpdateSource errorSource, ITableManagerProvider provider)

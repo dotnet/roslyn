@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var organizedDocument = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
             return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(organizedDocument, cancellationToken).ConfigureAwait(false);
