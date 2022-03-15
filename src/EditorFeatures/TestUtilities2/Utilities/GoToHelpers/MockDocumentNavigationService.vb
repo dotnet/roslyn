@@ -40,30 +40,35 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         End Function
 
         Public Function GetLocationForLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForLineAndOffsetAsync
-            _triedNavigationToLineAndOffset = True
-            _documentId = documentId
-            _line = lineNumber
-            _offset = offset
-
-            Return NavigableLocation.TestAccessor.Create(_canNavigateToLineAndOffset)
+            Return Task.FromResult(Of INavigableLocation)(New NavigableLocation(
+                Function(o, c)
+                    _triedNavigationToLineAndOffset = True
+                    _documentId = documentId
+                    _line = lineNumber
+                    _offset = offset
+                    Return SpecializedTasks.True
+                End Function))
         End Function
 
         Public Function GetLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForPositionAsync
-            _triedNavigationToPosition = True
-            _documentId = documentId
-            _position = position
-            _positionVirtualSpace = virtualSpace
-
-
-            Return NavigableLocation.TestAccessor.Create(_canNavigateToPosition)
+            Return Task.FromResult(Of INavigableLocation)(New NavigableLocation(
+                Function(o, c)
+                    _triedNavigationToPosition = True
+                    _documentId = documentId
+                    _position = position
+                    _positionVirtualSpace = virtualSpace
+                    Return SpecializedTasks.True
+                End Function))
         End Function
 
         Public Function GetLocationForSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForSpanAsync
-            _triedNavigationToSpan = True
-            _documentId = documentId
-            _span = textSpan
-
-            Return NavigableLocation.TestAccessor.Create(_canNavigateToSpan)
+            Return Task.FromResult(Of INavigableLocation)(New NavigableLocation(
+                Function(o, c)
+                    _triedNavigationToSpan = True
+                    _documentId = documentId
+                    _span = textSpan
+                    Return SpecializedTasks.True
+                End Function))
         End Function
     End Class
 End Namespace

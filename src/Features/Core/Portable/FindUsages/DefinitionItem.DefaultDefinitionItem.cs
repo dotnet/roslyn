@@ -37,20 +37,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
             {
             }
 
-            public sealed override async Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-            {
-                if (Properties.ContainsKey(NonNavigable))
-                    return false;
-
-                if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                {
-                    var (_, symbol) = await TryResolveSymbolInCurrentSolutionAsync(workspace, symbolKey, cancellationToken).ConfigureAwait(false);
-                    return symbol is { Kind: not SymbolKind.Namespace };
-                }
-
-                return await SourceSpans[0].CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
-            }
-
             public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
             {
                 if (Properties.ContainsKey(NonNavigable))
