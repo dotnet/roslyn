@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return null;
 
             var fixAllContexts = documentsAndSpansToFix.SelectAsArray(
-                (documentAndSpans) => fixAllContext.WithDocumentAndProject(documentAndSpans.Key, documentAndSpans.Key.Project)
-                                                  .WithFixAllSpans(documentAndSpans.Value));
+                documentAndSpans => fixAllContext.WithDocumentAndProject(documentAndSpans.Key, documentAndSpans.Key.Project)
+                                                 .WithFixAllSpans(documentAndSpans.Value));
             return await fixAllContextsAsync(fixAllContext, fixAllContexts).ConfigureAwait(false);
         }
     }
