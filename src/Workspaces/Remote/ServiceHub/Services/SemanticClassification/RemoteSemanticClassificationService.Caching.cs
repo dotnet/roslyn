@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteSemanticClassificationService(in ServiceConstructionArguments arguments)
             : base(arguments)
         {
-            _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions, StorageDatabase)>(
+            _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions)>(
                 DelayTimeSpan.Short,
                 CacheClassificationsAsync,
                 EqualityComparer<(Document, ClassificationType, ClassificationOptions)>.Default,
