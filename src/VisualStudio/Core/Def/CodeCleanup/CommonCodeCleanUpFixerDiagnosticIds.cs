@@ -336,7 +336,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
         [ConfigurationKey("unused")]
         [HelpLink($"https://microsoft.com/")]
-        [LocalizedName(typeof(ServicesVSResources), nameof(ServicesVSResources.Fix_analyzer_warnings_and_errors))]
+        [LocalizedName(typeof(ServicesVSResources), nameof(ServicesVSResources.Fix_analyzer_warnings_and_errors_set_in_EditorConfig))]
         public static readonly FixIdDefinition? ThirdPartyAnalyzers;
     }
 }
