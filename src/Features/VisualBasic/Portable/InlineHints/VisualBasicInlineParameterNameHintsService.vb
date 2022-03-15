@@ -70,6 +70,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
             Using ArrayBuilder(Of IParameterSymbol).GetInstance(builder)
                 For Each arg In argumentList.Arguments
                     Dim argument = TryCast(arg, SimpleArgumentSyntax)
+                    If argument Is Nothing Then
+                        Continue For
+                    End If
+
                     If argument.IsNamed OrElse argument.NameColonEquals IsNot Nothing Then
                         Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
                         If String.IsNullOrEmpty(parameter?.Name) Then
@@ -79,9 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
                         builder.Add(parameter)
                     End If
                 Next
-            End Using
 
-            Return builder.ToImmutable()
+                Return builder.ToImmutable()
+            End Using
         End Function
 
         Private Function GetKind(arg As ExpressionSyntax) As HintKind
