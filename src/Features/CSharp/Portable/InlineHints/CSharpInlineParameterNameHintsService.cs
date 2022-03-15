@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -73,15 +74,35 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
             BaseArgumentListSyntax argumentList,
             CancellationToken cancellationToken)
         {
+            var parametersOfNamedArguments = GetParametersOfNamedArguments(semanticModel, argumentList, cancellationToken);
             foreach (var argument in argumentList.Arguments)
             {
                 if (argument.NameColon != null)
                     continue;
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
-                buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
+
+                if (!parametersOfNamedArguments.Contains(parameter))
+                {
+                    var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
+                    buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
+                }
             }
+        }
+
+        private static ImmutableArray<IParameterSymbol?> GetParametersOfNamedArguments(SemanticModel semanticModel, BaseArgumentListSyntax argumentList, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<IParameterSymbol?>.GetInstance(out var parameterList);
+            foreach (var argument in argumentList.Arguments)
+            {
+                if (argument.NameColon is not null)
+                {
+                    var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                    parameterList.Add(parameter);
+                }
+            }
+
+            return parameterList.ToImmutable();
         }
 
         private static HintKind GetKind(ExpressionSyntax arg)
