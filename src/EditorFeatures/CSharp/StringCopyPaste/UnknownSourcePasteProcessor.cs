@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 StringExpressionBeforePaste is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedSingleLineRawStringStartToken };
 
             if (isSingleLine)
-                AdjsutWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
+                AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
             else
                 AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(editsToMake);
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         // Pasting with single line case.
 
-        private void AdjsutWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(
+        private void AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(
             ArrayBuilder<TextChange> editsToMake,
             CancellationToken cancellationToken)
         {
