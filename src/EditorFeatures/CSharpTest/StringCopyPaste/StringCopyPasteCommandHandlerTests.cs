@@ -170,16 +170,4 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 #endif
     }
-
-    [UseExportProvider]
-    public abstract class StringCopyPasteCommandHandlerUnknownSourceTests
-        : StringCopyPasteCommandHandlerTests
-    {
-        protected static void TestPasteUnknownSource(string pasteText, string markup, string expectedMarkup, string afterUndo)
-        {
-            using var state = StringCopyPasteTestState.CreateTestState(markup);
-
-            state.TestCopyPaste(expectedMarkup, pasteText, afterUndo);
-        }
-    }
 }
