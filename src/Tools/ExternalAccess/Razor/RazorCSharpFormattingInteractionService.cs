@@ -65,36 +65,35 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
 
-            var formattingOptions = GetFormattingOptions(document.Project.Solution, indentationOptions);
+            var formattingOptions = GetFormattingOptions(indentationOptions);
             var roslynIndentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions.UnderlyingObject);
 
             return await formattingService.GetFormattingChangesAsync(document, typedChar, position, roslynIndentationOptions, cancellationToken).ConfigureAwait(false);
         }
 
         public static IList<TextChange> GetFormattedTextChanges(
-            Solution solution,
+            HostWorkspaceServices services,
             SyntaxNode root,
             TextSpan span,
             RazorIndentationOptions indentationOptions,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.GetFormattedTextChanges(root, span, solution.Workspace.Services, GetFormattingOptions(solution, indentationOptions), cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, span, services, GetFormattingOptions(indentationOptions), cancellationToken);
         }
 
         public static SyntaxNode Format(
-            Solution solution,
+            HostWorkspaceServices services,
             SyntaxNode root,
             RazorIndentationOptions indentationOptions,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.Format(root, solution.Workspace.Services, GetFormattingOptions(solution, indentationOptions), cancellationToken: cancellationToken);
+            return Formatter.Format(root, services, GetFormattingOptions(indentationOptions), cancellationToken: cancellationToken);
         }
 
-        // Razor does not support editor config but it should still use formatting options stored on Solution:
-        private static SyntaxFormattingOptions GetFormattingOptions(Solution solution, RazorIndentationOptions indentationOptions)
-            => SyntaxFormattingOptions.Create(solution.Options, solution.Workspace.Services, LanguageNames.CSharp).With(
+        private static SyntaxFormattingOptions GetFormattingOptions(RazorIndentationOptions indentationOptions)
+            => CSharpSyntaxFormattingOptions.Default.With(
                 useTabs: indentationOptions.UseTabs,
                 tabSize: indentationOptions.TabSize,
                 indentationSize: indentationOptions.IndentationSize);
