@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _lazyDefaultSyntaxValue = ConstantValue.Unset;
         }
 
-        private Binder ParameterBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.WithTypeParametersBinder;
+        private Binder WithTypeParametersBinderOpt => (ContainingSymbol as SourceMethodSymbolWithAttributes)?.WithTypeParametersBinder;
 
         internal sealed override SyntaxReference SyntaxReference => _syntaxRef;
 
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private Binder GetDefaultParameterValueBinder(SyntaxNode syntax)
         {
-            var binder = ParameterBinderOpt;
+            var binder = WithTypeParametersBinderOpt;
 
             // If binder is null, then get it from the compilation. Otherwise use the provided binder.
             // Don't always get it from the compilation because we might be in a speculative context (local function parameter),
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var attributeSyntax = this.GetAttributeDeclarations();
-                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, binderOpt: ParameterBinderOpt);
+                    bagCreatedOnThisThread = LoadAndValidateAttributes(attributeSyntax, ref _lazyCustomAttributesBag, binderOpt: WithTypeParametersBinderOpt);
                 }
 
                 if (bagCreatedOnThisThread)

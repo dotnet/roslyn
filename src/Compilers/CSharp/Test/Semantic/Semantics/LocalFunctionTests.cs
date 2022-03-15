@@ -8030,6 +8030,74 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
+        public void ParameterScope_NotAsParameterDefaultDefaultValue()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local();
+
+        void local(string parameter = default(parameter)) => throw null;
+    }
+
+    void M2(string parameter = default(parameter)) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,27): error CS1750: A value of type 'parameter' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //         void local(string parameter = default(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "parameter").WithArguments("parameter", "string").WithLocation(8, 27),
+                // (8,47): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         void local(string parameter = default(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 47),
+                // (11,20): error CS1750: A value of type 'parameter' cannot be used as a default parameter because there are no standard conversions to type 'string'
+                //     void M2(string parameter = default(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "parameter").WithArguments("parameter", "string").WithLocation(11, 20),
+                // (11,40): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2(string parameter = default(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 40)
+                );
+        }
+
+        [Fact]
+        public void ParameterScope_NotAsParameterNameOfDefaultValue()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local();
+
+        void local(string parameter = nameof(parameter)) => throw null;
+    }
+
+    void M2(string parameter = nameof(parameter)) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,46): error CS0103: The name 'parameter' does not exist in the current context
+                //         void local(string parameter = nameof(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(8, 46),
+                // (11,39): error CS0103: The name 'parameter' does not exist in the current context
+                //     void M2(string parameter = nameof(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 39)
+                );
+        }
+
+        [Fact]
         public void MethodScope_InParameterAttribute()
         {
             var comp = CreateCompilation(@"
