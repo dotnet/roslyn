@@ -251,8 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
 
-            // We don't need to loop over containing symbols chain.
-            // PROTOTYPE(semi-auto-props): Add an assert that the containing symbols chain doesn't include a property accessor.
+            Debug.Assert(methodSymbol.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction));
+
+            // We don't need to loop over containing symbols chain because only type members can have MethodBodySemanticModel.
             if (methodSymbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
             {
                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
