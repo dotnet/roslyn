@@ -148,11 +148,18 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOperator()
+        public async Task TestAfterOperator_01()
         {
             await VerifyKeywordAsync(
 @"class Goo { 
     public static int operator $$");
+        }
+
+        public async Task TestAfterOperator_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int /* some comment */ operator $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -160,6 +167,60 @@ class C
         {
             await VerifyAbsenceAsync(
 @"operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterImplicitOperator_ExplicitImplementation()
+        {
+            await VerifyAbsenceAsync(
+@"class Goo {
+    public static implicit I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_ExplicitImplementation_01()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_ExplicitImplementation_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit /* some comment */ I1.operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_ExplicitImplementation_03()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit I1. /* some comment */ operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator_ExplicitImplementation_01()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int I1.operator $$");
+        }
+
+        public async Task TestAfterOperator_ExplicitImplementation_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int /* some comment */ I1.operator $$");
+        }
+
+        public async Task TestAfterOperator_ExplicitImplementation_03()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int I1. /* some comment */ operator $$");
         }
     }
 }

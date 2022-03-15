@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -31,12 +32,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             if (targetToken.Kind() == SyntaxKind.OperatorKeyword)
             {
-                if (targetToken.GetPreviousToken(includeSkipped: true).IsLastTokenOfNode<TypeSyntax>())
+                var previousPossiblySkippedToken = targetToken.GetPreviousToken(includeSkipped: true);
+
+                if (previousPossiblySkippedToken.IsLastTokenOfNode<TypeSyntax>())
                 {
                     return true;
                 }
 
-                if (targetToken.GetPreviousToken(includeSkipped: false).Kind() == SyntaxKind.ExplicitKeyword)
+                SyntaxToken previousToken;
+
+                if (previousPossiblySkippedToken.IsLastTokenOfNode<ExplicitInterfaceSpecifierSyntax>())
+                {
+                    var firstSpecifierToken = previousPossiblySkippedToken.GetAncestor<ExplicitInterfaceSpecifierSyntax>().GetFirstToken(includeSkipped: true);
+
+                    if (firstSpecifierToken.GetPreviousToken(includeSkipped: true).IsLastTokenOfNode<TypeSyntax>())
+                    {
+                        return true;
+                    }
+
+                    previousToken = firstSpecifierToken.GetPreviousToken(includeSkipped: false);
+                }
+                else
+                {
+                    previousToken = targetToken.GetPreviousToken(includeSkipped: false);
+                }
+
+                if (previousToken.Kind() == SyntaxKind.ExplicitKeyword)
                 {
                     return true;
                 }
