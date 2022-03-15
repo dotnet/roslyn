@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(
             this MethodSymbol containingSymbol,
-            Binder binder,
+            Binder withTypeParametersBinder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
@@ -327,11 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.
-            Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+            Debug.Assert(!withTypeParametersBinder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+            withTypeParametersBinder = withTypeParametersBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
             ImmutableArray<TypeParameterConstraintClause> clauses;
-            clauses = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
+            clauses = withTypeParametersBinder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
                                                                 diagnostics, performOnlyCycleSafeValidation: false);
 
             if (clauses.All(clause => clause.ConstraintTypes.IsEmpty))

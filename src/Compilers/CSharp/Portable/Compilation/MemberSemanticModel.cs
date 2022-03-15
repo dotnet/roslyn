@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalFunctionSymbol function = GetDeclaredLocalFunction(binder, ownerOfTypeParametersInScope.Identifier);
                 if ((object)function != null)
                 {
-                    binder = function.ParameterBinder;
+                    binder = function.WithTypeParametersBinder;
                 }
             }
 

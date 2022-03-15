@@ -7119,7 +7119,7 @@ class Program
         }
 
         [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
-        public void TypeParameterScope_NotInAttributeNameOf()
+        public void TypeParameterScope_NotInMethodAttributeNameOf()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7152,7 +7152,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_NotInAttribute()
+        public void TypeParameterScope_NotInMethodAttribute()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7185,7 +7185,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_NotInAttributeTypeArgument()
+        public void TypeParameterScope_NotInMethodAttributeTypeArgument()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7217,7 +7217,7 @@ public class MyAttribute<T> : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_NotAsAttributeType()
+        public void TypeParameterScope_NotAsMethodAttributeType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7250,8 +7250,41 @@ class C
                 );
         }
 
+        [Fact]
+        public void TypeParameterScope_NotInMethodAttributeDefault()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(default(TParameter))]
+        void local<TParameter>() where TParameter : class => throw null;
+    }
+
+    [My(default(TParameter))]
+    void M2<TParameter>() where TParameter : class => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(object o) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         [My(default(TParameter))]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(8, 21),
+                // (12,17): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(default(TParameter))]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(12, 17)
+                );
+        }
+
         [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
-        public void TypeParameterScope_InParameterAttribute()
+        public void TypeParameterScope_NotInParameterAttribute()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7271,7 +7304,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string name1) { }
 }
 ");
-            // TParameter unexpectedly was found in local function case
+            // TParameter unexpectedly was found in local function case because of IsInMethodBody logic
             // Tracked by https://github.com/dotnet/roslyn/issues/60110
             comp.VerifyDiagnostics(
                 // (8,36): error CS0119: 'TParameter' is a type, which is not valid in the given context
@@ -7308,7 +7341,99 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_AsParameterAttributeType()
+        public void TypeParameterScope_InParameterAttributeTypeOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(typeof(TParameter))] int i) => throw null;
+    }
+
+    void M2<TParameter>([My(typeof(TParameter))] int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,36): error CS1503: Argument 1: cannot convert from 'System.Type' to 'string'
+                //         void local<TParameter>([My(typeof(TParameter))] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadArgType, "typeof(TParameter)").WithArguments("1", "System.Type", "string").WithLocation(8, 36),
+                // (11,29): error CS1503: Argument 1: cannot convert from 'System.Type' to 'string'
+                //     void M2<TParameter>([My(typeof(TParameter))] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadArgType, "typeof(TParameter)").WithArguments("1", "System.Type", "string").WithLocation(11, 29)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_InParameterAttributeSizeOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+    }
+
+    void M2<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(int i) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,36): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('TParameter')
+                //         void local<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(8, 36),
+                // (8,36): error CS0233: 'TParameter' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         void local<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(8, 36),
+                // (11,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('TParameter')
+                //     void M2<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(11, 29),
+                // (11,29): error CS0233: 'TParameter' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //     void M2<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(11, 29)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_InParameterAttributeDefault()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(default(TParameter))] int i) where TParameter : class => throw null;
+    }
+
+    void M2<TParameter>([My(default(TParameter))] int i) where TParameter : class => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(object o) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterScope_NotAsParameterAttributeType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7372,7 +7497,224 @@ class C
         }
 
         [Fact]
-        public void ParameterScope_NotInAttributeNameOf()
+        public void TypeParameterScope_InTypeConstraint()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object, object>();
+
+        void local<TParameter, TParameter2>() where TParameter : TParameter2 => throw null;
+    }
+
+    void M2<TParameter, TParameter2>() where TParameter : TParameter2 => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterScope_NotInMethodAttributeTypeOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        [My(typeof(TParameter))]
+        void local<TParameter>() => throw null;
+    }
+
+    [My(typeof(TParameter))]
+    void M2<TParameter>() => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         [My(typeof(TParameter))]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(8, 20),
+                // (12,16): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(typeof(TParameter))]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_NotInTypeParameterAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        void local<[My(TParameter)] TParameter>() => throw null;
+    }
+
+    void M2<[My(TParameter)] TParameter>() => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            // TParameter unexpectedly was found in local function case because of IsInMethodBody logic
+            // Tracked by https://github.com/dotnet/roslyn/issues/60110
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0119: 'TParameter' is a type, which is not valid in the given context
+                //         void local<[My(TParameter)] TParameter>() => throw null;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type").WithLocation(8, 24),
+                // (11,17): error CS0103: The name 'TParameter' does not exist in the current context
+                //     void M2<[My(TParameter)] TParameter>() => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_InTypeParameterAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        void local<[My(nameof(TParameter))] TParameter>() => throw null;
+    }
+
+    void M2<[My(nameof(TParameter))] TParameter>() => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterScope_InTypeParameterAttributeDefault()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        void local<[My(default(TParameter))] TParameter>() where TParameter : class => throw null;
+    }
+
+    void M2<[My(default(TParameter))] TParameter>() where TParameter : class => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(object o) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterScope_AsTypeParameterAttributeType()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<System.Attribute>();
+
+        void local<[TParameter] TParameter>() where TParameter : System.Attribute => throw null;
+    }
+
+    void M2<[TParameter] TParameter>() where TParameter : System.Attribute => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0616: 'TParameter' is not an attribute class
+                //         void local<[TParameter] TParameter>() where TParameter : System.Attribute => throw null;
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(8, 21),
+                // (11,14): error CS0616: 'TParameter' is not an attribute class
+                //     void M2<[TParameter] TParameter>() where TParameter : System.Attribute => throw null;
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(11, 14)
+                );
+        }
+
+        [Fact]
+        public void TypeParameterScope_AsParameterDefaultDefaultValue()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<System.Attribute>();
+
+        void local<TParameter>(TParameter s = default(TParameter)) => throw null;
+    }
+
+    void M2<TParameter>(TParameter s = default(TParameter)) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterScope_AsParameterNameOfDefaultValue()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<System.Attribute>();
+
+        void local<TParameter>(string s = nameof(TParameter)) => throw null;
+    }
+
+    void M2<TParameter>(string s = nameof(TParameter)) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterScope_NotInMethodAttributeNameOf()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7405,7 +7747,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotInAttribute()
+        public void ParameterScope_NotInMethodAttribute()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7438,7 +7780,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotInAttributeTypeArgument()
+        public void ParameterScope_NotInMethodAttributeTypeArgument()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7470,7 +7812,7 @@ public class MyAttribute<T> : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotAsAttributeType()
+        public void ParameterScope_NotAsMethodAttributeType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7647,6 +7989,213 @@ class C
                 //     void M2<TParameter>(parameter parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 25)
                 );
+        }
+
+        [Fact]
+        public void ParameterScope_NotInTypeConstraint()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+        M2<object>(0);
+
+        void local<TParameter>(int parameter) where TParameter : parameter => throw null;
+    }
+
+    void M2<TParameter>(int parameter) where TParameter : parameter => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0311: The type 'object' cannot be used as type parameter 'TParameter' in the generic type or method 'local<TParameter>(int)'. There is no implicit reference conversion from 'object' to 'parameter'.
+                //         local<object>(0);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "local<object>").WithArguments("local<TParameter>(int)", "parameter", "TParameter", "object").WithLocation(6, 9),
+                // (7,9): error CS0311: The type 'object' cannot be used as type parameter 'TParameter' in the generic type or method 'C.M2<TParameter>(int)'. There is no implicit reference conversion from 'object' to 'parameter'.
+                //         M2<object>(0);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M2<object>").WithArguments("C.M2<TParameter>(int)", "parameter", "TParameter", "object").WithLocation(7, 9),
+                // (9,66): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         void local<TParameter>(int parameter) where TParameter : parameter => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 66),
+                // (12,59): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2<TParameter>(int parameter) where TParameter : parameter => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 59)
+                );
+        }
+
+        [Fact]
+        public void MethodScope_InParameterAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(local)] int i) => throw null;
+    }
+
+    void M2<TParameter>([My(M2)] int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,36): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //         void local<TParameter>([My(local)] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadArgType, "local").WithArguments("1", "method group", "string").WithLocation(8, 36),
+                // (11,29): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //     void M2<TParameter>([My(M2)] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadArgType, "M2").WithArguments("1", "method group", "string").WithLocation(11, 29)
+                );
+        }
+
+        [Fact]
+        public void MethodScope_InParameterAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(nameof(local))] int i) => throw null;
+    }
+
+    void M2<TParameter>([My(nameof(M2))] int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodScope_InTypeParameterAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<[My(local)] TParameter>(int i) => throw null;
+    }
+
+    void M2<[My(M2)] TParameter>(int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //         void local<[My(local)] TParameter>(int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadArgType, "local").WithArguments("1", "method group", "string").WithLocation(8, 24),
+                // (11,17): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //     void M2<[My(M2)] TParameter>(int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadArgType, "M2").WithArguments("1", "method group", "string").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void MethodScope_InTypeParameterAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        void local<[My(nameof(local))] TParameter>(int i) => throw null;
+    }
+
+    void M2<[My(nameof(M2))] TParameter>(int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodScope_InMethodAttribute()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        [My(local)]
+        void local<TParameter>(int i) => throw null;
+    }
+
+    [My(M2)]
+    void M2<TParameter>(int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //         [My(local)]
+                Diagnostic(ErrorCode.ERR_BadArgType, "local").WithArguments("1", "method group", "string").WithLocation(8, 13),
+                // (12,9): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //     [My(M2)]
+                Diagnostic(ErrorCode.ERR_BadArgType, "M2").WithArguments("1", "method group", "string").WithLocation(12, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodScope_InMethodAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<object>(0);
+
+        [My(nameof(local))]
+        void local<TParameter>(int i) => throw null;
+    }
+
+    [My(nameof(M2))]
+    void M2<TParameter>(int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics();
         }
     }
 }

@@ -6166,7 +6166,7 @@ class A : Attribute { }
         }
 
         [Fact]
-        public void ParameterScope_NotInAttributeNameOf()
+        public void ParameterScope_NotInMethodAttributeNameOf()
         {
             var comp = CreateCompilation(@"
 class C
@@ -6199,7 +6199,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotInAttribute()
+        public void ParameterScope_NotInMethodAttribute()
         {
             var comp = CreateCompilation(@"
 class C
@@ -6231,7 +6231,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotInAttributeTypeArgument()
+        public void ParameterScope_NotInMethodAttributeTypeArgument()
         {
             var comp = CreateCompilation(@"
 class C
@@ -6262,7 +6262,7 @@ public class MyAttribute<T> : System.Attribute
         }
 
         [Fact]
-        public void ParameterScope_NotAsAttributeType()
+        public void ParameterScope_NotAsMethodAttributeType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -6390,7 +6390,7 @@ class C
 {
     void M()
     {
-        var _ = parameter(int parameter) => throw null;
+        var _ = parameter (int parameter) => throw null;
     }
 
     parameter M2(int parameter) => throw null;
@@ -6398,7 +6398,7 @@ class C
 ");
             comp.VerifyDiagnostics(
                 // (6,17): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                //         var _ = parameter(int parameter) => throw null;
+                //         var _ = parameter (int parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(6, 17),
                 // (9,5): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
                 //     parameter M2(int parameter) => throw null;

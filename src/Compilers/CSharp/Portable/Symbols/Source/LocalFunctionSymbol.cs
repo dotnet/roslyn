@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class LocalFunctionSymbol : SourceMethodSymbolWithAttributes
     {
-        private readonly Binder _parameterBinder;
-        private readonly Binder? _withTypeParamsBinder; // null when no type parameters
+        private readonly Binder _binder;
         private readonly Symbol _containingSymbol;
         private readonly DeclarationModifiers _declarationModifiers;
         private readonly ImmutableArray<SourceMethodTypeParameterSymbol> _typeParameters;
@@ -61,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (syntax.TypeParameterList != null)
             {
-                _withTypeParamsBinder = new WithMethodTypeParametersBinder(this, binder);
                 _typeParameters = MakeTypeParameters(_declarationDiagnostics);
             }
             else
@@ -97,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _refKind = RefKind.None;
             }
 
-            _parameterBinder = binder;
+            _binder = binder;
         }
 
         /// <summary>
@@ -106,7 +104,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal Binder ScopeBinder { get; }
 
-        internal override Binder ParameterBinder => _withTypeParamsBinder ?? _parameterBinder;
+        internal override Binder OuterBinder => _binder;
+
+        internal override Binder WithTypeParametersBinder
+            => _typeParameters.IsEmpty ? _binder : new WithMethodTypeParametersBinder(this, _binder);
 
         internal LocalFunctionStatementSyntax Syntax => (LocalFunctionStatementSyntax)syntaxReferenceOpt.GetSyntax();
 
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
 
             var parameters = ParameterHelpers.MakeParameters(
-                ParameterBinder,
+                WithTypeParametersBinder,
                 this,
                 this.Syntax.ParameterList,
                 arglistToken: out arglistToken,
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
             TypeSyntax returnTypeSyntax = Syntax.ReturnType;
-            TypeWithAnnotations returnType = ParameterBinder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
+            TypeWithAnnotations returnType = WithTypeParametersBinder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
             var compilation = DeclaringCompilation;
 
@@ -334,8 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string Name => Syntax.Identifier.ValueText ?? "";
 
         public SyntaxToken NameToken => Syntax.Identifier;
-
-        internal override Binder SignatureBinder => _parameterBinder;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
@@ -477,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var syntax = Syntax;
                 var diagnostics = BindingDiagnosticBag.GetInstance(_declarationDiagnostics);
                 var constraints = this.MakeTypeParameterConstraintTypes(
-                    ParameterBinder,
+                    WithTypeParametersBinder,
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses,
@@ -502,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = Syntax;
                 var constraints = this.MakeTypeParameterConstraintKinds(
-                    ParameterBinder,
+                    WithTypeParametersBinder,
                     TypeParameters,
                     syntax.TypeParameterList,
                     syntax.ConstraintClauses);
