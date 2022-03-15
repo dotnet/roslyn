@@ -82,11 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineHints
 
                 var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
 
-                if (!parametersOfNamedArguments.Contains(parameter))
+                if (parametersOfNamedArguments.Contains(parameter))
                 {
-                    var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
-                    buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
+                    continue;
                 }
+
+                var identifierArgument = GetIdentifierNameFromArgument(argument, syntaxFacts);
+                buffer.Add((argument.Span.Start, identifierArgument, parameter, GetKind(argument.Expression)));
             }
         }
 

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -34,6 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
                 Return
             End If
 
+            Dim parametersOfNamedArguments = GetParametersOfNamedArguments(semanticModel, argumentList, cancellationToken)
+
             For Each arg In argumentList.Arguments
                 Dim argument = TryCast(arg, SimpleArgumentSyntax)
                 If argument Is Nothing Then
@@ -53,10 +56,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InlineHints
                     Continue For
                 End If
 
+                If parametersOfNamedArguments.Contains(parameter) Then
+                    Continue For
+                End If
+
                 Dim argumentIdentifier = GetIdentifierNameFromArgument(argument, syntaxFacts)
                 buffer.Add((argument.Span.Start, argumentIdentifier, parameter, GetKind(argument.Expression)))
             Next
         End Sub
+
+        Private Shared Function GetParametersOfNamedArguments(semanticModel As SemanticModel, argumentList As ArgumentListSyntax, cancellationToken As CancellationToken) As ImmutableArray(Of IParameterSymbol)
+            Dim builder As ArrayBuilder(Of IParameterSymbol) = Nothing
+            Using ArrayBuilder(Of IParameterSymbol).GetInstance(builder)
+                For Each arg In argumentList.Arguments
+                    Dim argument = TryCast(arg, SimpleArgumentSyntax)
+                    If argument.IsNamed OrElse argument.NameColonEquals IsNot Nothing Then
+                        Dim parameter = argument.DetermineParameter(semanticModel, allowParamArray:=False, cancellationToken)
+                        If String.IsNullOrEmpty(parameter?.Name) Then
+                            Continue For
+                        End If
+
+                        builder.Add(parameter)
+                    End If
+                Next
+            End Using
+
+            Return builder.ToImmutable()
+        End Function
 
         Private Function GetKind(arg As ExpressionSyntax) As HintKind
             If TypeOf arg Is LiteralExpressionSyntax OrElse
