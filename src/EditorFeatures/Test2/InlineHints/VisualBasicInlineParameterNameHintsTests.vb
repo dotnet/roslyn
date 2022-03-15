@@ -960,5 +960,43 @@ End Class
 
             Await VerifyParamHints(input, output)
         End Function
+
+        <WorkItem(47597, "https://github.com/dotnet/roslyn/issues/59317")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        Public Async Function TestMultipleNamedArgumentsWithIncorrectArgumentCountReordered() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub F(a As Integer, b As Boolean, c As String)
+    End Sub
+
+    Sub Main(args As String())
+        F({|a:|}1, 2, c:="str", b:=True)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="Visual Basic" CommonReferences="true">
+                    <Document>
+Class C
+    Sub F(a As Integer, b As Boolean, c As String)
+    End Sub
+
+    Sub Main(args As String())
+        F(a:=1, 2, c:="str", b:=True)
+    End Sub
+End Class
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, output)
+        End Function
     End Class
 End Namespace
