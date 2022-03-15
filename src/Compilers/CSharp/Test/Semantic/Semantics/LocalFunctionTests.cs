@@ -7149,6 +7149,50 @@ public class MyAttribute : System.Attribute
                 //     [My(nameof(TParameter))] // 2
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 16)
                 );
+
+            VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
+        }
+
+        /// <summary>
+        /// Look for usages of "TParameter" and verify the index-th one.
+        /// </summary>
+        private void VerifyTParameter(CSharpCompilation comp, int index, string expectedMethod, bool findAnyways = false, bool lookupFailsAnyways = false)
+        {
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tParameterUsages = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "TParameter")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute) || a.IsKind(SyntaxKind.TypeConstraint) || a.IsKind(SyntaxKind.DefaultExpression) || a.IsKind(SyntaxKind.InvocationExpression)))
+                .ToArray();
+
+            var tParameterUsage = tParameterUsages[index];
+
+            var symbol = model.GetSymbolInfo(tParameterUsage).Symbol;
+            if (expectedMethod is null)
+            {
+                Assert.Null(symbol);
+
+                var typeInfo = model.GetTypeInfo(tParameterUsage);
+                if (findAnyways)
+                {
+                    // In certain cases, like `[TParameter]`, we're able to bind the attribute, find the type but reject it.
+                    // So GetTypeInfo does return a type.
+                    Assert.Equal(SymbolKind.TypeParameter, typeInfo.Type.Kind);
+                }
+                else
+                {
+                    Assert.True(typeInfo.Type.IsErrorType());
+                }
+
+                Assert.Equal(findAnyways, model.LookupSymbols(tParameterUsage.Position).ToTestDisplayStrings().Contains("TParameter"));
+            }
+            else
+            {
+                Assert.Equal(expectedMethod, symbol.ContainingSymbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.TypeParameter, model.GetTypeInfo(tParameterUsage).Type.Kind);
+                Assert.Equal(!lookupFailsAnyways, model.LookupSymbols(tParameterUsage.Position).ToTestDisplayStrings().Contains("TParameter"));
+            }
         }
 
         [Fact]
@@ -7182,6 +7226,9 @@ public class MyAttribute : System.Attribute
                 //     [My(TParameter)] // 2
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(12, 9)
                 );
+
+            VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7194,12 +7241,12 @@ class C
     {
         local<object>();
 
-        [My<T>] // 1
-        void local<T>() { }
+        [My<TParameter>] // 1
+        void local<TParameter>() { }
     }
 
-    [My<T>] // 2
-    void M2<T>() { }
+    [My<TParameter>] // 2
+    void M2<TParameter>() { }
 }
 
 public class MyAttribute<T> : System.Attribute
@@ -7207,13 +7254,16 @@ public class MyAttribute<T> : System.Attribute
 }
 ");
             comp.VerifyDiagnostics(
-                // (8,13): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
-                //         [My<T>] // 1
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(8, 13),
-                // (12,9): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
-                //     [My<T>] // 2
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(12, 9)
+                // (8,13): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         [My<TParameter>] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(8, 13),
+                // (12,9): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My<TParameter>] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(12, 9)
                 );
+
+            VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7226,28 +7276,31 @@ class C
     {
         local<System.Attribute>();
 
-        [T] // 1
-        void local<T>() where T : System.Attribute { }
+        [TParameter] // 1
+        void local<TParameter>() where TParameter : System.Attribute { }
     }
 
-    [T] // 2
-    void M2<T>() where T : System.Attribute { }
+    [TParameter] // 2
+    void M2<TParameter>() where TParameter : System.Attribute { }
 }
 ");
             comp.VerifyDiagnostics(
-                // (8,10): error CS0246: The type or namespace name 'TAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         [T] // 1
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("TAttribute").WithLocation(8, 10),
-                // (8,10): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
-                //         [T] // 1
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(8, 10),
-                // (12,6): error CS0246: The type or namespace name 'TAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //     [T] // 2
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("TAttribute").WithLocation(12, 6),
-                // (12,6): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
-                //     [T] // 2
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T").WithLocation(12, 6)
+                // (8,10): error CS0246: The type or namespace name 'TParameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         [TParameter] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameterAttribute").WithLocation(8, 10),
+                // (8,10): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //         [TParameter] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(8, 10),
+                // (12,6): error CS0246: The type or namespace name 'TParameterAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [TParameter] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameterAttribute").WithLocation(12, 6),
+                // (12,6): error CS0246: The type or namespace name 'TParameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [TParameter] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(12, 6)
                 );
+
+            VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7281,6 +7334,9 @@ public class MyAttribute : System.Attribute
                 //     [My(default(TParameter))]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(12, 17)
                 );
+
+            VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
         }
 
         [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
@@ -7314,6 +7370,9 @@ public class MyAttribute : System.Attribute
                 //     void M2<TParameter>([My(TParameter)] int i) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(11, 29)
                 );
+
+            //VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7338,6 +7397,11 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
+            // LookupSymbols fails to find TParameter
+            // Tracked by https://github.com/dotnet/roslyn/issues/60194
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)", lookupFailsAnyways: true);
         }
 
         [Fact]
@@ -7369,6 +7433,9 @@ public class MyAttribute : System.Attribute
                 //     void M2<TParameter>([My(typeof(TParameter))] int i) => throw null;
                 Diagnostic(ErrorCode.ERR_BadArgType, "typeof(TParameter)").WithArguments("1", "System.Type", "string").WithLocation(11, 29)
                 );
+
+            VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)");
         }
 
         [Fact]
@@ -7406,6 +7473,9 @@ public class MyAttribute : System.Attribute
                 //     void M2<TParameter>([My(sizeof(TParameter))] int i) => throw null;
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(11, 29)
                 );
+
+            VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)");
         }
 
         [Fact]
@@ -7430,6 +7500,9 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)");
         }
 
         [Fact]
@@ -7456,6 +7529,9 @@ class C
                 //     void M2<TParameter>([TParameter] int i) where TParameter : System.Attribute => throw null;
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(11, 26)
                 );
+
+            VerifyTParameter(comp, 0, null, findAnyways: true);
+            VerifyTParameter(comp, 1, null, findAnyways: true);
         }
 
         [Fact]
@@ -7506,10 +7582,10 @@ class C
     {
         local<object, object>();
 
-        void local<TParameter, TParameter2>() where TParameter : TParameter2 => throw null;
+        void local<TParameter2, TParameter>() where TParameter2 : TParameter => throw null;
     }
 
-    void M2<TParameter, TParameter2>() where TParameter : TParameter2 => throw null;
+    void M2<TParameter2, TParameter>() where TParameter2 : TParameter => throw null;
 }
 
 public class MyAttribute : System.Attribute
@@ -7518,6 +7594,9 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter2, TParameter>()");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter2, TParameter>()");
         }
 
         [Fact]
@@ -7551,6 +7630,9 @@ public class MyAttribute : System.Attribute
                 //     [My(typeof(TParameter))]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "TParameter").WithArguments("TParameter").WithLocation(12, 16)
                 );
+
+            VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7584,6 +7666,9 @@ public class MyAttribute : System.Attribute
                 //     void M2<[My(TParameter)] TParameter>() => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(11, 17)
                 );
+
+            //VerifyTParameter(comp, 0, null);
+            VerifyTParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7608,6 +7693,11 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter>()");
+            // LookupSymbols fails to find TParameter
+            // Tracked by https://github.com/dotnet/roslyn/issues/60194
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>()", lookupFailsAnyways: true);
         }
 
         [Fact]
@@ -7632,10 +7722,13 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter>()");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
         [Fact]
-        public void TypeParameterScope_AsTypeParameterAttributeType()
+        public void TypeParameterScope_NotAsTypeParameterAttributeType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7663,6 +7756,9 @@ public class MyAttribute : System.Attribute
                 //     void M2<[TParameter] TParameter>() where TParameter : System.Attribute => throw null;
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(11, 14)
                 );
+
+            VerifyTParameter(comp, 0, null, findAnyways: true);
+            VerifyTParameter(comp, 1, null, findAnyways: true);
         }
 
         [Fact]
@@ -7687,6 +7783,9 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter>([TParameter s = default(TParameter)])");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>([TParameter s = default(TParameter)])");
         }
 
         [Fact]
@@ -7711,6 +7810,11 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, @"void local<TParameter>([System.String s = ""TParameter""])");
+            // LookupSymbols fails to find TParameter
+            // Tracked by https://github.com/dotnet/roslyn/issues/60194
+            VerifyTParameter(comp, 1, @"void C.M2<TParameter>([System.String s = ""TParameter""])", lookupFailsAnyways: true);
         }
 
         [Fact]
@@ -7744,6 +7848,38 @@ public class MyAttribute : System.Attribute
                 //     [My(nameof(parameter))] // 2
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
+        }
+
+        /// <summary>
+        /// Look for usages of "parameter" and verify the index-th one.
+        /// </summary>
+        private void VerifyParameter(CSharpCompilation comp, int index, string expectedMethod)
+        {
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var parameterUsages = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "parameter")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute) || a.IsKind(SyntaxKind.TypeConstraint) || a.IsKind(SyntaxKind.DefaultExpression) || a.IsKind(SyntaxKind.InvocationExpression)))
+                .ToArray();
+
+            var parameterUsage = parameterUsages[index];
+
+            var symbol = model.GetSymbolInfo(parameterUsage).Symbol;
+            if (expectedMethod is null)
+            {
+                Assert.Null(symbol);
+                Assert.True(model.GetTypeInfo(parameterUsage).Type.IsErrorType());
+                Assert.DoesNotContain("parameter", model.LookupSymbols(parameterUsage.Position).ToTestDisplayStrings());
+            }
+            else
+            {
+                Assert.Equal(expectedMethod, symbol.ContainingSymbol.ToTestDisplayString());
+                Assert.Equal(SymbolKind.Parameter, model.GetTypeInfo(parameterUsage).Type.Kind);
+                Assert.Contains(symbol, model.LookupSymbols(parameterUsage.Position));
+            }
         }
 
         [Fact]
@@ -7777,6 +7913,9 @@ public class MyAttribute : System.Attribute
                 //     [My(parameter)] // 2
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 9)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7809,6 +7948,9 @@ public class MyAttribute<T> : System.Attribute
                 //     [My<parameter>] // 2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 9)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7843,6 +7985,9 @@ class C
                 //     [parameter] // 2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 6)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7874,6 +8019,9 @@ public class MyAttribute : System.Attribute
                 //     void M2([My(parameter)] int parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 17)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7905,6 +8053,9 @@ public class MyAttribute : System.Attribute
                 //     void M2([My(nameof(parameter))] int parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 24)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -7937,6 +8088,9 @@ class C
                 //     void M2([parameter] System.Attribute parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 14)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -8027,6 +8181,9 @@ public class MyAttribute : System.Attribute
                 //     void M2<TParameter>(int parameter) where TParameter : parameter => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 59)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -8064,6 +8221,9 @@ public class MyAttribute : System.Attribute
                 //     void M2(string parameter = default(parameter)) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 40)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]
@@ -8095,6 +8255,9 @@ public class MyAttribute : System.Attribute
                 //     void M2(string parameter = nameof(parameter)) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 39)
                 );
+
+            VerifyParameter(comp, 0, null);
+            VerifyParameter(comp, 1, null);
         }
 
         [Fact]

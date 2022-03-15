@@ -6196,6 +6196,64 @@ public class MyAttribute : System.Attribute
                 //     [My(nameof(parameter))] // 2
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(12, 16)
                 );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        /// <summary>
+        /// Look for usages of "parameter" and verify the index-th one.
+        /// </summary>
+        private void VerifyParameter(CSharpCompilation comp, int index)
+        {
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var parameterUsages = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "parameter")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute) || a.IsKind(SyntaxKind.DefaultExpression) || a.IsKind(SyntaxKind.InvocationExpression)))
+                .ToArray();
+
+            var parameterUsage = parameterUsages[index];
+
+            Assert.Null(model.GetSymbolInfo(parameterUsage).Symbol);
+            Assert.True(model.GetTypeInfo(parameterUsage).Type.IsErrorType());
+            Assert.DoesNotContain("parameter", model.LookupSymbols(parameterUsage.Position).ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void ParameterScope_NotInMethodAttributeTypeOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+
+        var _ =
+            [My(typeof(parameter))] // 1
+            void(int parameter) => { };
+    }
+
+    [My(typeof(parameter))] // 2
+    void M2(int parameter) { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //             [My(typeof(parameter))] // 1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(8, 24),
+                // (12,16): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     [My(typeof(parameter))] // 2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(12, 16)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
         }
 
         [Fact]
@@ -6228,6 +6286,9 @@ public class MyAttribute : System.Attribute
                 //     [My(parameter)] // 2
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(11, 9)
                 );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
         }
 
         [Fact]
@@ -6259,6 +6320,9 @@ public class MyAttribute<T> : System.Attribute
                 //     [My<parameter>] // 2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 9)
                 );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
         }
 
         [Fact]
@@ -6292,6 +6356,9 @@ class C
                 //     [parameter] // 2
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(11, 6)
                 );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
         }
 
         [Fact]
@@ -6321,6 +6388,9 @@ public class MyAttribute : System.Attribute
                 //     void M2([My(parameter)] int parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 17)
                 );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
         }
 
         [Fact]
@@ -6349,6 +6419,38 @@ public class MyAttribute : System.Attribute
                 // (9,24): error CS0103: The name 'parameter' does not exist in the current context
                 //     void M2([My(nameof(parameter))] int parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 24)
+                );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
+        }
+
+        [Fact]
+        public void ParameterScope_InParameterDefaultValueNameOf()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        var _ = void (string parameter = nameof(parameter)) => throw null;
+    }
+
+    void M2(string parameter = nameof(parameter)) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,40): error CS1065: Default values are not valid in this context.
+                //         var _ = void (string parameter = nameof(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_DefaultValueNotAllowed, "=").WithLocation(6, 40),
+                // (9,39): error CS0103: The name 'parameter' does not exist in the current context
+                //     void M2(string parameter = nameof(parameter)) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "parameter").WithArguments("parameter").WithLocation(9, 39)
                 );
         }
 
@@ -6380,6 +6482,9 @@ class C
                 //     void M2([parameter] System.Attribute parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 14)
                 );
+
+            VerifyParameter(comp, 0);
+            VerifyParameter(comp, 1);
         }
 
         [Fact]

@@ -356,7 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ownerOfTypeParametersInScope != null)
             {
                 LocalFunctionSymbol function = GetDeclaredLocalFunction(binder, ownerOfTypeParametersInScope.Identifier);
-                if ((object)function != null)
+                if ((object)function != null
+                    && LookupPosition.IsInLocalFunctionTypeParameterScope(position, function.Syntax))
                 {
                     binder = function.WithTypeParametersBinder;
                 }
