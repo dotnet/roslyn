@@ -236,8 +236,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         /// <summary>
         /// Returns the <see cref="LiteralExpressionSyntax"/> or <see cref="InterpolatedStringExpressionSyntax"/> if the
-        /// selections were all contained within a single literal in a compatible fashion.  For interpolated strings,
-        /// all the selections must be in the same 'text content span'.
+        /// selections were all contained within a single literal in a compatible fashion.  This means all the
+        /// selections have to start/end in a content-span portion of the literal.  For example, if we paste into an
+        /// interpolated string and have half of the selection outside an interpolation and half inside, we don't do
+        /// anything special as trying to correct in this scenario is too difficult.
         /// </summary>
         private static ExpressionSyntax? TryGetCompatibleContainingStringExpression(
             SyntaxNode root,
@@ -254,11 +256,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // string.  These spans may be empty (for an empty string, or empty text gap between interpolations).
             var contentSpans = GetTextContentSpans(text, stringExpression, out _, out _);
 
-            // Now ensure that all the selections are contained within a single content span.
-            int? spanIndex = null;
             foreach (var snapshotSpan in selectionsBeforePaste)
             {
-                var currentIndex = contentSpans.BinarySearch(
+                var index = contentSpans.BinarySearch(
                     snapshotSpan.Span.Start,
                     static (ts, pos) =>
                     {
@@ -271,11 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         return 1;
                     });
 
-                if (currentIndex < 0)
-                    return null;
-
-                spanIndex ??= currentIndex;
-                if (spanIndex != currentIndex)
+                if (index < 0)
                     return null;
             }
 
