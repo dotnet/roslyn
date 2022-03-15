@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -22,6 +23,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
@@ -61,8 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return false;
             }
 
-            var text = Clipboard.GetText();
-            if (string.IsNullOrEmpty(text))
+            var text = ClipboardHelpers.GetTextNoRetry();
+            if (RoslynString.IsNullOrEmpty(text))
             {
                 return false;
             }

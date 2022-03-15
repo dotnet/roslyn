@@ -5,6 +5,8 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,8 +16,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     {
         public abstract bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar);
 
-        protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
+
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         /// <summary>
         /// Returns <see langword="true"/> if the next two characters at <c>tokenText[index]</c> are <c>{{</c> or
@@ -66,7 +69,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
-                if (IsStringOrCharLiteralToken(token))
+                var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+                if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                    token.RawKind == syntaxKinds.CharacterLiteralToken)
                 {
                     var expectedValueText = token.ValueText;
                     var actualValueText = result.CreateString();
@@ -77,12 +82,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 {
                     var currentVC = result[0];
                     Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
-                    if (IsStringOrCharLiteralToken(token))
+                    if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                        token.RawKind == syntaxKinds.CharacterLiteralToken)
                     {
                         Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
                                      currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
                     }
-                    else
+                    else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken)
                     {
                         Debug.Assert(currentVC.Span.Start == token.SpanStart, "First span should start on the first char of the string.");
                     }
@@ -96,11 +102,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     var lastVC = result.Last();
 
-                    if (IsStringOrCharLiteralToken(token))
+                    if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                        token.RawKind == syntaxKinds.CharacterLiteralToken)
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token.");
                     }
-                    else
+                    else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken)
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End, "Last span has to end right before the end of the string token.");
                     }
@@ -141,7 +148,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = startDelimiter.Length;
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
             var offset = token.SpanStart;
 
             for (var index = startIndexInclusive; index < endIndexExclusive;)
@@ -150,6 +157,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 {
                     result.Add(VirtualChar.Create(new Rune('"'), new TextSpan(offset + index, 2)));
                     index += 2;
+                    continue;
                 }
                 else if (escapeBraces && IsOpenOrCloseBrace(tokenText[index]))
                 {
@@ -157,32 +165,42 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                         return default;
 
                     result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
-                    index += result.Last().Span.Length;
+                    index += result[^1].Span.Length;
+                    continue;
                 }
-                else if (Rune.TryCreate(tokenText[index], out var rune))
-                {
-                    // First, see if this was a single char that can become a rune (the common case).
-                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
-                    index += 1;
-                }
-                else if (index + 1 < tokenText.Length &&
-                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
-                {
-                    // Otherwise, see if we have a surrogate pair (less common, but possible).
-                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
-                    index += 2;
-                }
-                else
-                {
-                    // Something that couldn't be encoded as runes.
-                    Debug.Assert(char.IsSurrogate(tokenText[index]));
-                    result.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
-                    index += 1;
-                }
+
+                index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
             }
 
             return CreateVirtualCharSequence(
                 tokenText, offset, startIndexInclusive, endIndexExclusive, result);
+        }
+
+        /// <summary>
+        /// Returns the number of characters to jump forward (either 1 or 2);
+        /// </summary>
+        protected static int ConvertTextAtIndexToRune(string tokenText, int index, ImmutableSegmentedList<VirtualChar>.Builder result, int offset)
+        {
+            if (Rune.TryCreate(tokenText[index], out var rune))
+            {
+                // First, see if this was a single char that can become a rune (the common case).
+                result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
+                return 1;
+            }
+            else if (index + 1 < tokenText.Length &&
+                     Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
+            {
+                // Otherwise, see if we have a surrogate pair (less common, but possible).
+                result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
+                return 2;
+            }
+            else
+            {
+                // Something that couldn't be encoded as runes.
+                Debug.Assert(char.IsSurrogate(tokenText[index]));
+                result.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
+                return 1;
+            }
         }
 
         protected static bool IsOpenOrCloseBrace(char ch)
@@ -191,7 +209,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         protected static VirtualCharSequence CreateVirtualCharSequence(
             string tokenText, int offset,
             int startIndexInclusive, int endIndexExclusive,
-            ArrayBuilder<VirtualChar> result)
+            ImmutableSegmentedList<VirtualChar>.Builder result)
         {
             // Check if we actually needed to create any special virtual chars.
             // if not, we can avoid the entire array allocation and just wrap

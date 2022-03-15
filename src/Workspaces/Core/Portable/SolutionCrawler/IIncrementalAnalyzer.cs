@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         Task DocumentOpenAsync(Document document, CancellationToken cancellationToken);
         Task DocumentCloseAsync(Document document, CancellationToken cancellationToken);
+        Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken);
 
         /// <summary>
         /// Resets all the document state cached by the analyzer.

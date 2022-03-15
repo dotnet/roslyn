@@ -7,15 +7,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using Microsoft.CodeAnalysis.PooledObjects;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -1542,22 +1543,21 @@ tryAgain:
 
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword ||
-                CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
+                this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var keyword = ConvertToKeyword(this.EatToken());
-
             var outerSaveTerm = _termState;
-            SyntaxToken? recordModifier = null;
-            if (keyword.Kind == SyntaxKind.RecordKeyword)
+
+            if (tryScanRecordStart(out var keyword, out var recordModifier))
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
-                recordModifier = eatRecordModifierIfAvailable();
+            }
+            else
+            {
+                keyword = ConvertToKeyword(this.EatToken());
             }
 
             var saveTerm = _termState;
@@ -1675,17 +1675,39 @@ tryAgain:
                 }
             }
 
-            SyntaxToken? eatRecordModifierIfAvailable()
+            bool tryScanRecordStart([NotNullWhen(true)] out SyntaxToken? keyword, out SyntaxToken? recordModifier)
             {
-                Debug.Assert(keyword.Kind == SyntaxKind.RecordKeyword);
-                if (CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
                 {
-                    var result = EatToken();
-                    result = CheckFeatureAvailability(result, MessageID.IDS_FeatureRecordStructs);
-                    return result;
+                    keyword = ConvertToKeyword(this.EatToken());
+                    recordModifier = this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword
+                        ? CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureRecordStructs)
+                        : null;
+
+                    return true;
                 }
 
-                return null;
+                if (this.CurrentToken.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
+                    this.PeekToken(1).ContextualKind == SyntaxKind.RecordKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRecordStructs) &&
+                    PeekToken(2).Kind is SyntaxKind.IdentifierToken)
+                {
+                    // Provide a specific diagnostic on `struct record S` or `class record C`
+                    var misplacedToken = this.EatToken();
+
+                    // Parse out 'record' but place 'struct/class' as leading skipped trivia on it.
+                    keyword = AddLeadingSkippedSyntax(
+                        this.AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_MisplacedRecord),
+                        misplacedToken);
+
+                    // Treat `struct record` as a RecordStructDeclaration, and `class record` as a RecordDeclaration.
+                    recordModifier = SyntaxFactory.MissingToken(misplacedToken.Kind);
+                    return true;
+                }
+
+                keyword = null;
+                recordModifier = null;
+                return false;
             }
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
@@ -2049,6 +2071,20 @@ tryAgain:
                 case SyntaxKind.DefaultKeyword:
                     var defaultToken = this.EatToken();
                     return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
+                case SyntaxKind.EnumKeyword:
+                    {
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
+                case SyntaxKind.DelegateKeyword when PeekToken(1).Kind is not SyntaxKind.AsteriskToken:
+                    {
+                        // Produce a specific diagnostic for `where T : delegate`
+                        // but not `where T : delegate*<...>
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
@@ -4373,6 +4409,8 @@ tryAgain:
             return true;
         }
 
+#nullable enable
+
         private ParameterSyntax ParseParameter()
         {
             if (this.IsIncrementalAndFactoryContextMatches && CanReuseParameter(this.CurrentNode as CSharp.Syntax.ParameterSyntax))
@@ -4411,9 +4449,9 @@ tryAgain:
                 // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
                 equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
 
-                EqualsValueClauseSyntax equalsValueClause = null;
-                if (equalsToken != null)
-                    equalsValueClause = CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
+                var equalsValueClause = equalsToken == null
+                    ? null
+                    : CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
 
                 return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, exclamationExclamationToken, equalsValueClause);
             }
@@ -4422,8 +4460,6 @@ tryAgain:
                 _pool.Free(modifiers);
             }
         }
-
-#nullable enable
 
         /// <summary>
         /// Parses the <c>!!</c> following a parameter type and identifier.  If the token
@@ -10161,8 +10197,13 @@ tryAgain:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.InterpolatedStringToken:
+                case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NewKeyword:
                 case SyntaxKind.DelegateKeyword:
@@ -10445,8 +10486,13 @@ tryAgain:
                     case SyntaxKind.TrueKeyword:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
-                    case SyntaxKind.InterpolatedStringStartToken:
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
                     case SyntaxKind.InterpolatedStringToken:
+                    case SyntaxKind.InterpolatedStringStartToken:
+                    case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                    case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                    case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
                     case SyntaxKind.NumericLiteralToken:
                     case SyntaxKind.NullKeyword:
                     case SyntaxKind.CharacterLiteralToken:
@@ -10880,9 +10926,14 @@ tryAgain:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                     return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                 case SyntaxKind.InterpolatedStringStartToken:
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
                     throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately
                 case SyntaxKind.InterpolatedStringToken:
                     return this.ParseInterpolatedStringToken();
@@ -11671,17 +11722,21 @@ tryAgain:
                         return false;
                     }
 
+                    // eat the parameter name.
                     if (this.IsTrueIdentifier())
                     {
-                        // eat the identifier
                         this.EatToken();
                     }
-                    if (this.CurrentToken.Kind == SyntaxKind.ExclamationToken
-                        && this.PeekToken(1).Kind == SyntaxKind.ExclamationToken)
-                    {
-                        this.EatToken();
-                        this.EatToken();
-                    }
+
+                    // eat a !! if present.
+                    this.ParseParameterNullCheck(out _, out var equalsToken);
+                    equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+
+                    // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
+                    // to be resilient to the user writing this so we don't go completely off the rails.
+                    if (equalsToken != null)
+                        this.ParseExpressionCore();
+
                     switch (this.CurrentToken.Kind)
                     {
                         case SyntaxKind.CommaToken:
@@ -13107,10 +13162,23 @@ tryAgain:
             var identifier = this.ParseIdentifierToken();
             ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 
-            // 'equalsToken' should always be null here. Otherwise, it means while we were scanning
-            // for potential lambdas, we saw an `!!=` or `!=` in the parameter list and allowed
-            // it. However, that should never happen as ScanParenthesizedLambda allows `!!` only.
-            Debug.Assert(equalsToken == null);
+            // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
+            // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
+            // completely off the rails.
+            //
+            // Note: we add the `= value` as skipped trivia to either the identifier or `!!` (if we have the latter).
+            // This allows us to handle this code without ever showing it the binding phases.  We could consider
+            // actually binding this in the future if it would be helpful and if we're ok paying the testing cost of
+            // checking this at the semantic layers.
+            equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+
+            if (equalsToken != null)
+            {
+                equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
+
+                ref var nodeToAttachTo = ref exclamationExclamationToken != null ? ref exclamationExclamationToken : ref identifier;
+                nodeToAttachTo = AddTrailingSkippedSyntax(nodeToAttachTo, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
+            }
 
             var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, exclamationExclamationToken, @default: null);
             _pool.Free(modifiers);
@@ -13150,6 +13218,8 @@ tryAgain:
                 //      (a)
                 //      (a =>
                 //      (a {
+                //      (a !!    or    (a !!=
+                //      (a =
                 //
                 // In all other cases, parse out a type.
                 var peek1 = this.PeekToken(1);
@@ -13157,7 +13227,8 @@ tryAgain:
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
                     peek1.Kind != SyntaxKind.OpenBraceToken &&
-                    peek1.Kind != SyntaxKind.ExclamationToken)
+                    peek1.Kind != SyntaxKind.ExclamationToken &&
+                    peek1.Kind != SyntaxKind.EqualsToken)
                 {
                     return true;
                 }

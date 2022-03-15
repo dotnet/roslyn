@@ -75,7 +75,7 @@ namespace RunTests
                 builder.AppendFormat($@" --logger {sep}html;LogFileName={GetResultsFilePath(assemblyInfo, "html")}{sep}");
             }
 
-            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 15minutes");
+            builder.Append(" --blame-crash --blame-hang-dump-type full --blame-hang-timeout 25minutes");
 
             return builder.ToString();
         }
@@ -196,7 +196,7 @@ namespace RunTests
                     }
                 }
 
-                Logger.Log($"Command line {assemblyInfo.DisplayName}: {Options.DotnetFilePath} {commandLineArguments}");
+                Logger.Log($"Command line {assemblyInfo.DisplayName} completed in {span.TotalSeconds} seconds: {Options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 

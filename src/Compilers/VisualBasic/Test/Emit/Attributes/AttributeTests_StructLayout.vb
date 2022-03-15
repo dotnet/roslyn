@@ -389,8 +389,8 @@ End Class
                 End Sub
 
             CompileAndVerify(verifiable, validator:=validator)
-            CompileAndVerify(unverifiable, validator:=validator, verify:=Verification.Fails)
-            CompileAndVerify(unloadable, validator:=validator, verify:=Verification.Fails)
+            CompileAndVerify(unverifiable, validator:=validator, verify:=Verification.FailsPEVerify)
+            CompileAndVerify(unloadable, validator:=validator, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact>
@@ -566,7 +566,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, verify:=Verification.Fails)
+            CompileAndVerify(source, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact>

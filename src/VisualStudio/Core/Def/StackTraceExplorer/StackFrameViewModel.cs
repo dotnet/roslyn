@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
                 if (canNavigate)
                 {
-                    await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
+                    await definition.TryNavigateToAsync(_workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
                 if (canNavigate)
                 {
-                    await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
+                    await definition.TryNavigateToAsync(_workspace, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false), cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
@@ -126,9 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 if (document is not null)
                 {
                     // While navigating do not activate the tab, which will change focus from the tool window
-                    var options = _workspace.Options
-                            .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                            .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
+                    var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
 
                     var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -145,7 +143,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     }
 
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    navigationService.TryNavigateToLineAndOffset(_workspace, document.Id, lineNumber - 1, 0, cancellationToken);
+                    await navigationService.TryNavigateToLineAndOffsetAsync(
+                        _workspace, document.Id, lineNumber - 1, offset: 0, options, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))

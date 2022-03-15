@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override bool ShouldLocalFunctionCaptureParameter(SyntaxNode node)
-            => ((CSharpParseOptions)node.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8;
+            => node.SyntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp8;
 
             private static bool IsExpressionBodiedMember(SyntaxNode node)
                 => node is MemberDeclarationSyntax member && member.GetExpressionBody() != null;
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 var isReadOnly = AnalyzerResult.ShouldBeReadOnly;
 
                 // Static local functions are only supported in C# 8.0 and later
-                var languageVersion = ((CSharpParseOptions)SemanticDocument.SyntaxTree.Options).LanguageVersion;
+                var languageVersion = SemanticDocument.SyntaxTree.Options.LanguageVersion();
 
                 if (LocalFunction && (!Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value || languageVersion < LanguageVersion.CSharp8))
                 {

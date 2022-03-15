@@ -320,7 +320,11 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
-                Debug.Assert(project.GetTextDocument(documentId)?.SupportsDiagnostics() == true);
+                // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is being used here for a debug-only assertion. The
+                // assertion is claiming that the document in which the diagnostic appears is known to exist in the
+                // project. This requires the source generators already have run.
+                var textDocument = project.GetTextDocument(documentId) ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                Debug.Assert(textDocument?.SupportsDiagnostics() == true);
             }
         }
     }

@@ -7,15 +7,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -196,13 +199,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, output.ToString(), escapeQuotes: false);
         }
 
-        public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, Verification peVerify, SignatureDescription[] expectedSignatures)
+        public void Emit(
+            string expectedOutput,
+            bool trimOutput,
+            int? expectedReturnCode,
+            string[] args,
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions emitOptions,
+            Verification peVerify,
+            SignatureDescription[] expectedSignatures)
         {
             using var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies);
 
             string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
             _allModuleData = testEnvironment.GetAllModuleData();
             testEnvironment.Verify(peVerify);
+#if NETCOREAPP
+            ILVerify(peVerify);
+#endif
 
             if (expectedSignatures != null)
             {
@@ -211,12 +225,168 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (expectedOutput != null || expectedReturnCode != null)
             {
-                var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
+                var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput, trimOutput);
 
                 if (expectedReturnCode is int exCode)
                 {
                     Assert.Equal(exCode, returnCode);
                 }
+            }
+        }
+
+        private sealed class Resolver : ILVerify.ResolverBase
+        {
+            private readonly Dictionary<string, ImmutableArray<byte>> _imagesByName;
+
+            internal Resolver(Dictionary<string, ImmutableArray<byte>> imagesByName)
+            {
+                _imagesByName = imagesByName;
+            }
+
+            protected override PEReader ResolveCore(string simpleName)
+            {
+                if (_imagesByName.TryGetValue(simpleName, out var image))
+                {
+                    return new PEReader(image);
+                }
+
+                throw new Exception($"ILVerify was not able to resolve a module named '{simpleName}'");
+            }
+        }
+
+        private void ILVerify(Verification verification)
+        {
+            if (verification == Verification.Skipped)
+            {
+                return;
+            }
+
+            var imagesByName = new Dictionary<string, ImmutableArray<byte>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var module in _allModuleData)
+            {
+                string name = module.SimpleName;
+                if (imagesByName.ContainsKey(name))
+                {
+                    if ((verification & Verification.FailsILVerify) != 0)
+                    {
+                        return;
+                    }
+
+                    throw new Exception($"Multiple modules named '{name}' were found");
+                }
+                imagesByName.Add(name, module.Image);
+            }
+
+            var resolver = new Resolver(imagesByName);
+            var verifier = new ILVerify.Verifier(resolver);
+            var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
+            if (mscorlibModule is null)
+            {
+                if ((verification & Verification.FailsILVerify) != 0)
+                {
+                    return;
+                }
+
+                throw new Exception("No corlib found");
+            }
+
+            // Main module is the first one
+            var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
+
+            var (succeeded, errorMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
+
+            switch (succeeded, (verification & Verification.FailsILVerify) == 0)
+            {
+                case (true, true):
+                    return;
+                case (true, false):
+                    throw new Exception("IL Verify succeeded unexpectedly");
+                case (false, false):
+                    return;
+                case (false, true):
+                    throw new Exception("IL Verify failed unexpectedly: \r\n" + errorMessage);
+            }
+
+            static (bool, string) verify(ILVerify.Verifier verifier, string corlibName, PEReader mainModule)
+            {
+                IEnumerable<ILVerify.VerificationResult> result = null;
+                int errorCount = 0;
+                try
+                {
+                    verifier.SetSystemModuleName(new AssemblyName(corlibName));
+                    result = verifier.Verify(mainModule);
+                    errorCount = result.Count();
+                }
+                catch (Exception e)
+                {
+                    return (false, e.Message);
+                }
+
+                if (errorCount > 0)
+                {
+                    var metadataReader = mainModule.GetMetadataReader();
+                    return (false, printVerificationResult(result, metadataReader));
+                }
+
+                return (true, string.Empty);
+            }
+
+            static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result, MetadataReader metadataReader)
+            {
+                return string.Join("\r\n", result.Select(r => printMethod(r.Method, metadataReader) + r.Message + printErrorArguments(r.ErrorArguments)));
+            }
+
+            static string printMethod(MethodDefinitionHandle method, MetadataReader metadataReader)
+            {
+                if (method.IsNil)
+                {
+                    return "";
+                }
+
+                var methodName = metadataReader.GetString(metadataReader.GetMethodDefinition(method).Name);
+                return $"[{methodName}]: ";
+            }
+
+            static string printErrorArguments(ILVerify.ErrorArgument[] errorArguments)
+            {
+                if (errorArguments is null
+                    || errorArguments.Length == 0)
+                {
+                    return "";
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                builder.Append(" { ");
+                var x = errorArguments.Select(a => printErrorArgument(a)).ToArray();
+                for (int i = 0; i < x.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(", ");
+                    }
+                    builder.Append(x[i]);
+                }
+                builder.Append(" }");
+
+                return pooledBuilder.ToStringAndFree();
+            }
+
+            static string printErrorArgument(ILVerify.ErrorArgument errorArgument)
+            {
+                var name = errorArgument.Name;
+
+                string value;
+                if (name == "Offset" && errorArgument.Value is int i)
+                {
+                    value = "0x" + Convert.ToString(i, 16);
+                }
+                else
+                {
+                    value = errorArgument.Value.ToString();
+                }
+
+                return name + " = " + value;
             }
         }
 

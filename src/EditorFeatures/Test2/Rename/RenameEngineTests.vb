@@ -571,8 +571,7 @@ class {|unresolve3:$$D|} // Rename to C
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOverloadCSharp(host As RenameTestHost)
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameOverloads:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="C#" CommonReferences="true">
@@ -601,15 +600,14 @@ class {|unresolve3:$$D|} // Rename to C
                                         }
                                     </Document>
                                 </Project>
-                            </Workspace>, host:=host, renameTo:="BarBaz", changedOptionSet:=changingOptions)
+                            </Workspace>, host:=host, renameTo:="BarBaz", renameOptions:=renameOptions)
 
             End Using
         End Sub
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameOverloadVisualBasic(host As RenameTestHost)
-            Dim changingOptions = New Dictionary(Of OptionKey, Object)()
-            changingOptions.Add(RenameOptions.RenameOverloads, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameOverloads:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                             <Workspace>
                                 <Project Language="Visual Basic" CommonReferences="true">
@@ -641,7 +639,7 @@ class {|unresolve3:$$D|} // Rename to C
                                         End Class
                                     </Document>
                                 </Project>
-                            </Workspace>, host:=host, renameTo:="BarBaz", changedOptionSet:=changingOptions)
+                            </Workspace>, host:=host, renameTo:="BarBaz", renameOptions:=renameOptions)
 
             End Using
         End Sub
@@ -6089,9 +6087,7 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStrings(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, False)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6110,7 +6106,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
             End Using
@@ -6119,9 +6115,7 @@ End Module
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStrings_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, False)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6142,7 +6136,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
             End Using
@@ -6151,9 +6145,7 @@ public class [|$$Program|]
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInComments(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, False)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6172,7 +6164,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "' NewProgram PROGRAM! NewProgram!")
@@ -6183,9 +6175,7 @@ End Module
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInComments_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, False)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6205,7 +6195,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment2", "// NewProgram PROGRAM! NewProgram!")
@@ -6215,9 +6205,7 @@ public class [|$$Program|]
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInComments_XmlName(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, False)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6230,7 +6218,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "NewProgram")
             End Using
@@ -6239,9 +6227,6 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInComments_XmlName2(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, False)
-            renamingOptions.Add(RenameOptions.RenameInComments, False)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6256,7 +6241,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram")
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
@@ -6265,9 +6250,7 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInComments_XmlName_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, False)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6281,7 +6264,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment", "NewProgram")
             End Using
@@ -6290,9 +6273,6 @@ public class [|$$Program|]
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInComments_XmlName_CSharp2(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, False)
-            renamingOptions.Add(RenameOptions.RenameInComments, False)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6309,7 +6289,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram")
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
@@ -6318,9 +6298,7 @@ public class [|$$Program|]
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6340,7 +6318,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6352,9 +6330,7 @@ End Module
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6374,7 +6350,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6385,9 +6361,7 @@ public class [|$$Program|]
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_SmallerReplacementString(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6406,7 +6380,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="P", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="P", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """P P!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " P PROGRAM! P!")
@@ -6418,9 +6392,7 @@ End Module
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_SmallerReplacementString_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6440,7 +6412,7 @@ public class [|$$Program|]
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="P", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="P", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """P P!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " P PROGRAM! P!")
@@ -6451,9 +6423,7 @@ public class [|$$Program|]
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_AnotherSourceFile(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6477,7 +6447,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="P", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="P", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """P P!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " P PROGRAM! P!")
@@ -6489,9 +6459,7 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_AnotherSourceFile_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6517,7 +6485,7 @@ public class AnotherFile
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6528,9 +6496,7 @@ public class AnotherFile
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_AnotherProject(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6560,7 +6526,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6572,9 +6538,7 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_AnotherProject_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6605,7 +6569,7 @@ public class AnotherFile
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """NewProgram NewProgram!""")
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", " NewProgram PROGRAM! NewProgram!")
@@ -6616,9 +6580,7 @@ public class AnotherFile
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_AnotherProject2(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6676,7 +6638,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
@@ -6685,9 +6647,7 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_AnotherProject_CSharp2(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6744,7 +6704,7 @@ public class NotReferencingProject
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="NewProgram", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="NewProgram", renameOptions:=renameOptions)
 
                 Assert.Equal(1, result.ConflictResolution.RelatedLocations.Count)
             End Using
@@ -6753,9 +6713,7 @@ public class NotReferencingProject
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_WithResolvableConflict(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6783,7 +6741,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Bar", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="Bar", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansAre("stmt1", "Call Global.M.Bar(""1"")", RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInComment1", "' Rename Bar to Bar")
@@ -6796,9 +6754,7 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_WithResolvableConflict_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6820,7 +6776,7 @@ End Class
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="goo", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="goo", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansAre("stmt1", "this.goo = goo;", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("stmt2", "this.goo = goo;", RelatedLocationType.ResolvedNonReferenceConflict)
@@ -6832,9 +6788,7 @@ End Class
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_WithUnresolvableConflict(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" AssemblyName="Project1" CommonReferences="true">
@@ -6852,7 +6806,7 @@ End Module
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Bar", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="Bar", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
                 result.AssertLabeledSpansInStringsAndCommentsAre("RenameInString", """Bar Bar!""")
@@ -6864,9 +6818,7 @@ End Module
         <WorkItem(700923, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700923"), WorkItem(700925, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/700925")>
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameInStringsAndComments_WithUnresolvableConflict_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameInStrings, True)
-            renamingOptions.Add(RenameOptions.RenameInComments, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameInStrings:=True, RenameInComments:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6882,7 +6834,7 @@ class {|Conflict:goo|}
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="goo", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="goo", renameOptions:=renameOptions)
 
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
 
@@ -6943,8 +6895,7 @@ class C
 
         <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameMethodWithNameof_WithOverloads_WithRenameOverloadsOption_CSharp(host As RenameTestHost)
-            Dim renamingOptions = New Dictionary(Of OptionKey, Object)()
-            renamingOptions.Add(RenameOptions.RenameOverloads, True)
+            Dim renameOptions = New SymbolRenameOptions(RenameOverloads:=True)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
@@ -6963,7 +6914,7 @@ class C
 ]]>
                             </Document>
                         </Project>
-                    </Workspace>, host:=host, renameTo:="Mo", changedOptionSet:=renamingOptions)
+                    </Workspace>, host:=host, renameTo:="Mo", renameOptions:=renameOptions)
 
             End Using
         End Sub

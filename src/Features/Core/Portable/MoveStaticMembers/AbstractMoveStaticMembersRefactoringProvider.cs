@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         {
             var (document, span, cancellationToken) = context;
 
+            var service = document.Project.Solution.Workspace.Services.GetService<IMoveStaticMembersOptionsService>();
+            if (service == null)
+            {
+                return;
+            }
+
             var memberDeclaration = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (memberDeclaration == null)
             {
@@ -47,8 +53,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            var service = document.Project.Solution.Workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
 
             var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, selectedMember: selectedMembers[0]);
 

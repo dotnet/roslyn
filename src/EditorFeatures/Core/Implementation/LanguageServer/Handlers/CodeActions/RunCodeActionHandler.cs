@@ -5,11 +5,13 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
+using Microsoft.CodeAnalysis.Options;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -28,22 +30,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// UI thread dependencies are resolved and <see cref="IThreadingContext"/> references are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [Command(CodeActionsHandler.RunCodeActionCommandName)]
     internal class RunCodeActionHandler : AbstractExecuteWorkspaceCommandHandler
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
 
         public RunCodeActionHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
+            _globalOptions = globalOptions;
             _threadingContext = threadingContext;
         }
 
@@ -68,8 +74,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             Assumes.Present(runRequest);
 
+            var options = _globalOptions.GetCodeActionOptions(document.Project.Language);
+
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
-                _codeActionsCache, document, runRequest.Range, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
+                _codeActionsCache, document, runRequest.Range, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             var actionToRun = CodeActionHelpers.GetCodeActionToResolve(runRequest.UniqueIdentifier, codeActions);
             Contract.ThrowIfNull(actionToRun);

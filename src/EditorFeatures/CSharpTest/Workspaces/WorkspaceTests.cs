@@ -6,9 +6,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -784,6 +786,75 @@ class D { }
         }
 
         [Fact]
+        public async Task TestSourceGeneratedDocumentEvents()
+        {
+            var doc1Text = "public class C { }";
+            var workspaceElement = $@"<Workspace>
+  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
+    <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(doc1Text)}</DocumentFromSourceGenerator>
+  </Project>
+</Workspace>";
+            using var workspace = TestWorkspace.Create(workspaceElement, composition: EditorTestCompositions.EditorFeatures);
+            var document = workspace.Documents.Single();
+
+            var longEventTimeout = TimeSpan.FromMinutes(5);
+            var shortEventTimeout = TimeSpan.FromSeconds(5);
+
+            // Creating two waiters that will allow us to know for certain if the events have fired.
+            using var closeWaiter = new EventWaiter();
+            using var openWaiter = new EventWaiter();
+
+            // Wrapping event handlers so they can notify us on being called.
+            var documentOpenedEventHandler = openWaiter.Wrap<DocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                $"The source generated document given to the '{nameof(Workspace.DocumentOpened)}' event handler did not have the same id as the one created for the test."));
+
+            var documentClosedEventHandler = closeWaiter.Wrap<DocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                $"The source generated document given to the '{nameof(Workspace.DocumentClosed)}' event handler did not have the same id as the one created for the test."));
+
+            workspace.DocumentOpened += documentOpenedEventHandler;
+            workspace.DocumentClosed += documentClosedEventHandler;
+
+            workspace.OpenSourceGeneratedDocument(document.Id);
+            var sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(document.GetOpenTextContainer());
+            Assert.Equal(document.Id, sourceGeneratedDocumentId);
+
+            await workspace.CloseSourceGeneratedDocumentAsync(sourceGeneratedDocumentId);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Wait to receive signal that events have fired.
+            Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'DocumentOpened' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'DocumentClosed' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            workspace.DocumentOpened -= documentOpenedEventHandler;
+            workspace.DocumentClosed -= documentClosedEventHandler;
+
+            workspace.OpenSourceGeneratedDocument(document.Id);
+            await workspace.CloseSourceGeneratedDocumentAsync(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Verifying that an event has not been called is difficult to prove.  
+            // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
+            Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'DocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'DocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+        }
+
+        [Fact]
         public async Task TestAdditionalFile_Properties()
         {
             using var workspace = CreateWorkspace();
@@ -1211,16 +1282,16 @@ class D { }
             var optionValue = solution.Options.GetOption(optionKey);
             Assert.Equal(BackgroundAnalysisScope.Default, optionValue);
 
-            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution);
             var newSolution = solution.WithOptions(newOptions);
             var newOptionValue = newSolution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, newOptionValue);
+            Assert.Equal(BackgroundAnalysisScope.FullSolution, newOptionValue);
 
             var applied = workspace.TryApplyChanges(newSolution);
             Assert.True(applied);
 
             var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
+            Assert.Equal(BackgroundAnalysisScope.FullSolution, currentOptionValue);
         }
 
         [CombinatorialData]
@@ -1253,12 +1324,12 @@ class D { }
             if (testDeprecatedOptionsSetter)
             {
 #pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
-                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution);
 #pragma warning restore CS0618 // Type or member is obsolete
             }
             else
             {
-                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile));
+                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution));
             }
 
             // Verify current solution and option change for both workspaces.
@@ -1284,7 +1355,7 @@ class D { }
                 // Verify workspace.CurrentSolution has changed option.
                 var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
                 Assert.Equal(BackgroundAnalysisScope.Default, beforeOptionChangedSolution.Options.GetOption(optionKey));
-                Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentSolution.Options.GetOption(optionKey));
+                Assert.Equal(BackgroundAnalysisScope.FullSolution, currentSolution.Options.GetOption(optionKey));
             }
         }
     }

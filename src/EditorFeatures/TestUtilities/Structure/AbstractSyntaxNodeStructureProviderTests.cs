@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
             var outliner = CreateProvider();
             using var actualRegions = TemporaryArray<BlockSpan>.Empty;
-            var options = BlockStructureOptions.From(document.Project);
+            var options = GetOptions();
             // Calculate previousToken for tests the same way it is derived in production code
             var previousToken = root.DescendantNodesAndTokens(descendIntoTrivia: true).TakeWhile(nodeOrToken => nodeOrToken != node).LastOrDefault(nodeOrToken => nodeOrToken.IsToken).AsToken();
             outliner.CollectBlockSpans(previousToken, node, ref actualRegions.AsRef(), options, CancellationToken.None);

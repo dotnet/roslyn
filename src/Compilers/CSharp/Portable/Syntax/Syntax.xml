@@ -874,6 +874,8 @@
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
       <Kind Name="StringLiteralToken"/>
+      <Kind Name="MultiLineRawStringLiteralToken"/>
+      <Kind Name="SingleLineRawStringLiteralToken"/>
       <Kind Name="CharacterLiteralToken"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>
@@ -1938,8 +1940,10 @@
     <Field Name="StringStartToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringStartToken"/>
       <Kind Name="InterpolatedVerbatimStringStartToken"/>
+      <Kind Name="InterpolatedSingleLineRawStringStartToken"/>
+      <Kind Name="InterpolatedMultiLineRawStringStartToken"/>
       <PropertyComment>
-        <summary>The first part of an interpolated string, $" or $@"</summary>
+        <summary>The first part of an interpolated string, <c>$"</c> or <c>$@"</c> or <c>$"""</c></summary>
       </PropertyComment>
     </Field>
     <Field Name="Contents" Type="SyntaxList&lt;InterpolatedStringContentSyntax&gt;" >
@@ -1949,6 +1953,9 @@
     </Field>
     <Field Name="StringEndToken" Type="SyntaxToken">
       <Kind Name="InterpolatedStringEndToken"/>
+      <Kind Name="InterpolatedStringEndToken"/>
+      <Kind Name="InterpolatedRawStringEndToken"/>
+      <Kind Name="InterpolatedRawStringEndToken"/>
       <PropertyComment>
         <summary>The closing quote of the interpolated string.</summary>
       </PropertyComment>
@@ -2143,12 +2150,20 @@
     <Kind Name="Interpolation"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <PropertyComment>
+        <summary>This could be a single <c>{</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).</summary>
+      </PropertyComment>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax"/>
     <Field Name="AlignmentClause" Type="InterpolationAlignmentClauseSyntax" Optional="true"/>
     <Field Name="FormatClause" Type="InterpolationFormatClauseSyntax" Optional="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <PropertyComment>
+        <summary>
+          This could be a single <c>}</c> or multiple in a row (in the case of an interpolation in a raw interpolated string).
+        </summary>
+      </PropertyComment>
     </Field>
   </Node>
   <Node Name="InterpolationAlignmentClauseSyntax" Base="CSharpSyntaxNode">
