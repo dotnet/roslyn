@@ -263,6 +263,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
         public EnabledDiagnosticOptions GetAllDiagnostics()
-            => new EnabledDiagnosticOptions(formatDocument: true, runThirdPartyFixers: true, GetDiagnosticSets(), new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
+            => new(FormatDocument: true, RunThirdPartyFixers: true, Diagnostics: GetDiagnosticSets(), OrganizeUsings: new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }
