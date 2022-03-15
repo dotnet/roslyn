@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
 
-            // Only have to do this for interpolated strings.  Non-interpolated raw strings
+            // Only have to do this for interpolated strings.  Other strings never have a $ in their starting delimiter.
             if (StringExpressionBeforePaste is not InterpolatedStringExpressionSyntax)
                 return null;
 
