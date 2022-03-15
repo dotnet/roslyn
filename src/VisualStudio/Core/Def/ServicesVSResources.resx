@@ -1977,4 +1977,7 @@ Additional information: {1}</value>
   <data name="Fix_analyzer_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
     <value>Fix analyzer warnings and errors set in EditorConfig</value>
   </data>
+  <data name="Fix_all_warnings_and_errors_set_in_EditorConfig" xml:space="preserve">
+    <value>Fix all warnings and errors set in EditorConfig</value>
+  </data>
 </root>

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             if (enabledDiagnostics.RunThirdPartyFixers)
             {
                 document = await ApplyThirdPartyCodeFixesAsync(
-                    document, thirdPartyDiagnosticIdsAndTitles, progressTracker, options, cancellationToken).ConfigureAwait(false);
+                    document, thirdPartyDiagnosticIdsAndTitles, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
             }
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.

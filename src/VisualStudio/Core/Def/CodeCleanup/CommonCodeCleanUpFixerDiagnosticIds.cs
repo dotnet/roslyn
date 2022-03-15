@@ -338,5 +338,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         [HelpLink($"https://microsoft.com/")]
         [LocalizedName(typeof(ServicesVSResources), nameof(ServicesVSResources.Fix_analyzer_warnings_and_errors_set_in_EditorConfig))]
         public static readonly FixIdDefinition? ThirdPartyAnalyzers;
+
+        [Export]
+        [FixId(AbstractCodeCleanUpFixer.ApplyAllAnalyzerFixersId)]
+        [Name(AbstractCodeCleanUpFixer.ApplyAllAnalyzerFixersId)]
+        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://microsoft.com/")]
+        [LocalizedName(typeof(ServicesVSResources), nameof(ServicesVSResources.Fix_all_warnings_and_errors_set_in_EditorConfig))]
+        public static readonly FixIdDefinition? AllAnalyzers;
     }
 }
