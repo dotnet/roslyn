@@ -27,8 +27,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public VSTypeScriptGoToDefinitionServiceFactory(IVSTypeScriptGoToDefinitionServiceFactoryImplementation impl)
             => _impl = impl;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new ServiceWrapper(_impl.CreateLanguageService(languageServices));
+        public ILanguageService? CreateLanguageService(HostLanguageServices languageServices)
+        {
+            var service = _impl.CreateLanguageService(languageServices);
+            return (service != null) ? new ServiceWrapper(service) : null;
+        }
 
         private sealed class ServiceWrapper : IGoToDefinitionService
         {

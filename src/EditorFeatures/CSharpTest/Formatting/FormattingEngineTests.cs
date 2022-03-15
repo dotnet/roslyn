@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
         {
             return new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp),  false },
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp),  false },
+                { new OptionKey2(AutoFormattingOptionsStorage.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
+                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false },
+                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp), false },
             };
         }
 
@@ -1070,11 +1070,11 @@ class C : Attribute
     class C1<U>
 {
 }";
-            var optionSet = new Dictionary<OptionKey2, object>
-                            {
-                                { new OptionKey2(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
-                            };
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            var globalOptions = new Dictionary<OptionKey2, object>
+            {
+                { new OptionKey2(AutoFormattingOptionsStorage.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+            };
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact]
@@ -1101,12 +1101,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnCloseBrace, LanguageNames.CSharp), false }
+                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp), false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact]
@@ -1133,12 +1133,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
@@ -1165,12 +1165,12 @@ class C : Attribute
     }
 }";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new Dictionary<OptionKey2, object>
             {
-                { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WorkItem(5873, "https://github.com/dotnet/roslyn/issues/5873")]
@@ -1223,12 +1223,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, LanguageNames.CSharp), false }
+                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnSemicolon, LanguageNames.CSharp), false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact]
@@ -1255,12 +1255,12 @@ class C : Attribute
 }
 ";
 
-            var optionSet = new Dictionary<OptionKey2, object>
+            var globalOptions = new Dictionary<OptionKey2, object>
             {
-                    { new OptionKey2(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, LanguageNames.CSharp), false }
+                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false }
             };
 
-            AssertFormatAfterTypeChar(code, expected, optionSet);
+            AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
 
         [WpfFact, WorkItem(4435, "https://github.com/dotnet/roslyn/issues/4435")]
@@ -2289,18 +2289,16 @@ namespace TestApp
             Assert.Single(annotatedTrivia);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> globalOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);
-            if (changedOptionSet != null)
+            if (globalOptions != null)
             {
-                var options = workspace.Options;
-                foreach (var entry in changedOptionSet)
+                var options = workspace.GlobalOptions;
+                foreach (var entry in globalOptions)
                 {
-                    options = options.WithChangedOption(entry.Key, entry.Value);
+                    options.SetGlobalOption((OptionKey)entry.Key, entry.Value);
                 }
-
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
             }
 
             var subjectDocument = workspace.Documents.Single();

@@ -22,31 +22,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private readonly IThreadingContext _threadingContext;
         private readonly ITableManagerProvider _tableManagerProvider;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MiscellaneousDiagnosticListTableWorkspaceEventListener(
             IThreadingContext threadingContext,
-            ITableManagerProvider tableManagerProvider,
-            IGlobalOptionService globalOptions)
+            ITableManagerProvider tableManagerProvider)
         {
             _threadingContext = threadingContext;
             _tableManagerProvider = tableManagerProvider;
-            _globalOptions = globalOptions;
         }
 
         public void StartListening(Workspace workspace, IDiagnosticService diagnosticService)
-            => _ = new MiscellaneousDiagnosticListTable(workspace, _threadingContext, _globalOptions, diagnosticService, _tableManagerProvider);
+            => _ = new MiscellaneousDiagnosticListTable(workspace, _threadingContext, diagnosticService, _tableManagerProvider);
 
         private sealed class MiscellaneousDiagnosticListTable : VisualStudioBaseDiagnosticListTable
         {
             private readonly LiveTableDataSource _source;
 
-            public MiscellaneousDiagnosticListTable(Workspace workspace, IThreadingContext threadingContext, IGlobalOptionService globalOptions, IDiagnosticService diagnosticService, ITableManagerProvider provider)
+            public MiscellaneousDiagnosticListTable(Workspace workspace, IThreadingContext threadingContext, IDiagnosticService diagnosticService, ITableManagerProvider provider)
                 : base(workspace, provider)
             {
-                _source = new LiveTableDataSource(workspace, threadingContext, globalOptions, diagnosticService, IdentifierString);
+                _source = new LiveTableDataSource(workspace, threadingContext, diagnosticService, IdentifierString);
 
                 AddInitialTableSource(workspace.CurrentSolution, _source);
                 ConnectWorkspaceEvents();

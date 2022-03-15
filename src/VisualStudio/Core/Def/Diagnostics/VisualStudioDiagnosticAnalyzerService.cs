@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
@@ -40,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IAsynchronousOperationListener _listener;
         private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
+        private readonly IGlobalOptionService _globalOptions;
 
         private IServiceProvider? _serviceProvider;
 
@@ -51,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             IThreadingContext threadingContext,
             IVsHierarchyItemManager vsHierarchyItemManager,
             IAsynchronousOperationListenerProvider listenerProvider,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            IGlobalOptionService globalOptions)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
@@ -59,6 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             _vsHierarchyItemManager = vsHierarchyItemManager;
             _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
             _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+            _globalOptions = globalOptions;
         }
 
         public void Initialize(IServiceProvider serviceProvider)
@@ -182,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // current effective default in the context of the language(s) used in the solution.
             if (scope is null)
             {
-                command.Text = GetBackgroundAnalysisScope(_workspace) switch
+                command.Text = GetBackgroundAnalysisScope(_workspace.CurrentSolution, _globalOptions) switch
                 {
                     BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
                     BackgroundAnalysisScope.OpenFiles => ServicesVSResources.Default_Open_Documents,
@@ -195,13 +199,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return;
 
             // Local functions
-            static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Workspace workspace)
+            static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Solution solution, IGlobalOptionService globalOptions)
             {
-                var csharpAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.CSharp);
-                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.VisualBasic);
+                var csharpAnalysisScope = globalOptions.GetOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+                var visualBasicAnalysisScope = globalOptions.GetOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic);
 
-                var containsCSharpProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
-                var containsVisualBasicProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);
+                var containsCSharpProject = solution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
+                var containsVisualBasicProject = solution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);
                 if (containsCSharpProject && containsVisualBasicProject)
                 {
                     if (csharpAnalysisScope == visualBasicAnalysisScope)
@@ -300,7 +304,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var project = GetProject(hierarchy);
             var solution = _workspace.CurrentSolution;
             var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
-            var analysisScope = project != null ? SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) : SolutionCrawlerOptions.BackgroundAnalysisScopeOption.DefaultValue;
+            var analysisScope = project != null ? _globalOptions.GetBackgroundAnalysisScope(project.Language) : SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption.DefaultValue;
 
             // Add a message to VS status bar that we are running code analysis.
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
