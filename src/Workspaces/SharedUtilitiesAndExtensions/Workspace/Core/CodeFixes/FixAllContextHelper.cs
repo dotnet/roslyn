@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -68,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                         if (!fixAllSpans.IsEmpty)
                         {
-                            var documentsAndSpans = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, fixAllSpans));
+                            var documentsAndSpans = SpecializedCollections.SingletonEnumerable(new KeyValuePair<Document, ImmutableArray<TextSpan>>(document, fixAllSpans));
                             return await GetSpanDiagnosticsAsync(fixAllContext, documentsAndSpans).ConfigureAwait(false);
                         }
                         else if (triggerSpan.HasValue &&

@@ -17,12 +17,12 @@
         <target state="translated">'{1}' に含まれているすべての '{0}' を修正します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_0_in_Containing_Member">
+      <trans-unit id="Fix_all_0_in_Containing_member">
         <source>Fix all '{0}' in Containing member</source>
         <target state="new">Fix all '{0}' in Containing member</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_0_in_Containing_Type">
+      <trans-unit id="Fix_all_0_in_Containing_type">
         <source>Fix all '{0}' in Containing type</source>
         <target state="new">Fix all '{0}' in Containing type</target>
         <note />
