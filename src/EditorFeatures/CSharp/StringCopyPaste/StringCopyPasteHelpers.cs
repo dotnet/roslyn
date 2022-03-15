@@ -237,6 +237,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // simple string literal (normal, verbatim or raw).
             //
             // Skip past the leading and trailing delimiters and add the span in between.
+            //
+            // The two cases look similar but are subtly different.  Ignoring the fact that raw strings don't start with
+            // '@', there's also the issue that normal strings just have a single starting/ending quote, where as
+            // raw-strings can have an unbounded number of them.
             if (IsRawStringLiteral(literal))
             {
                 var start = literal.SpanStart;
