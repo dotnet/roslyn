@@ -217,7 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (binder.ContainingMember() is SourcePropertyAccessorSymbol accessor)
+            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
+            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor)
             {
                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
             }

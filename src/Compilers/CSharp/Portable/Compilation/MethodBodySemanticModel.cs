@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
+            Debug.Assert(owner.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction));
             Debug.Assert(syntax != null);
             Debug.Assert(parentRemappedSymbolsOpt is null || IsSpeculativeSemanticModel);
             Debug.Assert((syntax.Kind() == SyntaxKind.CompilationUnit) == (!IsSpeculativeSemanticModel && owner is SynthesizedSimpleProgramEntryPointSymbol));

@@ -1263,7 +1263,7 @@ class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support")]
         public void InStaticLambda()
         {
             var comp = CreateCompilation(@"
@@ -1292,7 +1292,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
         public void InStaticLocalFunction()
         {
             var comp = CreateCompilation(@"
@@ -1320,7 +1320,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
         public void InLocalFunction()
         {
             var comp = CreateCompilation(@"
@@ -1393,7 +1393,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support")]
         public void InStaticLambda_PropertyIsStatic()
         {
             var comp = CreateCompilation(@"
@@ -1506,7 +1506,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support.")]
         public void InLambda()
         {
             var comp = CreateCompilation(@"
@@ -2060,7 +2060,7 @@ class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Theory, CombinatorialData]
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support."), CombinatorialData]
         public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
@@ -2116,7 +2116,7 @@ class C
             Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
         }
 
-        [Theory, CombinatorialData]
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support."), CombinatorialData]
         public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
@@ -3557,7 +3557,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Theory]
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
         [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
@@ -3617,7 +3617,7 @@ public class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Theory]
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
         [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
         [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
