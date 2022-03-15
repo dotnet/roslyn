@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 {
-    [UseExportProvider]
     public abstract class StringCopyPasteCommandHandlerUnknownSourceTests
         : StringCopyPasteCommandHandlerTests
     {

@@ -7,7 +7,6 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 {
-    [UseExportProvider]
     public class PasteUnknownSourceIntoMultiLineRawStringTests
         : StringCopyPasteCommandHandlerUnknownSourceTests
     {
