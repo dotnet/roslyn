@@ -258,24 +258,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             foreach (var snapshotSpan in selectionsBeforePaste)
             {
-                var index = contentSpans.BinarySearch(
-                    snapshotSpan.Span.Start,
-                    static (ts, pos) =>
-                    {
-                        if (ts.IntersectsWith(pos))
-                            return 0;
+                var startIndex = contentSpans.BinarySearch(snapshotSpan.Span.Start, FindIndex);
+                var endIndex = contentSpans.BinarySearch(snapshotSpan.Span.End, FindIndex);
 
-                        if (ts.End < pos)
-                            return -1;
-
-                        return 1;
-                    });
-
-                if (index < 0)
+                if (startIndex < 0 || endIndex < 0)
                     return null;
             }
 
             return stringExpression;
+
+            static int FindIndex(TextSpan span, int position)
+            {
+                if (span.IntersectsWith(position))
+                    return 0;
+
+                if (span.End < position)
+                    return -1;
+
+                return 1;
+            }
         }
 
 #if false
