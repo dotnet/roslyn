@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             // Ok, the user pasted text that couldn't cleanly be added to this token without issue. Repaste the
-            // contents, but this time properly escapes/manipulated so that it follows the rule of the particular token
+            // contents, but this time properly escaped/manipulated so that it follows the rule of the particular token
             // kind.
 
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
