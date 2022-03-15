@@ -1388,11 +1388,31 @@ public class D
         comp.VerifyDiagnostics(
             // (2,24): error CS9507: Required member 'C.D1' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
-            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignment, "{ NestedProp = 1 }").WithArguments("C.D1").WithLocation(2, 24),
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ NestedProp = 1 }").WithArguments("C.D1").WithLocation(2, 24),
             // (2,49): error CS9507: Required member 'C.D2' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
-            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignment, "{ NestedProp = 2 }").WithArguments("C.D2").WithLocation(2, 49)
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ NestedProp = 2 }").WithArguments("C.D2").WithLocation(2, 49)
         );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_NestedObjectCreationAllowed()
+    {
+        var c = @"
+var c = new C() { D1 = new() { NestedProp = 1 }, D2 = new() { NestedProp = 2 } };
+
+public class C
+{
+    public required D D1 { get; set; }
+    public required D D2;
+}
+public class D
+{
+    public int NestedProp { get; set; }
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        CompileAndVerify(comp).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1412,11 +1432,28 @@ public class C
         comp.VerifyDiagnostics(
             // (3,24): error CS9507: Required member 'C.L1' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
-            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignment, "{ 1, 2, 3 }").WithArguments("C.L1").WithLocation(3, 24),
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ 1, 2, 3 }").WithArguments("C.L1").WithLocation(3, 24),
             // (3,42): error CS9507: Required member 'C.L2' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
-            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignment, "{ 4, 5, 6 }").WithArguments("C.L2").WithLocation(3, 42)
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ 4, 5, 6 }").WithArguments("C.L2").WithLocation(3, 42)
         );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_NestedObjectCreationWithCollectionInitializerAllowed()
+    {
+        var c = @"
+using System.Collections.Generic;
+var c = new C() { L1 = new() { 1, 2, 3 }, L2 = new() { 4, 5, 6 } };
+
+public class C
+{
+    public required List<int> L1 { get; set; }
+    public required List<int> L2;
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        CompileAndVerify(comp).VerifyDiagnostics();
     }
 
     [Theory]

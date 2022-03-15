@@ -2059,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitRequiredMember = 9504,
         ERR_RequiredMemberMustBeSettable = 9505,
         ERR_RequiredMemberMustBeSet = 9506,
-        ERR_RequiredMembersMustBeAssignment = 9507,
+        ERR_RequiredMembersMustBeAssignedValue = 9507,
         ERR_RequiredMembersInvalid = 9508,
         ERR_RequiredMembersBaseTypeInvalid = 9509,
     }

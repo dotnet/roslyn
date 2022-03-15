@@ -4986,12 +4986,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var requiredMembers = constructor.ContainingType.AllRequiredMembers.ToBuilder();
+            var requiredMembers = constructor.ContainingType.AllRequiredMembers;
 
             if (requiredMembers.Count == 0)
             {
                 return;
             }
+
+            var requiredMembersBuilder = requiredMembers.ToBuilder();
 
             if (initializers.IsDefaultOrEmpty)
             {
@@ -5001,24 +5003,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var initializer in initializers)
             {
-                var (memberSymbol, initializerExpression) = initializer is BoundAssignmentOperator assignmentOperator
-                    ? (assignmentOperator.Left switch
-                    {
-                        // Regular initializers
-                        BoundObjectInitializerMember member => member.MemberSymbol,
-                        // Attribute initializers
-                        BoundPropertyAccess propertyAccess => propertyAccess.PropertySymbol,
-                        BoundFieldAccess fieldAccess => fieldAccess.FieldSymbol,
-                        _ => null
-                    }, assignmentOperator.Right)
-                    : default;
+                if (initializer is not BoundAssignmentOperator assignmentOperator)
+                {
+                    continue;
+                }
+
+                var memberSymbol = assignmentOperator.Left switch
+                {
+                    // Regular initializers
+                    BoundObjectInitializerMember member => member.MemberSymbol,
+                    // Attribute initializers
+                    BoundPropertyAccess propertyAccess => propertyAccess.PropertySymbol,
+                    BoundFieldAccess fieldAccess => fieldAccess.FieldSymbol,
+                    // Error cases
+                    _ => null
+                };
 
                 if (memberSymbol is null)
                 {
                     continue;
                 }
 
-                if (!requiredMembers.TryGetValue(memberSymbol.Name, out var requiredMember))
+                if (!requiredMembersBuilder.TryGetValue(memberSymbol.Name, out var requiredMember))
                 {
                     continue;
                 }
@@ -5028,12 +5034,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                requiredMembers.Remove(memberSymbol.Name);
+                requiredMembersBuilder.Remove(memberSymbol.Name);
 
-                if (initializerExpression is BoundObjectInitializerExpressionBase)
+                if (assignmentOperator.Right is BoundObjectInitializerExpressionBase initializerExpression)
                 {
                     // Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.
-                    diagnostics.Add(ErrorCode.ERR_RequiredMembersMustBeAssignment, initializerExpression.Syntax.Location, requiredMember);
+                    diagnostics.Add(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, initializerExpression.Syntax.Location, requiredMember);
                 }
             }
 
@@ -5049,7 +5055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => creationSyntax.Location
                 };
 
-                foreach (var (_, member) in requiredMembers)
+                foreach (var (_, member) in requiredMembersBuilder)
                 {
                     // Required member '{0}' must be set in the object initializer or attribute constructor.
                     diagnostics.Add(ErrorCode.ERR_RequiredMemberMustBeSet, location, member);
@@ -5847,6 +5853,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.AddDependencies(useSiteInfo);
                 foreach (var diagnostic in useSiteInfo.Diagnostics)
                 {
+                    // We don't want to report this error here because we'll report ERR_RequiredMembersBaseTypeInvalid. That error is suppressable by the
+                    // user using the `SetsRequiredMembers` attribute on the constructor, so reporting this error would prevent that from working.
                     if ((ErrorCode)diagnostic.Code == ErrorCode.ERR_RequiredMembersInvalid)
                     {
                         continue;

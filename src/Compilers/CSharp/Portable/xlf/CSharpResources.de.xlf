@@ -1182,7 +1182,7 @@
         <target state="new">The required members list for '{0}' is malformed and cannot be interpreted.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiredMembersMustBeAssignment">
+      <trans-unit id="ERR_RequiredMembersMustBeAssignedValue">
         <source>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</source>
         <target state="new">Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</target>
         <note />

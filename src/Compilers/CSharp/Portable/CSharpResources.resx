@@ -7010,7 +7010,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
     <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
   </data>
-  <data name="ERR_RequiredMembersMustBeAssignment" xml:space="preserve">
+  <data name="ERR_RequiredMembersMustBeAssignedValue" xml:space="preserve">
     <value>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</value>
   </data>
   <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
