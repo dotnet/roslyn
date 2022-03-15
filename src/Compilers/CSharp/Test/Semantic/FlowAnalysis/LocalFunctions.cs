@@ -733,9 +733,9 @@ struct S
                 // (5,12): error CS0171: Field 'S._x' must be fully assigned before control is returned to the caller
                 //     public S(int x)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S._x").WithLocation(5, 12),
-                // (5,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(int x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 12));
 
             comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -1500,9 +1500,9 @@ struct S
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 //     public S(int x, int y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(7, 12),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(7, 12),
                 // (12,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             S s2 = this;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),

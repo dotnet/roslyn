@@ -6469,9 +6469,9 @@ class MyClass
                 // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller
                 //    MyStruct(int initField)   // CS0171
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "MyStruct").WithArguments("MyStruct.i").WithLocation(4, 4),
-                // (4,4): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,4): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //    MyStruct(int initField)   // CS0171
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct").WithArguments("implicit initialization in struct constructors").WithLocation(4, 4),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct").WithArguments("auto default struct fields").WithLocation(4, 4),
                 // (15,16): warning CS0219: The variable 'aStruct' is assigned but its value is never used
                 //       MyStruct aStruct = new MyStruct();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "aStruct").WithArguments("aStruct").WithLocation(15, 16),
@@ -6988,9 +6988,9 @@ namespace MyNamespace
                 // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //                 Goo();  // CS0188
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(17, 17),
-                // (14,13): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,13): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             S(int i)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(14, 13),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(14, 13),
                 // (8,24): warning CS0649: Field 'MyClass.S.a' is never assigned to, and will always have its default value 0
                 //             public int a;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "a").WithArguments("MyNamespace.MyClass.S.a", "0").WithLocation(8, 24));
@@ -7041,9 +7041,9 @@ struct S
                 // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         var b1 = F is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "F").WithArguments("this").WithLocation(10, 18),
-                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(int v)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
 
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
@@ -7078,9 +7078,9 @@ struct S
                 // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         var b1 = this.F is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(10, 18),
-                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(int v)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
 
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (10,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
@@ -7114,9 +7114,9 @@ struct S
                 // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         /*this.*/ Add(d);
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Add").WithArguments("this").WithLocation(10, 19),
-                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(dynamic d)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
 
             var verifier = CompileAndVerify(source, new[] { CSharpRef });
             verifier.VerifyDiagnostics();
@@ -7188,9 +7188,9 @@ struct S
                 // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         this.Add(d);
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(10, 9),
-                // (8,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 //     public S(dynamic d)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(8, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
 
             var verifier = CompileAndVerify(source, new[] { CSharpRef }, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics();
@@ -12939,9 +12939,9 @@ class Test
                     // (5,12): error CS0843: Auto-implemented property 'S.AIProp' must be fully assigned before control is returned to the caller.
                     //     public S(int i) { } //CS0843
                     Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.AIProp").WithLocation(5, 12),
-                    // (5,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public S(int i) { } //CS0843
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 12));
 
             var verifier = CompileAndVerify(text);
             verifier.VerifyDiagnostics();

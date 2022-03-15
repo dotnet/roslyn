@@ -1212,9 +1212,9 @@ struct S
                 // (5,5): error CS0171: Field 'S.y' must be fully assigned before control is returned to the caller
                 //     S(int x) { this.x = x; }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.y").WithLocation(5, 5),
-                // (5,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,5): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     S(int x) { this.x = x; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 5),
                 // (4,12): warning CS0169: The field 'S.y' is never used
                 //     int x, y;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "y").WithArguments("S.y").WithLocation(4, 12)
@@ -1279,9 +1279,9 @@ struct Program
                 // (5,12): error CS0843: Auto-implemented property 'Program.X' must be fully assigned before control is returned to the caller.
                 //     public Program(int x)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X").WithLocation(5, 12),
-                // (5,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public Program(int x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("auto default struct fields").WithLocation(5, 12));
 
             var verifier = CompileAndVerify(program);
             verifier.VerifyDiagnostics();
@@ -1395,9 +1395,9 @@ struct Program
     // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
     Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
-    // (14,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+    // (14,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
+    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("auto default struct fields").WithLocation(14, 12));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
@@ -1454,10 +1454,10 @@ struct Program
     Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
     // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
-    // (14,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12)
+    // (14,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(14, 12));
+    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("auto default struct fields").WithLocation(14, 12));
 
             comp = CreateCompilation(text, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
             comp.VerifyDiagnostics(
@@ -1775,9 +1775,9 @@ struct Program
     // (17,17): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         Goo(out x2);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 17),
-    // (13,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+    // (13,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
     //     public Program(int arg)
-    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("implicit initialization in struct constructors").WithLocation(13, 12),
+    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("auto default struct fields").WithLocation(13, 12),
     // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0
     //         public int x;
     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("Program.S1.x", "0").WithLocation(6, 20)
@@ -2417,9 +2417,9 @@ class Program
                 // (6,9): error CS0171: Field 'C.S.x' must be fully assigned before control is returned to the caller
                 //         S(dynamic y)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("C.S.x").WithLocation(6, 9),
-                // (6,9): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         S(dynamic y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(6, 9),
                 // (5,13): warning CS0169: The field 'C.S.x' is never used
                 //         int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.S.x").WithLocation(5, 13)
@@ -2574,9 +2574,9 @@ class Derived2 : Base
                 // (3,5): error CS0171: Field 'Derived.x' must be fully assigned before control is returned to the caller
                 //     Derived(int x) { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "Derived").WithArguments("Derived.x").WithLocation(3, 5),
-                // (3,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,5): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     Derived(int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Derived").WithArguments("implicit initialization in struct constructors").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Derived").WithArguments("auto default struct fields").WithLocation(3, 5),
                 // (4,28): error CS0103: The name 'p2' does not exist in the current context
                 //     Derived(long x) : this(p2) // error CS0188: The 'this' object cannot be used before all of its fields are assigned to
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "p2").WithArguments("p2").WithLocation(4, 28),
@@ -2708,9 +2708,9 @@ struct S
                 // (6,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 //     public S(object x, object y)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 12),
-                // (6,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(object x, object y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(6, 12),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(6, 12),
                 // (8,28): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //         Action a = () => { F = x; };
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "F").WithLocation(8, 28));
@@ -2741,9 +2741,9 @@ struct S
                 // (5,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 //     public S(object x, object y)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(5, 12),
-                // (5,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(object x, object y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 12),
                 // (7,14): warning CS8321: The local function 'f' is declared but never used
                 //         void f() { F = x; }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(7, 14),

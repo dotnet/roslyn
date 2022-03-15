@@ -858,9 +858,9 @@ struct S1
                 // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller.
                 //     public S1(string s) // 1
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Prop").WithLocation(5, 12),
-                // (5,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S1(string s) // 1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("auto default struct fields").WithLocation(5, 12),
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
@@ -1060,9 +1060,9 @@ struct S1
                 // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller
                 //     public S1(string s) // 1, 2
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.field").WithLocation(13, 12),
-                // (13,12): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S1(string s) // 1, 2
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("implicit initialization in struct constructors").WithLocation(13, 12),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("auto default struct fields").WithLocation(13, 12),
                 // (15,30): error CS0170: Use of possibly unassigned field 'field'
                 //         System.Console.Write(field); // 3
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(15, 30)
@@ -1799,9 +1799,9 @@ class C5<T, U> where T : A where U : T
                 // (6,14): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 //     internal S(string s)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 14),
-                // (6,14): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,14): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 //     internal S(string s)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(6, 14));
 
             var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable());
             verifier.VerifyDiagnostics(

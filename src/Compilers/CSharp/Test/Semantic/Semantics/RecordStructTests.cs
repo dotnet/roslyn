@@ -1950,9 +1950,9 @@ record struct C(int X, int Y)
                 // (3,15): error CS0843: Auto-implemented property 'C.X' must be fully assigned before control is returned to the caller.
                 // record struct C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C").WithArguments("C.X").WithLocation(3, 15),
-                // (3,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("implicit initialization in struct constructors").WithLocation(3, 15),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("auto default struct fields").WithLocation(3, 15),
                 // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct C(int X, int Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 21)
@@ -2217,9 +2217,9 @@ record struct C1(object O1, object O2, object O3) // 1, 2
                 // (2,15): error CS0843: Auto-implemented property 'C1.O1' must be fully assigned before control is returned to the caller.
                 // record struct C1(object O1, object O2, object O3) // 1, 2
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C1").WithArguments("C1.O1").WithLocation(2, 15),
-                // (2,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct C1(object O1, object O2, object O3) // 1, 2
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("implicit initialization in struct constructors").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("auto default struct fields").WithLocation(2, 15),
                 // (2,25): warning CS8907: Parameter 'O1' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct C1(object O1, object O2, object O3) // 1, 2
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O1").WithArguments("O1").WithLocation(2, 25),
@@ -2902,9 +2902,9 @@ record struct R(int P = 42)
                 // (2,15): error CS0843: Auto-implemented property 'R.P' must be fully assigned before control is returned to the caller.
                 // record struct R(int P = 42)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "R").WithArguments("R.P").WithLocation(2, 15),
-                // (2,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 // record struct R(int P = 42)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("implicit initialization in struct constructors").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("auto default struct fields").WithLocation(2, 15),
                 // (2,21): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct R(int P = 42)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(2, 21)
@@ -4013,9 +4013,9 @@ record struct Pos2(int X)
                 // (2,15): error CS0171: Field 'Pos.x' must be fully assigned before control is returned to the caller
                 // record struct Pos(int X)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "Pos").WithArguments("Pos.x").WithLocation(2, 15),
-                // (2,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct Pos(int X)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Pos").WithArguments("implicit initialization in struct constructors").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Pos").WithArguments("auto default struct fields").WithLocation(2, 15),
                 // (5,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithArguments("Pos.X").WithLocation(5, 16)
@@ -7539,9 +7539,9 @@ record struct C
 
             var comp = CreateCompilation(src, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (6,5): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,5): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     C(string ignored)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("implicit initialization in struct constructors").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("auto default struct fields").WithLocation(6, 5),
                 // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         _ = this with { X = 42 }; // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(8, 13)
@@ -11247,9 +11247,9 @@ record struct S3(char A)
                 // (1,15): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 // record struct S(object F)
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(1, 15),
-                // (1,15): error CS8652: The feature 'implicit initialization in struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 // record struct S(object F)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("implicit initialization in struct constructors").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(1, 15),
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "F").WithArguments("F").WithLocation(1, 24),
