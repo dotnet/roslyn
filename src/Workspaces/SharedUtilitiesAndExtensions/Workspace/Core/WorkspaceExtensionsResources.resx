@@ -129,10 +129,10 @@
   <data name="Fix_all_0_in_Solution" xml:space="preserve">
     <value>Fix all '{0}' in Solution</value>
   </data>
-  <data name="Fix_all_0_in_Containing_Member" xml:space="preserve">
+  <data name="Fix_all_0_in_Containing_member" xml:space="preserve">
     <value>Fix all '{0}' in Containing member</value>
   </data>
-  <data name="Fix_all_0_in_Containing_Type" xml:space="preserve">
+  <data name="Fix_all_0_in_Containing_type" xml:space="preserve">
     <value>Fix all '{0}' in Containing type</value>
   </data>
   <data name="Compilation_is_required_to_accomplish_the_task_but_is_not_supported_by_project_0" xml:space="preserve">

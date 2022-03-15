@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {
-                throw new ArgumentException(WorkspacesResources.Fixallscope_containingtype_and_fixallscope_containingmember_are_not_supported_with_this_constructor,
+                throw new ArgumentException(WorkspacesResources.FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor,
                     nameof(scope));
             }
         }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {
-                throw new ArgumentException(WorkspacesResources.Fixallscope_containingtype_and_fixallscope_containingmember_are_not_supported_with_this_constructor,
+                throw new ArgumentException(WorkspacesResources.FixAllScope_ContainingType_and_FixAllScope_ContainingMember_are_not_supported_with_this_constructor,
                     nameof(scope));
             }
         }

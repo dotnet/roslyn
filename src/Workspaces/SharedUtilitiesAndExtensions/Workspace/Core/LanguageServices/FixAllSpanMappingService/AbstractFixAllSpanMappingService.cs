@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingService
     {
         public async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-           Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
+            Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (fixAllScope == FixAllScope.ContainingMember)
             {
                 return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
-                    .SetItem(document, ImmutableArray.Create(decl.FullSpan));
+                    .Add(document, ImmutableArray.Create(decl.FullSpan));
             }
             else
             {
@@ -36,18 +36,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (symbol?.DeclaringSyntaxReferences.Length > 1)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    _ = PooledDictionary<Document, ImmutableArray<TextSpan>>.GetInstance(out var builder);
+                    var builder = PooledDictionary<Document, ArrayBuilder<TextSpan>>.GetInstance();
                     foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                     {
                         var documentForLocation = document.Project.GetDocument(syntaxRef.SyntaxTree);
-                        if (documentForLocation == null)
-                            continue;
+                        Contract.ThrowIfNull(documentForLocation);
                         var root = await syntaxRef.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                         var partialDeclSpan = syntaxFacts.GetContainingTypeDeclaration(root, syntaxRef.Span.Start)!.FullSpan;
                         builder.MultiAdd(documentForLocation, partialDeclSpan);
                     }
 
-                    return builder.ToImmutableDictionary();
+                    return builder.ToImmutableMultiDictionaryAndFree();
                 }
                 else
                 {
@@ -72,10 +71,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 ? syntaxFacts.GetContainingMemberDeclaration(root, triggerSpan.Start)
                 : syntaxFacts.GetContainingTypeDeclaration(root, triggerSpan.Start);
 
+            if (startContainer == null)
+                return null;
+
             if (fixAllScope == FixAllScope.ContainingMember && !syntaxFacts.IsMethodLevelMember(startContainer))
                 return null;
 
-            if (triggerSpan.IsEmpty || startContainer == null)
+            if (triggerSpan.IsEmpty)
                 return startContainer;
 
             var endContainer = fixAllScope == FixAllScope.ContainingMember

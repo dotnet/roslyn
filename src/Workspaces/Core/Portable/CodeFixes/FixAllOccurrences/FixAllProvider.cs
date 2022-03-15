@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentNullException(nameof(supportedFixAllScopes));
 
             if (supportedFixAllScopes.Contains(FixAllScope.Custom))
-                throw new ArgumentException(WorkspacesResources.Fixallscope_custom_is_not_supported_with_documentbasedcodefixprovider, nameof(supportedFixAllScopes));
+                throw new ArgumentException(WorkspacesResources.FixAllScope_Custom_is_not_supported_with_this_API, nameof(supportedFixAllScopes));
 
             return new CallbackDocumentBasedFixAllProvider(fixAllAsync, supportedFixAllScopes);
         }

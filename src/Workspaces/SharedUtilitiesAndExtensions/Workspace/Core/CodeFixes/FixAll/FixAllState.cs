@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Optional fix all spans to be fixed within the document. Can be empty
         /// if fixing the entire document, project or solution.
-        /// If non-empty, <see cref="Document"/> is guaranteed to be not null.
+        /// If non-empty, <see cref="Document"/> is guaranteed to be not <see langword="default"/>.
         /// </summary>
         public ImmutableArray<TextSpan> FixAllSpans { get; }
 
