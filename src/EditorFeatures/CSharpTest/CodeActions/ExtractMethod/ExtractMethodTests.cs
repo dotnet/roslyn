@@ -4618,6 +4618,7 @@ class Ignored2 { }
             }.RunAsync();
         }
 
+        [WorkItem(56969, "https://github.com/dotnet/roslyn/issues/58013")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public async Task TopLevelMethod_StaticMethod()
         {

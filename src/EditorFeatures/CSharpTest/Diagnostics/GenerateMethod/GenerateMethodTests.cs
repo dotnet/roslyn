@@ -4000,7 +4000,7 @@ parseOptions: GetScriptOptions());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestInTopLevelImplicitClass1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 
 static void Main(string[] args)
@@ -4014,10 +4014,11 @@ static void Main(string[] args)
     Goo();
 }
 
-void Goo()
+static void Goo()
 {
     throw new NotImplementedException();
-}");
+}",
+parseOptions: GetScriptOptions());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
