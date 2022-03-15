@@ -217,9 +217,16 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions
             using var fixAllSuggestedActionsDisposer = ArrayBuilder<IUnifiedSuggestedAction>.GetInstance(out var fixAllSuggestedActions);
             foreach (var scope in supportedScopes)
             {
-                if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType &&
-                    document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
+                if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
                 {
+                    // Skip showing ContainingMember and ContainingType FixAll scopes if the language
+                    // does not implement 'IFixAllSpanMappingService' langauge service or
+                    // we have no mapped FixAll spans to fix.
+
+                    var spanMappingService = document.GetLanguageService<IFixAllSpanMappingService>();
+                    if (spanMappingService is null)
+                        continue;
+
                     var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(
                         document, firstDiagnostic.Location.SourceSpan, scope, cancellationToken).ConfigureAwait(false);
                     if (documentsAndSpans.IsEmpty)
