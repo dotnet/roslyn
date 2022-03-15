@@ -7854,14 +7854,14 @@ done:;
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
                 this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
             {
-                return this.ParseForEachStatement(attributes, ParseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
+                return this.ParseForEachStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
             }
             else if (IsPossibleAwaitUsing())
             {
                 if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                 {
                     // `await using Type ...` is handled below in ParseLocalDeclarationStatement
-                    return this.ParseUsingStatement(attributes, ParseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
+                    return this.ParseUsingStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
                 }
             }
             else if (this.IsPossibleLabeledStatement())
@@ -7890,13 +7890,6 @@ done:;
         // Checking for brace to disambiguate between unsafe statement and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
             => IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
-
-        private SyntaxToken ParseAwaitKeyword(MessageID feature)
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
-            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-            return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
-        }
 
         private bool IsPossibleAwaitUsing()
             => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
@@ -9682,7 +9675,7 @@ tryAgain:
             bool canParseAsLocalFunction = false;
             if (IsPossibleAwaitUsing())
             {
-                awaitKeyword = ParseAwaitKeyword(MessageID.None);
+                awaitKeyword = this.EatContextualToken(SyntaxKind.AwaitKeyword);
                 usingKeyword = EatToken();
             }
             else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
@@ -9695,11 +9688,6 @@ tryAgain:
                 awaitKeyword = null;
                 usingKeyword = null;
                 canParseAsLocalFunction = true;
-            }
-
-            if (usingKeyword != null)
-            {
-                usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
             }
 
             var mods = _pool.Allocate();
