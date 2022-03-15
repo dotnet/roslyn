@@ -7,9 +7,8 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Interactive;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Completion
+namespace Microsoft.CodeAnalysis.Interactive
 {
     internal sealed class InteractiveCommandCompletionService : CompletionServiceWithProviders
     {
