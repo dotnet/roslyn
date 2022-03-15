@@ -122,5 +122,44 @@ class C
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref int x = ref $$"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterImplicitOperator()
+        {
+            await VerifyAbsenceAsync(
+@"class Goo {
+    public static implicit operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_01()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExplicitOperator_02()
+        {
+            await VerifyKeywordAsync(
+@"class Goo {
+    public static explicit /* some comment */ operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOperator()
+        {
+            await VerifyKeywordAsync(
+@"class Goo { 
+    public static int operator $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterOperator()
+        {
+            await VerifyAbsenceAsync(
+@"operator $$");
+        }
     }
 }
