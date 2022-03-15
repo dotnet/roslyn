@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 var previousToken = _listSyntax.GetFirstToken().GetPreviousToken();
 
-                // Block indentation is the only style that correctly indents across all initializer expressions                
+                // Block indentation is the only style that correctly indents across all initializer expressions
                 return GetIndentationAfter(previousToken, FormattingOptions.IndentStyle.Block);
             }
 
