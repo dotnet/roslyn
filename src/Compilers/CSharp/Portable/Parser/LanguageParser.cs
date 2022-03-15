@@ -7,15 +7,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
-    using Microsoft.CodeAnalysis.PooledObjects;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal partial class LanguageParser : SyntaxParser
@@ -1559,22 +1560,21 @@ tryAgain:
 
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword ||
-                CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
+                this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var keyword = ConvertToKeyword(this.EatToken());
-
             var outerSaveTerm = _termState;
-            SyntaxToken? recordModifier = null;
-            if (keyword.Kind == SyntaxKind.RecordKeyword)
+
+            if (tryScanRecordStart(out var keyword, out var recordModifier))
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
-                recordModifier = eatRecordModifierIfAvailable();
+            }
+            else
+            {
+                keyword = ConvertToKeyword(this.EatToken());
             }
 
             var saveTerm = _termState;
@@ -1692,17 +1692,39 @@ tryAgain:
                 }
             }
 
-            SyntaxToken? eatRecordModifierIfAvailable()
+            bool tryScanRecordStart([NotNullWhen(true)] out SyntaxToken? keyword, out SyntaxToken? recordModifier)
             {
-                Debug.Assert(keyword.Kind == SyntaxKind.RecordKeyword);
-                if (CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
                 {
-                    var result = EatToken();
-                    result = CheckFeatureAvailability(result, MessageID.IDS_FeatureRecordStructs);
-                    return result;
+                    keyword = ConvertToKeyword(this.EatToken());
+                    recordModifier = this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword
+                        ? CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureRecordStructs)
+                        : null;
+
+                    return true;
                 }
 
-                return null;
+                if (this.CurrentToken.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
+                    this.PeekToken(1).ContextualKind == SyntaxKind.RecordKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRecordStructs) &&
+                    PeekToken(2).Kind is SyntaxKind.IdentifierToken)
+                {
+                    // Provide a specific diagnostic on `struct record S` or `class record C`
+                    var misplacedToken = this.EatToken();
+
+                    // Parse out 'record' but place 'struct/class' as leading skipped trivia on it.
+                    keyword = AddLeadingSkippedSyntax(
+                        this.AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_MisplacedRecord),
+                        misplacedToken);
+
+                    // Treat `struct record` as a RecordStructDeclaration, and `class record` as a RecordDeclaration.
+                    recordModifier = SyntaxFactory.MissingToken(misplacedToken.Kind);
+                    return true;
+                }
+
+                keyword = null;
+                recordModifier = null;
+                return false;
             }
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
@@ -2066,6 +2088,20 @@ tryAgain:
                 case SyntaxKind.DefaultKeyword:
                     var defaultToken = this.EatToken();
                     return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
+                case SyntaxKind.EnumKeyword:
+                    {
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
+                case SyntaxKind.DelegateKeyword when PeekToken(1).Kind is not SyntaxKind.AsteriskToken:
+                    {
+                        // Produce a specific diagnostic for `where T : delegate`
+                        // but not `where T : delegate*<...>
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);

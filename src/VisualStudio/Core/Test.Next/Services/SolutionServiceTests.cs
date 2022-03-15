@@ -342,6 +342,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var workspace = TestWorkspace.CreateCSharp(code);
             using var remoteWorkspace = CreateRemoteWorkspace();
 
+            // Start solution crawler in the remote workspace:
+            remoteWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(remoteWorkspace);
+
             // create solution service
             var solution = workspace.CurrentSolution;
             var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
