@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public static void WarmUpCacheInCurrentProcess(Project project)
-            => ExtensionMethodSymbolComputer.QueueCacheWarmUpTask(project);
+            => SymbolComputer.QueueCacheWarmUpTask(project);
 
         public static async Task<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
             Document document,
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // First find symbols of all applicable extension methods.
             // Workspace's syntax/symbol index is used to avoid iterating every method symbols in the solution.
-            var symbolComputer = await ExtensionMethodSymbolComputer.CreateAsync(
+            var symbolComputer = await SymbolComputer.CreateAsync(
                 document, position, receiverTypeSymbol, namespaceInScope, cancellationToken).ConfigureAwait(false);
             var (extentsionMethodSymbols, isPartialResult) = await symbolComputer.GetExtensionMethodSymbolsAsync(forceCacheCreation, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
 
@@ -210,6 +212,48 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             name = GetFullyQualifiedNamespaceName(symbol.ContainingNamespace, stringCache) + "." + symbol.Name;
             stringCache[symbol] = name;
             return name;
+        }
+
+        private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Workspace workspace)
+            => workspace.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
+
+        private static async Task<ExtensionMethodImportCompletionCacheEntry> GetUpToDateCacheEntryAsync(
+            Project project,
+            IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> cacheService,
+            CancellationToken cancellationToken)
+        {
+            // While we are caching data from SyntaxTreeInfo, all the things we cared about here are actually based on sources symbols.
+            // So using source symbol checksum would suffice.
+            var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+
+            // Cache miss, create all requested items.
+            if (!cacheService.ProjectItemsCache.TryGetValue(project.Id, out var cacheEntry) ||
+                cacheEntry.Checksum != checksum ||
+                cacheEntry.Language != project.Language)
+            {
+                var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
+                var builder = new ExtensionMethodImportCompletionCacheEntry.Builder(checksum, project.Language, syntaxFacts.StringComparer);
+
+                foreach (var document in project.Documents)
+                {
+                    // Don't look for extension methods in generated code.
+                    if (document.State.Attributes.IsGenerated)
+                    {
+                        continue;
+                    }
+
+                    var info = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(document, cancellationToken).ConfigureAwait(false);
+                    if (info.ContainsExtensionMethod)
+                    {
+                        builder.AddItem(info);
+                    }
+                }
+
+                cacheEntry = builder.ToCacheEntry();
+                cacheService.ProjectItemsCache[project.Id] = cacheEntry;
+            }
+
+            return cacheEntry;
         }
     }
 }

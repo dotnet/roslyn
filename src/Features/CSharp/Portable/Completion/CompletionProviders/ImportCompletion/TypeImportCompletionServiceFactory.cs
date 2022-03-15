@@ -4,7 +4,7 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface ITypeImportCompletionService : ILanguageService
     {

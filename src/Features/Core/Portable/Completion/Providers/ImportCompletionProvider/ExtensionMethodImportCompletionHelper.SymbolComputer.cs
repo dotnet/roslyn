@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal static partial class ExtensionMethodImportCompletionHelper
     {
-        private class ExtensionMethodSymbolComputer
+        private class SymbolComputer
         {
             private readonly int _position;
             private readonly Document _originatingDocument;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             private readonly ITypeSymbol _receiverTypeSymbol;
             private readonly ImmutableArray<string> _receiverTypeNames;
             private readonly ISet<string> _namespaceInScope;
-            private readonly IImportCompletionCacheService<CacheEntry, object> _cacheService;
+            private readonly IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> _cacheService;
 
             // This dictionary is used as cache among all projects and PE references. 
             // The key is the receiver type as in the extension method declaration (symbol retrived from originating compilation).
@@ -45,20 +44,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     if (_workQueue is null)
                     {
+                        var cacheService = GetCacheService(project.Solution.Workspace);
                         var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
                         var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
                         _workQueue = new(
                                 TimeSpan.FromSeconds(1),
                                 BatchUpdateCacheAsync,
                                 listenerProvider.GetListener(FeatureAttribute.CompletionSet),
-                                CancellationToken.None);
+                                cacheService.DisposalToken);
                     }
 
                     return _workQueue;
                 }
             }
 
-            public ExtensionMethodSymbolComputer(
+            public SymbolComputer(
                 Document document,
                 SemanticModel semanticModel,
                 ITypeSymbol receiverTypeSymbol,
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _checkedReceiverTypes = new ConcurrentDictionary<ITypeSymbol, bool>();
             }
 
-            public static async Task<ExtensionMethodSymbolComputer> CreateAsync(
+            public static async Task<SymbolComputer> CreateAsync(
                 Document document,
                 int position,
                 ITypeSymbol receiverTypeSymbol,
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                return new ExtensionMethodSymbolComputer(
+                return new SymbolComputer(
                     document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
             }
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 bool forceCacheCreation,
                 CancellationToken cancellationToken)
             {
-                CacheEntry cacheEntry;
+                ExtensionMethodImportCompletionCacheEntry cacheEntry;
                 if (forceCacheCreation)
                 {
                     cacheEntry = await GetUpToDateCacheEntryAsync(project, _cacheService, cancellationToken).ConfigureAwait(false);
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// Create a filter for extension methods from source.
             /// The filter is a map from fully qualified type name to info of extension methods it contains.
             /// </summary>
-            private MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(CacheEntry syntaxIndex)
+            private MultiDictionary<string, (string methodName, string receiverTypeName)> CreateAggregatedFilter(ExtensionMethodImportCompletionCacheEntry syntaxIndex)
             {
                 var results = new MultiDictionary<string, (string, string)>();
 

@@ -5,10 +5,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCacheEntry, TMetadataCacheEntry> : IWorkspaceServiceFactory
     {
@@ -17,6 +18,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache
             = new();
+
+        private readonly CancellationToken _disposalToken;
+
+        protected AbstractImportCompletionCacheServiceFactory(CancellationToken disposalToken)
+        {
+            _disposalToken = disposalToken;
+        }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -30,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 }
             }
 
-            return new ImportCompletionCacheService(_peItemsCache, _projectItemsCache);
+            return new ImportCompletionCacheService(_peItemsCache, _projectItemsCache, _disposalToken);
         }
 
         private void OnCacheFlushRequested(object? sender, EventArgs e)
@@ -45,12 +53,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             public IDictionary<ProjectId, TProjectCacheEntry> ProjectItemsCache { get; }
 
+            public CancellationToken DisposalToken { get; }
+
             public ImportCompletionCacheService(
                 ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
-                ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache)
+                ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache,
+                CancellationToken disposalToken)
             {
                 PEItemsCache = peCache;
                 ProjectItemsCache = projectCache;
+                DisposalToken = disposalToken;
             }
         }
     }

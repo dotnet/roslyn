@@ -18,13 +18,13 @@ using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
         private readonly AsyncBatchingWorkQueue<Project> _workQueue;
 
-        private IImportCompletionCacheService<CacheEntry, CacheEntry> CacheService { get; }
+        private IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry> CacheService { get; }
 
         protected abstract string GenericTypeSuffix { get; }
 
@@ -34,13 +34,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         internal AbstractTypeImportCompletionService(Workspace workspace, IAsynchronousOperationListener listener)
         {
+            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
             _workQueue = new(
                    TimeSpan.FromSeconds(1),
                    BatchUpdateCacheAsync,
                    listener,
-                   CancellationToken.None);
-
-            CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<CacheEntry, CacheEntry>>();
+                   CacheService.DisposalToken);
         }
 
         public void QueueCacheWarmUpTask(Project project)
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
 
-            ImmutableArray<CompletionItem> GetItemsFromCacheResult(CacheEntry cacheEntry)
+            ImmutableArray<CompletionItem> GetItemsFromCacheResult(TypeImportCompletionCacheEntry cacheEntry)
                 => cacheEntry.GetItemsForContext(
                     currentCompilation,
                     Language,
@@ -70,12 +69,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     options.HideAdvancedMembers);
         }
 
-        private async Task<(ImmutableArray<CacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
+        private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, bool forceCacheCreation, CancellationToken cancellationToken)
         {
             try
             {
                 var isPartialResult = false;
-                using var _1 = ArrayBuilder<CacheEntry>.GetInstance(out var resultBuilder);
+                using var _1 = ArrayBuilder<TypeImportCompletionCacheEntry>.GetInstance(out var resultBuilder);
                 using var _2 = ArrayBuilder<Project>.GetInstance(out var projectsBuilder);
                 using var _3 = PooledHashSet<ProjectId>.GetInstance(out var nonGlobalAliasedProjectReferencesSet);
 
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// This method is intended to be used for getting types from source only, so the project must support compilation. 
         /// For getting types from PE, use <see cref="TryGetUpToDateCacheForPEReference"/>.
         /// </summary>
-        private async Task<CacheEntry> GetUpToDateCacheForProjectAsync(Project project, CancellationToken cancellationToken)
+        private async Task<TypeImportCompletionCacheEntry> GetUpToDateCacheForProjectAsync(Project project, CancellationToken cancellationToken)
         {
             // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
             var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
@@ -190,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             EditorBrowsableInfo editorBrowsableInfo,
             PortableExecutableReference peReference,
             CancellationToken cancellationToken,
-            out CacheEntry cacheEntry)
+            out TypeImportCompletionCacheEntry cacheEntry)
         {
             if (originCompilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assemblySymbol)
             {
@@ -210,11 +209,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             }
         }
 
-        private CacheEntry CreateCacheWorker<TKey>(
+        private TypeImportCompletionCacheEntry CreateCacheWorker<TKey>(
             TKey key,
             IAssemblySymbol assembly,
             Checksum checksum,
-            IDictionary<TKey, CacheEntry> cache,
+            IDictionary<TKey, TypeImportCompletionCacheEntry> cache,
             EditorBrowsableInfo editorBrowsableInfo,
             CancellationToken cancellationToken)
             where TKey : notnull
@@ -225,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 return cacheEntry;
             }
 
-            using var builder = new CacheEntry.Builder(SymbolKey.Create(assembly, cancellationToken), checksum, Language, GenericTypeSuffix, editorBrowsableInfo);
+            using var builder = new TypeImportCompletionCacheEntry.Builder(SymbolKey.Create(assembly, cancellationToken), checksum, Language, GenericTypeSuffix, editorBrowsableInfo);
             GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
             cacheEntry = builder.ToReferenceCacheEntry();
             cache[key] = cacheEntry;
@@ -235,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
         private static void GetCompletionItemsForTopLevelTypeDeclarations(
             INamespaceSymbol rootNamespaceSymbol,
-            CacheEntry.Builder builder,
+            TypeImportCompletionCacheEntry.Builder builder,
             CancellationToken cancellationToken)
         {
             VisitNamespace(rootNamespaceSymbol, containingNamespace: null, builder, cancellationToken);
@@ -244,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             static void VisitNamespace(
                 INamespaceSymbol symbol,
                 string? containingNamespace,
-                CacheEntry.Builder builder,
+                TypeImportCompletionCacheEntry.Builder builder,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -328,46 +327,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 var newContainsPublicGenericOverload = type.DeclaredAccessibility >= Accessibility.Public || ContainsPublicGenericOverload;
 
                 return new TypeOverloadInfo(NonGenericOverload, newBestGenericOverload, newContainsPublicGenericOverload);
-            }
-        }
-
-        private readonly struct TypeImportCompletionItemInfo
-        {
-            private readonly ItemPropertyKind _properties;
-
-            public TypeImportCompletionItemInfo(CompletionItem item, bool isPublic, bool isGeneric, bool isAttribute, bool isEditorBrowsableStateAdvanced)
-            {
-                Item = item;
-                _properties = (isPublic ? ItemPropertyKind.IsPublic : 0)
-                            | (isGeneric ? ItemPropertyKind.IsGeneric : 0)
-                            | (isAttribute ? ItemPropertyKind.IsAttribute : 0)
-                            | (isEditorBrowsableStateAdvanced ? ItemPropertyKind.IsEditorBrowsableStateAdvanced : 0);
-            }
-
-            public CompletionItem Item { get; }
-
-            public bool IsPublic
-                => (_properties & ItemPropertyKind.IsPublic) != 0;
-
-            public bool IsGeneric
-                => (_properties & ItemPropertyKind.IsGeneric) != 0;
-
-            public bool IsAttribute
-                => (_properties & ItemPropertyKind.IsAttribute) != 0;
-
-            public bool IsEditorBrowsableStateAdvanced
-                => (_properties & ItemPropertyKind.IsEditorBrowsableStateAdvanced) != 0;
-
-            public TypeImportCompletionItemInfo WithItem(CompletionItem item)
-                => new(item, IsPublic, IsGeneric, IsAttribute, IsEditorBrowsableStateAdvanced);
-
-            [Flags]
-            private enum ItemPropertyKind : byte
-            {
-                IsPublic = 0x1,
-                IsGeneric = 0x2,
-                IsAttribute = 0x4,
-                IsEditorBrowsableStateAdvanced = 0x8,
             }
         }
     }
