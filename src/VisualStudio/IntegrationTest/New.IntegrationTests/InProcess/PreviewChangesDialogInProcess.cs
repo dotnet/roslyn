@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Extensibility.Testing;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -23,29 +20,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         /// <param name="expectedTitle"></param>
         public async Task VerifyOpenAsync(string expectedTitle, CancellationToken cancellationToken)
         {
-            await DialogHelpers.FindDialogByNameAsync(JoinableTaskFactory, await GetMainWindowHWndAsync(cancellationToken), expectedTitle, isOpen: true, cancellationToken);
+            await DialogHelpers.FindDialogByNameAsync(JoinableTaskFactory, await TestServices.Shell.GetMainWindowAsync(cancellationToken), expectedTitle, isOpen: true, cancellationToken);
 
             // Wait for application idle to ensure the dialog is fully initialized
             await WaitForApplicationIdleAsync(cancellationToken);
         }
 
         public async Task VerifyClosedAsync(string expectedTitle, CancellationToken cancellationToken)
-            => await DialogHelpers.FindDialogByNameAsync(JoinableTaskFactory, await GetMainWindowHWndAsync(cancellationToken), expectedTitle, isOpen: false, cancellationToken);
+            => await DialogHelpers.FindDialogByNameAsync(JoinableTaskFactory, await TestServices.Shell.GetMainWindowAsync(cancellationToken), expectedTitle, isOpen: false, cancellationToken);
 
         public async Task ClickApplyAndWaitForFeatureAsync(string expectedTitle, string featureName, CancellationToken cancellationToken)
         {
-            await DialogHelpers.PressButtonWithNameFromDialogWithNameAsync(JoinableTaskFactory, await GetMainWindowHWndAsync(cancellationToken), expectedTitle, "Apply", cancellationToken);
+            await DialogHelpers.PressButtonWithNameFromDialogWithNameAsync(JoinableTaskFactory, await TestServices.Shell.GetMainWindowAsync(cancellationToken), expectedTitle, "Apply", cancellationToken);
             await TestServices.Workspace.WaitForAsyncOperationsAsync(featureName, cancellationToken);
         }
 
         public async Task ClickCancelAsync(string expectedTitle, CancellationToken cancellationToken)
-            => await DialogHelpers.PressButtonWithNameFromDialogWithNameAsync(JoinableTaskFactory, await GetMainWindowHWndAsync(cancellationToken), expectedTitle, "Cancel", cancellationToken);
-
-        private async Task<IntPtr> GetMainWindowHWndAsync(CancellationToken cancellationToken)
-        {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-            return dte.MainWindow.HWnd;
-        }
+            => await DialogHelpers.PressButtonWithNameFromDialogWithNameAsync(JoinableTaskFactory, await TestServices.Shell.GetMainWindowAsync(cancellationToken), expectedTitle, "Cancel", cancellationToken);
     }
 }
