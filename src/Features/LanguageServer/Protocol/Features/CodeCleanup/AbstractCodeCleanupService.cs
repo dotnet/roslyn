@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
@@ -65,8 +64,19 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 progressTracker.AddItems(1);
             }
 
+            if (enabledDiagnostics.Diagnostics.Any())
+            {
+                progressTracker.AddItems(enabledDiagnostics.Diagnostics.Length);
+            }
+
             document = await ApplyCodeFixesAsync(
                 document, enabledDiagnostics.Diagnostics, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+            if (enabledDiagnostics.RunThirdPartyFixers)
+            {
+                document = await ApplyThirdPartyCodeFixesAsync(
+                    document, thirdPartyDiagnosticIdsAndTitles, progressTracker, options, cancellationToken).ConfigureAwait(false);
+            }
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
@@ -93,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 document = await ApplyThirdPartyCodeFixesAsync(
                     document, thirdPartyDiagnosticIdsAndTitles, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
-                progressTracker.ItemCompleted();
             }
 
             return document;
@@ -130,8 +139,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Add a progress item for each enabled option we're going to fixup.
-            progressTracker.AddItems(enabledDiagnosticSets.Length);
-
             foreach (var diagnosticSet in enabledDiagnosticSets)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -211,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         {
             foreach (var (diagnosticId, title) in diagnosticIds)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 progressTracker.Description = string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId);
                 // Apply codefixes for diagnostics with a severity of warning or higher
                 var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
