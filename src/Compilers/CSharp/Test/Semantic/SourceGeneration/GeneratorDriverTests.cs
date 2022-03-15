@@ -2879,7 +2879,7 @@ public static readonly string F = ""a""
                 {
                     if (shouldThrow)
                     {
-                        throw new InvalidOperationException("threw");
+                        throw new InvalidOperationException();
                     }
                     else
                     {
