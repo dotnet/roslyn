@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             try
             {
-                var (_, semanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, result, options, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
