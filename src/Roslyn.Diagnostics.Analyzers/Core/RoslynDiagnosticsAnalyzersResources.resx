@@ -391,4 +391,7 @@
   <data name="DoNotCopyValueNoAutoPropertyMessage" xml:space="preserve">
     <value>Auto-property '{1}' cannot have non-copyable type '{0}'</value>
   </data>
+  <data name="Run iterations" xml:space="preserve">
+    <value>Run iterations</value>
+  </data>
 </root>
