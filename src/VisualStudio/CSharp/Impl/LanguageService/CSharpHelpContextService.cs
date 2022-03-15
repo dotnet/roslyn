@@ -292,8 +292,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 if (token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
                 {
-                    // PROTOTYPE: Figure out where to redirect.
-
+                    text = Keyword("functionPointer");
+                    return true;
                 }
             }
 
