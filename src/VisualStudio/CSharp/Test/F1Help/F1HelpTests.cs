@@ -436,7 +436,7 @@ unsafe class C
 {
     delegate*[||]<int> f;
 }
-", "");
+", "functionPointer_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
@@ -447,7 +447,7 @@ unsafe class C
 {
     delegate*[||]<int> f;
 }
-", "");
+", "functionPointer_CSharpKeyword");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
