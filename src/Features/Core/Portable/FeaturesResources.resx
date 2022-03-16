@@ -3214,4 +3214,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Sort_Imports_or_usings" xml:space="preserve">
     <value>Sort Imports or usings</value>
   </data>
+  <data name="Insert_an_if_statement" xml:space="preserve">
+    <value>Insert an if statement</value>
+  </data>
 </root>

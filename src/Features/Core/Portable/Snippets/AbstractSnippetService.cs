@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Snippets
