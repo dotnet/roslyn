@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             _workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
 
-            InitializeColors();
+            await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
 
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
@@ -182,11 +182,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void InitializeColors()
+        private async Task InitializeColorsAsync(CancellationToken cancellationToken)
         {
-            // Initialize ColorSchemeName support
+            await TaskScheduler.Default;
             _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-            _colorSchemeApplier.Initialize();
+            await _colorSchemeApplier.InitializeAsync(cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)

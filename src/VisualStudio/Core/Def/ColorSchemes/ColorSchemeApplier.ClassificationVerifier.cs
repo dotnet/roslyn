@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,11 +20,8 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 {
     internal partial class ColorSchemeApplier
     {
-        private sealed class ClassificationVerifier : ForegroundThreadAffinitizedObject
+        private sealed class ClassificationVerifier
         {
-            private readonly IServiceProvider _serviceProvider;
-            private readonly ImmutableDictionary<ColorSchemeName, ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
-
             private static readonly Guid TextEditorMEFItemsColorCategory = new("75a05685-00a8-4ded-bae5-e7a50bfa929a");
 
             // These classification colors (0x00BBGGRR) should match the VS\EditorColors.xml file.
@@ -59,17 +58,23 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                     [ClassificationTypeNames.Operator] = LightThemeOperator,
                 }.ToImmutableDictionary();
 
+            private readonly IThreadingContext _threadingContext;
+            private readonly IAsyncServiceProvider _asyncServiceProvider;
+            private readonly ImmutableArray<string> _classifications;
+            private readonly ImmutableDictionary<ColorSchemeName, ImmutableDictionary<Guid, ImmutableDictionary<string, uint>>> _colorSchemes;
+
             // The High Contrast theme is not included because we do not want to make changes when the user is in High Contrast mode.
 
             private IVsFontAndColorStorage? _fontAndColorStorage;
             private IVsFontAndColorUtilities? _fontAndColorUtilities;
 
-            private ImmutableArray<string> Classifications { get; }
-
-            public ClassificationVerifier(IThreadingContext threadingContext, IServiceProvider serviceProvider, ImmutableDictionary<ColorSchemeName, ColorScheme> colorSchemes)
-                : base(threadingContext)
+            public ClassificationVerifier(
+                IThreadingContext threadingContext,
+                IAsyncServiceProvider serviceProvider,
+                ImmutableDictionary<ColorSchemeName, ColorScheme> colorSchemes)
             {
-                _serviceProvider = serviceProvider;
+                _threadingContext = threadingContext;
+                _asyncServiceProvider = serviceProvider;
 
                 _colorSchemes = colorSchemes.ToImmutableDictionary(
                     nameAndScheme => nameAndScheme.Key,
@@ -82,23 +87,15 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 // Gather all the classifications from the core and scheme dictionaries.
                 var coreClassifications = DarkThemeForeground.Keys.Concat(BlueLightThemeForeground.Keys).Distinct();
                 var colorSchemeClassifications = _colorSchemes.Values.SelectMany(scheme => scheme.Values.SelectMany(theme => theme.Keys)).Distinct();
-                Classifications = coreClassifications.Concat(colorSchemeClassifications).ToImmutableArray();
+                _classifications = coreClassifications.Concat(colorSchemeClassifications).ToImmutableArray();
             }
 
             /// <summary>
             /// Determines if any Classification foreground colors have been customized in Fonts and Colors.
             /// </summary>
-            public bool AreForegroundColorsCustomized(ColorSchemeName schemeName, Guid themeId)
+            public async Task<bool> AreForegroundColorsCustomizedAsync(
+                ColorSchemeName schemeName, Guid themeId, CancellationToken cancellationToken)
             {
-                AssertIsForeground();
-
-                // Ensure we are initialized
-                if (_fontAndColorStorage is null)
-                {
-                    _fontAndColorStorage = _serviceProvider.GetService<SVsFontAndColorStorage, IVsFontAndColorStorage>();
-                    _fontAndColorUtilities = (IVsFontAndColorUtilities)_fontAndColorStorage!;
-                }
-
                 // Make no changes when in high contast mode or in unknown theme.
                 if (SystemParameters.HighContrast ||
                     !_colorSchemes.TryGetValue(schemeName, out var colorScheme) ||
@@ -107,40 +104,42 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                     return false;
                 }
 
-                var coreThemeColors = (themeId == KnownColorThemes.Dark)
+                // Ensure we are initialized
+                _fontAndColorStorage ??= await _asyncServiceProvider.GetServiceAsync<SVsFontAndColorStorage, IVsFontAndColorStorage>().ConfigureAwait(false);
+                _fontAndColorUtilities ??= (IVsFontAndColorUtilities)_fontAndColorStorage;
+
+                var coreThemeColors = themeId == KnownColorThemes.Dark
                     ? DarkThemeForeground
                     : BlueLightThemeForeground;
 
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 // Open Text Editor category for readonly access and do not load items if they are defaulted.
-                if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_READONLY) != VSConstants.S_OK)
+                if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_READONLY) == VSConstants.S_OK)
                 {
-                    // We were unable to access color information.
-                    return false;
-                }
-
-                try
-                {
-                    foreach (var classification in Classifications)
+                    try
                     {
-                        var colorItems = new ColorableItemInfo[1];
-
-                        if (_fontAndColorStorage.GetItem(classification, colorItems) != VSConstants.S_OK)
+                        foreach (var classification in _classifications)
                         {
-                            // Classifications that are still defaulted will not have entries.
-                            continue;
-                        }
+                            var colorItems = new ColorableItemInfo[1];
+                            if (_fontAndColorStorage.GetItem(classification, colorItems) != VSConstants.S_OK)
+                            {
+                                // Classifications that are still defaulted will not have entries.
+                                continue;
+                            }
 
-                        var colorItem = colorItems[0];
+                            var colorItem = colorItems[0];
 
-                        if (IsClassificationCustomized(coreThemeColors, colorSchemeTheme, colorItem, classification))
-                        {
-                            return true;
+                            if (IsClassificationCustomized(coreThemeColors, colorSchemeTheme, colorItem, classification))
+                            {
+                                return true;
+                            }
                         }
                     }
-                }
-                finally
-                {
-                    _fontAndColorStorage.CloseCategory();
+                    finally
+                    {
+                        _fontAndColorStorage.CloseCategory();
+                    }
                 }
 
                 return false;
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 ColorableItemInfo colorItem,
                 string classification)
             {
-                AssertIsForeground();
+                Contract.ThrowIfFalse(_threadingContext.HasMainThread);
                 Contract.ThrowIfNull(_fontAndColorUtilities);
 
                 var foregroundColorRef = colorItem.crForeground;
