@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,26 +25,26 @@ namespace Microsoft.CodeAnalysis.Formatting
         bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch);
 
         /// <summary>
-        /// Returns the text changes necessary to format the document. If <paramref name="textSpan"/> is provided,
+        /// Returns the text changes necessary to format the document.  If "textSpan" is provided,
         /// only the text changes necessary to format that span are needed.
         /// </summary>
-        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document on paste operation.
         /// </summary>
-        Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a 
         /// character.  The position provided is the position of the caret in the document after
         /// the character been inserted into the document.
         /// </summary>
-        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int position, IndentationOptions options, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a Return
         /// The position provided is the position of the caret in the document after Return.</summary>
-        Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<ImmutableArray<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
     }
 }
