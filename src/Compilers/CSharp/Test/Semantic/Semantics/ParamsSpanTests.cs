@@ -79,60 +79,50 @@ span
 ");
             verifier.VerifyIL("B.Main",
 @"{
-  // Code size      154 (0x9a)
-  .maxstack  2
-  .locals init (System.Span<object> V_0)
+  // Code size      118 (0x76)
+  .maxstack  4
   IL_0000:  ldc.i4.0
   IL_0001:  newarr     ""object""
   IL_0006:  newobj     ""System.Span<object>..ctor(object[])""
   IL_000b:  call       ""void A.F1(params System.Span<object>)""
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  ldc.i4.3
-  IL_0013:  newarr     ""object""
-  IL_0018:  call       ""System.Span<object>..ctor(object[])""
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  ldc.i4.0
-  IL_0020:  call       ""ref object System.Span<object>.this[int].get""
-  IL_0025:  ldc.i4.1
-  IL_0026:  box        ""int""
-  IL_002b:  stind.ref
-  IL_002c:  ldloca.s   V_0
-  IL_002e:  ldc.i4.1
-  IL_002f:  call       ""ref object System.Span<object>.this[int].get""
-  IL_0034:  ldc.i4.2
-  IL_0035:  box        ""int""
-  IL_003a:  stind.ref
-  IL_003b:  ldloca.s   V_0
-  IL_003d:  ldc.i4.2
-  IL_003e:  call       ""ref object System.Span<object>.this[int].get""
-  IL_0043:  ldstr      ""hello""
-  IL_0048:  stind.ref
-  IL_0049:  ldloc.0
-  IL_004a:  call       ""void A.F1(params System.Span<object>)""
-  IL_004f:  ldc.i4.0
+  IL_0010:  ldc.i4.3
+  IL_0011:  newarr     ""object""
+  IL_0016:  dup
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldc.i4.1
+  IL_0019:  box        ""int""
+  IL_001e:  stelem.ref
+  IL_001f:  dup
+  IL_0020:  ldc.i4.1
+  IL_0021:  ldc.i4.2
+  IL_0022:  box        ""int""
+  IL_0027:  stelem.ref
+  IL_0028:  dup
+  IL_0029:  ldc.i4.2
+  IL_002a:  ldstr      ""hello""
+  IL_002f:  stelem.ref
+  IL_0030:  newobj     ""System.Span<object>..ctor(object[])""
+  IL_0035:  call       ""void A.F1(params System.Span<object>)""
+  IL_003a:  ldc.i4.0
+  IL_003b:  newarr     ""object""
+  IL_0040:  newobj     ""System.Span<object>..ctor(object[])""
+  IL_0045:  call       ""System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)""
+  IL_004a:  call       ""void A.F2(params System.ReadOnlySpan<object>)""
+  IL_004f:  ldc.i4.2
   IL_0050:  newarr     ""object""
-  IL_0055:  newobj     ""System.Span<object>..ctor(object[])""
-  IL_005a:  call       ""System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)""
-  IL_005f:  call       ""void A.F2(params System.ReadOnlySpan<object>)""
-  IL_0064:  ldloca.s   V_0
-  IL_0066:  ldc.i4.2
-  IL_0067:  newarr     ""object""
-  IL_006c:  call       ""System.Span<object>..ctor(object[])""
-  IL_0071:  ldloca.s   V_0
-  IL_0073:  ldc.i4.0
-  IL_0074:  call       ""ref object System.Span<object>.this[int].get""
-  IL_0079:  ldstr      ""span""
-  IL_007e:  stind.ref
-  IL_007f:  ldloca.s   V_0
-  IL_0081:  ldc.i4.1
-  IL_0082:  call       ""ref object System.Span<object>.this[int].get""
-  IL_0087:  ldc.i4.3
-  IL_0088:  box        ""int""
-  IL_008d:  stind.ref
-  IL_008e:  ldloc.0
-  IL_008f:  call       ""System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)""
-  IL_0094:  call       ""void A.F2(params System.ReadOnlySpan<object>)""
-  IL_0099:  ret
+  IL_0055:  dup
+  IL_0056:  ldc.i4.0
+  IL_0057:  ldstr      ""span""
+  IL_005c:  stelem.ref
+  IL_005d:  dup
+  IL_005e:  ldc.i4.1
+  IL_005f:  ldc.i4.3
+  IL_0060:  box        ""int""
+  IL_0065:  stelem.ref
+  IL_0066:  newobj     ""System.Span<object>..ctor(object[])""
+  IL_006b:  call       ""System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)""
+  IL_0070:  call       ""void A.F2(params System.ReadOnlySpan<object>)""
+  IL_0075:  ret
 }");
         }
 
@@ -268,53 +258,32 @@ class Program
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      111 (0x6f)
-  .maxstack  2
-  .locals init (System.Span<int> V_0,
-                System.Span<string> V_1)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.3
-  IL_0003:  newarr     ""int""
-  IL_0008:  call       ""System.Span<int>..ctor(int[])""
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  ldc.i4.0
-  IL_0010:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0015:  ldc.i4.1
-  IL_0016:  stind.i4
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  ldc.i4.1
-  IL_001a:  call       ""ref int System.Span<int>.this[int].get""
-  IL_001f:  ldc.i4.2
-  IL_0020:  stind.i4
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldc.i4.2
-  IL_0024:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0029:  ldc.i4.3
-  IL_002a:  stind.i4
-  IL_002b:  ldloc.0
-  IL_002c:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_0031:  ldloca.s   V_1
-  IL_0033:  ldc.i4.3
-  IL_0034:  newarr     ""string""
-  IL_0039:  call       ""System.Span<string>..ctor(string[])""
-  IL_003e:  ldloca.s   V_1
-  IL_0040:  ldc.i4.0
-  IL_0041:  call       ""ref string System.Span<string>.this[int].get""
-  IL_0046:  ldstr      ""4""
-  IL_004b:  stind.ref
-  IL_004c:  ldloca.s   V_1
-  IL_004e:  ldc.i4.1
-  IL_004f:  call       ""ref string System.Span<string>.this[int].get""
-  IL_0054:  ldstr      ""5""
-  IL_0059:  stind.ref
-  IL_005a:  ldloca.s   V_1
-  IL_005c:  ldc.i4.2
-  IL_005d:  call       ""ref string System.Span<string>.this[int].get""
-  IL_0062:  ldstr      ""6""
-  IL_0067:  stind.ref
-  IL_0068:  ldloc.1
-  IL_0069:  call       ""void Program.F<string>(params System.Span<string>)""
-  IL_006e:  ret
+  // Code size       68 (0x44)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0016:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_001b:  ldc.i4.3
+  IL_001c:  newarr     ""string""
+  IL_0021:  dup
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldstr      ""4""
+  IL_0028:  stelem.ref
+  IL_0029:  dup
+  IL_002a:  ldc.i4.1
+  IL_002b:  ldstr      ""5""
+  IL_0030:  stelem.ref
+  IL_0031:  dup
+  IL_0032:  ldc.i4.2
+  IL_0033:  ldstr      ""6""
+  IL_0038:  stelem.ref
+  IL_0039:  newobj     ""System.Span<string>..ctor(string[])""
+  IL_003e:  call       ""void Program.F<string>(params System.Span<string>)""
+  IL_0043:  ret
 }");
         }
 
@@ -348,55 +317,34 @@ class Program
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      121 (0x79)
-  .maxstack  2
-  .locals init (System.Span<int> V_0,
-                System.Span<string> V_1)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.3
-  IL_0003:  newarr     ""int""
-  IL_0008:  call       ""System.Span<int>..ctor(int[])""
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  ldc.i4.0
-  IL_0010:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0015:  ldc.i4.1
-  IL_0016:  stind.i4
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  ldc.i4.1
-  IL_001a:  call       ""ref int System.Span<int>.this[int].get""
-  IL_001f:  ldc.i4.2
-  IL_0020:  stind.i4
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  ldc.i4.2
-  IL_0024:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0029:  ldc.i4.3
-  IL_002a:  stind.i4
-  IL_002b:  ldloc.0
-  IL_002c:  call       ""System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)""
-  IL_0031:  call       ""void Program.F<int>(params System.ReadOnlySpan<int>)""
-  IL_0036:  ldloca.s   V_1
-  IL_0038:  ldc.i4.3
-  IL_0039:  newarr     ""string""
-  IL_003e:  call       ""System.Span<string>..ctor(string[])""
-  IL_0043:  ldloca.s   V_1
-  IL_0045:  ldc.i4.0
-  IL_0046:  call       ""ref string System.Span<string>.this[int].get""
-  IL_004b:  ldstr      ""4""
-  IL_0050:  stind.ref
-  IL_0051:  ldloca.s   V_1
-  IL_0053:  ldc.i4.1
-  IL_0054:  call       ""ref string System.Span<string>.this[int].get""
-  IL_0059:  ldstr      ""5""
-  IL_005e:  stind.ref
-  IL_005f:  ldloca.s   V_1
-  IL_0061:  ldc.i4.2
-  IL_0062:  call       ""ref string System.Span<string>.this[int].get""
-  IL_0067:  ldstr      ""6""
-  IL_006c:  stind.ref
-  IL_006d:  ldloc.1
-  IL_006e:  call       ""System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)""
-  IL_0073:  call       ""void Program.F<string>(params System.ReadOnlySpan<string>)""
-  IL_0078:  ret
+  // Code size       78 (0x4e)
+  .maxstack  4
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0016:  call       ""System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)""
+  IL_001b:  call       ""void Program.F<int>(params System.ReadOnlySpan<int>)""
+  IL_0020:  ldc.i4.3
+  IL_0021:  newarr     ""string""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldstr      ""4""
+  IL_002d:  stelem.ref
+  IL_002e:  dup
+  IL_002f:  ldc.i4.1
+  IL_0030:  ldstr      ""5""
+  IL_0035:  stelem.ref
+  IL_0036:  dup
+  IL_0037:  ldc.i4.2
+  IL_0038:  ldstr      ""6""
+  IL_003d:  stelem.ref
+  IL_003e:  newobj     ""System.Span<string>..ctor(string[])""
+  IL_0043:  call       ""System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)""
+  IL_0048:  call       ""void Program.F<string>(params System.ReadOnlySpan<string>)""
+  IL_004d:  ret
 }");
         }
 
@@ -499,54 +447,26 @@ class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             VerifyOperationTreeAndDiagnosticsForTest<SyntaxNode>(
                 comp,
-@"    IInvocationOperation (void Program.F<System.Int32>(params System.Span<System.Int32> args)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F(1, 2)')
+@"IInvocationOperation (void Program.F<System.Int32>(params System.Span<System.Int32> args)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F(1, 2)')
   Instance Receiver:
     null
   Arguments(1):
       IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
-        IOperation:  (OperationKind.None, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
-          Children(4):
-              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
-                Left:
-                  ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
-                Right:
-                  IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
-                          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'F(1, 2)')
-                            Dimension Sizes(1):
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'F(1, 2)')
-                            Initializer:
-                              null
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Initializer:
-                      null
-              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
-                Left:
-                  IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
-                    Instance Receiver:
-                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'F(1, 2)')
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Right:
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
-                Left:
-                  IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
-                    Instance Receiver:
-                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'F(1, 2)')
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                Right:
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-              ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+        IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'F(1, 2)')
+                  Dimension Sizes(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'F(1, 2)')
+                  Initializer:
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
+                      Element Values(2):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Initializer:
+            null
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ",
@@ -578,51 +498,34 @@ class Program
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             VerifyOperationTreeAndDiagnosticsForTest<SyntaxNode>(
                 comp,
-@"  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'b[2] = a[1]')
+@"ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'b[2] = a[1]')
   Left:
     IPropertyReferenceOperation: System.Object B.this[params System.ReadOnlySpan<System.Int32> args] { set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'b[2]')
       Instance Receiver:
         ILocalReferenceOperation: b (OperationKind.LocalReference, Type: B) (Syntax: 'b')
       Arguments(1):
           IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
-            IOperation:  (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'b[2]')
-              Children(3):
-                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
-                    Left:
-                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
-                    Right:
-                      IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
-                        Arguments(1):
-                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
-                              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'b[2]')
-                                Dimension Sizes(1):
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'b[2]')
-                                Initializer:
-                                  null
-                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Initializer:
-                          null
-                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b[2]')
-                    Left:
-                      IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b[2]')
-                        Instance Receiver:
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
-                        Arguments(1):
-                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
-                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'b[2]')
-                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Right:
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                  IInvocationOperation (System.ReadOnlySpan<System.Int32> System.Span<System.Int32>.op_Implicit(System.Span<System.Int32> span)) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'b[2]')
-                    Instance Receiver:
-                      null
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: span) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            IInvocationOperation (System.ReadOnlySpan<System.Int32> System.Span<System.Int32>.op_Implicit(System.Span<System.Int32> span)) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+              Instance Receiver:
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: span) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
+                    IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
+                            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'b[2]')
+                              Dimension Sizes(1):
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'b[2]')
+                              Initializer:
+                                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'b[2]')
+                                  Element Values(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Right:
@@ -631,44 +534,27 @@ class Program
         ILocalReferenceOperation: a (OperationKind.LocalReference, Type: A) (Syntax: 'a')
       Arguments(1):
           IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
-            IOperation:  (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'a[1]')
-              Children(3):
-                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
-                    Left:
-                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
-                    Right:
-                      IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
-                        Arguments(1):
-                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
-                              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'a[1]')
-                                Dimension Sizes(1):
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'a[1]')
-                                Initializer:
-                                  null
-                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Initializer:
-                          null
-                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a[1]')
-                    Left:
-                      IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a[1]')
-                        Instance Receiver:
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
-                        Arguments(1):
-                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
-                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'a[1]')
-                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    Right:
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                  IInvocationOperation (System.ReadOnlySpan<System.Int32> System.Span<System.Int32>.op_Implicit(System.Span<System.Int32> span)) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'a[1]')
-                    Instance Receiver:
-                      null
-                    Arguments(1):
-                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: span) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
-                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
-                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            IInvocationOperation (System.ReadOnlySpan<System.Int32> System.Span<System.Int32>.op_Implicit(System.Span<System.Int32> span)) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+              Instance Receiver:
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: span) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
+                    IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
+                            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'a[1]')
+                              Dimension Sizes(1):
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'a[1]')
+                              Initializer:
+                                IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'a[1]')
+                                  Element Values(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Initializer:
+                        null
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ",
@@ -793,13 +679,7 @@ class Program
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
-            comp.VerifyEmitDiagnostics(
-                // (8,9): error CS0656: Missing compiler required member 'System.Span`1.get_Item'
-                //         F1();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F1()").WithArguments("System.Span`1", "get_Item").WithLocation(8, 9),
-                // (9,9): error CS0656: Missing compiler required member 'System.Span`1.get_Item'
-                //         F2();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", "get_Item").WithLocation(9, 9));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1232,111 +1112,92 @@ class Program
             // use to match users' expectations around GC for the elements.
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      206 (0xce)
-  .maxstack  3
-  .locals init (int V_0, //offset
-                System.Span<int> V_1)
-  IL_0000:  ldloca.s   V_1
-  IL_0002:  ldc.i4.2
-  IL_0003:  newarr     ""int""
-  IL_0008:  call       ""System.Span<int>..ctor(int[])""
-  IL_000d:  ldloca.s   V_1
-  IL_000f:  ldc.i4.0
-  IL_0010:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0015:  ldc.i4.1
-  IL_0016:  stind.i4
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  ldc.i4.1
-  IL_001a:  call       ""ref int System.Span<int>.this[int].get""
-  IL_001f:  ldc.i4.2
-  IL_0020:  stind.i4
-  IL_0021:  ldloc.1
-  IL_0022:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_0027:  ldc.i4.2
-  IL_0028:  stloc.0
-  IL_0029:  br.s       IL_0091
-  IL_002b:  ldloca.s   V_1
-  IL_002d:  ldc.i4.2
-  IL_002e:  newarr     ""int""
-  IL_0033:  call       ""System.Span<int>..ctor(int[])""
-  IL_0038:  ldloca.s   V_1
-  IL_003a:  ldc.i4.0
-  IL_003b:  call       ""ref int System.Span<int>.this[int].get""
+  // Code size      134 (0x86)
+  .maxstack  5
+  .locals init (int V_0) //offset
+  IL_0000:  ldc.i4.2
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stelem.i4
+  IL_000a:  dup
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldc.i4.2
+  IL_000d:  stelem.i4
+  IL_000e:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0013:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_0018:  ldc.i4.2
+  IL_0019:  stloc.0
+  IL_001a:  br.s       IL_005e
+  IL_001c:  ldc.i4.2
+  IL_001d:  newarr     ""int""
+  IL_0022:  dup
+  IL_0023:  ldc.i4.0
+  IL_0024:  ldloc.0
+  IL_0025:  ldc.i4.1
+  IL_0026:  add
+  IL_0027:  stelem.i4
+  IL_0028:  dup
+  IL_0029:  ldc.i4.1
+  IL_002a:  ldloc.0
+  IL_002b:  ldc.i4.2
+  IL_002c:  add
+  IL_002d:  stelem.i4
+  IL_002e:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0033:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_0038:  ldc.i4.3
+  IL_0039:  newarr     ""int""
+  IL_003e:  dup
+  IL_003f:  ldc.i4.0
   IL_0040:  ldloc.0
-  IL_0041:  ldc.i4.1
+  IL_0041:  ldc.i4.3
   IL_0042:  add
-  IL_0043:  stind.i4
-  IL_0044:  ldloca.s   V_1
-  IL_0046:  ldc.i4.1
-  IL_0047:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0043:  stelem.i4
+  IL_0044:  dup
+  IL_0045:  ldc.i4.1
+  IL_0046:  ldloc.0
+  IL_0047:  ldc.i4.4
+  IL_0048:  add
+  IL_0049:  stelem.i4
+  IL_004a:  dup
+  IL_004b:  ldc.i4.2
   IL_004c:  ldloc.0
-  IL_004d:  ldc.i4.2
+  IL_004d:  ldc.i4.5
   IL_004e:  add
-  IL_004f:  stind.i4
-  IL_0050:  ldloc.1
-  IL_0051:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_0056:  ldloca.s   V_1
-  IL_0058:  ldc.i4.3
-  IL_0059:  newarr     ""int""
-  IL_005e:  call       ""System.Span<int>..ctor(int[])""
-  IL_0063:  ldloca.s   V_1
-  IL_0065:  ldc.i4.0
-  IL_0066:  call       ""ref int System.Span<int>.this[int].get""
+  IL_004f:  stelem.i4
+  IL_0050:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0055:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4.5
+  IL_005c:  add
+  IL_005d:  stloc.0
+  IL_005e:  ldloc.0
+  IL_005f:  ldc.i4.s   15
+  IL_0061:  blt.s      IL_001c
+  IL_0063:  ldc.i4.3
+  IL_0064:  newarr     ""int""
+  IL_0069:  dup
+  IL_006a:  ldc.i4.0
   IL_006b:  ldloc.0
-  IL_006c:  ldc.i4.3
+  IL_006c:  ldc.i4.1
   IL_006d:  add
-  IL_006e:  stind.i4
-  IL_006f:  ldloca.s   V_1
-  IL_0071:  ldc.i4.1
-  IL_0072:  call       ""ref int System.Span<int>.this[int].get""
+  IL_006e:  stelem.i4
+  IL_006f:  dup
+  IL_0070:  ldc.i4.1
+  IL_0071:  ldloc.0
+  IL_0072:  ldc.i4.2
+  IL_0073:  add
+  IL_0074:  stelem.i4
+  IL_0075:  dup
+  IL_0076:  ldc.i4.2
   IL_0077:  ldloc.0
-  IL_0078:  ldc.i4.4
+  IL_0078:  ldc.i4.3
   IL_0079:  add
-  IL_007a:  stind.i4
-  IL_007b:  ldloca.s   V_1
-  IL_007d:  ldc.i4.2
-  IL_007e:  call       ""ref int System.Span<int>.this[int].get""
-  IL_0083:  ldloc.0
-  IL_0084:  ldc.i4.5
-  IL_0085:  add
-  IL_0086:  stind.i4
-  IL_0087:  ldloc.1
-  IL_0088:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_008d:  ldloc.0
-  IL_008e:  ldc.i4.5
-  IL_008f:  add
-  IL_0090:  stloc.0
-  IL_0091:  ldloc.0
-  IL_0092:  ldc.i4.s   15
-  IL_0094:  blt.s      IL_002b
-  IL_0096:  ldloca.s   V_1
-  IL_0098:  ldc.i4.3
-  IL_0099:  newarr     ""int""
-  IL_009e:  call       ""System.Span<int>..ctor(int[])""
-  IL_00a3:  ldloca.s   V_1
-  IL_00a5:  ldc.i4.0
-  IL_00a6:  call       ""ref int System.Span<int>.this[int].get""
-  IL_00ab:  ldloc.0
-  IL_00ac:  ldc.i4.1
-  IL_00ad:  add
-  IL_00ae:  stind.i4
-  IL_00af:  ldloca.s   V_1
-  IL_00b1:  ldc.i4.1
-  IL_00b2:  call       ""ref int System.Span<int>.this[int].get""
-  IL_00b7:  ldloc.0
-  IL_00b8:  ldc.i4.2
-  IL_00b9:  add
-  IL_00ba:  stind.i4
-  IL_00bb:  ldloca.s   V_1
-  IL_00bd:  ldc.i4.2
-  IL_00be:  call       ""ref int System.Span<int>.this[int].get""
-  IL_00c3:  ldloc.0
-  IL_00c4:  ldc.i4.3
-  IL_00c5:  add
-  IL_00c6:  stind.i4
-  IL_00c7:  ldloc.1
-  IL_00c8:  call       ""void Program.F<int>(params System.Span<int>)""
-  IL_00cd:  ret
+  IL_007a:  stelem.i4
+  IL_007b:  newobj     ""System.Span<int>..ctor(int[])""
+  IL_0080:  call       ""void Program.F<int>(params System.Span<int>)""
+  IL_0085:  ret
 }");
         }
 
@@ -1372,76 +1233,41 @@ b
 ");
             verifier.VerifyIL("Program.Main",
 @"{
-  // Code size      161 (0xa1)
-  .maxstack  5
-  .locals init (System.Span<char> V_0,
-                System.Span<char> V_1)
+  // Code size       90 (0x5a)
+  .maxstack  8
   IL_0000:  ldc.i4.0
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  ldc.i4.3
-  IL_0004:  newarr     ""char""
-  IL_0009:  call       ""System.Span<char>..ctor(char[])""
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldc.i4.0
-  IL_0011:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0016:  ldc.i4.1
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  ldc.i4.3
-  IL_001a:  newarr     ""char""
-  IL_001f:  call       ""System.Span<char>..ctor(char[])""
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  ldc.i4.0
-  IL_0027:  call       ""ref char System.Span<char>.this[int].get""
-  IL_002c:  ldc.i4.s   97
-  IL_002e:  stind.i2
-  IL_002f:  ldloca.s   V_1
-  IL_0031:  ldc.i4.1
-  IL_0032:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0037:  ldc.i4.s   98
-  IL_0039:  stind.i2
-  IL_003a:  ldloca.s   V_1
-  IL_003c:  ldc.i4.2
-  IL_003d:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0042:  ldc.i4.s   99
-  IL_0044:  stind.i2
-  IL_0045:  ldloc.1
-  IL_0046:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
-  IL_004b:  stind.i2
-  IL_004c:  ldloca.s   V_0
-  IL_004e:  ldc.i4.1
-  IL_004f:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0054:  ldc.i4.2
-  IL_0055:  ldloca.s   V_1
-  IL_0057:  ldc.i4.3
-  IL_0058:  newarr     ""char""
-  IL_005d:  call       ""System.Span<char>..ctor(char[])""
-  IL_0062:  ldloca.s   V_1
-  IL_0064:  ldc.i4.0
-  IL_0065:  call       ""ref char System.Span<char>.this[int].get""
-  IL_006a:  ldc.i4.s   101
-  IL_006c:  stind.i2
-  IL_006d:  ldloca.s   V_1
-  IL_006f:  ldc.i4.1
-  IL_0070:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0075:  ldc.i4.s   102
-  IL_0077:  stind.i2
-  IL_0078:  ldloca.s   V_1
-  IL_007a:  ldc.i4.2
-  IL_007b:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0080:  ldc.i4.s   103
-  IL_0082:  stind.i2
-  IL_0083:  ldloc.1
-  IL_0084:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
-  IL_0089:  stind.i2
-  IL_008a:  ldloca.s   V_0
-  IL_008c:  ldc.i4.2
-  IL_008d:  call       ""ref char System.Span<char>.this[int].get""
-  IL_0092:  ldc.i4.s   104
-  IL_0094:  stind.i2
-  IL_0095:  ldloc.0
-  IL_0096:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
-  IL_009b:  call       ""void System.Console.WriteLine(char)""
-  IL_00a0:  ret
+  IL_0001:  ldc.i4.3
+  IL_0002:  newarr     ""char""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.3
+  IL_000b:  newarr     ""char""
+  IL_0010:  dup
+  IL_0011:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.13E228567E8249FCE53337F25D7970DE3BD68AB2653424C7B8F9FD05E33CAEDF""
+  IL_0016:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_001b:  newobj     ""System.Span<char>..ctor(char[])""
+  IL_0020:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
+  IL_0025:  stelem.i2
+  IL_0026:  dup
+  IL_0027:  ldc.i4.1
+  IL_0028:  ldc.i4.2
+  IL_0029:  ldc.i4.3
+  IL_002a:  newarr     ""char""
+  IL_002f:  dup
+  IL_0030:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=6 <PrivateImplementationDetails>.E1740606478DD08DD0D1888BBD631744F34BCB178606E98B24C03612E87F801C""
+  IL_0035:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_003a:  newobj     ""System.Span<char>..ctor(char[])""
+  IL_003f:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
+  IL_0044:  stelem.i2
+  IL_0045:  dup
+  IL_0046:  ldc.i4.2
+  IL_0047:  ldc.i4.s   104
+  IL_0049:  stelem.i2
+  IL_004a:  newobj     ""System.Span<char>..ctor(char[])""
+  IL_004f:  call       ""char Program.ElementAt<char>(int, params System.Span<char>)""
+  IL_0054:  call       ""void System.Console.WriteLine(char)""
+  IL_0059:  ret
 }");
         }
     }

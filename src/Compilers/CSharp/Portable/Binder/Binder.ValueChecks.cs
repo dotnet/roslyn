@@ -2999,7 +2999,7 @@ moreArguments:
                     // prevent sharing repeated allocations at the call-site.
                     if (parameter.IsParams &&
                         parameter.Ordinal == parameter.ContainingSymbol.GetParameterCount() - 1 &&
-                        !parameter.Type.IsSZArray())
+                        !parameter.Type.IsSZArray()) // PROTOTYPE: Should check for ReadOnlySpan<T> or Span<T> explicitly.
                     {
                         // PROTOTYPE: Consider reporting the error where the params method is called rather
                         // than on the definition. That would allow calling this method with an explicit Span<T>
