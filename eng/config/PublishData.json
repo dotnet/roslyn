@@ -200,7 +200,7 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.0]"
     },
-    "release/dev17.1-vs-deps": {
+    "release/dev17.1": {
       "nugetKind": [
         "Shipping",
         "NonShipping"

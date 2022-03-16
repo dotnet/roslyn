@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             }
 
             // Otherwise, we need to go produce all tags.
-            var options = DocumentHighlightingOptions.From(document.Project);
+            var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
             return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
             Document document,
-            DocumentHighlightingOptions options,
+            HighlightingOptions options,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;

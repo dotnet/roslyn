@@ -167,8 +167,12 @@ namespace RunTests
                 command.AppendLine($"{setEnvironmentVariable} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1");
                 command.AppendLine("dotnet --info");
 
-                if (Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is string iop)
-                    command.AppendLine($"{setEnvironmentVariable} ROSLYN_TEST_IOPERATION={iop}");
+                var knownEnvironmentVariables = new[] { "ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_USEDASSEMBLIES" };
+                foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
+                {
+                    if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string iop)
+                        command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}={iop}");
+                }
 
                 command.AppendLine($"dotnet {commandLineArguments}");
 

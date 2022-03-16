@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
         protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
+        protected virtual bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
+            => syntaxContext.IsAwaitKeywordContext();
+
         private static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
         {
             var originalDefinition = symbol.OriginalDefinition;
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
 
-            var isAwaitKeywordContext = syntaxContext.IsAwaitKeywordContext();
+            var isAwaitKeywordContext = IsAwaitKeywordContext(syntaxContext);
             var dotAwaitContext = GetDotAwaitKeywordContext(syntaxContext, cancellationToken);
             if (!isAwaitKeywordContext && dotAwaitContext == DotAwaitContext.None)
                 return;

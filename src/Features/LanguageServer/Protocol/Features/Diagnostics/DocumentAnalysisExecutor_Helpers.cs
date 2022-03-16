@@ -123,9 +123,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             Project project,
+            IdeAnalyzerOptions ideOptions,
             IEnumerable<DiagnosticAnalyzer> analyzers,
             bool includeSuppressedDiagnostics,
-            bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, ideOptions),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return ex =>
                 {
-                    if (ex is not OperationCanceledException && crashOnAnalyzerException)
+                    if (ex is not OperationCanceledException && ideOptions.CrashOnAnalyzerException)
                     {
                         // report telemetry
                         FatalError.ReportAndPropagate(ex);

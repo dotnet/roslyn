@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return false;
             }
 
-            var options = ExtractMethodOptions.From(document.Project);
+            var options = _globalOptions.GetExtractMethodOptions(document.Project.Language);
             var result = ExtractMethodService.ExtractMethodAsync(
                 document, spans.Single().Span.ToTextSpan(), localFunction: false, options, cancellationToken).WaitAndGetResult(cancellationToken);
             Contract.ThrowIfNull(result);
@@ -181,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var notificationService = solution.Workspace.Services.GetService<INotificationService>();
 
             // see whether we will allow best effort extraction and if it is possible.
-            if (!_globalOptions.GetOption(ExtractMethodPresentationOptions.AllowBestEffort, document.Project.Language) ||
+            if (!_globalOptions.GetOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, document.Project.Language) ||
                 !result.Status.HasBestEffort() ||
                 result.DocumentWithoutFinalFormatting == null)
             {

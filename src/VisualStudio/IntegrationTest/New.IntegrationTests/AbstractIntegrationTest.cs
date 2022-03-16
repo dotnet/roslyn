@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
-    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev")]
+    [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 2)]
     public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
     {
         protected const string ProjectName = "TestProj";

@@ -106,3 +106,34 @@ https://github.com/dotnet/roslyn/issues/57750
     void M(IEnumerable<char> s = "hello")
     ```
 
+8. <a name="8"></a>Starting with Visual Studio 17.2, an async `foreach` prefers to bind using a pattern-based `DisposeAsync()` method rather than `IAsyncDisposable.DisposeAsync()`.
+    For instance, the `DisposeAsync()` will be picked, rather than the `IAsyncEnumerator<int>.DisposeAsync()` method on `AsyncEnumerator`:
+    ```csharp
+    await foreach (var i in new AsyncEnumerable())
+    {
+    }
+
+    struct AsyncEnumerable
+    {
+        public AsyncEnumerator GetAsyncEnumerator(CancellationToken token) => new AsyncEnumerator();
+    }
+
+    struct AsyncEnumerator : IAsyncDisposable
+    {
+        public int Current => 0;
+        public async ValueTask<bool> MoveNextAsync()
+        {
+            await Task.Yield();
+            return false;
+        }
+        public async ValueTask DisposeAsync()
+        {
+            Console.WriteLine("PICKED");
+            await Task.Yield();
+        }
+        ValueTask IAsyncDisposable.DisposeAsync() => throw null; // no longer picked
+    }
+    ```
+
+9. <a name="9"></a>Starting with Visual Studio 17.2, a `foreach` using a ref struct enumerator type reports an error if the language version is set to 7.3 or earlier.
+

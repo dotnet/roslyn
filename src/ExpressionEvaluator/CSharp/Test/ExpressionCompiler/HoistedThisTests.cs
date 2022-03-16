@@ -1446,8 +1446,8 @@ public class C
             var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNameParser.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
             var moveNextMethod = stateMachineType.GetMember<MethodSymbol>("MoveNext");
 
-            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, sourceMethodMustBeInstance: true);
-            Assert.Equal(iteratorMethod, guessedIterator.OriginalDefinition);
+            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(new EECompilationContextMethod(comp2, moveNextMethod), sourceMethodMustBeInstance: true);
+            Assert.Equal(iteratorMethod, ((EECompilationContextMethod)guessedIterator.OriginalDefinition).UnderlyingMethod.OriginalDefinition);
         }
     }
 }
