@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private bool _hasNoBaseCycles;
 
-        /// <remarks>
-        /// This field cannot be used to determine whether <see cref="_lazyRequiredMembers"/> has been initialized.
-        /// Ensure that <see cref="_lazyRequiredMembers"/> is checked for defaultness _before_ reading this field, which potentially
-        /// means using an `Interlocked.MemoryBarrier()` to ensure that reading this location is not reordered before the read to <see cref="_lazyRequiredMembers"/>.
-        /// </remarks>
-        private bool _lazyHasRequiredMembersErrorDoNotAccessDirectly = false;
-        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers;
+        private static ImmutableSegmentedDictionary<string, Symbol> RequiredMembersSentinel = ImmutableSegmentedDictionary<string, Symbol>.CreateEmpty();
+
+        /// <summary>
+        /// <see cref="RequiredMembersSentinel"/> if uninitialized. <see langword="default"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
+        /// there are no required members. Otherwise, the required members.
+        /// </summary>
+        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = RequiredMembersSentinel;
 
         // Only the compiler can create NamedTypeSymbols.
         internal NamedTypeSymbol(TupleExtraData tupleData = null)
@@ -518,8 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CalculateRequiredMembersIfRequired();
-                Debug.Assert(!_lazyRequiredMembers.IsDefault);
-                return _lazyHasRequiredMembersErrorDoNotAccessDirectly;
+                return _lazyRequiredMembers.IsDefault;
             }
         }
 
@@ -536,32 +535,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CalculateRequiredMembersIfRequired();
-                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                if (_lazyRequiredMembers.IsDefault)
+                {
+                    return ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                }
+
                 return _lazyRequiredMembers;
             }
         }
 
         private void CalculateRequiredMembersIfRequired()
         {
-            if (_lazyRequiredMembers.IsDefault)
+            if (!ImmutableSegmentedDictionary.ReferenceEquals(RequiredMembersSentinel, _lazyRequiredMembers))
             {
-                ImmutableSegmentedDictionary<string, Symbol>.Builder? builder = null;
-                bool success = TryCalculateRequiredMembers(ref builder);
-                var requiredMembers = success
-                    ? builder?.ToImmutable() ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
-                    : ImmutableSegmentedDictionary<string, Symbol>.Empty;
+                return;
+            }
+            ImmutableSegmentedDictionary<string, Symbol>.Builder? builder = null;
+            bool success = TryCalculateRequiredMembers(ref builder);
 
-                _lazyHasRequiredMembersErrorDoNotAccessDirectly = !success;
-                // InterlockedInitialize uses `Interlocked.CompareExchange` under the hood, which will introduce a full
-                // memory barrier, ensuring that the _lazyHasRequiredMembersErrorDoNotAccessDirectly write is not reordered
-                // after the initialization of _lazyRequiredMembers.
-                RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyRequiredMembers, requiredMembers);
-            }
-            else
-            {
-                // Ensure that, after this method, _lazyRequiredMembersErrorDoNotAccessDirectly is able to be accessed safely.
-                Interlocked.MemoryBarrier();
-            }
+            var requiredMembers = success
+                ? builder?.ToImmutable() ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
+                : default(ImmutableSegmentedDictionary<string, Symbol>);
+
+            RoslynImmutableInterlocked.InterlockedCompareExchange(ref _lazyRequiredMembers, requiredMembers, RequiredMembersSentinel);
         }
 
         /// <summary>
@@ -570,12 +566,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
         {
             var lazyRequiredMembers = _lazyRequiredMembers;
-            if (!lazyRequiredMembers.IsDefault)
+            if (!ImmutableSegmentedDictionary.ReferenceEquals(RequiredMembersSentinel, lazyRequiredMembers))
             {
-                requiredMembersBuilder = lazyRequiredMembers.ToBuilder();
-                // Ensure that this read is not reordered before the read to `IsDefault`.
-                Interlocked.MemoryBarrier();
-                return !_lazyHasRequiredMembersErrorDoNotAccessDirectly;
+                if (lazyRequiredMembers.IsDefault)
+                {
+                    return false;
+                }
+                else
+                {
+                    requiredMembersBuilder = lazyRequiredMembers.ToBuilder();
+                    return true;
+                }
             }
 
             if (BaseTypeNoUseSiteDiagnostics?.TryCalculateRequiredMembers(ref requiredMembersBuilder) == false)

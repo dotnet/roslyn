@@ -1369,6 +1369,45 @@ public class C
     }
 
     [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_Unsettable_FromMetadata()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+
+<RequiredMember>
+Public Class C
+    <RequiredMember>
+    Public Readonly Property Prop1 As Integer
+    <RequiredMember>
+    Public Readonly Field1 As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        vbComp.VerifyEmitDiagnostics();
+
+        var c = @"
+var c = new C();
+c = new C() { Prop1 = 1, Field1 = 1 };
+";
+        var comp = CreateCompilation(new[] { c }, references: new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (2,13): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // var c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(2, 13),
+            // (2,13): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // var c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(2, 13),
+            // (3,15): error CS0200: Property or indexer 'C.Prop1' cannot be assigned to -- it is read only
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Prop1").WithArguments("C.Prop1").WithLocation(3, 15),
+            // (3,26): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonly, "Field1").WithLocation(3, 26)
+        );
+    }
+
+    [Fact]
     public void EnforcedRequiredMembers_NoInheritance_DisallowedNestedObjectInitializer()
     {
         var c = @"
