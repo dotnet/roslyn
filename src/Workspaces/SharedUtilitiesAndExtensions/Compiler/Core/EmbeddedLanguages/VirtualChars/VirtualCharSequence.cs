@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         public static VirtualCharSequence SafeCreateFromUnvalidatedString(string text)
         {
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var builder);
+            var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
             for (var i = 0; i < text.Length; /* intentionally empty */)
             {
                 var (virtualChar, consumedCharacters) = VirtualChar.CreateNextInString(

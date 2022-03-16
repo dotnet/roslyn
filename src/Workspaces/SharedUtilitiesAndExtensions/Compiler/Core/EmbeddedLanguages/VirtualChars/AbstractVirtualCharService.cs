@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                         return default;
 
                     result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
-                    index += result.Last().Span.Length;
+                    index += result[^1].Span.Length;
                 }
                 else
                 {
