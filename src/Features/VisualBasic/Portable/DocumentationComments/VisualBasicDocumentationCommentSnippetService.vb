@@ -172,7 +172,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
                 existingCommentText = firstXmlText.TextTokens.First().ValueText
             End If
 
-
             Return lastTextToken.Kind = SyntaxKind.DocumentationCommentLineBreakToken AndAlso
                    firstTextToken.LeadingTrivia.Count = 1 AndAlso
                    firstTextToken.LeadingTrivia.ElementAt(0).Kind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso
