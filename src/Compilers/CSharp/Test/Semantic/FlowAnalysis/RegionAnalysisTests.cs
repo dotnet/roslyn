@@ -9175,5 +9175,44 @@ class C {
 }");
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
         }
+
+        [Fact, WorkItem(60134, "https://github.com/dotnet/roslyn/issues/60134")]
+        public void TestDataFlowsStackArrayInit_01()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+	public void F(int x)
+	{
+		int a = 1, y = 2;
+		var b = stackalloc int[] /*<bind>*/{ a + x + 3 } /*</bind>*/;
+		int c = a + 4 + y;
+	}
+}
+");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact, WorkItem(60134, "https://github.com/dotnet/roslyn/issues/60134")]
+        public void TestDataFlowsStackArrayInit_02()
+        {
+            var comp = CreateCompilation(@"
+unsafe class C
+{
+	void F()
+	{
+        bool b = true;
+		var c = stackalloc int[] { b ? M(out var x) : x };
+	}
+    static int M(out int i) => throw null;
+}
+", options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyDiagnostics(
+                // (7,49): error CS0165: Use of unassigned local variable 'x'
+                // 		var c = stackalloc int[] { b ? M(out var x) : x };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 49)
+                );
+        }
     }
 }

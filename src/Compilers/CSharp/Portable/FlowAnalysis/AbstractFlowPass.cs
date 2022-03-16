@@ -3287,15 +3287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode VisitStackAllocArrayCreationBase(BoundStackAllocArrayCreationBase node)
         {
             VisitRvalue(node.Count);
-
-            if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
-            {
-                foreach (var element in node.InitializerOpt.Initializers)
-                {
-                    VisitRvalue(element);
-                }
-            }
-
+            VisitRvalue(node.InitializerOpt);
             return null;
         }
 
