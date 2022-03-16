@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -27,6 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ExportLanguageService(typeof(IHelpContextService), LanguageNames.CSharp), Shared]
     internal class CSharpHelpContextService : AbstractHelpContextService
     {
+        // This redirects to https://docs.microsoft.com/visualstudio/ide/not-in-toc/default, indicating nothing is found.
+        private const string NotFoundHelpTerm = "vs.texteditor";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpHelpContextService()
@@ -50,14 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(span, cancellationToken).ConfigureAwait(false);
 
                 var result = TryGetText(token, semanticModel, document, cancellationToken);
-                if (string.IsNullOrEmpty(result))
+                if (result is null)
                 {
                     var previousToken = token.GetPreviousToken();
                     if (previousToken.Span.IntersectsWith(span))
                         result = TryGetText(previousToken, semanticModel, document, cancellationToken);
                 }
 
-                return result;
+                return result ?? NotFoundHelpTerm;
             }
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -85,10 +89,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return text.GetSubText(TextSpan.FromBounds(start, end)).ToString();
             }
 
-            return string.Empty;
+            return NotFoundHelpTerm;
         }
 
-        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
+        private string? TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
         {
             if (TryGetTextForSpecialCharacters(token, out var text) ||
                 TryGetTextForContextualKeyword(token, out text) ||
@@ -101,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return text;
             }
 
-            return string.Empty;
+            return null;
         }
 
         private static bool TryGetTextForSpecialCharacters(SyntaxToken token, [NotNullWhen(true)] out string? text)
@@ -201,15 +205,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
-            // Workaround IsPredefinedOperator returning true for '<' in generics.
-            if (token is { RawKind: (int)SyntaxKind.LessThanToken, Parent: not BinaryExpressionSyntax })
-            {
-                text = null;
-                return false;
-            }
-
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOperator(token) || syntaxFacts.IsPredefinedOperator(token) || SyntaxFacts.IsAssignmentExpressionOperatorToken(token.Kind()))
+            if (syntaxFacts.IsOperator(token))
             {
                 text = Keyword(syntaxFacts.GetText(token.RawKind));
                 return true;
@@ -227,6 +224,79 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (token.IsKind(SyntaxKind.EqualsToken))
+            {
+                if (token.Parent.IsKind(SyntaxKind.EqualsValueClause))
+                {
+                    if (token.Parent.Parent.IsKind(SyntaxKind.Parameter))
+                    {
+                        text = Keyword("optionalParameter");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.PropertyDeclaration))
+                    {
+                        text = Keyword("propertyInitializer");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.EnumMemberDeclaration))
+                    {
+                        text = Keyword("enum");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator))
+                    {
+                        text = Keyword("=");
+                        return true;
+                    }
+                }
+                else if (token.Parent.IsKind(SyntaxKind.NameEquals))
+                {
+                    if (token.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator))
+                    {
+                        text = Keyword("anonymousObject");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.UsingDirective))
+                    {
+                        text = Keyword("using");
+                        return true;
+                    }
+                    else if (token.Parent.Parent.IsKind(SyntaxKind.AttributeArgument))
+                    {
+                        text = Keyword("attributeNamedArgument");
+                        return true;
+                    }
+                }
+                else if (token.Parent.IsKind(SyntaxKind.LetClause))
+                {
+                    text = Keyword("let");
+                    return true;
+                }
+                else if (token.Parent is XmlAttributeSyntax)
+                {
+                    // redirects to https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/xmldoc/recommended-tags
+                    text = "see";
+                    return true;
+                }
+
+                // EqualsToken in assignment expression is handled by syntaxFacts.IsOperator call above.
+                // Here we try to handle other contexts of EqualsToken.
+                // If we hit this assert, there is a context of the EqualsToken that's not handled.
+                // In this case, we currently fallback to https://docs.microsoft.com/dotnet/csharp/language-reference/operators/assignment-operator
+                Debug.Fail("Falling back to F1 keyword for assignment token.");
+                text = Keyword("=");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken))
+            {
+                if (token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+                {
+                    text = Keyword("functionPointer");
+                    return true;
+                }
+            }
+
             if (token.IsKind(SyntaxKind.QuestionToken) && token.Parent is ConditionalExpressionSyntax)
             {
                 text = Keyword("?");
@@ -236,6 +306,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 text = Keyword("=>");
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.TypeParameterList, SyntaxKind.TypeArgumentList))
+            {
+                text = Keyword("generics");
                 return true;
             }
 
@@ -322,6 +398,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     return true;
                 case SyntaxKind.StaticKeyword when token.Parent is UsingDirectiveSyntax:
                     text = "using-static_CSharpKeyword";
+                    return true;
+                case SyntaxKind.ReturnKeyword when token.Parent.IsKind(SyntaxKind.YieldReturnStatement):
+                case SyntaxKind.BreakKeyword when token.Parent.IsKind(SyntaxKind.YieldBreakStatement):
+                    text = "yield_CSharpKeyword";
                     return true;
             }
 
