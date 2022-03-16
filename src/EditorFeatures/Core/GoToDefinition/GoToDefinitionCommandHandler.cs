@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 // causing ourselves to self-cancel.
                 backgroundIndicator.CancelOnFocusLost = false;
                 succeeded = await location.TryNavigateToAsync(
-                    _threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+                    _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
             }
 
             if (!succeeded)
