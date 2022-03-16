@@ -1850,6 +1850,10 @@ public class C
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InterfacePreferredOverInstanceMethod()
         {
+            // SPEC: In the situation where a type can be implicitly converted to IDisposable and also fits the disposable pattern,
+            // then IDisposable will be preferred.
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/using.md#pattern-based-using
+
             string source = @"
 public class C : System.IAsyncDisposable
 {

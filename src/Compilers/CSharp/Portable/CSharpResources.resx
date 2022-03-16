@@ -6070,6 +6070,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
     <value>using declarations</value>
   </data>
+  <data name="IDS_FeatureDisposalPattern" xml:space="preserve">
+    <value>pattern-based disposal</value>
+  </data>
   <data name="ERR_FeatureInPreview" xml:space="preserve">
     <value>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</value>
   </data>

@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public Editor_OutOfProc Editor { get; }
 
-        public EncapsulateField_OutOfProc EncapsulateField { get; }
-
         public ErrorList_OutOfProc ErrorList { get; }
 
         public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
@@ -59,8 +57,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public LocalsWindow_OutOfProc LocalsWindow { get; set; }
         public MoveToNamespaceDialog_OutOfProc MoveToNamespaceDialog { get; }
         public PickMembersDialog_OutOfProc PickMembersDialog { get; set; }
-
-        public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
         public SendKeys SendKeys { get; }
 
@@ -135,7 +131,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
-            EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
             ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
@@ -144,7 +139,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             LocalsWindow = new LocalsWindow_OutOfProc(this);
             MoveToNamespaceDialog = new MoveToNamespaceDialog_OutOfProc(this);
             PickMembersDialog = new PickMembersDialog_OutOfProc(this);
-            PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             Workspace = new VisualStudioWorkspace_OutOfProc(this);

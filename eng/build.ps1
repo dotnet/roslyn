@@ -465,6 +465,8 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_CI
     }
 
+    # Note: remember to update TestRunner when using new environment variables
+    # (they need to be transferred over to the Helix machines that run the tests)
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }

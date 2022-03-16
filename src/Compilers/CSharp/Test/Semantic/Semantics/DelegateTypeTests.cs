@@ -11175,7 +11175,7 @@ class Program
             Assert.Equal(0, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_03()
         {
             var source =
@@ -11199,7 +11199,7 @@ class Program
             Assert.Equal(2, data.InferredDelegateCount);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "GetEmitDiagnostics affects result")]
         public void InferDelegateType_04()
         {
             var source =
