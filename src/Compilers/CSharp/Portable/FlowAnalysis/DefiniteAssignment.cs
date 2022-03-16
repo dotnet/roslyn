@@ -1232,26 +1232,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol(), createIfMissing: false);
-                while (fieldSlot != -1 && variableBySlot[fieldSlot].ContainingSlot is int containingSlot && containingSlot != thisSlot)
+                var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol());
+                while (true)
                 {
+                    var containingSlot = variableBySlot[fieldSlot].ContainingSlot;
                     if (containingSlot == fieldSlot)
                     {
                         // the offending field access is not contained in 'this'.
                         return false;
                     }
-                    fieldSlot = containingSlot;
-                }
+                    else if (containingSlot == thisSlot)
+                    {
+                        // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
+                        AddImplicitlyInitializedField((FieldSymbol)variableBySlot[fieldSlot].Symbol);
 
-                // the field was contained in 'this' by some level of nesting.
-                // we now have a slot for the field directly contained in 'this'.
-                // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
-                if (fieldSlot != -1)
-                {
-                    AddImplicitlyInitializedField((FieldSymbol)variableBySlot[fieldSlot].Symbol);
+                        return compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs);
+                    }
+                    else
+                    {
+                        fieldSlot = containingSlot;
+                    }
                 }
-
-                return compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs);
             }
         }
 

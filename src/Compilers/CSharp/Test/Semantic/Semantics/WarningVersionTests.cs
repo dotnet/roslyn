@@ -293,7 +293,6 @@ public struct Struct
         [Fact]
         public void UnassignedThisField_And_UnassignedLocal()
         {
-
             var source = @"
 public struct Struct
 {
