@@ -1533,8 +1533,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool ignoreReceiver(BoundExpression receiver, MethodSymbol method)
             {
-                // ignore the implicit `this` receiver on a static method
-                return method.IsStatic && receiver is { Kind: BoundKind.ThisReference, WasCompilerGenerated: true };
+                // static methods that aren't extensions get an implicit `this` receiver that should be ignored
+                return method.IsStatic && !method.IsExtensionMethod;
             }
         }
 
