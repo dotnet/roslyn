@@ -30313,7 +30313,7 @@ class C2 : I(0)
                 );
         }
 
-        [ConditionalTheory(typeof(NoUsedAssembliesValidation))] // Tracked by  https://github.com/dotnet/roslyn/issues/60060
+        [ConditionalTheory(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60060")]
         [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
         public void CrossAssemblySupportingAndNotSupportingCovariantReturns(bool useCompilationReference)

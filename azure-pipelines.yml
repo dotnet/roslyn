@@ -124,8 +124,8 @@ jobs:
 #  with additional validation for used assemblies and GetEmitDiagnostics
 - template: eng/pipelines/test-windows-job.yml
   parameters:
-    testRunName: 'Test Windows CoreCLR TestUsedAssemblies Debug'
-    jobName: Test_Windows_CoreClr_TestUsedAssemblies_Debug
+    testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
+    jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
     buildJobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
