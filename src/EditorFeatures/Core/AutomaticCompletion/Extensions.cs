@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
+namespace Microsoft.CodeAnalysis.AutomaticCompletion
 {
     internal static class Extensions
     {

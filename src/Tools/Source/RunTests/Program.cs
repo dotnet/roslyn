@@ -405,7 +405,7 @@ namespace RunTests
                 currentTotalSize += fileSizeInMegabytes;
                 if (currentTotalSize > MaxTotalDumpSizeInMegabytes)
                 {
-                    ConsoleUtil.WriteLine($"Deleting {dumpFile} because we have exceeded our total dump size of {MaxTotalDumpSizeInMegabytes} megabytes.");
+                    ConsoleUtil.WriteLine($"Deleting '{dumpFile}' because we have exceeded our total dump size of {MaxTotalDumpSizeInMegabytes} megabytes.");
                     File.Delete(dumpFile);
                 }
             }

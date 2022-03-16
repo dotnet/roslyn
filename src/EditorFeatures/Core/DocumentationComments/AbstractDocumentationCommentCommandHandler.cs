@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,7 +18,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
+namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal abstract class AbstractDocumentationCommentCommandHandler :
         IChainedCommandHandler<TypeCharCommandArgs>,
@@ -31,11 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         protected AbstractDocumentationCommentCommandHandler(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             Contract.ThrowIfNull(uiThreadOperationExecutor);
             Contract.ThrowIfNull(undoHistoryRegistry);
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         protected abstract string ExteriorTriviaText { get; }
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + snippet.CaretOffset));
         }
 
-        private static bool CompleteComment(
+        private bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
             Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var options = DocumentationCommentOptions.From(documentOptions);
+            var options = _globalOptions.GetDocumentationCommentOptions(documentOptions);
 
             // Apply snippet in reverse order so that the first applied snippet doesn't affect span of next snippets.
             var snapshots = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).OrderByDescending(s => s.Span.Start);
@@ -336,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             }
 
             var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var options = DocumentationCommentOptions.From(documentOptions);
+            var options = _globalOptions.GetDocumentationCommentOptions(documentOptions);
 
             var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
             if (snippet != null)

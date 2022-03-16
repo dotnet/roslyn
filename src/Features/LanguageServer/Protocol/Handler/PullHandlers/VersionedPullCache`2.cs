@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken cancellationToken)
         {
             var workspace = document.Project.Solution.Workspace;
-            TCheapVersion? cheapVersion = default;
-            TExpensiveVersion? expensiveVersion = default;
+            TCheapVersion cheapVersion;
+            TExpensiveVersion expensiveVersion;
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (documentToPreviousResult.TryGetValue(document, out var previousResult) &&
@@ -93,9 +93,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         return null;
                     }
                 }
-
-                // Client didn't give us a resultId, we have nothing cached, or what we had cached didn't match the current project.
-                // We need to calculate new results and store what we calculated the results for.
+                else
+                {
+                    // Client didn't give us a resultId or we have nothing cached
+                    // We need to calculate new results and store what we calculated the results for.
+                    cheapVersion = await computeCheapVersionAsync().ConfigureAwait(false);
+                    expensiveVersion = await computeExpensiveVersionAsync().ConfigureAwait(false);
+                }
 
                 // Keep track of the results we reported here so that we can short-circuit producing results for
                 // the same state of the world in the future.  Use a custom result-id per type (doc requests or workspace
@@ -108,8 +112,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
                 var newResultId = $"{_uniqueKey}:{_nextDocumentResultId++}";
-                cheapVersion ??= await computeCheapVersionAsync().ConfigureAwait(false);
-                expensiveVersion ??= await computeExpensiveVersionAsync().ConfigureAwait(false);
                 _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, cheapVersion, expensiveVersion);
                 return newResultId;
             }

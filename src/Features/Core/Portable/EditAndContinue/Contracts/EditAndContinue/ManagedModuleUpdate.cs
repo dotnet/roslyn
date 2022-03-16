@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
             ImmutableArray<int> updatedMethods,
             ImmutableArray<int> updatedTypes,
             ImmutableArray<ManagedActiveStatementUpdate> activeStatements,
-            ImmutableArray<ManagedExceptionRegionUpdate> exceptionRegions)
+            ImmutableArray<ManagedExceptionRegionUpdate> exceptionRegions,
+            EditAndContinueCapabilities requiredCapabilities)
         {
             Module = module;
 
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
 
             ActiveStatements = activeStatements;
             ExceptionRegions = exceptionRegions;
+            RequiredCapabilities = requiredCapabilities;
         }
 
         /// <summary>
@@ -146,5 +148,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.Contracts
         /// </summary>
         [DataMember(Name = "exceptionRegions")]
         public ImmutableArray<ManagedExceptionRegionUpdate> ExceptionRegions { get; }
+
+        [DataMember(Name = "requiredCapabilities")]
+        public EditAndContinueCapabilities RequiredCapabilities { get; }
     }
 }

@@ -85,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                  isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
-                 isPartial: syntax.Modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0,
                  isReadOnly: false,
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
