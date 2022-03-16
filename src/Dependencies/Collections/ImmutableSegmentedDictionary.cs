@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
             => ImmutableSegmentedDictionary<TKey, TValue>.Empty.WithComparer(keyComparer);
 
+        public static bool ReferenceEquals<TKey, TValue>(ImmutableSegmentedDictionary<TKey, TValue> left, ImmutableSegmentedDictionary<TKey, TValue> right)
+            where TKey : notnull
+            => ImmutableSegmentedDictionary<TKey, TValue>.ReferenceEquals(left, right);
+
         public static ImmutableSegmentedDictionary<TKey, TValue>.Builder CreateBuilder<TKey, TValue>()
             where TKey : notnull
             => Create<TKey, TValue>().ToBuilder();

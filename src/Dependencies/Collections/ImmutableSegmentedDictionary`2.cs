@@ -70,7 +70,18 @@ namespace Microsoft.CodeAnalysis.Collections
     internal readonly partial struct ImmutableSegmentedDictionary<TKey, TValue> : IImmutableDictionary<TKey, TValue>, IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDictionary, IEquatable<ImmutableSegmentedDictionary<TKey, TValue>>
         where TKey : notnull
     {
-        public static readonly ImmutableSegmentedDictionary<TKey, TValue> Empty = new(new SegmentedDictionary<TKey, TValue>());
+        public static readonly ImmutableSegmentedDictionary<TKey, TValue> Empty = CreateEmpty();
+
+        /// <summary>
+        /// Creates a new empty segmented dictionary, that is not underlying-reference equal to <see cref="Empty"/>. The intent is for this to
+        /// be used for sentinel values only.
+        /// </summary>
+        internal static ImmutableSegmentedDictionary<TKey, TValue> CreateEmpty() => new(new SegmentedDictionary<TKey, TValue>());
+
+        /// <summary>
+        /// Compares the given segmented dictionaries for reference-equality of their underlying storage.
+        /// </summary>
+        internal static bool ReferenceEquals(ImmutableSegmentedDictionary<TKey, TValue> left, ImmutableSegmentedDictionary<TKey, TValue> right) => ReferenceEquals(left._dictionary, right._dictionary);
 
         private readonly SegmentedDictionary<TKey, TValue> _dictionary;
 
