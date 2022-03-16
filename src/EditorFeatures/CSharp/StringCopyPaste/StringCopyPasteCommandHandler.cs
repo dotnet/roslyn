@@ -225,12 +225,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         _lastSelectedSpans, cancellationToken);
                     if (stringExpressionCopiedFrom != null)
                     {
-
+                        return new KnownSourcePasteProcessor(
+                            snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                            stringExpressionBeforePaste, newLine, pasteWasSuccessful);
                     }
                 }
 
                 return new UnknownSourcePasteProcessor(
-                    snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste, newLine, pasteWasSuccessful);
+                    snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, 
+                    stringExpressionBeforePaste, newLine, pasteWasSuccessful);
             }
         }
 
