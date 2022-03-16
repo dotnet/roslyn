@@ -515,6 +515,15 @@ breaks
             TestNormalizeDeclaration("class a{a(){}}", "class a\r\n{\r\n  a()\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("class a{~a(){}}", "class a\r\n{\r\n  ~a()\r\n  {\r\n  }\r\n}");
 
+            // operators
+            TestNormalizeDeclaration("class a{b operator    checked-(c d){}}", "class a\r\n{\r\n  b operator checked -(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ implicit operator    checked    b(c d){}}", "class a\r\n{\r\n  implicit operator checked b(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ explicit operator    checked    b(c d){}}", "class a\r\n{\r\n  explicit operator checked b(c d)\r\n  {\r\n  }\r\n}");
+
+            TestNormalizeDeclaration("class a{b I1 . operator    checked-(c d){}}", "class a\r\n{\r\n  b I1.operator checked -(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ implicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  implicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
+            TestNormalizeDeclaration("class a{ explicit I1 . operator    checked    b(c d){}}", "class a\r\n{\r\n  explicit I1.operator checked b(c d)\r\n  {\r\n  }\r\n}");
+
             // properties
             TestNormalizeDeclaration("class a{b c{get;}}", "class a\r\n{\r\n  b c { get; }\r\n}");
             TestNormalizeDeclaration("class a {\r\nint X{get;set;}= 2;\r\n}\r\n", "class a\r\n{\r\n  int X { get; set; } = 2;\r\n}");
