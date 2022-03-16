@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var subjectBuffer = _span.Snapshot.TextBuffer;
 
                 var updatedSpan = _trackingSpan!.GetSpan(subjectBuffer.CurrentSnapshot);
-                if (subjectBuffer.CurrentSnapshot.Length > replacementValue.Span.End)
+                if (subjectBuffer.CurrentSnapshot.Length > updatedSpan.Span.End)
                 {
                     subjectBuffer.Replace(updatedSpan.Span, replacementValue.NewText);
                 }

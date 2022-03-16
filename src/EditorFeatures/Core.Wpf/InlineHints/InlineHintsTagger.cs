@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                             }
 
                             var hintUITag = InlineHintsTag.Create(
-                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, trackingSpan, _taggerProvider, _formatMap, classify);
+                                    hint, Format, _textView, tagSpan, trackingSpan, _taggerProvider, _formatMap, classify);
 
                             hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
                             _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);
