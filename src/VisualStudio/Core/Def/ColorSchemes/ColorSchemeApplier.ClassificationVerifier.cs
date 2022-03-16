@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes
@@ -105,14 +106,15 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 }
 
                 // Ensure we are initialized
+                await TaskScheduler.Default;
                 _fontAndColorStorage ??= await _asyncServiceProvider.GetServiceAsync<SVsFontAndColorStorage, IVsFontAndColorStorage>().ConfigureAwait(false);
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 _fontAndColorUtilities ??= (IVsFontAndColorUtilities)_fontAndColorStorage;
 
                 var coreThemeColors = themeId == KnownColorThemes.Dark
                     ? DarkThemeForeground
                     : BlueLightThemeForeground;
-
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 // Open Text Editor category for readonly access and do not load items if they are defaulted.
                 if (_fontAndColorStorage.OpenCategory(TextEditorMEFItemsColorCategory, (uint)__FCSTORAGEFLAGS.FCSF_READONLY) == VSConstants.S_OK)
