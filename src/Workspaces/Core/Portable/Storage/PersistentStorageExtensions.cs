@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         public static IChecksummedPersistentStorageService GetPersistentStorageService(this HostWorkspaceServices services)
         {
-            var workspaceConfiguration = services.GetRequiredService<IWorkspaceConfigurationService>();
+            var workspaceConfiguration = services.GetService<IWorkspaceConfigurationService>();
             var configuration = services.GetRequiredService<IPersistentStorageConfiguration>();
 
-            return workspaceConfiguration.Options.CacheStorage switch
+            return workspaceConfiguration?.Options.CacheStorage switch
             {
 #if !DOTNET_BUILD_FROM_SOURCE
                 StorageDatabase.SQLite

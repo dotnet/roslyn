@@ -4,22 +4,21 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Telemetry
+namespace Microsoft.CodeAnalysis.Host
 {
     [ExportWorkspaceService(typeof(IWorkspaceConfigurationService)), Shared]
-    internal sealed class VisualStudioWorkspaceConfigurationService : IWorkspaceConfigurationService
+    internal sealed class WorkspaceConfigurationService : IWorkspaceConfigurationService
     {
         private readonly IGlobalOptionService _globalOptions;
         private WorkspaceConfigurationOptions? _lazyOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceConfigurationService(IGlobalOptionService globalOptions)
+        public WorkspaceConfigurationService(IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
         }
