@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -375,7 +374,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 displayName);
         }
 
-        private static ImmutableArray<ISymbol> GetImplementedSymbolsForTypeMember(
+        internal static ImmutableArray<ISymbol> GetImplementedSymbolsForTypeMember(
             ISymbol memberSymbol,
             ImmutableArray<ISymbol> overriddenSymbols)
         {
@@ -407,7 +406,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// For the <param name="memberSymbol"/>, get all the implementing symbols.
         /// </summary>
-        private static async Task<ImmutableArray<ISymbol>> GetImplementingSymbolsForTypeMemberAsync(
+        internal static async Task<ImmutableArray<ISymbol>> GetImplementingSymbolsForTypeMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             CancellationToken cancellationToken)
@@ -442,7 +441,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Get overridden members the <param name="memberSymbol"/>.
         /// </summary>
-        private static ImmutableArray<ISymbol> GetOverriddenSymbols(ISymbol memberSymbol)
+        internal static ImmutableArray<ISymbol> GetOverriddenSymbols(ISymbol memberSymbol)
         {
             if (memberSymbol is INamedTypeSymbol)
             {
@@ -465,7 +464,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Get the derived interfaces and derived classes for <param name="typeSymbol"/>.
         /// </summary>
-        private static async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
+        internal static async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
             Solution solution,
             INamedTypeSymbol typeSymbol,
             CancellationToken cancellationToken)
@@ -543,7 +542,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             throw ExceptionUtilities.Unreachable;
         }
 
-        private static bool IsNavigableSymbol(ISymbol symbol)
+        internal static bool IsNavigableSymbol(ISymbol symbol)
         {
             var locations = symbol.Locations;
             if (locations.Length == 1)

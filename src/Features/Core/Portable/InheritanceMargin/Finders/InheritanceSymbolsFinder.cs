@@ -7,12 +7,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.InheritanceMargin
+namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
-    internal abstract class InheritanceMarginItemFinder
+    internal abstract class InheritanceSymbolsFinder
     {
         protected abstract Task<ImmutableArray<ISymbol>> GetUpSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken);
 
@@ -32,7 +30,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             while (queue.Count > 0)
             {
                 var currentSymbol = queue.Dequeue();
-                if (visitedSet.Add(currentSymbol))
+                var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(currentSymbol, solution, cancellationToken).ConfigureAwait(false);
+                var searchSymbol = sourceSymbol ?? currentSymbol;
+                if (visitedSet.Add(searchSymbol))
                 {
                     var symbols = getUpOrDownSymbols
                         ? await GetUpSymbolsAsync(currentSymbol, solution, cancellationToken).ConfigureAwait(false)
@@ -71,24 +71,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             {
                 queue.Enqueue(symbol);
             }
-        }
-    }
-
-    internal class BaseTypeAndInterfaceFinder : InheritanceMarginItemFinder
-    {
-        protected override Task<ImmutableArray<ISymbol>> GetUpSymbolsAsync(
-            ISymbol symbol,
-            Solution solution,
-            CancellationToken cancellationToken)
-            => Task.FromResult(BaseTypeFinder.FindBaseTypesAndInterfaces((INamedTypeSymbol)symbol).CastArray<ISymbol>());
-
-        protected override Task<ImmutableArray<ISymbol>> GetDownSymbolsAsync(
-            ISymbol symbol,
-            Solution solution,
-            CancellationToken cancellationToken) => throw ExceptionUtilities.Unreachable;
-
-        public Task GetBaseTypeAndBaseInterfaceAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
         }
     }
 }
