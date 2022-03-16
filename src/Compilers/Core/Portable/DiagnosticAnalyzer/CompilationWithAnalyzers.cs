@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var compDiags = compilation.GetDiagnostics(cancellationToken);
                 var analyzerDiags = await driver.GetDiagnosticsAsync(compilation).ConfigureAwait(false);
                 var reportedDiagnostics = compDiags.AddRange(analyzerDiags);
-                return driver.ApplyProgrammaticSuppressions(reportedDiagnostics, compilation);
+                return driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(reportedDiagnostics, compilation);
             }
             finally
             {
