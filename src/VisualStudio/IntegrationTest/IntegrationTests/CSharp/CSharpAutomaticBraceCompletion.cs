@@ -280,7 +280,7 @@ class C {
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("int [");
-            VisualStudio.Editor.Verify.CurrentLineText("int [$$]", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("int[$$]", assertCaretPosition: true);
         }
 
         [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -294,7 +294,7 @@ class C {
             VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
 
             VisualStudio.Editor.SendKeys("int [", ']');
-            VisualStudio.Editor.Verify.CurrentLineText("int []$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("    int[]$$ ", assertCaretPosition: true, trimWhitespace: false);
         }
 
         [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

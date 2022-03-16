@@ -6,11 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -33,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 private readonly ExternalErrorDiagnosticUpdateSource _buildErrorSource;
 
-                public BuildTableDataSource(Workspace workspace, ExternalErrorDiagnosticUpdateSource errorSource)
-                    : base(workspace)
+                public BuildTableDataSource(Workspace workspace, IThreadingContext threadingContext, ExternalErrorDiagnosticUpdateSource errorSource)
+                    : base(workspace, threadingContext)
                 {
                     _buildErrorSource = errorSource;
 
@@ -84,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 public override AbstractTableEntriesSnapshot<DiagnosticTableItem> CreateSnapshot(AbstractTableEntriesSource<DiagnosticTableItem> source, int version, ImmutableArray<DiagnosticTableItem> items, ImmutableArray<ITrackingPoint> trackingPoints)
                 {
                     // Build doesn't support tracking point.
-                    return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
+                    return new TableEntriesSnapshot(ThreadingContext, (DiagnosticTableEntriesSource)source, version, items);
                 }
 
                 public override IEqualityComparer<DiagnosticTableItem> GroupingComparer
@@ -124,8 +127,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     private readonly DiagnosticTableEntriesSource _source;
 
                     public TableEntriesSnapshot(
+                        IThreadingContext threadingContext,
                         DiagnosticTableEntriesSource source, int version, ImmutableArray<DiagnosticTableItem> items)
-                        : base(version, items, ImmutableArray<ITrackingPoint>.Empty)
+                        : base(threadingContext, version, items, ImmutableArray<ITrackingPoint>.Empty)
                     {
                         _source = source;
                     }
@@ -155,13 +159,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCodeToolTip:
-                                content = BrowserHelper.GetHelpLinkToolTip(data);
+                                content = (data.GetValidHelpLinkUri() != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null;
                                 return content != null;
                             case StandardTableKeyNames.HelpKeyword:
                                 content = data.Id;
                                 return content != null;
                             case StandardTableKeyNames.HelpLink:
-                                content = BrowserHelper.GetHelpLink(data)?.AbsoluteUri;
+                                content = data.GetValidHelpLinkUri()?.AbsoluteUri;
                                 return content != null;
                             case StandardTableKeyNames.ErrorCategory:
                                 content = data.Category;
@@ -209,22 +213,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+                    public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
                     {
                         var item = GetItem(index);
-                        if (item?.DocumentId == null)
-                        {
+                        if (item is null)
                             return false;
-                        }
 
-                        var documentId = GetProperDocumentId(item);
-                        var solution = item.Workspace.CurrentSolution;
+                        var documentId = GetProperDocumentId(ThreadingContext, item, cancellationToken);
+                        if (documentId is null)
+                            return false;
 
-                        return solution.ContainsDocument(documentId) &&
-                            TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate, cancellationToken);
+                        return TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), options, cancellationToken);
                     }
 
-                    private DocumentId? GetProperDocumentId(DiagnosticTableItem item)
+                    private static DocumentId? GetProperDocumentId(IThreadingContext threadingContext, DiagnosticTableItem item, CancellationToken cancellationToken)
                     {
                         var documentId = item.DocumentId;
                         var projectId = item.ProjectId;
@@ -234,6 +236,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         if (solution.GetDocument(documentId) != null)
                         {
                             return documentId;
+                        }
+
+                        if (solution.GetProject(projectId) is { } project)
+                        {
+                            // We couldn't find a document matching a known ID when the item was created, so it may be a
+                            // source generator output.
+                            var documents = threadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentsAsync(cancellationToken).AsTask());
+                            if (documentId is not null)
+                            {
+                                if (documents.Any(document => document.Id == documentId))
+                                    return documentId;
+                            }
+                            else
+                            {
+                                var projectDirectory = Path.GetDirectoryName(project.FilePath);
+                                documentId = documents.FirstOrDefault(document => Path.Combine(projectDirectory, document.FilePath) == item.GetOriginalFilePath())?.Id;
+                                if (documentId is not null)
+                                    return documentId;
+                            }
                         }
 
                         // okay, documentId no longer exist in current solution, find it by file path.

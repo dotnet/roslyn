@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -29,6 +30,8 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         public ImmutableArray<DefinitionItem>.Builder Definitions = ImmutableArray.CreateBuilder<DefinitionItem>();
     }
 
+    private readonly IGlobalOptionService _globalOptions;
+
     /// <summary>
     /// Lock which controls access to all members below.
     /// </summary>
@@ -46,8 +49,9 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
     /// </summary> 
     private State? _state = new();
 
-    public BufferedFindUsagesContext()
+    public BufferedFindUsagesContext(IGlobalOptionService globalOptions)
     {
+        _globalOptions = globalOptions;
     }
 
     [MemberNotNullWhen(true, nameof(_streamingPresenterContext))]
@@ -149,6 +153,9 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
     #endregion
 
     #region IFindUsagesContext
+
+    ValueTask<FindUsagesOptions> IFindUsagesContext.GetOptionsAsync(string language, CancellationToken cancellationToken)
+        => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
     async ValueTask IFindUsagesContext.ReportMessageAsync(string message, CancellationToken cancellationToken)
     {

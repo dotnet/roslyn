@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -80,10 +81,9 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
                 }
 
-                var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var newTypeDeclaration = CodeGenerator.AddMemberDeclarations(
-                    _typeDeclaration, methods, _document.Project.Solution.Workspace,
-                    new CodeGenerationOptions(options: options));
+                var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+                var options = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _document, cancellationToken).ConfigureAwait(false);
+                var newTypeDeclaration = codeGenerator.AddMembers(_typeDeclaration, methods, options, cancellationToken);
 
                 if (constructedTypeToImplement is object)
                 {
@@ -125,11 +125,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private async Task<Document> UpdateDocumentAndAddImportsAsync(SyntaxNode oldType, SyntaxNode newType, CancellationToken cancellationToken)
             {
                 var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newDocument = _document.WithSyntaxRoot(
-                    oldRoot.ReplaceNode(oldType, newType));
-                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    newDocument,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
+                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(false);
+
+                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
                 return newDocument;
             }
 

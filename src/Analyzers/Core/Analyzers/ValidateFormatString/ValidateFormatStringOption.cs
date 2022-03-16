@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ValidateFormatString
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             new(
                 nameof(ValidateFormatStringOption),
                 nameof(ReportInvalidPlaceholdersInStringDotFormatCalls),
-                defaultValue: true,
+                IdeAnalyzerOptions.Default.ReportInvalidPlaceholdersInStringDotFormatCalls,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls"));
     }
 }

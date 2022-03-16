@@ -399,16 +399,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            SimpleLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                    .GetMember<SourceMethodSymbol>("M")
-                                                                    .GetNonNullSyntaxNode()
-                                                                    .DescendantNodes()
-                                                                    .OfType<SimpleLambdaExpressionSyntax>()
-                                                                    .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -426,17 +416,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -454,16 +433,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            Syntax.ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                                  .GetMember<SourceMethodSymbol>("M")
-                                                                                  .GetNonNullSyntaxNode()
-                                                                                  .DescendantNodes()
-                                                                                  .OfType<Syntax.ParenthesizedLambdaExpressionSyntax>()
-                                                                                  .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -571,16 +540,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -598,17 +557,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -626,21 +574,10 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                           .GetMember<SourceMethodSymbol>("M")
-                                                           .GetNonNullSyntaxNode()
-                                                           .DescendantNodes()
-                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.True(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
-        public void NullCheckedDiscard()
+        public void NullCheckedDiscard_1()
         {
             var source = @"
 using System;
@@ -649,21 +586,40 @@ class C
     public void M()
     {
         Func<string, int> func1 = (_!!) => 42;
+        Func<string, string, int> func2 = (_!!, x) => 42;
     }
 }";
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
+        }
 
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
+        [Fact]
+        public void NullCheckedDiscard_2()
+        {
+            var source = @"
+using System;
+class C
+{
+    public Action<string, string> action0 = (_, _) => { }; // 1
+    public Action<string, string> action1 = (_!!, _) => { }; // 1
+    public Action<string, string> action2 = (_, _!!) => { }; // 2
+    public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (6,46): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action1 = (_!!, _) => { }; // 1
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(6, 46),
+                // (7,49): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action2 = (_, _!!) => { }; // 2
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(7, 49),
+                // (8,46): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(8, 46),
+                // (8,51): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(8, 51));
         }
 
         [Fact]
@@ -680,9 +636,9 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
+                    // (5,31): error CS8994: 'out' parameter 'x' cannot be null-checked.
                     //     public void M(out string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnOutParameter, "!!").WithArguments("x").WithLocation(5, 31));
         }
 
         [Fact]
@@ -698,10 +654,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(ref string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -714,10 +667,7 @@ class C
     public void M(in string x!!) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,30): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(in string x!!) { }
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 30));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -775,16 +725,13 @@ class B2 : A<string>
 }
 class B3 : A<int?>
 {
-    internal override void F<U>(U u!! = default) { }
+    internal override void F<U>(U u!! = default) { } // note: 'U' is a nullable type here but we don't give a warning due to complexity of accurately searching the constraints.
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                    // (12,35): warning CS8719: Parameter 'u' is null-checked but is null by default.
-                    //     internal override void F<U>(U u!! = default) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "u").WithArguments("u").WithLocation(12, 35),
-                    // (16,35): warning CS8721: Nullable value type 'U' is null-checked and will throw if null.
-                    //     internal override void F<U>(U u!! = default) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "u").WithArguments("U").WithLocation(16, 35));
+                // (12,35): warning CS8993: Parameter 'u' is null-checked but is null by default.
+                //     internal override void F<U>(U u!! = default) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "u").WithArguments("u").WithLocation(12, 35));
         }
 
         [Fact]
@@ -1084,6 +1031,9 @@ class Program
                 // (16,9): warning CS8602: Dereference of a possibly null reference.
                 //         x1.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(16, 9),
+                // (19,55): warning CS8995: Nullable type 'T' is null-checked and will throw if null.
+                //     static void M3<T>([AllowNull] T x2, [AllowNull] T y2!!)
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "y2").WithArguments("T").WithLocation(19, 55),
                 // (21,9): warning CS8602: Dereference of a possibly null reference.
                 //         x2.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(21, 9));
@@ -1119,6 +1069,166 @@ class Derived : Base
                 //     public override void M2(string s) { } // 3
                 Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("s").WithLocation(13, 26)
             );
+        }
+
+        [Fact]
+        public void TestNullabilityAttributes()
+        {
+            var source =
+@"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M<T>(
+        string s1!!,
+        [NotNull] string s2!!,
+        [DisallowNull] string s3!!,
+        [AllowNull] string s4!!, // 1
+        [AllowNull, DisallowNull] string s5!!, // 2
+        [AllowNull, NotNull] string s6!!,
+
+        string? s7!!, // 3
+        [NotNull] string? s8!!, // ok: this is a typical signature for an 'AssertNotNull' style method.
+        [DisallowNull] string? s9!!,
+        [AllowNull] string? s10!!, // 4
+        [AllowNull, DisallowNull] string? s11!!, // 5
+        [AllowNull, NotNull] string? s12!!,
+
+        int i1!!, // 6
+        [NotNull] int i2!!, // 7
+        [DisallowNull] int i3!!, // 8
+        [AllowNull] int i4!!, // 9
+        [AllowNull, DisallowNull] int i5!!, // 10
+        [AllowNull, NotNull] int i6!!, // 11
+
+        int? i7!!, // 12
+        [NotNull] int? i8!!,
+        [DisallowNull] int? i9!!,
+        [AllowNull] int? i10!!, // 13
+        [AllowNull, DisallowNull] int? i11!!, // 14
+        [AllowNull, NotNull] int? i12!!
+    ) { }
+}";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,28): warning CS8995: Nullable type 'string' is null-checked and will throw if null.
+                //         [AllowNull] string s4!!, // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s4").WithArguments("string").WithLocation(11, 28),
+                // (12,42): warning CS8995: Nullable type 'string' is null-checked and will throw if null.
+                //         [AllowNull, DisallowNull] string s5!!, // 2
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s5").WithArguments("string").WithLocation(12, 42),
+                // (15,17): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //         string? s7!!, // 3
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s7").WithArguments("string?").WithLocation(15, 17),
+                // (18,29): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //         [AllowNull] string? s10!!, // 4
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s10").WithArguments("string?").WithLocation(18, 29),
+                // (19,43): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //         [AllowNull, DisallowNull] string? s11!!, // 5
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s11").WithArguments("string?").WithLocation(19, 43),
+                // (22,13): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //         int i1!!, // 6
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "i1").WithArguments("int").WithLocation(22, 13),
+                // (23,23): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //         [NotNull] int i2!!, // 7
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "i2").WithArguments("int").WithLocation(23, 23),
+                // (24,28): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //         [DisallowNull] int i3!!, // 8
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "i3").WithArguments("int").WithLocation(24, 28),
+                // (25,25): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //         [AllowNull] int i4!!, // 9
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "i4").WithArguments("int").WithLocation(25, 25),
+                // (26,39): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //         [AllowNull, DisallowNull] int i5!!, // 10
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "i5").WithArguments("int").WithLocation(26, 39),
+                // (27,34): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //         [AllowNull, NotNull] int i6!!, // 11
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "i6").WithArguments("int").WithLocation(27, 34),
+                // (29,14): warning CS8995: Nullable type 'int?' is null-checked and will throw if null.
+                //         int? i7!!, // 12
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "i7").WithArguments("int?").WithLocation(29, 14),
+                // (32,26): warning CS8995: Nullable type 'int?' is null-checked and will throw if null.
+                //         [AllowNull] int? i10!!, // 13
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "i10").WithArguments("int?").WithLocation(32, 26),
+                // (33,40): warning CS8995: Nullable type 'int?' is null-checked and will throw if null.
+                //         [AllowNull, DisallowNull] int? i11!!, // 14
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "i11").WithArguments("int?").WithLocation(33, 40)
+            );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("where T : class")]
+        [InlineData("where T : class?")]
+        [InlineData("where T : notnull")]
+        public void TestNullabilityAttributes_Generic(string constraints)
+        {
+            var source =
+@"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M<T>(
+        T t1!!,
+        [NotNull] T t2!!,
+        [DisallowNull] T t3!!,
+        [AllowNull] T t4!!, // 1
+        [AllowNull, DisallowNull] T t5!!, // 2
+        [AllowNull, NotNull] T t6!!,
+
+        T? t7!!, // 3
+        [NotNull] T? t8!!,
+        [DisallowNull] T? t9!!,
+        [AllowNull] T? t10!!, // 4
+        [AllowNull, DisallowNull] T? t11!!, // 5
+        [AllowNull, NotNull] T? t12!!
+    ) " + constraints + @" { }
+}";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (11,23): warning CS8995: Nullable type 'T' is null-checked and will throw if null.
+                //         [AllowNull] T t4!!, // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t4").WithArguments("T").WithLocation(11, 23),
+                // (12,37): warning CS8995: Nullable type 'T' is null-checked and will throw if null.
+                //         [AllowNull, DisallowNull] T t5!!, // 2
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t5").WithArguments("T").WithLocation(12, 37),
+                // (15,12): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
+                //         T? t7!!, // 3
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t7").WithArguments("T?").WithLocation(15, 12),
+                // (18,24): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
+                //         [AllowNull] T? t10!!, // 4
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t10").WithArguments("T?").WithLocation(18, 24),
+                // (19,38): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
+                //         [AllowNull, DisallowNull] T? t11!! // 5
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t11").WithArguments("T?").WithLocation(19, 38)
+            );
+        }
+
+        [Fact]
+        public void AnnotatedTypeParameter_Indirect()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    void M<T, U>(
+        T? t!!, // 1
+        U u!!) where U : T?
+    {
+    }
+}";
+            // note: U is always nullable when a reference type,
+            // but we don't warn on '!!' for it due to complexity of accurately searching the constraints.
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
+                //         T? t!!, // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t").WithArguments("T?").WithLocation(7, 12));
         }
     }
 }

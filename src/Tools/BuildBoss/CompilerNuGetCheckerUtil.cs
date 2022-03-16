@@ -20,7 +20,7 @@ namespace BuildBoss
     /// <summary>
     /// Verifies the contents of our toolset NuPkg and SWR files are correct.
     /// 
-    /// The compiler toolset is a particularly difficult package to get correct. In essense it is 
+    /// The compiler toolset is a particularly difficult package to get correct. In essence it is 
     /// merging the output of three different exes into a single directory. That causes a number 
     /// of issues during pack time:
     /// 
@@ -169,10 +169,6 @@ namespace BuildBoss
             textWriter.WriteLine("Verifying contents of VS.ExternalAPIs.Roslyn");
             textWriter.WriteLine("\tRoot Folder");
             verifyFolder("");
-            textWriter.WriteLine("\tRemote Debugger net20");
-            verifyFolder(@"RemoteDebugger\net20");
-            textWriter.WriteLine("\tRemote Debugger net50");
-            verifyFolder(@"RemoteDebugger\net45");
             return allGood;
 
             void verifyFolder(string folderRelativeName)

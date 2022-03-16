@@ -2,27 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class SymbolSearchGlobalOptions : IOptionProvider
+    internal sealed class SymbolSearchGlobalOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SymbolSearchGlobalOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options => ImmutableArray.Create<IOption>(
-            Enabled);
-
         private const string LocalRegistryPath = @"Roslyn\Features\SymbolSearch\";
         private const string FeatureName = "SymbolSearchOptions";
 

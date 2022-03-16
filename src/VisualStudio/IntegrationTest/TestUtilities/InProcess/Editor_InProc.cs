@@ -197,9 +197,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
-        public bool IsProjectItemDirty()
-            => GetDTE().ActiveDocument.ProjectItem.IsDirty;
-
         public string GetText()
             => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
@@ -340,24 +337,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
-        public Signature[] GetSignatures()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
-
-                return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
         public Signature GetCurrentSignature()
             => ExecuteOnActiveView(view =>
             {
@@ -474,9 +453,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
             }
         }
-
-        public void MessageBox(string message)
-            => ExecuteOnActiveView(view => System.Windows.MessageBox.Show(message));
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
@@ -760,44 +736,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public List<string> GetF1Keywords()
-        {
-            return InvokeOnUIThread(cancellationToken =>
-            {
-                var results = new List<string>();
-                GetActiveVsTextView().GetBuffer(out var textLines);
-                Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
-                Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
-                var languageContextProvider = (IVsLanguageContextProvider)languageService;
-
-                var monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
-                Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
-                Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
-                var span = new TextManager.Interop.TextSpan()
-                {
-                    iStartLine = line,
-                    iStartIndex = column,
-                    iEndLine = line,
-                    iEndIndex = column
-                };
-
-                Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
-                Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
-                for (var i = 0; i < count; i++)
-                {
-                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
-                    results.Add(value);
-                }
-
-                return results;
-            });
-        }
-
         public void GoToDefinition()
             => ExecuteCommand(WellKnownCommandNames.Edit_GoToDefinition);
-
-        public void GoToImplementation()
-            => ExecuteCommand(WellKnownCommandNames.Edit_GoToImplementation);
 
         /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.

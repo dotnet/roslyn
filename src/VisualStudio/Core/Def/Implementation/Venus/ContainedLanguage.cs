@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -66,28 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private readonly ITagAggregator<ITag> _bufferTagAggregator;
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        internal ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            VisualStudioProject? project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            VisualStudioProjectTracker? projectTrackerOpt,
-            ProjectId projectId,
-            Guid languageServiceGuid,
-            AbstractFormattingRule? vbHelperFormattingRule = null)
-            : this(bufferCoordinator,
-                   componentModel,
-                   projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>(),
-                   projectId,
-                   project,
-                   GetFilePathFromHierarchyAndItemId(hierarchy, itemid),
-                   languageServiceGuid,
-                   vbHelperFormattingRule)
-        {
-        }
-
         public static string GetFilePathFromHierarchyAndItemId(IVsHierarchy hierarchy, uint itemid)
         {
             if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out var filePath)))
@@ -114,12 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             Guid languageServiceGuid,
             AbstractFormattingRule? vbHelperFormattingRule = null)
         {
-            this.BufferCoordinator = bufferCoordinator;
-            this.ComponentModel = componentModel;
-            this.Project = project;
+            BufferCoordinator = bufferCoordinator;
+            ComponentModel = componentModel;
+            Project = project;
             _languageServiceGuid = languageServiceGuid;
 
-            this.Workspace = workspace;
+            Workspace = workspace;
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();

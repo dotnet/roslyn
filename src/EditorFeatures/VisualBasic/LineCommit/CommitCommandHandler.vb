@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
@@ -233,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 ' Do the paste in the same transaction as the commit/format
                 nextHandler()
 
-                If Not _globalOptions.GetOption(FormattingBehaviorOptions.FormatOnPaste, LanguageNames.VisualBasic) Then
+                If Not _globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, LanguageNames.VisualBasic) Then
                     transaction.Complete()
                     Return
                 End If

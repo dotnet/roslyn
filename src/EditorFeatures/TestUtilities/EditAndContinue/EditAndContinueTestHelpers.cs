@@ -221,7 +221,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => VerifyDiagnostics(expected, actual.ToDescription(newSource, expected.Any(d => d.FirstLine != null)));
 
         public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnosticDescription> actual, string? message = null)
-            => AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n");
+        {
+            // Assert that the diagnostics are actually what the test expects
+            AssertEx.SetEqual(expected, actual, message: message, itemSeparator: ",\r\n");
+
+            // Also make sure to realise each diagnostic to ensure its message is able to be formatted
+            foreach (var diagnostic in actual)
+            {
+                diagnostic.VerifyMessageFormat();
+            }
+        }
 
         private void VerifySemanticEdits(
             ImmutableArray<SemanticEditDescription> expectedSemanticEdits,

@@ -6,10 +6,11 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
     <ExportLanguageService(GetType(IGoToSymbolService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicGoToSymbolService
+    Friend NotInheritable Class VisualBasicGoToSymbolService
         Inherits AbstractGoToSymbolService
 
         <ImportingConstructor>

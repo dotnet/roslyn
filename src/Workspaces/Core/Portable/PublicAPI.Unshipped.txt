@@ -1,1 +1,23 @@
-
+Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
+*REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
+static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions(bool RenameOverloads = false, bool RenameInStrings = false, bool RenameInComments = false, bool RenameFile = false) -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameOverloads.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInStrings.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInComments.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameFile.get -> bool
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameOverloads.init -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInStrings.init -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameInComments.init -> void
+Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.RenameFile.init -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.DocumentRenameOptions() -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.DocumentRenameOptions(bool RenameMatchingTypeInStrings = false, bool RenameMatchingTypeInComments = false) -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.get -> bool
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.get -> bool
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInStrings.init -> void
+Microsoft.CodeAnalysis.Rename.DocumentRenameOptions.RenameMatchingTypeInComments.init -> void
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Rename.DocumentRenameOptions options, string newDocumentName, System.Collections.Generic.IReadOnlyList<string> newDocumentFolders = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Rename.Renamer.RenameDocumentActionSet>
+static Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(Microsoft.CodeAnalysis.Solution solution, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Rename.SymbolRenameOptions options, string newName, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>

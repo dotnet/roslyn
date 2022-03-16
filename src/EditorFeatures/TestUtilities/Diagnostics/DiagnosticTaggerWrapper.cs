@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -44,6 +45,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            // Change the background analysis scope to OpenFiles instead of ActiveFile (default),
+            // so that every diagnostic tagger test does not need to mark test files as "active" file.
+            var csKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            var vbKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic);
+            workspace.SetOptions(workspace.Options
+                .WithChangedOption(csKey, BackgroundAnalysisScope.OpenFiles)
+                .WithChangedOption(vbKey, BackgroundAnalysisScope.OpenFiles));
 
             _workspace = workspace;
 

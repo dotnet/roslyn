@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
     {
-
         // These are the error codes of the compiler warnings. 
         // Keep the ids the same so that de-duplication against compiler errors
         // works in the error list (after a build).
@@ -180,31 +180,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             static string GetLanguageSpecificId(string? language, string noLanguageId, string csharpId, string vbId)
                 => language == null ? noLanguageId : (language == LanguageNames.CSharp) ? csharpId : vbId;
 
-            string id, messageFormat, message;
+            string id, message;
 
             switch (e.ErrorCode)
             {
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
                     id = GetLanguageSpecificId(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
-                    messageFormat = FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1;
                     message = string.Format(FeaturesResources.Unable_to_load_Analyzer_assembly_0_colon_1, fullPath, e.Message);
                     break;
 
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = GetLanguageSpecificId(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
-                    messageFormat = FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2;
                     message = string.Format(FeaturesResources.An_instance_of_analyzer_0_cannot_be_created_from_1_colon_2, e.TypeName, fullPath, e.Message);
                     break;
 
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = GetLanguageSpecificId(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
-                    messageFormat = FeaturesResources.The_assembly_0_does_not_contain_any_analyzers;
                     message = string.Format(FeaturesResources.The_assembly_0_does_not_contain_any_analyzers, fullPath);
                     break;
 
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
                     id = GetLanguageSpecificId(language, WRN_AnalyzerReferencesNetFrameworkId, WRN_AnalyzerReferencesNetFrameworkIdCS, WRN_AnalyzerReferencesNetFrameworkIdVB);
-                    messageFormat = FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework;
                     message = string.Format(FeaturesResources.The_assembly_0_containing_type_1_references_NET_Framework, fullPath, e.TypeName);
                     break;
 
@@ -218,7 +214,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 id,
                 FeaturesResources.Roslyn_HostError,
                 message,
-                messageFormat,
                 severity: DiagnosticSeverity.Warning,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
@@ -271,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution),
+                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project),
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -305,6 +300,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // given compilation must be from given project.
             Contract.ThrowIfFalse(project.TryGetCompilation(out var compilation2));
             Contract.ThrowIfFalse(compilation1 == compilation2);
+        }
+
+        /// <summary>
+        /// Return true if the given <paramref name="analyzer"/> is not suppressed for the given project.
+        /// NOTE: This API is intended to be used only for performance optimization.
+        /// </summary>
+        public static bool IsAnalyzerEnabledForProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            var options = project.CompilationOptions;
+            if (options == null || analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            {
+                return true;
+            }
+
+            // Check if user has disabled analyzer execution for this project or via options.
+            if (!project.State.RunAnalyzers || SolutionCrawlerOptions.GetBackgroundAnalysisScope(project) == BackgroundAnalysisScope.None)
+            {
+                return false;
+            }
+
+            // NOTE: Previously we used to return "CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(options)"
+            //       on this code path, which returns true if analyzer is suppressed through compilation options.
+            //       However, this check is no longer correct as analyzers can be enabled/disabled for individual
+            //       documents through .editorconfig files. So we pessimistically assume analyzer is not suppressed
+            //       and let the core analyzer driver in the compiler layer handle skipping redundant analysis callbacks.
+            return true;
         }
 
         public static async Task<ImmutableArray<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(

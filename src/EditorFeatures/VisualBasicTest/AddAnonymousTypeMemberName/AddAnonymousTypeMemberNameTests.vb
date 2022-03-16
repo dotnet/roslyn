@@ -78,7 +78,7 @@ end class",
 "
 class C
     sub M()
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
     end sub
 end class")
         End Function
@@ -99,7 +99,7 @@ class C
 {
     sub M()
     {
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.ToString() + 1}}
     }
 end class")
         End Function
@@ -116,7 +116,7 @@ end class",
 "
 class C
     sub M()
-        dim v = new with {.P = new with {.V = me.Equals(1), .V1 = me.Equals(2)}}
+        dim v = new with {.Value = new with {.V = me.Equals(1), .V1 = me.Equals(2)}}
     end sub
 end class")
         End Function

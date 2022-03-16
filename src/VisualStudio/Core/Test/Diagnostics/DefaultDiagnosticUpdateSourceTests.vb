@@ -106,7 +106,7 @@ class A
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
                 Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
 
                 Assert.Single(diagnostics)
             End Using
@@ -144,7 +144,7 @@ class A
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
                 Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
 
                 ' error CS0246: The type or namespace name 'M' could not be found
                 AssertEx.Equal({"CS0246"}, diagnostics.Select(Function(d) d.Id))
@@ -183,7 +183,7 @@ class A
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
                 Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
 
                 ' error CS1002: ; expected
                 ' error CS0246: The type or namespace name 'M' could not be found
@@ -225,7 +225,7 @@ class A
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
                 Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
 
                 AssertEx.Empty(diagnostics)
             End Using
@@ -328,7 +328,7 @@ End Class
                 Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync()
 
                 Dim diagnostics = Await diagnosticService.GetPushDiagnosticsAsync(
-                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, InternalDiagnosticsOptions.NormalDiagnosticMode, CancellationToken.None)
+                    workspace, document.Project.Id, document.Id, Nothing, includeSuppressedDiagnostics:=False, DiagnosticMode.Default, CancellationToken.None)
 
                 Assert.Single(diagnostics)
             End Using

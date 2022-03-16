@@ -10376,7 +10376,7 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService();
             Assert.NotNull(await Record.ExceptionAsync(async () =>
             {
-                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: null, CancellationToken.None);
+                var tree = await service.ExtractMethodAsync(document: null, textSpan: default, localFunction: false, options: ExtractMethodOptions.Default, CancellationToken.None);
             }));
         }
 
@@ -10392,7 +10392,7 @@ namespace ClassLibrary9
 
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
-            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false);
+            await service.ExtractMethodAsync(document, textSpan: default, localFunction: false, ExtractMethodOptions.Default, CancellationToken.None);
         }
 
         [WpfFact]
@@ -11334,6 +11334,154 @@ class Program {{
     }}
 }}
 ";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteral_SingleLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = [|""""""Hello world""""""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS();
+    }
+
+    private static string GetS()
+    {
+        return """"""Hello world"""""";
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteralInterpolation_SingleLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = [|$""""""{y}""""""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS(y);
+    }
+
+    private static string GetS(int y)
+    {
+        return $""""""{y}"""""";
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteralInterpolationHole_SingleLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $""""""{[|y|]}"""""";
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $""""""{GetY(y)}"""""";
+    }
+
+    private static int GetY(int y)
+    {
+        return y;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteral_MultiLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = [|""""""
+            Hello world
+            """"""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS();
+    }
+
+    private static string GetS()
+    {
+        return """"""
+            Hello world
+            """""";
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteralInterpolation_MultiLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $[|""""""
+            {y}
+            """"""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS(y);
+    }
+
+    private static string GetS(int y)
+    {
+        return $""""""
+            {y}
+            """""";
+    }
+}";
+
             await TestExtractMethodAsync(code, expected);
         }
     }

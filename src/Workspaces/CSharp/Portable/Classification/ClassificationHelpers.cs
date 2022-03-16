@@ -145,7 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 || token.IsKind(SyntaxKind.InterpolatedStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
                 || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringEndToken);
+                || token.IsKind(SyntaxKind.InterpolatedStringEndToken)
+                || token.IsKind(SyntaxKind.InterpolatedRawStringEndToken)
+                || token.IsKind(SyntaxKind.InterpolatedSingleLineRawStringStartToken)
+                || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+                || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
+                || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken);
         }
 
         private static bool IsVerbatimStringToken(SyntaxToken token)
@@ -299,9 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             => parentNode.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
+                SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
-                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
+                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 _ => null
             };
 

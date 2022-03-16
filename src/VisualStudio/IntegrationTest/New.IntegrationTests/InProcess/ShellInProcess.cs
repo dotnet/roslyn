@@ -3,38 +3,88 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
+using IAsyncDisposable = System.IAsyncDisposable;
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal class ShellInProcess : InProcComponent
+    internal partial class ShellInProcess
     {
-        public ShellInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
-        public async Task<Version> GetVersionAsync(CancellationToken cancellationToken)
+        internal async Task<bool> IsActiveTabProvisionalAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var shell = await GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
-            shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out var versionProperty);
-
-            var fullVersion = versionProperty?.ToString() ?? "";
-            var firstSpace = fullVersion.IndexOf(' ');
-            if (firstSpace >= 0)
+            var shellMonitorSelection = await GetRequiredGlobalServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(cancellationToken);
+            if (!ErrorHandler.Succeeded(shellMonitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var windowFrameObject)))
             {
-                // e.g. "17.1.31907.60 MAIN"
-                fullVersion = fullVersion[..firstSpace];
+                throw new InvalidOperationException("Tried to get the active document frame but no documents were open.");
             }
 
-            if (Version.TryParse(fullVersion, out var version))
-                return version;
+            var windowFrame = (IVsWindowFrame)windowFrameObject;
+            if (!ErrorHandler.Succeeded(windowFrame.GetProperty((int)VsFramePropID.IsProvisional, out var isProvisionalObject)))
+            {
+                throw new InvalidOperationException("The active window frame did not have an 'IsProvisional' property.");
+            }
 
-            throw new NotSupportedException($"Unexpected version format: {versionProperty}");
+            return (bool)isProvisionalObject;
+        }
+
+        public async Task<PauseFileChangesRestorer> PauseFileChangesAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var fileChangeService = await GetRequiredGlobalServiceAsync<SVsFileChangeEx, IVsFileChangeEx3>(cancellationToken);
+            Assumes.Present(fileChangeService);
+
+            await fileChangeService.Pause();
+            return new PauseFileChangesRestorer(fileChangeService);
+        }
+
+        // This is based on WaitForQuiescenceAsync in the FileChangeService tests
+        public async Task WaitForFileChangeNotificationsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var fileChangeService = await GetRequiredGlobalServiceAsync<SVsFileChangeEx, IVsFileChangeEx>(cancellationToken);
+            Assumes.Present(fileChangeService);
+
+            var jobSynchronizer = fileChangeService.GetPropertyValue("JobSynchronizer");
+            Assumes.Present(jobSynchronizer);
+
+            var type = jobSynchronizer.GetType();
+            var methodInfo = type.GetMethod("GetActiveSpawnedTasks", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Assumes.Present(methodInfo);
+
+            while (true)
+            {
+                var tasks = (Task[])methodInfo.Invoke(jobSynchronizer, null);
+                if (!tasks.Any())
+                    return;
+
+                await Task.WhenAll(tasks);
+            }
+        }
+
+        public readonly struct PauseFileChangesRestorer : IAsyncDisposable
+        {
+            private readonly IVsFileChangeEx3 _fileChangeService;
+
+            public PauseFileChangesRestorer(IVsFileChangeEx3 fileChangeService)
+            {
+                _fileChangeService = fileChangeService;
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                await _fileChangeService.Resume();
+            }
         }
     }
 }

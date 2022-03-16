@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -26,15 +26,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDiagnostics
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetTagSpansAsync("class C {");
-            Assert.Equal(1, spans.Count());
+            var firstSpan = Assert.Single(spans);
+            Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
+        }
 
-            var firstSpan = spans.First();
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
+        {
+            var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");
+            var firstSpan = Assert.Single(spans);
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
         private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            return await GetTagSpansAsync(workspace);
+        }
+
+        private static async Task<ImmutableArray<ITagSpan<InlineDiagnosticsTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(
+                files: Array.Empty<string>(),
+                sourceGeneratedFiles: new[] { content },
+                composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }
 
