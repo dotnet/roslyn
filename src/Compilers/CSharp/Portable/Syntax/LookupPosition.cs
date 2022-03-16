@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (methodDecl.TypeParameterList == null)
             {
-                // no type parameters => nothing can be in their scope
+                // no type parameters => they are not in scope
                 return false;
             }
 
@@ -220,9 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             var explicitInterfaceSpecifier = methodDecl.ExplicitInterfaceSpecifier;
             var firstNameToken = explicitInterfaceSpecifier == null ? methodDecl.Identifier : explicitInterfaceSpecifier.GetFirstToken();
-
-            var typeParams = methodDecl.TypeParameterList;
-            var firstPostNameToken = typeParams == null ? methodDecl.ParameterList.OpenParenToken : typeParams.LessThanToken;
+            var firstPostNameToken = methodDecl.TypeParameterList.LessThanToken;
 
             // Scope does not include method name.
             return !IsBetweenTokens(position, firstNameToken, firstPostNameToken);
@@ -234,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (localFunction.TypeParameterList == null)
             {
-                // no type parameters => nothing can be in their scope
+                // no type parameters => they are not in scope
                 return false;
             }
 
@@ -251,8 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             var firstNameToken = localFunction.Identifier;
-            var typeParams = localFunction.TypeParameterList;
-            var firstPostNameToken = typeParams == null ? localFunction.ParameterList.OpenParenToken : typeParams.LessThanToken;
+            var firstPostNameToken = localFunction.TypeParameterList.LessThanToken;
 
             // Scope does not include local function name.
             return !IsBetweenTokens(position, firstNameToken, firstPostNameToken);
