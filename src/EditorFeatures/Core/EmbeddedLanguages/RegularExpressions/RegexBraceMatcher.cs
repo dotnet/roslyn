@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
         public async Task<BraceMatchingResult?> FindBracesAsync(
             Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            if (!options.HighlightRelatedRegexComponentsUnderCursor)
+            if (!options.HighlightingOptions.HighlightRelatedRegexComponentsUnderCursor)
                 return null;
 
             var tree = await _language.TryGetTreeAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);

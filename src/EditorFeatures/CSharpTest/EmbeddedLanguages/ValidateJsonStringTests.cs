@@ -25,11 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpJsonDiagnosticAnalyzer(), null);
 
-        private static OptionsCollection OptionOn()
-            => new(LanguageNames.CSharp)
-            {
-                { JsonFeatureOptions.ReportInvalidJsonPatterns, true }
-            };
+        private static IdeAnalyzerOptions OptionOn()
+            => new(ReportInvalidJsonPatterns: true);
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
         public async Task TestWarning1()
@@ -42,7 +39,24 @@ class Program
         var r = /*lang=json,strict*/ ""[|new|] Json()"";
     }     
 }",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
+                diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestWarningInRawString1()
+        {
+            await TestDiagnosticInfoAsync(@"
+class Program
+{
+    void Main()
+    {
+        var r = /*lang=json,strict*/ """"""[|new|] Json()"""""";
+    }     
+}",
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
@@ -59,7 +73,7 @@ class Program
         var r = /*lang=json*/ ""[|}|]"";
     }     
 }",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -84,7 +98,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -109,7 +123,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -174,7 +188,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -199,7 +213,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -270,7 +284,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -301,7 +315,7 @@ class Program
         </Document>
     </Project>
 </Workspace>",
-                options: OptionOn(),
+                ideAnalyzerOptions: OptionOn(),
                 diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0,
@@ -329,6 +343,50 @@ class Program
     }}
 }}
 {EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharpXml}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestNotOnUnlikelyJson()
+        {
+            await TestDiagnosticMissingAsync($@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet6=""true"">
+        <Document>
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+
+class Program
+{{
+    void Main()
+    {{
+        var v = [|""[1, 2, 3]""|];
+    }}
+}}
+        </Document>
+    </Project>
+</Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestNotOnLikelyJson()
+        {
+            await TestDiagnosticMissingAsync($@"
+<Workspace>
+    <Project Language=""C#"" CommonReferencesNet6=""true"">
+        <Document>
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+
+class Program
+{{
+    void Main()
+    {{
+        var v = [|""{{ prop: 0 }}""|];
+    }}
+}}
         </Document>
     </Project>
 </Workspace>");

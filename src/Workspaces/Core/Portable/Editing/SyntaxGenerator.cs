@@ -710,7 +710,8 @@ namespace Microsoft.CodeAnalysis.Editing
             return declaration;
         }
 
-        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations);
+        internal abstract SyntaxNode WithExplicitInterfaceImplementations(
+            SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations, bool removeDefaults = true);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.

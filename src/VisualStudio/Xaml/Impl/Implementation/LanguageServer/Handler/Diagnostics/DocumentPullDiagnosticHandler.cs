@@ -11,11 +11,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
+using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(VSInternalMethods.DocumentPullDiagnosticName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(DocumentPullDiagnosticHandler)), Shared]
+    [Method(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>
     {
         [ImportingConstructor]
@@ -24,8 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             IXamlPullDiagnosticService xamlPullDiagnosticService)
             : base(xamlPullDiagnosticService)
         { }
-
-        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
             => request.TextDocument;

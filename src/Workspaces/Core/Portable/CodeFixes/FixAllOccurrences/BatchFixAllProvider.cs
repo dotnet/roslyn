@@ -141,13 +141,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
+                var options = fixAllContext.State.CodeActionOptionsProvider(document.Project.Language) with { IsBlocking = false };
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(async () =>
                 {
                     // Create a context that will add the reported code actions into this
                     using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
-                    var context = new CodeFixContext(document, diagnostic, GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions), cancellationToken);
+                    var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
+                    var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), action, options, cancellationToken);
 
                     // Wait for the all the code actions to be reported for this diagnostic.
                     var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;

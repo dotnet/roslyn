@@ -2618,7 +2618,7 @@ class C
 
         #endregion
 
-        #region "constructor initalizer"
+        #region "constructor initializer"
         [Fact]
         public void TestDataFlowsInCtorInitPublicApi()
         {
@@ -2757,7 +2757,7 @@ class C
         }
         #endregion
 
-        #region "primary constructor initalizer"
+        #region "primary constructor initializer"
 
         [Fact]
         public void TestDataFlowsInPrimaryCtorInitPublicApi()

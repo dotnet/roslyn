@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -16,6 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental
 
 using WorkspaceDocumentDiagnosticReport = SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>;
 
+[Method(ExperimentalMethods.WorkspaceDiagnostic)]
 internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnosticHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport, WorkspaceDiagnosticReport?>
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -23,13 +25,12 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     public ExperimentalWorkspacePullDiagnosticsHandler(
         WellKnownLspServerKinds serverKind,
         IDiagnosticService diagnosticService,
-        IDiagnosticAnalyzerService analyzerService)
-        : base(serverKind, diagnosticService)
+        IDiagnosticAnalyzerService analyzerService,
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+        : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
     {
         _analyzerService = analyzerService;
     }
-
-    public override string Method => ExperimentalMethods.WorkspaceDiagnostic;
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDiagnosticParams diagnosticsParams) => null;
 
@@ -61,14 +62,14 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         return diagnostics;
     }
 
-    protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocuments(context);
+        return WorkspacePullDiagnosticHandler.GetWorkspacePullDocumentsAsync(context, DiagnosticService.GlobalOptions, cancellationToken);
     }
 
-    protected override ImmutableArray<PreviousResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
+    protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(WorkspaceDiagnosticParams diagnosticsParams)
     {
-        return diagnosticsParams.PreviousResultIds.Select(id => new PreviousResult(id.Value, new TextDocumentIdentifier { Uri = id.Uri })
+        return diagnosticsParams.PreviousResultIds.Select(id => new PreviousPullResult(id.Value, new TextDocumentIdentifier { Uri = id.Uri })
         {
             PreviousResultId = id.Value,
             TextDocument = new TextDocumentIdentifier

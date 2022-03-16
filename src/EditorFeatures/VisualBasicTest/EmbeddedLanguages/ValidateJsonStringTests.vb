@@ -22,10 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
             Return (New VisualBasicJsonDiagnosticAnalyzer(), Nothing)
         End Function
 
-        Private Shared Function OptionOn() As OptionsCollection
-            Dim result = New OptionsCollection(LanguageNames.VisualBasic)
-            result.Add(JsonFeatureOptions.ReportInvalidJsonPatterns, True)
-            Return result
+        Private Shared Function OptionOn() As IdeAnalyzerOptions
+            Return New IdeAnalyzerOptions(ReportInvalidJsonPatterns:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>
@@ -37,7 +35,7 @@ class Program
         dim r = ""[|new|] Json()""
     end sub     
 end class",
-                options:=OptionOn(),
+                ideAnalyzerOptions:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed))
@@ -52,7 +50,7 @@ class Program
         dim r = ""[|}|]""
     end sub     
 end class",
-                options:=OptionOn(),
+                ideAnalyzerOptions:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -74,7 +72,7 @@ end class
         </Document>
     </Project>
 </Workspace>",
-                options:=OptionOn(),
+                ideAnalyzerOptions:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -96,7 +94,7 @@ end class
         </Document>
     </Project>
 </Workspace>",
-                options:=OptionOn(),
+                ideAnalyzerOptions:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -152,7 +150,7 @@ end class
         </Document>
     </Project>
 </Workspace>",
-                options:=OptionOn(),
+                ideAnalyzerOptions:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
@@ -174,11 +172,11 @@ end class
         </Document>
     </Project>
 </Workspace>",
-                options:=OptionOn(),
                 diagnosticId:=AbstractJsonDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Warning,
                 diagnosticMessage:=String.Format(FeaturesResources.JSON_issue_0,
-                    FeaturesResources.Comments_not_allowed))
+                    FeaturesResources.Comments_not_allowed),
+                IdeAnalyzerOptions:=OptionOn())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)>

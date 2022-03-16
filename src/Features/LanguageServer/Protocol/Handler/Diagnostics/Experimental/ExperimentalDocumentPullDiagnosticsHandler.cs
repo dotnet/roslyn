@@ -8,8 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
@@ -20,6 +22,7 @@ using DocumentDiagnosticReport = SumType<FullDocumentDiagnosticReport, Unchanged
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 using DocumentDiagnosticPartialReport = SumType<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>, DocumentDiagnosticPartialResult>;
 
+[Method(ExperimentalMethods.TextDocumentDiagnostic)]
 internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport?>
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -27,13 +30,12 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
     public ExperimentalDocumentPullDiagnosticsHandler(
         WellKnownLspServerKinds serverKind,
         IDiagnosticService diagnosticService,
-        IDiagnosticAnalyzerService analyzerService)
-        : base(serverKind, diagnosticService)
+        IDiagnosticAnalyzerService analyzerService,
+        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+        : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
     {
         _analyzerService = analyzerService;
     }
-
-    public override string Method => ExperimentalMethods.TextDocumentDiagnostic;
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
@@ -71,16 +73,16 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken);
     }
 
-    protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+    protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return DocumentPullDiagnosticHandler.GetRequestedDocument(context);
+        return ValueTaskFactory.FromResult(DocumentPullDiagnosticHandler.GetRequestedDocument(context));
     }
 
-    protected override ImmutableArray<PreviousResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
+    protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(DocumentDiagnosticParams diagnosticsParams)
     {
         if (diagnosticsParams.PreviousResultId != null && diagnosticsParams.TextDocument != null)
         {
-            return ImmutableArray.Create(new PreviousResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
+            return ImmutableArray.Create(new PreviousPullResult(diagnosticsParams.PreviousResultId, diagnosticsParams.TextDocument));
         }
 
         return null;

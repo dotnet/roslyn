@@ -11,10 +11,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
-    internal class DefaultSymbolNavigationService : ISymbolNavigationService
+    internal sealed class DefaultSymbolNavigationService : ISymbolNavigationService
     {
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options = null, CancellationToken cancellationToken = default)
-            => false;
+        public Task<bool> TryNavigateToSymbolAsync(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
 
         public Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
             => SpecializedTasks.False;

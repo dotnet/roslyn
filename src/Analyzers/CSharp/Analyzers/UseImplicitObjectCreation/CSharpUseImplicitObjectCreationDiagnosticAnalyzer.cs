@@ -113,6 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             if (leftType.IsErrorType() || rightType.IsErrorType())
                 return;
 
+            // `new T?()` cannot be simplified to `new()`.  Even if the contextual type is `T?`, `new()` will be
+            // interpetted as `new T()` which is a change in semantics.
+            if (rightType.IsNullable())
+                return;
+
             // The default SymbolEquivalenceComparer will ignore tuple name differences, which is advantageous here
             if (!SymbolEquivalenceComparer.Instance.Equals(leftType, rightType))
             {

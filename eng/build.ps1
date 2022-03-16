@@ -579,6 +579,9 @@ function Deploy-VsixViaTool() {
   # Disable IntelliCode line completions to avoid interference with argument completion testing
   &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
 
+  # Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" repositoryAttachedModels string "0*System.Int32*2"
+
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 

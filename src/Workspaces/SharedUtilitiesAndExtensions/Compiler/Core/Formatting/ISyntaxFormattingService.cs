@@ -4,11 +4,11 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 
 #if !CODE_STYLE
@@ -27,14 +27,25 @@ namespace Microsoft.CodeAnalysis.Formatting
         IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
     }
 
+    [DataContract]
     internal abstract class SyntaxFormattingOptions
     {
+        [DataMember(Order = 0)]
         public readonly bool UseTabs;
+
+        [DataMember(Order = 1)]
         public readonly int TabSize;
+
+        [DataMember(Order = 2)]
         public readonly int IndentationSize;
+
+        [DataMember(Order = 3)]
         public readonly string NewLine;
 
+        [DataMember(Order = 4)]
         public readonly bool SeparateImportDirectiveGroups;
+
+        protected const int BaseMemberCount = 5;
 
         protected SyntaxFormattingOptions(
             bool useTabs,
@@ -49,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             NewLine = newLine;
             SeparateImportDirectiveGroups = separateImportDirectiveGroups;
         }
+
+        public abstract SyntaxFormattingOptions With(bool useTabs, int tabSize, int indentationSize);
 
 #if !CODE_STYLE
         public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language)

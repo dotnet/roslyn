@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -67,14 +68,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         SwitchSection = 1 << 4
     }
 
+    [DataContract]
     internal sealed class CSharpSyntaxFormattingOptions : SyntaxFormattingOptions
     {
+        [DataMember(Order = BaseMemberCount + 0)]
         public readonly SpacePlacement Spacing;
+
+        [DataMember(Order = BaseMemberCount + 1)]
         public readonly BinaryOperatorSpacingOptions SpacingAroundBinaryOperator;
+
+        [DataMember(Order = BaseMemberCount + 2)]
         public readonly NewLinePlacement NewLines;
+
+        [DataMember(Order = BaseMemberCount + 3)]
         public readonly LabelPositionOptions LabelPositioning;
+
+        [DataMember(Order = BaseMemberCount + 4)]
         public readonly IndentationPlacement Indentation;
+
+        [DataMember(Order = BaseMemberCount + 5)]
         public readonly bool WrappingKeepStatementsOnSingleLine;
+
+        [DataMember(Order = BaseMemberCount + 6)]
         public readonly bool WrappingPreserveSingleLine;
 
         public CSharpSyntaxFormattingOptions(
@@ -218,5 +233,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0),
                 wrappingKeepStatementsOnSingleLine: options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine),
                 wrappingPreserveSingleLine: options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine));
+
+        public override SyntaxFormattingOptions With(bool useTabs, int tabSize, int indentationSize)
+            => new CSharpSyntaxFormattingOptions(
+                useTabs: useTabs,
+                tabSize: tabSize,
+                indentationSize: indentationSize,
+                NewLine,
+                SeparateImportDirectiveGroups,
+                Spacing,
+                SpacingAroundBinaryOperator,
+                NewLines,
+                LabelPositioning,
+                Indentation,
+                WrappingKeepStatementsOnSingleLine,
+                WrappingPreserveSingleLine);
     }
 }

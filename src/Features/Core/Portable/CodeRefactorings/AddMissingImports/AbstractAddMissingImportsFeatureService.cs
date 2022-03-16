@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var packageSources = ImmutableArray<PackageSource>.Empty;
 
             var addImportOptions = new AddImportOptions(
-                SearchReferenceAssemblies: true,
+                SearchOptions: new(SearchReferenceAssemblies: true, SearchNuGetPackages: false),
                 HideAdvancedMembers: options.HideAdvancedMembers,
                 Placement: options.Placement);
 

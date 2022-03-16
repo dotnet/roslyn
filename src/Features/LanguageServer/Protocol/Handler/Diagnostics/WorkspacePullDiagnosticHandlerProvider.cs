@@ -6,27 +6,29 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(), Shared]
-    [ProvidesMethod(VSInternalMethods.WorkspacePullDiagnosticName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspacePullDiagnosticHandler)), Shared]
     internal class WorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
+        private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspacePullDiagnosticHandlerProvider(IDiagnosticService diagnosticService)
+        public WorkspacePullDiagnosticHandlerProvider(IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
         {
             _diagnosticService = diagnosticService;
+            _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
         }
 
         public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
-            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(serverKind, _diagnosticService));
+            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(serverKind, _diagnosticService, _editAndContinueDiagnosticUpdateSource));
         }
     }
 }

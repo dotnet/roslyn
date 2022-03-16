@@ -4,9 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -80,39 +77,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetFullSolutionAnalysis(bool value)
         {
-            SetPerLanguageOption(
-                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
-                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
-                language: LanguageNames.CSharp,
-                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
-
-            SetPerLanguageOption(
-                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
-                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
-                language: LanguageNames.VisualBasic,
-                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
+            var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
         }
 
         public void SetFileScopedNamespaces(bool value)
             => _inProc.SetFileScopedNamespaces(value);
 
-        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
-        {
-            SetOption(
-                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Name,
-                feature: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Feature,
-                value: value);
-        }
-
         public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public object? GetGlobalOption(WellKnownGlobalOption option, string? language)
-            => _inProc.GetGlobalOption(option, language);
-
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
             => _inProc.SetGlobalOption(option, language, value);
-
-        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }
