@@ -4766,7 +4766,7 @@ unsafe struct A
             // add better verification once this is implemented
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_Dynamic()
         {
             var source = @"

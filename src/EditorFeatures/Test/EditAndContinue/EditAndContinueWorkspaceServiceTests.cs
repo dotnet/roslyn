@@ -3322,15 +3322,30 @@ class C { int Y => 1; }
             }
         }
 
-        [Fact]
-        public async Task ActiveStatements_ForeignDocument()
+        [Theory]
+        [CombinatorialData]
+        public async Task ActiveStatements_ForeignDocument(bool withPath, bool designTimeOnly)
         {
             var composition = FeaturesTestCompositions.Features.AddParts(typeof(DummyLanguageService));
 
             using var _ = CreateWorkspace(out var solution, out var service, new[] { typeof(DummyLanguageService) });
 
-            var project = solution.AddProject("dummy_proj", "dummy_proj", DummyLanguageService.LanguageName);
-            var document = project.AddDocument("test", SourceText.From("dummy1"));
+            var project = solution.AddProject("dummy_proj", "dummy_proj", designTimeOnly ? LanguageNames.CSharp : DummyLanguageService.LanguageName);
+            var filePath = withPath ? Path.Combine(TempRoot.Root, "test") : null;
+
+            var documentInfo = DocumentInfo.Create(
+                DocumentId.CreateNewId(project.Id, "test"),
+                name: "test",
+                folders: Array.Empty<string>(),
+                sourceCodeKind: SourceCodeKind.Regular,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("dummy1"), VersionStamp.Create(), filePath)),
+                filePath: filePath,
+                isGenerated: false,
+                designTimeOnly: designTimeOnly,
+                documentServiceProvider: null);
+
+            var document = project.Solution.AddDocument(documentInfo).GetDocument(documentInfo.Id);
+
             solution = document.Project.Solution;
 
             var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -3349,6 +3364,12 @@ class C { int Y => 1; }
             Assert.Empty(currentSpans);
 
             var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
+            Assert.Empty(baseSpans.Single());
+
+            // update solution:
+            solution = solution.WithDocumentText(document.Id, SourceText.From("dummy2"));
+
+            baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
             Assert.Empty(baseSpans.Single());
         }
 

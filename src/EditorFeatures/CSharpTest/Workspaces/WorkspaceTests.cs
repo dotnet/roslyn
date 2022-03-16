@@ -15,10 +15,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -1278,20 +1278,20 @@ class D { }
             workspace.AddTestProject(project1);
 
             var solution = workspace.CurrentSolution;
-            var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
+            var optionKey = new OptionKey2(FormattingOptions.SmartIndent, LanguageNames.CSharp);
             var optionValue = solution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.Default, optionValue);
+            Assert.Equal(FormattingOptions.IndentStyle.Smart, optionValue);
 
-            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution);
+            var newOptions = solution.Options.WithChangedOption(optionKey, FormattingOptions.IndentStyle.Block);
             var newSolution = solution.WithOptions(newOptions);
             var newOptionValue = newSolution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.FullSolution, newOptionValue);
+            Assert.Equal(FormattingOptions.IndentStyle.Block, newOptionValue);
 
             var applied = workspace.TryApplyChanges(newSolution);
             Assert.True(applied);
 
             var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.FullSolution, currentOptionValue);
+            Assert.Equal(FormattingOptions.IndentStyle.Block, currentOptionValue);
         }
 
         [CombinatorialData]
@@ -1312,9 +1312,9 @@ class D { }
             var beforeSolutionForPrimaryWorkspace = primaryWorkspace.CurrentSolution;
             var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
 
-            var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
-            Assert.Equal(BackgroundAnalysisScope.Default, primaryWorkspace.Options.GetOption(optionKey));
-            Assert.Equal(BackgroundAnalysisScope.Default, secondaryWorkspace.Options.GetOption(optionKey));
+            var optionKey = new OptionKey2(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            Assert.Equal(FormattingOptions.IndentStyle.Smart, primaryWorkspace.Options.GetOption(optionKey));
+            Assert.Equal(FormattingOptions.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
             var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
@@ -1324,12 +1324,12 @@ class D { }
             if (testDeprecatedOptionsSetter)
             {
 #pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
-                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution);
+                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions.IndentStyle.Block);
 #pragma warning restore CS0618 // Type or member is obsolete
             }
             else
             {
-                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution));
+                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions.IndentStyle.Block));
             }
 
             // Verify current solution and option change for both workspaces.
@@ -1353,9 +1353,9 @@ class D { }
                 Assert.NotEqual(beforeOptionChangedSolution, currentSolution);
 
                 // Verify workspace.CurrentSolution has changed option.
-                var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
-                Assert.Equal(BackgroundAnalysisScope.Default, beforeOptionChangedSolution.Options.GetOption(optionKey));
-                Assert.Equal(BackgroundAnalysisScope.FullSolution, currentSolution.Options.GetOption(optionKey));
+                var optionKey = new OptionKey2(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+                Assert.Equal(FormattingOptions.IndentStyle.Smart, beforeOptionChangedSolution.Options.GetOption(optionKey));
+                Assert.Equal(FormattingOptions.IndentStyle.Block, currentSolution.Options.GetOption(optionKey));
             }
         }
     }

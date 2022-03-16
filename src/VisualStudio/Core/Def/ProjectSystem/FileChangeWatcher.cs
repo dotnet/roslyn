@@ -537,6 +537,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 for (var i = 0; i < cChanges; i++)
                 {
+                    var fileChangeFlags = (_VSFILECHANGEFLAGS)rggrfChange[i];
+                    if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
+                        continue;
+
                     FileChanged?.Invoke(this, rgpszFile[i]);
                 }
 
@@ -565,6 +569,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 for (var i = 0; i < cChanges; i++)
                 {
+                    var fileChangeFlags = (_VSFILECHANGEFLAGS)rggrfChange[i];
+                    if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
+                        continue;
+
                     FileChanged?.Invoke(this, rgpszFile[i]);
                 }
 
@@ -596,6 +604,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 for (var i = 0; i < cChanges; i++)
                 {
+                    var fileChangeFlags = (_VSFILECHANGEFLAGS)rggrfChange[i];
+                    if ((fileChangeFlags & FileChangeTracker.DefaultFileChangeFlags) == 0)
+                        continue;
+
                     FileChanged?.Invoke(this, rgpszFile[i]);
                 }
 

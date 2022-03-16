@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             params DiagnosticDescription[] expected)
             => c.VerifySuppressedDiagnostics(analyzers, expected: expected);
 
+        private static CSharpCompilation VerifySuppressedAndFilteredDiagnostics(
+            CSharpCompilation c,
+            DiagnosticAnalyzer[] analyzers)
+            => c.VerifySuppressedAndFilteredDiagnostics(analyzers);
+
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
         public void TestSuppression_CompilerSyntaxWarning()
         {
@@ -61,6 +66,8 @@ class C
                 // (7,9): warning CS1522: Empty switch block
                 //         {
                 Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(7, 9));
+
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
@@ -84,6 +91,8 @@ class C
                 // (5,26): warning CS0169: The field 'C.f' is never used
                 //     private readonly int f;
                 Diagnostic("CS0169", "f", isSuppressed: true).WithArguments("C.f").WithLocation(5, 26));
+
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzers);
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
@@ -146,6 +155,7 @@ class C
                 Diagnostic(analyzer.Descriptor.Id, source2, isSuppressed: true).WithLocation(1, 1),
             };
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostics);
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
@@ -163,10 +173,12 @@ class C
             expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1);
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id), new DiagnosticSuppressorForId(analyzer.Descriptor.Id) };
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostic);
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
 
             // Multiple suppressors with different suppression ID.
             analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId: "SPR0001"), new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId: "SPR0002") };
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostic);
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
@@ -190,6 +202,8 @@ class C
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors,
                 Diagnostic("CS0169", "f", isSuppressed: true).WithArguments("C1.f").WithLocation(1, 33),
                 Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: true));
+
+            VerifySuppressedAndFilteredDiagnostics(compilation, analyzersAndSuppressors);
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]

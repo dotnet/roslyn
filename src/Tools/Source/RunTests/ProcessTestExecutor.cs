@@ -100,12 +100,18 @@ namespace RunTests
             var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.Retry && !Options.IncludeHtml && !result.Succeeded)
+            if (Options.Retry && !HasBuiltInRetry(assemblyInfo) && !Options.IncludeHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
             }
 
             return result;
+
+            static bool HasBuiltInRetry(AssemblyInfo assemblyInfo)
+            {
+                // vs-extension-testing handles test retry internally.
+                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll";
+            }
         }
 
         private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)

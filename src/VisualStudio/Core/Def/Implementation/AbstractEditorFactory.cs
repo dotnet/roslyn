@@ -320,15 +320,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var forkedSolution = projectToAddTo.Solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
             var addedDocument = forkedSolution.GetDocument(documentId)!;
 
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
+
             // Call out to various new document formatters to tweak what they want
             var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingService is not null)
             {
-                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, cancellationToken).ConfigureAwait(true);
+                addedDocument = await formattingService.FormatNewDocumentAsync(addedDocument, hintDocument: null, formattingOptions, cancellationToken).ConfigureAwait(true);
             }
 
             var rootToFormat = await addedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(true);
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(addedDocument, cancellationToken).ConfigureAwait(true);
 
             // Format document
             var unformattedText = await addedDocument.GetTextAsync(cancellationToken).ConfigureAwait(true);
