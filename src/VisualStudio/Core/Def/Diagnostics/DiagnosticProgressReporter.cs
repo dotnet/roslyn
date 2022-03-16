@@ -6,9 +6,9 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
 
@@ -18,9 +18,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     internal sealed class TaskCenterSolutionAnalysisProgressReporter
     {
         private static readonly TimeSpan s_minimumInterval = TimeSpan.FromMilliseconds(200);
+        private static readonly TaskHandlerOptions _options = new()
+        {
+            Title = ServicesVSResources.Running_low_priority_background_processes,
+            ActionsAfterCompletion = CompletionActions.None
+        };
 
-        private readonly IVsTaskStatusCenterService _taskCenterService;
-        private readonly TaskHandlerOptions _options;
+        private IVsTaskStatusCenterService? _taskCenterService;
 
         #region Fields protected by _lock
 
@@ -29,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// report UI changes concurrently.
         /// </summary>
         private readonly object _lock = new();
+        private readonly VisualStudioWorkspace _workspace;
 
         /// <summary>
         /// Task used to trigger throttled UI updates in an interval
@@ -79,20 +84,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TaskCenterSolutionAnalysisProgressReporter(
-            SVsTaskStatusCenterService taskStatusCenterService,
-            IDiagnosticService diagnosticService,
-            VisualStudioWorkspace workspace)
+        public TaskCenterSolutionAnalysisProgressReporter(VisualStudioWorkspace workspace)
         {
-            _taskCenterService = (IVsTaskStatusCenterService)taskStatusCenterService;
-            _options = new TaskHandlerOptions()
-            {
-                Title = ServicesVSResources.Running_low_priority_background_processes,
-                ActionsAfterCompletion = CompletionActions.None
-            };
+            _workspace = workspace;
+        }
 
-            var crawlerService = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
-            var reporter = crawlerService.GetProgressReporter(workspace);
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+        {
+            _taskCenterService = await serviceProvider.GetServiceAsync<SVsTaskStatusCenterService, IVsTaskStatusCenterService>().ConfigureAwait(false);
+
+            var crawlerService = _workspace.Services.GetRequiredService<ISolutionCrawlerService>();
+            var reporter = crawlerService.GetProgressReporter(_workspace);
 
             if (reporter.InProgress)
             {

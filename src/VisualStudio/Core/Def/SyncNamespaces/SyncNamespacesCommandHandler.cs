@@ -7,8 +7,11 @@ using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
     internal sealed class SyncNamespacesCommandHandler
     {
         private readonly VisualStudioWorkspace _workspace;
+        private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IGlobalOptionService _globalOptions;
         private IServiceProvider? _serviceProvider;
@@ -33,25 +37,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SyncNamespacesCommandHandler(
+            IThreadingContext threadingContext,
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace,
             IGlobalOptionService globalOptions)
         {
+            _threadingContext = threadingContext;
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
             _globalOptions = globalOptions;
         }
 
-        public void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(serviceProvider);
 
-            _serviceProvider = serviceProvider;
+            _serviceProvider = (IServiceProvider)serviceProvider;
 
             // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-            var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
+            var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>().ConfigureAwait(false);
             if (menuCommandService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.SyncNamespaces, Guids.RoslynGroupId, OnSyncNamespacesForSelectedProject, OnSyncNamespacesForSelectedProjectStatus);
             }
         }

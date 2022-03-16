@@ -12,6 +12,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Features.Workspaces;
@@ -33,10 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     [Export(typeof(MiscellaneousFilesWorkspace))]
     internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IRunningDocumentTableEventListener
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
-        private readonly Lazy<IVsTextManager> _lazyTextManager;
 
-        private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+        private IVsTextManager _textManager;
+        private RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
 
@@ -62,23 +66,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             IThreadingContext threadingContext,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IMetadataAsSourceFileService fileTrackingMetadataAsSourceService,
-            VisualStudioWorkspace visualStudioWorkspace,
-            SVsServiceProvider serviceProvider)
+            VisualStudioWorkspace visualStudioWorkspace)
             : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
 
+            _threadingContext = threadingContext;
+            _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
-            _lazyTextManager = new Lazy<IVsTextManager>(() =>
-            {
-                _foregroundThreadAffinitization.AssertIsForeground();
-                return (IVsTextManager)serviceProvider.GetService(typeof(SVsTextManager));
-            });
-
-            var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
 
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
+        }
+
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            _textManager = await serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager>().ConfigureAwait(false);
+            var runningDocumentTable = await serviceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>().ConfigureAwait(false);
+
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
+                _threadingContext, _editorAdaptersFactoryService, runningDocumentTable, this);
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _, IVsWindowFrame __) => TrackOpenedDocument(moniker, textBuffer);
@@ -113,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             LanguageInformation languageInformation = null;
 
-            if (ErrorHandler.Succeeded(_lazyTextManager.Value.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
+            if (ErrorHandler.Succeeded(_textManager.MapFilenameToLanguageSID(filename, out var fileLanguageGuid)))
             {
                 _languageInformationByLanguageGuid.TryGetValue(fileLanguageGuid, out languageInformation);
             }

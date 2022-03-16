@@ -191,34 +191,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await TaskScheduler.Default;
 
-            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
-            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
+            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
 
             // we need to load it as early as possible since we can have errors from
             // package from each language very early
-            this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>();
-            this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
+            await this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-            this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
+            await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             // The misc files workspace needs to be loaded on the UI thread.  This way it will have
             // the appropriate task scheduler to report events on.
             this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
 
             // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
-            this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().Initialize(this);
+            await this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().InitializeAsync(this).ConfigureAwait(false);
 
-            this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().Initialize(this);
-            this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().Initialize(this);
-            this.ComponentModel.GetService<SyncNamespacesCommandHandler>().Initialize(this);
+            await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
-            LoadAnalyzerNodeComponents();
+            await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
 
             LoadComponentsBackgroundAsync(cancellationToken).Forget();
         }
@@ -320,15 +320,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void LoadAnalyzerNodeComponents()
+        private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)
         {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Initialize(this);
+            await this.ComponentModel.GetService<IAnalyzerNodeSetup>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
             if (_ruleSetEventHandler != null)
-            {
-                _ruleSetEventHandler.Register();
-            }
+                await _ruleSetEventHandler.RegisterAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private void UnregisterAnalyzerTracker()

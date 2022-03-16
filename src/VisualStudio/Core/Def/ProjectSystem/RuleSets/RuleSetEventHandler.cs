@@ -10,6 +10,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
             _serviceProvider = serviceProvider;
         }
 
-        public void Register()
+        public async Task RegisterAsync(CancellationToken cancellationToken)
         {
             if (!_eventsHookedUp)
             {

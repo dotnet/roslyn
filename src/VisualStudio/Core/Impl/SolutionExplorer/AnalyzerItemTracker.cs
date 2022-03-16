@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -20,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export]
     internal class AnalyzerItemsTracker : IVsSelectionEvents
     {
-        private readonly IServiceProvider _serviceProvider;
         private IVsMonitorSelection? _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
 
@@ -28,30 +28,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerItemsTracker(
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public AnalyzerItemsTracker()
         {
-            _serviceProvider = serviceProvider;
         }
 
-        public void Register()
+        public async Task RegisterAsync(IAsyncServiceProvider serviceProvider)
         {
-            var vsMonitorSelection = GetMonitorSelection();
-
-            if (vsMonitorSelection != null)
-            {
-                vsMonitorSelection.AdviseSelectionEvents(this, out _selectionEventsCookie);
-            }
+            _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>().ConfigureAwait(false);
+            _vsMonitorSelection?.AdviseSelectionEvents(this, out _selectionEventsCookie);
         }
 
         public void Unregister()
         {
-            var vsMonitorSelection = GetMonitorSelection();
-
-            if (vsMonitorSelection != null)
-            {
-                vsMonitorSelection.UnadviseSelectionEvents(_selectionEventsCookie);
-            }
+            _vsMonitorSelection?.UnadviseSelectionEvents(_selectionEventsCookie);
         }
 
         public IVsHierarchy? SelectedHierarchy { get; private set; }
@@ -131,16 +120,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             return selectedObjects;
-        }
-
-        private IVsMonitorSelection? GetMonitorSelection()
-        {
-            if (_vsMonitorSelection == null)
-            {
-                _vsMonitorSelection = _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            }
-
-            return _vsMonitorSelection;
         }
     }
 }

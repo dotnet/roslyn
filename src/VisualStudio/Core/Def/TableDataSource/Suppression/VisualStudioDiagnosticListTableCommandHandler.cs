@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,18 +33,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     [Export(typeof(VisualStudioDiagnosticListTableCommandHandler))]
     internal partial class VisualStudioDiagnosticListTableCommandHandler
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspace _workspace;
         private readonly VisualStudioSuppressionFixService _suppressionFixService;
         private readonly VisualStudioDiagnosticListSuppressionStateService _suppressionStateService;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
-        private readonly IWpfTableControl? _tableControl;
+
+        private IWpfTableControl? _tableControl;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioDiagnosticListTableCommandHandler(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace,
             IVisualStudioSuppressionFixService suppressionFixService,
@@ -53,24 +57,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             ICodeActionEditHandlerService editHandlerService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
             _suppressionFixService = (VisualStudioSuppressionFixService)suppressionFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _diagnosticService = diagnosticService;
             _editHandlerService = editHandlerService;
-
-            var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
-            _tableControl = errorList?.TableControl;
             _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
         }
 
-        public void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>().ConfigureAwait(false);
+            _tableControl = errorList?.TableControl;
+
             // Add command handlers for bulk suppression commands.
-            var menuCommandService = (IMenuCommandService)serviceProvider.GetService(typeof(IMenuCommandService));
+            var menuCommandService = (IMenuCommandService?)await serviceProvider.GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(false);
             if (menuCommandService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 AddErrorListSetSeverityMenuHandlers(menuCommandService);
 
                 // The Add/Remove suppression(s) have been moved to the VS code analysis layer, so we don't add the commands here.
@@ -84,6 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void AddErrorListSetSeverityMenuHandlers(IMenuCommandService menuCommandService)
         {
+            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+
             AddCommand(menuCommandService, ID.RoslynCommands.ErrorListSetSeveritySubMenu, delegate { }, OnErrorListSetSeveritySubMenuStatus);
 
             // Severity menu items
