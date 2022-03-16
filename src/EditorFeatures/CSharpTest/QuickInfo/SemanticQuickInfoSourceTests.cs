@@ -1032,6 +1032,76 @@ x = x + $$x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn5()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = unchecked (x$$+1);",
+                MainDescription("int int.operator +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn6()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = checked (x$$+1);",
+                MainDescription("int int.operator checked +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn7()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = unchecked (x +$$ x);",
+                MainDescription("int int.operator +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn8()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = checked (x +$$ x);",
+                MainDescription("int int.operator checked +(int left, int right)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn9()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = $$-x;",
+                MainDescription("int int.operator -(int value)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn10()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = unchecked ($$-x);",
+                MainDescription("int int.operator -(int value)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorBuiltIn11()
+        {
+            await TestInMethodAsync(
+@"int x;
+
+x = checked ($$-x);",
+                MainDescription("int int.operator checked -(int value)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestOperatorCustomTypeBuiltIn()
         {
             var markup =
@@ -1044,7 +1114,7 @@ x = x + $$x;",
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
-        public async Task TestOperatorCustomTypeOverload()
+        public async Task TestOperatorCustomTypeOverload_01()
         {
             var markup =
 @"class C
@@ -1055,6 +1125,108 @@ x = x + $$x;",
 
             await TestAsync(markup,
                 MainDescription("C C.operator +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_02()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = unchecked (c +$$ c); }
+    static C operator+(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_03()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = unchecked (c +$$ c); }
+    static C operator+(C a, C b) { return a; }
+    static C operator checked +(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_04()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c = checked (c +$$ c); }
+    static C operator+(C a, C b) { return a; }
+    static C operator checked +(C a, C b) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator checked +(C a, C b)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_05()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  $$-c; }
+    static C operator-(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_06()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  unchecked ($$-c); }
+    static C operator-(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_07()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  unchecked ($$-c); }
+    static C operator-(C a) { return a; }
+    static C operator checked -(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator -(C a)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestOperatorCustomTypeOverload_08()
+        {
+            var markup =
+@"class C
+{
+    static void M() { C c; c =  checked ($$-c); }
+    static C operator-(C a) { return a; }
+    static C operator checked -(C a) { return a; }
+}";
+
+            await TestAsync(markup,
+                MainDescription("C C.operator checked -(C a)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
