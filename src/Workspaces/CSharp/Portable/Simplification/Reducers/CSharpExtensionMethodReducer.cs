@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        private static readonly Func<InvocationExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyExtensionMethod = SimplifyExtensionMethod;
+        private static readonly Func<InvocationExpressionSyntax, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyExtensionMethod = SimplifyExtensionMethod;
 
         private static SyntaxNode SimplifyExtensionMethod(
             InvocationExpressionSyntax node,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             var rewrittenNode = node;

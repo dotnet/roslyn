@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -44,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         public CSharpSimplificationService() : base(s_reducers)
         {
         }
+
+        public override SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options)
+            => CSharpSimplifierOptions.Create(options);
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {

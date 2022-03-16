@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        private static readonly Func<ParenthesizedExpressionSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyParentheses = SimplifyParentheses;
+        private static readonly Func<ParenthesizedExpressionSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParentheses = SimplifyParentheses;
 
         private static SyntaxNode SimplifyParentheses(
             ParenthesizedExpressionSyntax node,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            SimplifierOptions options,
             CancellationToken cancellationToken)
         {
             if (node.CanRemoveParentheses(semanticModel, cancellationToken))

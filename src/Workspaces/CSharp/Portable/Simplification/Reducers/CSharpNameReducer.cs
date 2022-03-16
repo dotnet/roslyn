@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
         }
 
-        private static readonly Func<SyntaxNode, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyName = SimplifyName;
+        private static readonly Func<SyntaxNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyName = SimplifyName;
 
         private static SyntaxNode SimplifyName(
             SyntaxNode node,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             SyntaxNode replacementNode;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             if (node.IsKind(SyntaxKind.QualifiedCref, out QualifiedCrefSyntax crefSyntax))
             {
                 if (!QualifiedCrefSimplifier.Instance.TrySimplify(
-                        crefSyntax, semanticModel, optionSet,
+                        crefSyntax, semanticModel, options,
                         out var crefReplacement, out _, cancellationToken))
                 {
                     return node;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             else
             {
                 var expressionSyntax = (ExpressionSyntax)node;
-                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, optionSet, out var expressionReplacement, out _, cancellationToken))
+                if (!ExpressionSimplifier.Instance.TrySimplify(expressionSyntax, semanticModel, options, out var expressionReplacement, out _, cancellationToken))
                 {
                     return node;
                 }

@@ -19,12 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared ReadOnly s_simplifyCallStatement As Func(Of CallStatementSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyCallStatement
+        Private Shared ReadOnly s_simplifyCallStatement As Func(Of CallStatementSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyCallStatement
 
         Private Shared Function SimplifyCallStatement(
             callStatement As CallStatementSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As SimplifierOptions,
             cancellationToken As CancellationToken
         ) As ExecutableStatementSyntax
 

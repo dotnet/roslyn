@@ -8,14 +8,16 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
     internal interface ISimplificationService : ILanguageService
     {
+        SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options);
+
         SyntaxNode Expand(
             SyntaxNode node,
             SemanticModel semanticModel,
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         Task<Document> ReduceAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
-            OptionSet optionSet = null,
+            SimplifierOptions options,
             ImmutableArray<AbstractReducer> reducers = default,
             CancellationToken cancellationToken = default);
     }

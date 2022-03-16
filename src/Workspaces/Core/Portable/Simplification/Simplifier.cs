@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
         /// The annotated node and all child nodes will be reduced.
         /// </summary>
-        public static Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
+        public static async Task<Document> ReduceAsync(Document document, IEnumerable<TextSpan> spans, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {
@@ -198,16 +198,24 @@ namespace Microsoft.CodeAnalysis.Simplification
                 throw new ArgumentNullException(nameof(spans));
             }
 
-            return document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
-                document, spans.ToImmutableArrayOrEmpty(), optionSet, cancellationToken: cancellationToken);
+            var options = (optionSet != null) ?
+                SimplifierOptions.Create(optionSet, document.Project.Solution.Workspace.Services, document.Project.Language) :
+                await SimplifierOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+            return await document.GetRequiredLanguageService<ISimplificationService>().ReduceAsync(
+                document, spans.ToImmutableArrayOrEmpty(), options, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<Document> ReduceAsync(
             Document document, ImmutableArray<AbstractReducer> reducers, OptionSet? optionSet = null, CancellationToken cancellationToken = default)
         {
+            var options = (optionSet != null) ?
+                SimplifierOptions.Create(optionSet, document.Project.Solution.Workspace.Services, document.Project.Language) :
+                await SimplifierOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return await document.GetRequiredLanguageService<ISimplificationService>()
-                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), optionSet,
+                .ReduceAsync(document, ImmutableArray.Create(root.FullSpan), options,
                              reducers, cancellationToken).ConfigureAwait(false);
         }
     }

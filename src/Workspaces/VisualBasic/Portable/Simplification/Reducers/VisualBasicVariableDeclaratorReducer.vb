@@ -22,12 +22,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
-        Private Shared ReadOnly s_simplifyVariableDeclarator As Func(Of VariableDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode) = AddressOf SimplifyVariableDeclarator
+        Private Shared ReadOnly s_simplifyVariableDeclarator As Func(Of VariableDeclaratorSyntax, SemanticModel, VisualBasicSimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyVariableDeclarator
 
         Private Overloads Shared Function SimplifyVariableDeclarator(
             node As VariableDeclaratorSyntax,
             semanticModel As SemanticModel,
-            optionSet As OptionSet,
+            options As VisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As SyntaxNode
             Dim replacementNode As SyntaxNode = Nothing

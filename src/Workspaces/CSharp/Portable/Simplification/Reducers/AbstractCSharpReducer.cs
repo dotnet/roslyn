@@ -14,5 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         protected AbstractCSharpReducer(ObjectPool<IReductionRewriter> pool) : base(pool)
         {
         }
+
+        public sealed override bool IsApplicable(SimplifierOptions options)
+            => IsApplicable((CSharpSimplifierOptions)options);
+
+        protected virtual bool IsApplicable(CSharpSimplifierOptions options)
+            => true;
     }
 }

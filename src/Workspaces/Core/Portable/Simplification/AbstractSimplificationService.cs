@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
         protected abstract bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node);
+        public abstract SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
             => reducedNode;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         public async Task<Document> ReduceAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
-            OptionSet optionSet = null,
+            SimplifierOptions options,
             ImmutableArray<AbstractReducer> reducers = default,
             CancellationToken cancellationToken = default)
         {
@@ -65,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Simplification
                     return document;
                 }
 
-                optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 // Chaining of the Speculative SemanticModel (i.e. Generating a speculative SemanticModel from an existing Speculative SemanticModel) is not supported
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
-                var reduced = await this.ReduceCoreAsync(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
+                var reduced = await this.ReduceCoreAsync(document, spanList, options, reducers, cancellationToken).ConfigureAwait(false);
 
                 if (reduced != document)
                 {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         private async Task<Document> ReduceCoreAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
-            OptionSet optionSet,
+            SimplifierOptions options,
             ImmutableArray<AbstractReducer> reducers,
             CancellationToken cancellationToken)
         {
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Take out any reducers that don't even apply with the current
                 // set of users options. i.e. no point running 'reduce to var'
                 // if the user doesn't have the 'var' preference set.
-                reducers = reducers.WhereAsArray(r => r.IsApplicable(optionSet));
+                reducers = reducers.WhereAsArray(r => r.IsApplicable(options));
 
                 var reducedNodesMap = new ConcurrentDictionary<SyntaxNode, SyntaxNode>();
                 var reducedTokensMap = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 // Reduce all the nodesAndTokensToReduce using the given reducers/rewriters and
                 // store the reduced nodes and/or tokens in the reduced nodes/tokens maps.
                 // Note that this method doesn't update the original syntax tree.
-                await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, optionSet, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
+                await this.ReduceAsync(document, root, nodesAndTokensToReduce, reducers, options, semanticModel, reducedNodesMap, reducedTokensMap, cancellationToken).ConfigureAwait(false);
 
                 if (reducedNodesMap.Any() || reducedTokensMap.Any())
                 {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
             ImmutableArray<AbstractReducer> reducers,
-            OptionSet optionSet,
+            SimplifierOptions options,
             SemanticModel semanticModel,
             ConcurrentDictionary<SyntaxNode, SyntaxNode> reducedNodesMap,
             ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                         cancellationToken.ThrowIfCancellationRequested();
 
                         using var rewriter = reducer.GetOrCreateRewriter();
-                        rewriter.Initialize(document.Project.ParseOptions, optionSet, cancellationToken);
+                        rewriter.Initialize(document.Project.ParseOptions, options, cancellationToken);
 
                         do
                         {
