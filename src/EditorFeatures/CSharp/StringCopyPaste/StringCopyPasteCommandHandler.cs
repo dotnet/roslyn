@@ -171,15 +171,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 CSharpEditorResources.Fixing_string_literal_after_paste,
                 textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-            var edit1 = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
-            foreach (var change in snapshotBeforePaste.Version.Changes)
-                edit1.Replace(change.NewSpan, change.OldText);
-            edit1.Apply();
+            {
+                var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+                foreach (var change in snapshotBeforePaste.Version.Changes)
+                    edit.Replace(change.NewSpan, change.OldText);
+                edit.Apply();
+            }
 
-            var edit2 = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
-            foreach (var change in textChanges)
-                edit2.Replace(change.Span.ToSpan(), change.NewText);
-            edit2.Apply();
+            {
+                var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+                foreach (var selection in selectionsBeforePaste)
+                    edit.Replace(selection.Span, "");
+
+                foreach (var change in textChanges)
+                    edit.Replace(change.Span.ToSpan(), change.NewText);
+                edit.Apply();
+            }
 
             transaction.Complete();
         }
