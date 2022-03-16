@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
         }
 
-        public ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
+        public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
         {
             // If we have a raw-string, then we always want to check for changes to make, even if the paste was
             // technically legal.  This is because we may want to touch up things like indentation to make the

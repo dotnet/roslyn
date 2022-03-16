@@ -136,6 +136,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);
         }
 
+        public abstract ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken);
+
         /// <summary>
         /// Takes a span in <see cref="SnapshotBeforePaste"/> and maps it appropriately (in an <see
         /// cref="SpanTrackingMode.EdgeInclusive"/> manner) to <see cref="SnapshotAfterPaste"/>.
