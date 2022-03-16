@@ -84,13 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly ImmutableArray<TextSpan> TextContentsSpansAfterPaste;
 
         /// <summary>
-        /// Whether or not the string expression remained successfully parseable after the paste.  <see
-        /// cref="StringCopyPasteCommandHandler.PasteWasSuccessful"/>.  If it can still be successfully parsed subclasses
-        /// can adjust their view on which pieces of content need to be escaped or not.
-        /// </summary>
-        protected readonly bool PasteWasSuccessful;
-
-        /// <summary>
         /// Number of quotes in the delimiter of the string being pasted into.  Given that the string should have no
         /// errors in it, this quote count should be the same for the start and end delimiter.
         /// </summary>
@@ -102,13 +95,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly int DelimiterDollarCount;
 
         protected AbstractPasteProcessor(
+            string newLine,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
-            ExpressionSyntax stringExpressionBeforePaste,
-            string newLine,
-            bool pasteWasSuccessful)
+            ExpressionSyntax stringExpressionBeforePaste)
         {
             SnapshotBeforePaste = snapshotBeforePaste;
             SnapshotAfterPaste = snapshotAfterPaste;
@@ -119,13 +111,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             DocumentBeforePaste = documentBeforePaste;
             DocumentAfterPaste = documentAfterPaste;
 
-            StringExpressionBeforePaste = stringExpressionBeforePaste;
             NewLine = newLine;
+            StringExpressionBeforePaste = stringExpressionBeforePaste;
 
             TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount, out DelimiterDollarCount);
             TextContentsSpansAfterPaste = TextContentsSpansBeforePaste.SelectAsArray(MapSpanForward);
-
-            PasteWasSuccessful = pasteWasSuccessful;
 
             Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);
         }

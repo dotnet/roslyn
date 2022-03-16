@@ -7,13 +7,19 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Threading;
+using ICSharpCode.Decompiler.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             transaction.Complete();
 
-            UnknownSourcePasteProcessor? GetPasteProcessor()
+            AbstractPasteProcessor? GetPasteProcessor()
             {
                 var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
 
@@ -225,16 +231,72 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         _lastSelectedSpans, cancellationToken);
                     if (stringExpressionCopiedFrom != null)
                     {
-                        return new KnownSourcePasteProcessor(
-                            snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
-                            stringExpressionBeforePaste, newLine, pasteWasSuccessful);
+                        var contentsToAdd = GetContentsToAdd(_lastSelectedSpans, stringExpressionCopiedFrom);
+                        if (!contentsToAdd.IsDefaultOrEmpty)
+                        {
+                            return new KnownSourcePasteProcessor(
+                                newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                                stringExpressionBeforePaste, contentsToAdd);
+                        }
                     }
                 }
 
                 return new UnknownSourcePasteProcessor(
-                    snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, 
-                    stringExpressionBeforePaste, newLine, pasteWasSuccessful);
+                    newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                    stringExpressionBeforePaste, pasteWasSuccessful);
             }
+        }
+
+        private ImmutableArray<(VirtualCharSequence virtualChars, InterpolationSyntax? interpolation)> GetContentsToAdd(
+            NormalizedSnapshotSpanCollection lastSelectedSpans,
+            ExpressionSyntax stringExpressionCopiedFrom)
+        {
+            if (stringExpressionCopiedFrom is LiteralExpressionSyntax literalExpression)
+            {
+                // For normal strings, or single-line raw strings, we can just grab their virtual chars and use those.
+                if (literalExpression.Token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken)
+                {
+                    var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(literalExpression.Token);
+                    virtualChars = FilterToSpans(virtualChars, lastSelectedSpans);
+                    return virtualChars.IsDefaultOrEmpty ? default : ImmutableArray.Create((virtualChars, (InterpolationSyntax?)null));
+                }
+                else if (literalExpression.Token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
+                {
+                }
+                return default;
+            }
+            else if (stringExpressionCopiedFrom is InterpolatedStringExpressionSyntax interpolatedString)
+            {
+                return default;
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(stringExpressionCopiedFrom);
+            }
+        }
+
+        private static VirtualCharSequence FilterToSpans(VirtualCharSequence virtualChars, NormalizedSnapshotSpanCollection lastSelectedSpans)
+        {
+            if (virtualChars.IsDefault)
+                return default;
+
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+            foreach (var vc in virtualChars)
+            {
+                if (Overlaps(vc.Span, lastSelectedSpans))
+                    result.Add(vc);
+            }
+
+            if (result.Count == 0)
+                return default;
+
+            return VirtualCharSequence.Create(result.ToImmutable());
+        }
+
+        private static bool Overlaps(TextSpan span, NormalizedSnapshotSpanCollection lastSelectedSpans)
+        {
+            var snapshotSpan = new SnapshotSpan(lastSelectedSpans[0].Snapshot, span.ToSpan());
+            return lastSelectedSpans.OverlapsWith(snapshotSpan);
         }
 
         /// <summary>

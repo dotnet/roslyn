@@ -29,21 +29,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     internal class UnknownSourcePasteProcessor : AbstractPasteProcessor
     {
         /// <summary>
+        /// Whether or not the string expression remained successfully parseable after the paste.  <see
+        /// cref="StringCopyPasteCommandHandler.PasteWasSuccessful"/>.  If it can still be successfully parsed subclasses
+        /// can adjust their view on which pieces of content need to be escaped or not.
+        /// </summary>
+        protected readonly bool PasteWasSuccessful;
+
+        /// <summary>
         /// The set of <see cref="ITextChange"/>'s that produced <see cref="AbstractPasteProcessor.SnapshotAfterPaste"/>
         /// from <see cref="AbstractPasteProcessor.SnapshotBeforePaste"/>.
         /// </summary>
         protected INormalizedTextChangeCollection Changes => SnapshotBeforePaste.Version.Changes;
 
         public UnknownSourcePasteProcessor(
+            string newLine,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
-            string newLine,
             bool pasteWasSuccessful)
-            : base(snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste, newLine, pasteWasSuccessful)
+            : base(newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
+            PasteWasSuccessful = pasteWasSuccessful;
         }
 
         public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
