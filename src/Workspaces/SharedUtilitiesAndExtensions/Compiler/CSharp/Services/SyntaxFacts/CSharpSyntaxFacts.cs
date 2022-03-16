@@ -1632,6 +1632,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         #region GetPartsOfXXX members
 
+        public void GetPartsOfArgumentList(SyntaxNode node, out SyntaxToken openParenToken, out SeparatedSyntaxList<SyntaxNode> arguments, out SyntaxToken closeParenToken)
+        {
+            var argumentListNode = (ArgumentListSyntax)node;
+            openParenToken = argumentListNode.OpenParenToken;
+            arguments = argumentListNode.Arguments;
+            closeParenToken = argumentListNode.CloseParenToken;
+        }
+
         public void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {
             var objectCreationExpression = (BaseObjectCreationExpressionSyntax)node;

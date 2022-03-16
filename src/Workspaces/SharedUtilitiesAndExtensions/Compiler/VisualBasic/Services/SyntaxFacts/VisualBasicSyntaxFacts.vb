@@ -1854,6 +1854,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 #Region "GetPartsOfXXX members"
 
+        Public Sub GetPartsOfArgumentList(node As SyntaxNode, ByRef openParenToken As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of SyntaxNode), ByRef closeParenToken As SyntaxToken) Implements ISyntaxFacts.GetPartsOfArgumentList
+            Dim argumentList = DirectCast(node, ArgumentListSyntax)
+            openParenToken = argumentList.OpenParenToken
+            arguments = argumentList.Arguments
+            closeParenToken = argumentList.CloseParenToken
+        End Sub
+
         Public Sub GetPartsOfBaseObjectCreationExpression(node As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBaseObjectCreationExpression
             Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)
             argumentList = objectCreationExpression.ArgumentList
