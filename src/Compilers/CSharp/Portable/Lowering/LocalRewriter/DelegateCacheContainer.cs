@@ -15,7 +15,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 {
     private readonly Symbol _containingSymbol;
     private readonly NamedTypeSymbol? _constructedContainer;
-    private readonly Dictionary<(TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new(CLRSignatureComparer.Instance);
+    private readonly Dictionary<(TypeSymbol?, TypeSymbol, MethodSymbol), FieldSymbol> _delegateFields = new(CLRSignatureComparer.Instance);
 
     /// <summary>Creates a type-scope concrete delegate cache container.</summary>
     internal DelegateCacheContainer(TypeSymbol containingType, int generationOrdinal)
@@ -51,11 +51,17 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
 
     internal override bool HasPossibleWellKnownCloneMethod() => false;
 
-    internal FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, TypeSymbol delegateType, MethodSymbol targetMethod)
+    internal FieldSymbol GetOrAddCacheField(SyntheticBoundNodeFactory factory, BoundDelegateCreationExpression boundDelegateCreation)
     {
-        Debug.Assert(delegateType.IsDelegateType());
+        var targetMethod = boundDelegateCreation.MethodOpt;
+        var delegateType = boundDelegateCreation.Type;
 
-        if (_delegateFields.TryGetValue((delegateType, targetMethod), out var field))
+        Debug.Assert(delegateType.IsDelegateType());
+        Debug.Assert(targetMethod is { });
+
+        var constrainedToTypeOpt = (targetMethod.IsAbstract && boundDelegateCreation.Argument is BoundTypeExpression typeExpression) ? typeExpression.Type : null;
+
+        if (_delegateFields.TryGetValue((constrainedToTypeOpt, delegateType, targetMethod), out var field))
         {
             return field;
         }
@@ -73,27 +79,36 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
             field = field.AsMember(_constructedContainer);
         }
 
-        _delegateFields.Add((delegateType, targetMethod), field);
+        _delegateFields.Add((constrainedToTypeOpt, delegateType, targetMethod), field);
 
         return field;
     }
 
-    private sealed class CLRSignatureComparer : IEqualityComparer<(TypeSymbol delegateType, MethodSymbol targetMethod)>
+    private sealed class CLRSignatureComparer : IEqualityComparer<(TypeSymbol? constrainedToTypeOpt, TypeSymbol delegateType, MethodSymbol targetMethod)>
     {
         public static readonly CLRSignatureComparer Instance = new();
 
-        public bool Equals((TypeSymbol delegateType, MethodSymbol targetMethod) x, (TypeSymbol delegateType, MethodSymbol targetMethod) y)
+        public bool Equals((TypeSymbol? constrainedToTypeOpt, TypeSymbol delegateType, MethodSymbol targetMethod) x, (TypeSymbol? constrainedToTypeOpt, TypeSymbol delegateType, MethodSymbol targetMethod) y)
         {
             var symbolComparer = SymbolEqualityComparer.CLRSignature;
 
-            return symbolComparer.Equals(x.delegateType, y.delegateType) && symbolComparer.Equals(x.targetMethod, y.targetMethod);
+            return symbolComparer.Equals(x.delegateType, y.delegateType) &&
+                   symbolComparer.Equals(x.targetMethod, y.targetMethod) &&
+                   symbolComparer.Equals(x.constrainedToTypeOpt, y.constrainedToTypeOpt);
         }
 
-        public int GetHashCode((TypeSymbol delegateType, MethodSymbol targetMethod) conversion)
+        public int GetHashCode((TypeSymbol? constrainedToTypeOpt, TypeSymbol delegateType, MethodSymbol targetMethod) conversion)
         {
             var symbolComparer = SymbolEqualityComparer.CLRSignature;
 
-            return Hash.Combine(symbolComparer.GetHashCode(conversion.delegateType), symbolComparer.GetHashCode(conversion.targetMethod));
+            int hash = Hash.Combine(symbolComparer.GetHashCode(conversion.delegateType), symbolComparer.GetHashCode(conversion.targetMethod));
+
+            if (conversion.constrainedToTypeOpt is { } constrainedToType)
+            {
+                hash = Hash.Combine(hash, symbolComparer.GetHashCode(constrainedToType));
+            }
+
+            return hash;
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int DocumentDiagnosticIdentifier = 2;
 
         private readonly WellKnownLspServerKinds _serverKind;
+        private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
 
         protected readonly IDiagnosticService DiagnosticService;
 
@@ -55,17 +57,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly VersionedPullCache<VersionStamp?, Checksum> _versionedCache;
+        private readonly VersionedPullCache<(int, VersionStamp?), (int, Checksum)> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
             WellKnownLspServerKinds serverKind,
-            IDiagnosticService diagnosticService)
+            IDiagnosticService diagnosticService,
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
         {
             _serverKind = serverKind;
             DiagnosticService = diagnosticService;
+            _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
             _versionedCache = new(this.GetType().Name);
         }
 
@@ -137,12 +141,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     continue;
                 }
 
+                var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
+
                 var project = document.Project;
                 var newResultId = await _versionedCache.GetNewResultIdAsync(
                     documentToPreviousDiagnosticParams,
                     document,
-                    computeCheapVersionAsync: async () => await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false),
-                    computeExpensiveVersionAsync: async () => await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false),
+                    computeCheapVersionAsync: async () => (encVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
+                    computeExpensiveVersionAsync: async () => (encVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {

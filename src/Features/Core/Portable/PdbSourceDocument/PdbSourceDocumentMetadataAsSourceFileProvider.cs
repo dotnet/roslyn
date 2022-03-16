@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
         private readonly Dictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
+        private readonly HashSet<ProjectId> _sourceLinkEnabledProjects = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -150,8 +151,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
             // we can't provide any results, so there is no point adding a project to the workspace etc.
+            var useExtendedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
             var encoding = defaultEncoding ?? Encoding.UTF8;
-            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, cancellationToken)).ToArray();
+            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useExtendedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
             if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;
@@ -232,6 +234,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     filePath: info.FilePath,
                     loader: info.Loader));
 
+                // If we successfully got something from SourceLink for this project then its nice to wait a bit longer
+                // if the user performs subsequent navigation
+                if (info.FromRemoteLocation)
+                {
+                    _sourceLinkEnabledProjects.Add(projectId);
+                }
+
                 // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
                 _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, sourceProject.Id, sourceProject.Solution.Workspace);
             }
@@ -304,6 +313,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
             _fileToDocumentInfoMap.Clear();
+            _sourceLinkEnabledProjects.Clear();
         }
     }
 
