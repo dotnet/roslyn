@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis.InlineHints
                     if (HintMatches(kind, literalParameters, objectCreationParameters, otherParameters))
                     {
                         var inlineHintText = GetReplacementText(parameter.Name);
-                        var textSpan = new TextSpan(position, 0);
+                        var textBuffer = document
+                        var textSpan = new  //new TextSpan(position, 0);
                         result.Add(new InlineHint(
                             textSpan,
                             ImmutableArray.Create(new TaggedText(TextTags.Text, parameter.Name + ": ")),

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
 
-            if (_hint._getReplacementTextChange is not null)
+            if (_hint.ReplacementTextChange is not null)
             {
                 adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
             }

@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.InlineHints
     {
         public readonly TextSpan Span;
         public readonly ImmutableArray<TaggedText> DisplayParts;
-        public readonly Func<Document, CancellationToken, TextChange?>? _getReplacementTextChange;
+        public readonly TextChange? ReplacementTextChange;
         private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? _getDescriptionAsync;
 
         public InlineHint(
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
             Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
-            : this(span, displayParts, getReplacementTextChange: null, getDescriptionAsync)
+            : this(span, displayParts, replacementTextChange: null, getDescriptionAsync)
         {
         }
 
         public InlineHint(
             TextSpan span,
             ImmutableArray<TaggedText> displayParts,
-            Func<Document, CancellationToken, TextChange?> getReplacementTextChange,
+            TextChange? replacementTextChange,
             Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? getDescriptionAsync = null)
         {
             if (displayParts.Length == 0)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
             Span = span;
             DisplayParts = displayParts;
             _getDescriptionAsync = getDescriptionAsync;
-            _getReplacementTextChange = getReplacementTextChange;
+            ReplacementTextChange = replacementTextChange;
         }
 
         /// <summary>
@@ -47,8 +47,5 @@ namespace Microsoft.CodeAnalysis.InlineHints
         /// </summary>
         public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
             => _getDescriptionAsync?.Invoke(document, cancellationToken) ?? SpecializedTasks.EmptyImmutableArray<TaggedText>();
-
-        public TextChange? GetHintTextChange(Document document, CancellationToken cancellationToken)
-            => _getReplacementTextChange?.Invoke(document, cancellationToken) ?? null;
     }
 }
