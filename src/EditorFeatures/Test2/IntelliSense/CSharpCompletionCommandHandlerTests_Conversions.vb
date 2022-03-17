@@ -382,5 +382,132 @@ public class Program
 }
 ")
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitUserDefinedConversionOfNullableStructAccessViaNullcondionalOffersLiftedConversion() As Task
+            Await VerifyCustomCommitProviderAsync("
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        S? s = null;
+        var i = ((S?)s)?.$$
+    }
+}
+", "(int?)", "
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        S? s = null;
+        var i = ((int?)((S?)s))?$$
+    }
+}
+")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitUserDefinedConversionOfPropertyNamedLikeItsTypeIsHandled() As Task
+            Await VerifyCustomCommitProviderAsync("
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class C {
+    public S S { get; }
+}
+public class Program
+{
+    public static void Main()
+    {
+        var c = new C();
+        var i = c.S.$$
+    }
+}
+", "(int)", "
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class C {
+    public S S { get; }
+}
+public class Program
+{
+    public static void Main()
+    {
+        var c = new C();
+        var i = ((int)c.S)$$
+    }
+}
+")
+        End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <CombinatorialData>
+        Public Async Function ExplicitConversionOfConditionalAccessFromClassOrStructToClassOrStruct(
+            <CombinatorialValues("struct", "class")> fromClassOrStruct As String,
+            <CombinatorialValues("struct", "class")> toClassOrStruct As String,
+            propertyIsNullable As Boolean,
+            conditionalAccess As Boolean) As Task
+
+            If fromClassOrStruct = "class" AndAlso propertyIsNullable Then
+                ' This test Is solely about lifting of nullable value types. The CombinatorialData also 
+                ' adds cases for nullable reference types: public class From ... public From? From { get; }
+                ' We don't want to test NRT cases here.
+                Return
+            End If
+
+            Dim assertShouldBeNullable =
+                fromClassOrStruct = "struct" AndAlso
+                toClassOrStruct = "struct" AndAlso
+                (propertyIsNullable OrElse conditionalAccess)
+
+            Dim propertyNullableQuestionMark = If(propertyIsNullable, "?", "")
+            Dim conditionalAccessQuestionMark = If(conditionalAccess, "?", "")
+            Dim shouldBeNullableQuestionMark = If(assertShouldBeNullable, "?", "")
+            Await VerifyCustomCommitProviderAsync($"
+public {fromClassOrStruct} From {{
+    public static explicit operator To(From _) => default;
+}}
+public {toClassOrStruct} To {{
+}}
+public class C {{
+    public From{propertyNullableQuestionMark} From {{ get; }} = default;
+}}
+public class Program
+{{
+    public static void Main()
+    {{
+        C c = null;
+        c{conditionalAccessQuestionMark}.From.$$
+    }}
+}}
+", $"(To{shouldBeNullableQuestionMark})", $"
+public {fromClassOrStruct} From {{
+    public static explicit operator To(From _) => default;
+}}
+public {toClassOrStruct} To {{
+}}
+public class C {{
+    public From{propertyNullableQuestionMark} From {{ get; }} = default;
+}}
+public class Program
+{{
+    public static void Main()
+    {{
+        C c = null;
+        ((To{shouldBeNullableQuestionMark})c{conditionalAccessQuestionMark}.From)$$
+    }}
+}}
+")
+        End Function
     End Class
 End Namespace
