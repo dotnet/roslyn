@@ -1,73 +1,84 @@
 # Branches that trigger a build on commit
 trigger:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
 # Branches that trigger builds on PR
 pr:
-- master
-- master-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
 jobs:
-- job: VS_Integration
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_Debug_32
+    pool:
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Debug
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Debug
+          oop64bit: false
+          lspEditor: false
+
+- job: VS_Integration_Debug_64
   pool:
-    name: NetCorePublic-Pool
-    queue: $(queueName)
-  strategy:
-    maxParallel: 4
-    matrix:
-      debug_32:
-        _configuration: Debug
-        _oop64bit: false
-      debug_64:
-        _configuration: Debug
-        _oop64bit: true
-      release_32:
-        _configuration: Release
-        _oop64bit: false
-      release_64:
-        _configuration: Release
-        _oop64bit: true
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
   timeoutInMinutes: 135
-
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Debug
   steps:
-    - template: eng/pipelines/checkout-windows-task.yml
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: Debug
+        oop64bit: true
+        lspEditor: false
 
-    - task: PowerShell@2
-      displayName: Build and Test
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration $(_configuration) -prepareMachine -testVsi -oop64bit:$$(_oop64bit) -collectDumps
+- job: VS_Integration_Release_32
+  pool:
+    name: $(poolName)
+    demands: ImageOverride -equals $(queueName)
+  timeoutInMinutes: 135
+  variables:
+    - name: XUNIT_LOGS
+      value: $(Build.SourcesDirectory)\artifacts\log\Release
+  steps:
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: Release
+        oop64bit: false
+        lspEditor: false
 
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml
-        mergeTestResults: true
-        testRunTitle: '$(System.JobAttempt)-Integration $(_configuration) OOP64_$(_oop64bit)'
-      condition: always()
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: '$(System.JobAttempt)-Logs $(_configuration) OOP64_$(_oop64bit) $(Build.BuildNumber)'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Screenshots
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\$(_configuration)\net472\xUnitResults'
-        ArtifactName: '$(System.JobAttempt)-Screenshots $(_configuration) OOP64_$(_oop64bit) $(Build.BuildNumber)'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - job: VS_Integration_Release_64
+    pool:
+      name: $(poolName)
+      demands: ImageOverride -equals $(queueName)
+    timeoutInMinutes: 135
+    variables:
+      - name: XUNIT_LOGS
+        value: $(Build.SourcesDirectory)\artifacts\log\Release
+    steps:
+      - template: eng/pipelines/test-integration-job.yml
+        parameters:
+          configuration: Release
+          oop64bit: true
+          lspEditor: false

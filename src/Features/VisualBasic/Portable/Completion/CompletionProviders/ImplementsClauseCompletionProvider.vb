@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -28,18 +27,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Protected Overrides Function IsExclusive() As Boolean
             Return True
         End Function
 
-        Protected Overrides Function GetSymbolsAsync(
-                context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Protected Overrides Async Function GetSymbolsAsync(
+                completionContext As CompletionContext,
+                syntaxContext As VisualBasicSyntaxContext,
+                position As Integer,
+                options As CompletionOptions,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+
+            Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
+            Return symbols.SelectAsArray(Function(s) (s, preselect:=False))
+        End Function
+
+        Private Overloads Function GetSymbolsAsync(
+                context As VisualBasicSyntaxContext, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.TargetToken.Kind = SyntaxKind.None Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
@@ -55,10 +71,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If methodDeclaration IsNot Nothing Then
                 memberKindKeyword = methodDeclaration.DeclarationKeyword.Kind
             End If
+
             Dim propertyDeclaration = context.TargetToken.GetAncestor(Of PropertyStatementSyntax)()
             If propertyDeclaration IsNot Nothing Then
                 memberKindKeyword = propertyDeclaration.DeclarationKeyword.Kind
             End If
+
             Dim eventDeclaration = context.TargetToken.GetAncestor(Of EventStatementSyntax)()
             If eventDeclaration IsNot Nothing Then
                 memberKindKeyword = eventDeclaration.DeclarationKeyword.Kind
@@ -105,6 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If Not method.ReturnsVoid Then
                     Return memberKindKeyword = SyntaxKind.FunctionKeyword
                 End If
+
                 Return memberKindKeyword = SyntaxKind.SubKeyword
             End If
 
@@ -154,6 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             If container Is Nothing Then
                 Return ImmutableArray(Of ISymbol).Empty
             End If
+
             Dim symbols = semanticModel.LookupSymbols(position, container)
 
             Dim hashSet = New HashSet(Of ISymbol)(symbols.ToArray() _
@@ -192,12 +212,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' Even if there's not anything left to implement, we'll show the list of interfaces, 
             ' the global namespace, and the project root namespace (if any), as long as the class implements something.
             If Not result.Any() AndAlso containingType.Interfaces.Any() Then
-                Dim defaultListing = New List(Of ISymbol)(containingType.Interfaces.ToArray())
+                Dim defaultListing = New List(Of ISymbol)(containingType.Interfaces)
                 defaultListing.Add(semanticModel.Compilation.GlobalNamespace)
                 If containingType.ContainingNamespace IsNot Nothing Then
                     defaultListing.Add(containingType.ContainingNamespace)
                     AddAliasesAndContainers(containingType.ContainingNamespace, defaultListing, node, semanticModel)
                 End If
+
                 Return defaultListing.ToImmutableArray()
             End If
 
@@ -276,13 +297,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Const InsertionTextOnOpenParen As String = NameOf(InsertionTextOnOpenParen)
 
-        Protected Overrides Function CreateItem(completionContext As CompletionContext,
-                displayText As String, displayTextSuffix As String, insertionText As String,
-                symbols As List(Of ISymbol), context As VisualBasicSyntaxContext, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Dim item = MyBase.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, preselect, supportedPlatformData)
+        Protected Overrides Function CreateItem(
+                completionContext As CompletionContext,
+                displayText As String,
+                displayTextSuffix As String,
+                insertionText As String,
+                symbols As ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)),
+                context As VisualBasicSyntaxContext,
+                supportedPlatformData As SupportedPlatformData) As CompletionItem
 
-            If IsGenericType(symbols(0)) Then
-                Dim text = symbols(0).ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
+            Dim item = MyBase.CreateItem(completionContext, displayText, displayTextSuffix, insertionText, symbols, context, supportedPlatformData)
+
+            If IsGenericType(symbols(0).symbol) Then
+                Dim text = symbols(0).symbol.ToMinimalDisplayString(context.SemanticModel, context.Position, MinimalFormatWithoutGenerics)
                 item = item.AddProperty(InsertionTextOnOpenParen, text)
             End If
 

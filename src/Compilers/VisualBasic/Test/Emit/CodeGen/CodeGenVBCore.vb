@@ -2210,7 +2210,8 @@ symbolValidator:=Sub([module])
                  End Sub)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40683: The test hook is blocked by this issue.
+        <WorkItem(40683, "https://github.com/dotnet/roslyn/issues/40683")>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo()
             Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="HasIVTToCompilationVbCore">
@@ -2794,9 +2795,9 @@ End Namespace
 references:={SystemCoreRef, SystemXmlLinqRef, SystemXmlRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
-            <errors>BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+            <errors>BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
-BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 Imports Microsoft.VisualBasic
         ~~~~~~~~~~~~~~~~~~~~~
@@ -2806,7 +2807,6 @@ BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'VisualBasic'.
     Public Module VisualBasic  
                   ~~~~~~~~~~~
-
 </errors>)
 
             ' Remove the reference to System.XML.Linq and verify compilation behavior that the 

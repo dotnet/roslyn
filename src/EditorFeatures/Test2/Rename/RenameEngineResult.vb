@@ -50,10 +50,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 workspaceXml As XElement,
                 renameTo As String,
                 host As RenameTestHost,
-                Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing,
-                Optional expectFailure As Boolean = False) As RenameEngineResult
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions)))
+                Optional renameOptions As SymbolRenameOptions = Nothing,
+                Optional expectFailure As Boolean = False,
+                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions))
+
+            If host = RenameTestHost.OutOfProcess_SingleCall OrElse host = RenameTestHost.OutOfProcess_SplitCall Then
+                composition = composition.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess)
+            End If
+
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
             workspace.SetTestLogger(AddressOf helper.WriteLine)
+
+            If sourceGenerator IsNot Nothing Then
+                workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
+            End If
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -71,15 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
                 End If
 
-                Dim optionSet = workspace.Options
-
-                If changedOptionSet IsNot Nothing Then
-                    For Each entry In changedOptionSet
-                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
-                    Next
-                End If
-
-                Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, optionSet, host)
+                Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, renameOptions, host)
 
                 If expectFailure Then
                     Assert.NotNull(result.ErrorMessage)
@@ -97,6 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Else
                     workspace.Dispose()
                 End If
+
                 Throw
             End Try
 
@@ -107,10 +112,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 renameTo As String,
                 solution As Solution,
                 symbol As ISymbol,
-                optionSet As OptionSet,
+                renameOptions As SymbolRenameOptions,
                 host As RenameTestHost) As ConflictResolution
-
-            Dim renameOptions = RenameOptionSet.From(solution, optionSet)
 
             If host = RenameTestHost.OutOfProcess_SplitCall Then
                 ' This tests that each portion of rename can properly marshal to/from the OOP process. It validates

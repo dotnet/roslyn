@@ -12,11 +12,11 @@
 This document is an overview of the Syntax Visualizer tool that ships as part of the .NET Compiler Platform (“Roslyn”) SDK Preview. The Syntax Visualizer is a Visual Studio Extension that facilitates inspection and exploration of Roslyn syntax trees and can be used as a debugging aid when you develop your own applications atop the .NET Compiler Platform (“Roslyn”) APIs.
 
 ## Getting Started
-Let’s begin by getting a box set up with [Visual Studio 2015](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-on-Visual-Studio-2015.md).
+Let’s begin by getting a box set up with [Visual Studio 2015](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Getting-Started-on-Visual-Studio-2015.md).
 
 The Syntax Visualizer is installed as part of the [.NET Compiler Platform SDK](https://visualstudiogallery.msdn.microsoft.com/2ddb7240-5249-4c8c-969e-5d05823bcb89).
 
-To understand the concepts presented in this document better, I would strongly recommend reading the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn-Overview.md). This document provides a very good overview of the .NET Compiler Platform (“Roslyn”) APIs including syntax trees, nodes, tokens, and trivia.
+To understand the concepts presented in this document better, I would strongly recommend reading the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Roslyn-Overview.md). This document provides a very good overview of the .NET Compiler Platform (“Roslyn”) APIs including syntax trees, nodes, tokens, and trivia.
 
 ## Syntax Visualizer
 Once installed, the Syntax Visualizer enables inspection of the syntax tree for any C# or VB code file that is open inside the Visual Studio IDE. The visualizer can be launched by clicking on View –> Other Windows –> Roslyn Syntax Visualizer.
@@ -43,7 +43,7 @@ Now, let’s create a new project by clicking on File –> New Project. You can 
 
 As you can see in the above image, the visualizer tool window displays the syntax tree at the top and a property grid at the bottom. The property grid displays the properties of the item that is currently selected in the tree, including the .NET ‘Type’ and the ‘Kind’ (SyntaxKind) of the item.
 
-Syntax trees comprise three types of items – nodes, tokens, and trivia. You can read more about these types in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn-Overview.md). Items of each type are represented using a different color. Click on the button titled ‘Legend’ for an overview of the colors used.
+Syntax trees comprise three types of items – nodes, tokens, and trivia. You can read more about these types in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Roslyn-Overview.md). Items of each type are represented using a different color. Click on the button titled ‘Legend’ for an overview of the colors used.
 
 *Figure 5 Legend*
 
@@ -92,7 +92,7 @@ Here is the docking layout that I normally use for the visualizer tool window an
 ![fig10.png](images/fig10.png)
 
 # Inspecting Semantics
-The Syntax Visualizer also allows you to do some rudimentary inspection of symbols and semantic information. Let’s look at some examples. You can read more about APIs for performing semantic analysis in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Roslyn-Overview.md).
+The Syntax Visualizer also allows you to do some rudimentary inspection of symbols and semantic information. Let’s look at some examples. You can read more about APIs for performing semantic analysis in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Roslyn-Overview.md).
 
 In the C# file above, type `double x = 1 + 1;` inside Main().
 

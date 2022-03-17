@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.UseNullPropagation;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseNullPropagation), Shared]
     internal class CSharpUseNullPropagationCodeFixProvider : AbstractUseNullPropagationCodeFixProvider<
             SyntaxKind,
             ExpressionSyntax,

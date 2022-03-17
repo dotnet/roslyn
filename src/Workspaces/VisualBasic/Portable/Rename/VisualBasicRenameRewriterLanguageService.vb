@@ -113,19 +113,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 _renameLocations = parameters.RenameLocations
                 _conflictLocations = parameters.ConflictLocationSpans
                 _cancellationToken = parameters.CancellationToken
-                _semanticModel = DirectCast(parameters.SemanticModel, SemanticModel)
+                _semanticModel = parameters.SemanticModel
                 _renamedSymbol = parameters.RenameSymbol
                 _replacementTextValid = parameters.ReplacementTextValid
                 _renameSpansTracker = parameters.RenameSpansTracker
-                _isRenamingInStrings = parameters.OptionSet.RenameInStrings
-                _isRenamingInComments = parameters.OptionSet.RenameInComments
+                _isRenamingInStrings = parameters.IsRenamingInStrings
+                _isRenamingInComments = parameters.IsRenamingInComments
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans
-                _aliasSymbol = TryCast(Me._renamedSymbol, IAliasSymbol)
-                _renamableDeclarationLocation = Me._renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
+                _aliasSymbol = TryCast(_renamedSymbol, IAliasSymbol)
+                _renamableDeclarationLocation = _renamedSymbol.Locations.Where(Function(loc) loc.IsInSource AndAlso loc.SourceTree Is _semanticModel.SyntaxTree).FirstOrDefault()
                 _simplificationService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISimplificationService)()
                 _syntaxFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISyntaxFactsService)()
                 _semanticFactsService = parameters.Document.Project.LanguageServices.GetRequiredService(Of ISemanticFactsService)()
-                _isVerbatim = Me._syntaxFactsService.IsVerbatimIdentifier(_replacementText)
+                _isVerbatim = _syntaxFactsService.IsVerbatimIdentifier(_replacementText)
                 _renameAnnotations = parameters.RenameAnnotations
             End Sub
 
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, Me._semanticModel, Me._solution.Workspace, Me._cancellationToken)
+                Dim symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken)
 
                 ' this is the compiler generated backing field of a non custom event. We need to store a "Event" suffix to properly rename it later on.
                 Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
@@ -1033,6 +1033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return Nothing
                 End If
             End If
+
             Dim isInNamespaceOrTypeContext = SyntaxFacts.IsInNamespaceOrTypeContext(TryCast(syntax, ExpressionSyntax))
             Dim position = nodeToSpeculate.SpanStart
             Return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(nodeToSpeculate, DirectCast(originalSemanticModel, SemanticModel), position, isInNamespaceOrTypeContext)

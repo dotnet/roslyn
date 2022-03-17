@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,8 +30,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Finds all the callers of a specified symbol.
         /// </summary>
         public static async Task<IEnumerable<SymbolCallerInfo>> FindCallersAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
+            ISymbol symbol, Solution solution, IImmutableSet<Document>? documents, CancellationToken cancellationToken = default)
         {
+            if (symbol is null)
+                throw new System.ArgumentNullException(nameof(symbol));
+            if (solution is null)
+                throw new System.ArgumentNullException(nameof(solution));
+
             symbol = symbol.OriginalDefinition;
             var foundSymbol = await FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             symbol = foundSymbol ?? symbol;
@@ -72,21 +75,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<ImmutableArray<ReferencedSymbol>> FindCallReferencesAsync(
             Solution solution,
             ISymbol symbol,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             CancellationToken cancellationToken = default)
         {
-            if (symbol != null)
+            if (symbol.Kind is SymbolKind.Event or
+                SymbolKind.Method or
+                SymbolKind.Property)
             {
-                if (symbol.Kind == SymbolKind.Event ||
-                    symbol.Kind == SymbolKind.Method ||
-                    symbol.Kind == SymbolKind.Property)
-                {
-                    var collector = new StreamingProgressCollector();
-                    await FindReferencesAsync(
-                        symbol, solution, collector, documents,
-                        FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
-                    return collector.GetReferencedSymbols();
-                }
+                var collector = new StreamingProgressCollector();
+                await FindReferencesAsync(
+                    symbol, solution, collector, documents,
+                    FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+                return collector.GetReferencedSymbols();
             }
 
             return ImmutableArray<ReferencedSymbol>.Empty;

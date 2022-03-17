@@ -13,6 +13,11 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 #if !CODE_STYLE
 using Roslyn.Utilities;
@@ -26,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
+            private readonly SharedVerifierState _sharedState;
+
             static Test()
             {
                 // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
@@ -42,6 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Test()
             {
+                _sharedState = new SharedVerifierState(this, DefaultFileExt);
+
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
 
                 SolutionTransforms.Add((solution, projectId) =>
@@ -53,26 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
                     solution = solution.WithProjectCompilationOptions(projectId, compilationOptions);
 
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                    if (analyzerConfigSource is object)
-                    {
-                        foreach (var id in solution.ProjectIds)
-                        {
-                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
-                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
-                        }
-                    }
-
-#if !CODE_STYLE
-                    var options = solution.Options;
-                    foreach (var (key, value) in remainingOptions)
-                    {
-                        options = options.WithChangedOption(key, value);
-                    }
-
-                    solution = solution.WithOptions(options);
-#endif
-
                     return solution;
                 });
             }
@@ -83,35 +72,77 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp8;
 
-            /// <summary>
-            /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
-            /// using a collection initializer.
-            /// </summary>
-            internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.CSharp);
+            /// <inheritdoc cref="SharedVerifierState.Options"/>
+            internal OptionsCollection Options => _sharedState.Options;
 
-            public string? EditorConfig { get; set; }
+#if !CODE_STYLE
+            internal CodeActionOptions CodeActionOptions
+            {
+                get => _sharedState.CodeActionOptions;
+                set => _sharedState.CodeActionOptions = value;
+            }
+#endif
+            /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
+            public string? EditorConfig
+            {
+                get => _sharedState.EditorConfig;
+                set => _sharedState.EditorConfig = value;
+            }
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
-            public override async Task RunAsync(CancellationToken cancellationToken = default)
+            public Action<ImmutableArray<CodeAction>>? CodeActionsVerifier { get; set; }
+
+            protected override async Task RunImplAsync(CancellationToken cancellationToken = default)
             {
                 if (DiagnosticSelector is object)
                 {
                     Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
                 }
 
-                await base.RunAsync(cancellationToken);
+                _sharedState.Apply();
+                await base.RunImplAsync(cancellationToken);
             }
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.IdeAnalyzerOptions);
+
+            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
+                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
+
+            protected override FixAllContext CreateFixAllContext(
+                Document? document,
+                Project project,
+                CodeFixProvider codeFixProvider,
+                FixAllScope scope,
+                string? codeActionEquivalenceKey,
+                IEnumerable<string> diagnosticIds,
+                FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
+                CancellationToken cancellationToken)
+                => new(new FixAllState(
+                    fixAllProvider: null,
+                    document,
+                    project,
+                    codeFixProvider,
+                    scope,
+                    codeActionEquivalenceKey,
+                    diagnosticIds,
+                    fixAllDiagnosticProvider,
+                    _ => _sharedState.CodeActionOptions),
+                  new ProgressTracker(), cancellationToken);
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {
                 return DiagnosticSelector?.Invoke(fixableDiagnostics)
                     ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
+            }
+
+            protected override ImmutableArray<CodeAction> FilterCodeActions(ImmutableArray<CodeAction> actions)
+            {
+                CodeActionsVerifier?.Invoke(actions);
+                return base.FilterCodeActions(actions);
             }
         }
     }

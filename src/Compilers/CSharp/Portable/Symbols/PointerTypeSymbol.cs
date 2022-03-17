@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics) => ManagedKind.Unmanaged;
+        internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Unmanaged;
 
         public sealed override bool IsRefLikeType
         {
@@ -284,12 +284,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return PointedAtTypeWithAnnotations.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo result = null;
+            UseSiteInfo<AssemblySymbol> result = default;
 
             // Check type, custom modifiers
-            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtTypeWithAnnotations, AllowedRequiredModifierType.None);
+            DeriveUseSiteInfoFromType(ref result, this.PointedAtTypeWithAnnotations, AllowedRequiredModifierType.None);
             return result;
         }
 
@@ -310,5 +310,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool IsRecord => false;
+
+        internal override bool IsRecordStruct => false;
+
+        internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
+        {
+            return SpecializedCollections.EmptyEnumerable<(MethodSymbol Body, MethodSymbol Implemented)>();
+        }
     }
 }

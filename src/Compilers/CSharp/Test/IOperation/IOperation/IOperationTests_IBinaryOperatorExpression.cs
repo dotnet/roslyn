@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IBinaryOperatorExpression : SemanticModelTestBase
     {
         private const string RangeCtorSignature = "System.Range..ctor(System.Index start, System.Index end)";
         private const string RangeStartAtSignature = "System.Range System.Range.StartAt(System.Index start)";

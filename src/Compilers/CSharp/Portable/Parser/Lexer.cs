@@ -386,6 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.Text, trailingNode);
                         break;
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
                         break;
                     case SyntaxKind.CharacterLiteralToken:
@@ -440,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case '\"':
                 case '\'':
-                    this.ScanStringLiteral(ref info);
+                    this.ScanStringLiteral(ref info, inDirective: false);
                     break;
 
                 case '/':
@@ -762,39 +764,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '@':
-                    if (TextWindow.PeekChar(1) == '"')
+                    if (!this.TryScanAtStringToken(ref info) &&
+                        !this.ScanIdentifierOrKeyword(ref info))
                     {
-                        this.ScanVerbatimStringLiteral(ref info);
-                    }
-                    else if (TextWindow.PeekChar(1) == '$' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureAltInterpolatedVerbatimStrings);
-                        break;
-                    }
-                    else if (!this.ScanIdentifierOrKeyword(ref info))
-                    {
-                        TextWindow.AdvanceChar();
+                        Debug.Assert(TextWindow.PeekChar() == '@');
+                        this.ConsumeAtSignSequence();
                         info.Text = TextWindow.GetText(intern: true);
                         this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
                     }
-
                     break;
 
                 case '$':
-                    if (TextWindow.PeekChar(1) == '"')
+                    if (TryScanInterpolatedString(ref info))
                     {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: false, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
                         break;
                     }
-                    else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"')
-                    {
-                        this.ScanInterpolatedStringLiteral(isVerbatim: true, ref info);
-                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
-                        break;
-                    }
-                    else if (this.ModeIs(LexerMode.DebuggerSyntax))
+
+                    if (this.ModeIs(LexerMode.DebuggerSyntax))
                     {
                         goto case 'a';
                     }
@@ -939,6 +925,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
                     break;
             }
+        }
+
+        private bool TryScanAtStringToken(ref TokenInfo info)
+        {
+            Debug.Assert(TextWindow.PeekChar() == '@');
+
+            var index = 0;
+            while (TextWindow.PeekChar(index) == '@')
+            {
+                index++;
+            }
+
+            if (TextWindow.PeekChar(index) == '"')
+            {
+                // @"
+                this.ScanVerbatimStringLiteral(ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(index) == '$')
+            {
+                // @$"
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryScanInterpolatedString(ref TokenInfo info)
+        {
+            Debug.Assert(TextWindow.PeekChar() == '$');
+
+            if (TextWindow.PeekChar(1) == '$')
+            {
+                // $$ - definitely starts a raw interpolated string.
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '@')
+            {
+                // $@@ - Error case.  Detect if user is trying to user verbatim and raw interpolations together.
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '"')
+            {
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+            else if (TextWindow.PeekChar(1) == '@')
+            {
+                this.ScanInterpolatedStringLiteral(ref info);
+                return true;
+            }
+
+            return false;
         }
 
 #nullable enable
@@ -1663,14 +1705,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int start = TextWindow.Position;
             this.ResetIdentBuffer();
 
-            info.IsVerbatim = TextWindow.PeekChar() == '@';
-            if (info.IsVerbatim)
+            while (TextWindow.PeekChar() == '@')
             {
                 TextWindow.AdvanceChar();
             }
 
-            bool isObjectAddress = false;
+            var atCount = TextWindow.Position - start;
+            info.IsVerbatim = atCount > 0;
 
+            bool isObjectAddress = false;
             while (true)
             {
                 char surrogateCharacter = SlidingTextWindow.InvalidCharacter;
@@ -1904,6 +1947,11 @@ LoopExit:
                     }
                     // Parse hex value to check for overflow.
                     this.GetValueUInt64(valueText, isHex: true, isBinary: false);
+                }
+
+                if (atCount >= 2)
+                {
+                    this.AddError(start, atCount, ErrorCode.ERR_IllegalAtSequence);
                 }
 
                 return true;
@@ -2836,6 +2884,11 @@ top:
                     info.Kind = SyntaxKind.CommaToken;
                     break;
 
+                case '-':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.MinusToken;
+                    break;
+
                 case '!':
                     TextWindow.AdvanceChar();
                     if (TextWindow.PeekChar() == '=')
@@ -2902,7 +2955,7 @@ top:
                     break;
 
                 case '\"':
-                    this.ScanStringLiteral(ref info, false);
+                    this.ScanStringLiteral(ref info, inDirective: true);
                     break;
 
                 case '\\':

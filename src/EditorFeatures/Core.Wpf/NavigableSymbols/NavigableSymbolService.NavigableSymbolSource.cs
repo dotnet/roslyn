@@ -7,14 +7,16 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
@@ -24,18 +26,21 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
         {
             private readonly IThreadingContext _threadingContext;
             private readonly IStreamingFindUsagesPresenter _presenter;
-            private readonly IWaitIndicator _waitIndicator;
+            private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+            private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
             private bool _disposed;
 
             public NavigableSymbolSource(
                 IThreadingContext threadingContext,
                 IStreamingFindUsagesPresenter streamingPresenter,
-                IWaitIndicator waitIndicator)
+                IUIThreadOperationExecutor uiThreadOperationExecutor,
+                IAsynchronousOperationListenerProvider listenerProvider)
             {
                 _threadingContext = threadingContext;
                 _presenter = streamingPresenter;
-                _waitIndicator = waitIndicator;
+                _uiThreadOperationExecutor = uiThreadOperationExecutor;
+                _listenerProvider = listenerProvider;
             }
 
             public void Dispose()
@@ -44,35 +49,34 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             public async Task<INavigableSymbol> GetNavigableSymbolAsync(SnapshotSpan triggerSpan, CancellationToken cancellationToken)
             {
                 if (_disposed)
-                {
                     return null;
-                }
 
                 var snapshot = triggerSpan.Snapshot;
                 var position = triggerSpan.Start;
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
-                {
                     return null;
-                }
 
                 var service = document.GetLanguageService<IGoToSymbolService>();
                 if (service == null)
-                {
                     return null;
-                }
 
                 var context = new GoToSymbolContext(document, position, cancellationToken);
 
                 await service.GetSymbolsAsync(context).ConfigureAwait(false);
 
                 if (!context.TryGetItems(WellKnownSymbolTypes.Definition, out var definitions))
-                {
                     return null;
-                }
 
                 var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
-                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _threadingContext, _presenter, _waitIndicator);
+                return new NavigableSymbol(
+                    definitions.ToImmutableArray(),
+                    snapshotSpan,
+                    document,
+                    _threadingContext,
+                    _presenter,
+                    _uiThreadOperationExecutor,
+                    _listenerProvider);
             }
         }
     }

@@ -297,7 +297,7 @@ public class A : DD
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharp_PropertyFromGenericInterface1(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCSharp_PropertyFromGenericInterface1_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -329,7 +329,44 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertyFromGenericInterface1_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+using System;
+ 
+interface I1<T>
+{
+    T {|Definition:$$Name|} { get; set; }
+}
+ 
+interface I2
+{
+    int Name { get; set; }
+}
+ 
+interface I3<T> : I2
+{
+    new T Name { get; set; }
+}
+ 
+public class M<T> : I1<T>, I3<T>
+{
+    public T {|Definition:Name|} { get; set; }
+    int I2.Name { get; set; }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
@@ -371,7 +408,7 @@ public class M<T> : I1<T>, I3<T>
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharp_PropertyFromGenericInterface3(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCSharp_PropertyFromGenericInterface3_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -403,7 +440,44 @@ public class M<T> : I1<T>, I3<T>
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_PropertyFromGenericInterface3_FEature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+using System;
+ 
+interface I1<T>
+{
+    T Name { get; set; }
+}
+ 
+interface I2
+{
+    int Name { get; set; }
+}
+ 
+interface I3<T> : I2
+{
+    new T {|Definition:$$Name|} { get; set; }
+}
+ 
+public class M<T> : I1<T>, I3<T>
+{
+    public T {|Definition:Name|} { get; set; }
+    int I2.Name { get; set; }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
@@ -973,7 +1047,7 @@ namespace N
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharp_PropertyUseInSourceGeneratedDocument(kind As TestKind) As Task
+        Public Async Function TestCSharp_PropertyUseInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1008,7 +1082,339 @@ namespace ConsoleApplication22
         </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_AbstractStaticPropertyInInterface(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I2
+{
+    abstract static int {|Definition:P$$2|} { get; set; }
+}
+
+class C2_1 : I2
+{
+    public static int {|Definition:P2|} { get; set; }
+}
+
+class C2_2 : I2
+{
+    static int I2.{|Definition:P2|} { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_AbstractStaticPropertyViaFeature1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I2
+{
+    abstract static int {|Definition:P2|} { get; set; }
+}
+
+class C2_1 : I2
+{
+    public static int {|Definition:P$$2|} { get; set; }
+}
+
+class C2_2 : I2
+{
+    static int I2.P2 { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_AbstractStaticPropertyViaFeature2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I2
+{
+    abstract static int {|Definition:P2|} { get; set; }
+}
+
+class C2_1 : I2
+{
+    public static int P2 { get; set; }
+}
+
+class C2_2 : I2
+{
+    static int I2.{|Definition:P$$2|} { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_AbstractStaticPropertyViaAPI1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I2
+{
+    abstract static int {|Definition:P2|} { get; set; }
+}
+
+class C2_1 : I2
+{
+    public static int {|Definition:P2|} { get; set; }
+}
+
+class C2_2 : I2
+{
+    static int I2.{|Definition:P$$2|} { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharp_AbstractStaticPropertyViaAPI2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface I2
+{
+    abstract static int {|Definition:P2|} { get; set; }
+}
+
+class C2_1 : I2
+{
+    public static int {|Definition:P$$2|} { get; set; }
+}
+
+class C2_2 : I2
+{
+    static int I2.{|Definition:P2|} { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:$$y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordProperty2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|$$y|]: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordProperty3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:y|})
+{
+
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, [|y|]: 1);
+        Console.WriteLine(f.[|$$y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithExplicitProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int y)
+{
+    public int {|Definition:$$y|} { get; } = y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, y: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithExplicitProperty2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int y)
+{
+    public int {|Definition:y|} { get; } = y;
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(0, y: 1);
+        Console.WriteLine(f.[|$$y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithNotPrimaryConstructor1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int y)
+{
+    public Goo(int {|Definition:$$y|})
+    {
+        this.y = [|y|];
+    }
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo([|y|]: 1);
+        Console.WriteLine(f.y);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestRecordPropertyWithNotPrimaryConstructor2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+
+record Goo(int x, int {|Definition:$$y|})
+{
+    public Goo(int y)
+    {
+        this.[|y|] = y;
+    }
+}
+
+class P
+{
+    static void Main()
+    {
+        var f = new Goo(y: 1);
+        Console.WriteLine(f.[|y|]);
+    }
+}
+
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
         End Function
     End Class
 End Namespace

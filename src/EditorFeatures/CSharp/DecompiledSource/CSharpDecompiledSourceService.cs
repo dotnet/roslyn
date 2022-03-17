@@ -48,33 +48,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
 
-            string assemblyLocation = null;
+            var metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
+            var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
+
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly)
+            if (isReferenceAssembly &&
+                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
             {
                 try
                 {
                     var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
-                }
-            }
-
-            if (assemblyLocation == null)
-            {
-                var reference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
-                if (assemblyLocation == null)
-                {
-                    throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
                 }
             }
 
             // Decompile
-            document = PerformDecompilation(document, fullName, symbolCompilation, assemblyLocation);
+            document = PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
 
             document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
@@ -88,26 +81,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var node = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             // Apply formatting rules
             var formattedDoc = await Formatter.FormatAsync(
-                 document, SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                 options: null,
+                 document,
+                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                 options,
                  CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
                  cancellationToken).ConfigureAwait(false);
 
             return formattedDoc;
         }
 
-        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
+        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, MetadataReference metadataReference, string assemblyLocation)
         {
-            // Load the assembly.
-            var file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
-
             var logger = new StringBuilder();
+            var resolver = new AssemblyResolver(compilation, logger);
+
+            // Load the assembly.
+            PEFile file = null;
+            if (metadataReference is not null)
+                file = resolver.TryResolve(metadataReference, PEStreamOptions.PrefetchEntireImage);
+
+            if (file is null && assemblyLocation is null)
+            {
+                throw new NotSupportedException(FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+            }
+
+            file ??= new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
 
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(file, new AssemblyResolver(compilation, logger), new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(file, resolver, new DecompilerSettings());
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
             decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
@@ -161,17 +166,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
         private static string GetFullReflectionName(INamedTypeSymbol containingType)
         {
-            var stack = new Stack<string>();
-            stack.Push(containingType.MetadataName);
-            var ns = containingType.ContainingNamespace;
-            do
-            {
-                stack.Push(ns.Name);
-                ns = ns.ContainingNamespace;
-            }
-            while (ns != null && !ns.IsGlobalNamespace);
+            var containingTypeStack = new Stack<string>();
+            var containingNamespaceStack = new Stack<string>();
 
-            return string.Join(".", stack);
+            for (INamespaceOrTypeSymbol symbol = containingType;
+                symbol is not null and not INamespaceSymbol { IsGlobalNamespace: true };
+                symbol = (INamespaceOrTypeSymbol)symbol.ContainingType ?? symbol.ContainingNamespace)
+            {
+                if (symbol.ContainingType is not null)
+                    containingTypeStack.Push(symbol.MetadataName);
+                else
+                    containingNamespaceStack.Push(symbol.MetadataName);
+            }
+
+            var result = string.Join(".", containingNamespaceStack);
+            if (containingTypeStack.Any())
+            {
+                result += "+" + string.Join("+", containingTypeStack);
+            }
+
+            return result;
         }
     }
 }

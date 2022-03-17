@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // "x is Type y" is only available in C# 7.0 and above. Don't offer this refactoring
             // in projects targeting a lesser version.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
             {
                 return;
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 }
             }
 
-            if (semanticModel.GetSymbolInfo(comparison).GetAnySymbol().IsUserDefinedOperator())
+            if (semanticModel.GetSymbolInfo(comparison, cancellationToken).GetAnySymbol().IsUserDefinedOperator())
             {
                 return;
             }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     // Check if this is a 'write' to the asOperand.
                     if (identifierName.Identifier.ValueText == asOperand?.Name &&
                         asOperand.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
-                        identifierName.IsWrittenTo())
+                        identifierName.IsWrittenTo(semanticModel, cancellationToken))
                     {
                         return;
                     }

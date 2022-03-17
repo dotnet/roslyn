@@ -30,7 +30,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\VisualBasicPrecedenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\VisualBasicSemanticFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicAccessibilityFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicDocumentationCommentService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicFileBannerFacts.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicHeaderFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\VisualBasicSyntaxFacts.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\VisualBasicInferredMemberNameSimplifier.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CastAnalyzer.vb" />

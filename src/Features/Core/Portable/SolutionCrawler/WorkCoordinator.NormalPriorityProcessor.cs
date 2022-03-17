@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
@@ -227,24 +227,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
                     {
-                        if (Processor._documentTracker != null)
+                        // First the active document
+                        var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
+                        if (activeDocumentId != null)
                         {
-                            // First the active document
-                            var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
-                            if (activeDocumentId != null)
-                            {
-                                yield return activeDocumentId;
-                            }
+                            yield return activeDocumentId;
+                        }
 
-                            // Now any visible documents
-                            foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
-                            {
-                                yield return visibleDocumentId;
-                            }
+                        // Now any visible documents
+                        foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
+                        {
+                            yield return visibleDocumentId;
                         }
 
                         // Any other high priority documents
-                        foreach (var documentId in _higherPriorityDocumentsNotProcessed.Keys)
+                        foreach (var (documentId, _) in _higherPriorityDocumentsNotProcessed)
                         {
                             yield return documentId;
                         }
@@ -254,6 +251,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         try
                         {
+                            if (!Processor._documentTracker.SupportsDocumentTracking)
+                            {
+                                return false;
+                            }
+
                             foreach (var documentId in GetPrioritizedPendingDocuments())
                             {
                                 if (CancellationToken.IsCancellationRequested)
@@ -327,12 +329,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // using later version of solution is always fine since, as long as there is new work item in the queue,
                         // solution crawler will eventually call the last workitem with the lastest solution
                         // making everything to catch up
-                        var solution = Processor.CurrentSolution;
+                        var solution = Processor._registration.GetSolutionToAnalyze();
                         try
                         {
                             using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
                             {
-                                var textDocument = solution.GetTextDocument(documentId);
+                                var textDocument = solution.GetTextDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
 
                                 if (textDocument != null)
                                 {
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -405,9 +407,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 await analyzer.DocumentOpenAsync(document, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.NonSourceDocumentOpenAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                                await analyzer.NonSourceDocumentOpenAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -430,9 +432,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 await analyzer.DocumentCloseAsync(document, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.NonSourceDocumentCloseAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                                await analyzer.NonSourceDocumentCloseAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -470,7 +472,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 await Processor.RunAnalyzersAsync(reanalyzers, sourceDocument, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -483,9 +485,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 await analyzer.DocumentResetAsync(document, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.NonSourceDocumentResetAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                                await analyzer.NonSourceDocumentResetAsync(textDocument, cancellationToken).ConfigureAwait(false);
                             }
                         }
 
@@ -493,11 +495,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             if (textDocument is Document document)
                             {
-                                await analyzer.AnalyzeSyntaxAsync((Document)document, reasons, cancellationToken).ConfigureAwait(false);
+                                await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
                             }
-                            else if (analyzer is IIncrementalAnalyzer2 analyzer2)
+                            else
                             {
-                                await analyzer2.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
+                                await analyzer.AnalyzeNonSourceDocumentAsync(textDocument, reasons, cancellationToken).ConfigureAwait(false);
                             }
                         }
                     }
@@ -522,7 +524,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return;
                             }
 
-                            await Processor.RunAnalyzersAsync(Analyzers, Processor.CurrentSolution, workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
+                            await Processor.RunAnalyzersAsync(
+                                Analyzers,
+                                Processor._registration.GetSolutionToAnalyze(),
+                                workItem: new WorkItem(), (a, s, c) => a.NewSolutionSnapshotAsync(s, c), CancellationToken).ConfigureAwait(false);
 
                             foreach (var id in Processor.GetOpenDocumentIds())
                             {
@@ -538,7 +543,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         bool IsSolutionChanged()
                         {
-                            var currentSolution = Processor.CurrentSolution;
+                            var currentSolution = Processor._registration.GetSolutionToAnalyze();
                             var oldSolution = _lastSolution;
 
                             if (currentSolution == oldSolution)
@@ -576,8 +581,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public override void Shutdown()
                     {
                         base.Shutdown();
-
-                        SolutionCrawlerLogger.LogIncrementalAnalyzerProcessorStatistics(Processor._registration.CorrelationId, Processor.CurrentSolution, Processor._logAggregator, Analyzers);
 
                         _workItemQueue.Dispose();
 

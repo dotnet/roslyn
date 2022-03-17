@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,20 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             INamespaceOrTypeSymbol symbol, bool nameSyntax, bool allowVar = true)
         {
             var type = symbol as ITypeSymbol;
-            if (type != null && type.ContainsAnonymousType())
+            var containsAnonymousType = type != null && type.ContainsAnonymousType();
+
+            if (containsAnonymousType && allowVar)
             {
                 // something with an anonymous type can only be represented with 'var', regardless
                 // of what the user's preferences might be.
                 return SyntaxFactory.IdentifierName("var");
             }
 
-            var syntax = symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
-                               .WithAdditionalAnnotations(Simplifier.Annotation);
+            var syntax = containsAnonymousType
+                ? TypeSyntaxGeneratorVisitor.CreateSystemObject()
+                : symbol.Accept(TypeSyntaxGeneratorVisitor.Create(nameSyntax))!
+                        .WithAdditionalAnnotations(Simplifier.Annotation);
 
             if (!allowVar)
-            {
                 syntax = syntax.WithAdditionalAnnotations(DoNotAllowVarAnnotation.Annotation);
-            }
 
             if (type != null && type.IsReferenceType)
             {
@@ -66,10 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
                 };
 
-                if (additionalAnnotation is object)
-                {
+                if (additionalAnnotation is not null)
                     syntax = syntax.WithAdditionalAnnotations(additionalAnnotation);
-                }
             }
 
             return syntax;
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return null;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -146,36 +148,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static IEnumerable<UsingDirectiveSyntax> GetApplicableUsings(int position, SyntaxNode root)
         {
-            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<NamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
-            var allUsings = root is CompilationUnitSyntax
-                ? ((CompilationUnitSyntax)root).Usings.Concat(namespaceUsings)
+            var namespaceUsings = root.FindToken(position).Parent!.GetAncestors<BaseNamespaceDeclarationSyntax>().SelectMany(n => n.Usings);
+            var allUsings = root is CompilationUnitSyntax compilationUnit
+                ? compilationUnit.Usings.Concat(namespaceUsings)
                 : namespaceUsings;
             return allUsings.Where(u => u.Alias != null);
         }
 
-        public static bool IsIntrinsicType(this ITypeSymbol typeSymbol)
+        public static bool TryGetRecordPrimaryConstructor(this INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol? primaryConstructor)
         {
-            switch (typeSymbol.SpecialType)
+            if (typeSymbol.IsRecord)
             {
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Char:
-                case SpecialType.System_SByte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_Byte:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                // NOTE: VB treats System.DateTime as an intrinsic, while C# does not, see "predeftype.h"
-                //case SpecialType.System_DateTime:
-                case SpecialType.System_Decimal:
-                    return true;
-                default:
-                    return false;
+                Debug.Assert(typeSymbol.GetParameters().IsDefaultOrEmpty, "If GetParameters extension handles record, we can remove the handling here.");
+
+                // A bit hacky to determine the parameters of primary constructor associated with a given record.
+                // Simplifying is tracked by: https://github.com/dotnet/roslyn/issues/53092.
+                // Note: When the issue is handled, we can remove the logic here and handle things in GetParameters extension. BUT
+                // if GetParameters extension method gets updated to handle records, we need to test EVERY usage
+                // of the extension method and make sure the change is applicable to all these usages.
+
+                primaryConstructor = typeSymbol.InstanceConstructors.FirstOrDefault(
+                    c => c.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is RecordDeclarationSyntax);
+                return primaryConstructor is not null;
             }
+
+            primaryConstructor = null;
+            return false;
         }
     }
 }

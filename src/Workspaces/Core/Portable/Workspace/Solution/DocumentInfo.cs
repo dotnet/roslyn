@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Checksum IChecksummedObject.Checksum
-                => _lazyChecksum ??= Checksum.Create(WellKnownSynchronizationKind.DocumentAttributes, this);
+                => _lazyChecksum ??= Checksum.Create(this);
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,7 +37,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private ImmutableArray<Argument> _arguments;
 
             // The type we're creating a constructor for.  Will be a class or struct type.
-            public INamedTypeSymbol TypeToGenerateIn { get; private set; }
+            public INamedTypeSymbol? TypeToGenerateIn { get; private set; }
 
             private ImmutableArray<RefKind> _parameterRefKinds;
             public ImmutableArray<ITypeSymbol> ParameterTypes;
@@ -47,10 +45,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             public SyntaxToken Token { get; private set; }
             public bool IsConstructorInitializerGeneration { get; private set; }
 
-            private IMethodSymbol _delegatedConstructor;
+            private IMethodSymbol? _delegatedConstructor;
 
             private ImmutableArray<IParameterSymbol> _parameters;
-            private ImmutableDictionary<string, ISymbol> _parameterToExistingMemberMap;
+            private ImmutableDictionary<string, ISymbol>? _parameterToExistingMemberMap;
 
             public ImmutableDictionary<string, string> ParameterToNewFieldMap { get; private set; }
             public ImmutableDictionary<string, string> ParameterToNewPropertyMap { get; private set; }
@@ -63,9 +61,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 _fieldNamingRule = fieldNamingRule;
                 _propertyNamingRule = propertyNamingRule;
                 _parameterNamingRule = parameterNamingRule;
+
+                ParameterToNewFieldMap = ImmutableDictionary<string, string>.Empty;
+                ParameterToNewPropertyMap = ImmutableDictionary<string, string>.Empty;
             }
 
-            public static async Task<State> GenerateAsync(
+            public static async Task<State?> GenerateAsync(
                 TService service,
                 SemanticDocument document,
                 SyntaxNode node,
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     return false;
                 }
 
+                Contract.ThrowIfNull(TypeToGenerateIn);
                 if (!CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, cancellationToken))
                     return false;
 
@@ -173,11 +175,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return true;
             }
 
-            private IMethodSymbol FindConstructorToDelegateTo(
+            private IMethodSymbol? FindConstructorToDelegateTo(
                 ImmutableArray<IParameterSymbol> allParameters,
-                ImmutableArray<TExpressionSyntax> allExpressions,
+                ImmutableArray<TExpressionSyntax?> allExpressions,
                 CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(TypeToGenerateIn);
+                Contract.ThrowIfNull(TypeToGenerateIn.BaseType);
+
                 for (var i = allParameters.Length; i > 0; i--)
                 {
                     var parameters = allParameters.TakeAsArray(i);
@@ -191,12 +196,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return null;
             }
 
-            private IMethodSymbol FindConstructorToDelegateTo(
+            private IMethodSymbol? FindConstructorToDelegateTo(
                 ImmutableArray<IParameterSymbol> parameters,
-                ImmutableArray<TExpressionSyntax> expressions,
+                ImmutableArray<TExpressionSyntax?> expressions,
                 ImmutableArray<IMethodSymbol> constructors,
                 CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(TypeToGenerateIn);
+
                 foreach (var constructor in constructors)
                 {
                     // Don't bother delegating to an implicit constructor. We don't want to add `: base()` as that's just
@@ -226,8 +233,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private bool ClashesWithExistingConstructor()
             {
+                Contract.ThrowIfNull(TypeToGenerateIn);
+
                 var destinationProvider = _document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
-                var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
+                var syntaxFacts = destinationProvider.GetRequiredService<ISyntaxFactsService>();
                 return TypeToGenerateIn.InstanceConstructors.Any(c => Matches(c, syntaxFacts));
             }
 
@@ -385,7 +394,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var definition = await SymbolFinder.FindSourceDefinitionAsync(original, _document.Project.Solution, cancellationToken).ConfigureAwait(false);
                 TypeToGenerateIn = definition as INamedTypeSymbol;
 
-                return TypeToGenerateIn?.TypeKind == TypeKind.Class || TypeToGenerateIn?.TypeKind == TypeKind.Struct;
+                return TypeToGenerateIn?.TypeKind is (TypeKind?)TypeKind.Class or (TypeKind?)TypeKind.Struct;
             }
 
             private void GetParameters(
@@ -508,6 +517,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
             private IEnumerable<string> GetUnavailableMemberNames()
             {
+                Contract.ThrowIfNull(TypeToGenerateIn);
+
                 return TypeToGenerateIn.MemberNames.Concat(
                     from type in TypeToGenerateIn.GetBaseTypes()
                     from member in type.GetMembers()
@@ -557,11 +568,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                        await GenerateMemberDelegatingConstructorAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<Document> GenerateThisOrBaseDelegatingConstructorAsync(
+            private async Task<Document?> GenerateThisOrBaseDelegatingConstructorAsync(
                 Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
             {
                 if (_delegatedConstructor == null)
                     return null;
+
+                Contract.ThrowIfNull(TypeToGenerateIn);
 
                 var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
                 var (members, assignments) = await GenerateMembersAndAssignmentsAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
@@ -581,19 +594,19 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     baseConstructorArguments: isThis ? default : delegatingArguments,
                     thisConstructorArguments: isThis ? delegatingArguments : default);
 
-                return await provider.GetService<ICodeGenerationService>().AddMembersAsync(
+                return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
                     document.Project.Solution,
                     TypeToGenerateIn,
                     members.Concat(constructor),
-                    new CodeGenerationOptions(
-                        Token.GetLocation(),
-                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<(ImmutableArray<ISymbol>, ImmutableArray<SyntaxNode>)> GenerateMembersAndAssignmentsAsync(
                 Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(TypeToGenerateIn);
+
                 var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
 
                 var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
@@ -603,7 +616,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var assignments = !withFields && !withProperties
                     ? ImmutableArray<SyntaxNode>.Empty
-                    : provider.GetService<SyntaxGenerator>().CreateAssignmentStatements(
+                    : provider.GetRequiredService<SyntaxGenerator>().CreateAssignmentStatements(
                         semanticModel, _parameters,
                         _parameterToExistingMemberMap,
                         withFields ? ParameterToNewFieldMap : ParameterToNewPropertyMap,
@@ -615,31 +628,32 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             private async Task<Document> GenerateMemberDelegatingConstructorAsync(
                 Document document, bool withFields, bool withProperties, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(TypeToGenerateIn);
+
                 var provider = document.Project.Solution.Workspace.Services.GetLanguageServices(TypeToGenerateIn.Language);
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 var newMemberMap =
                     withFields ? ParameterToNewFieldMap :
                     withProperties ? ParameterToNewPropertyMap :
                     ImmutableDictionary<string, string>.Empty;
 
-                return await provider.GetService<ICodeGenerationService>().AddMembersAsync(
+                return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
                     document.Project.Solution,
                     TypeToGenerateIn,
-                    provider.GetService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
+                    provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
                         semanticModel,
                         TypeToGenerateIn.Name,
                         TypeToGenerateIn,
                         _parameters,
+                        TypeToGenerateIn.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                         _parameterToExistingMemberMap,
                         newMemberMap,
                         addNullChecks: false,
                         preferThrowExpression: false,
                         generateProperties: withProperties,
                         IsContainedInUnsafeType),
-                    new CodeGenerationOptions(
-                        Token.GetLocation(),
-                        options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(Token.GetLocation()),
                     cancellationToken).ConfigureAwait(false);
             }
         }

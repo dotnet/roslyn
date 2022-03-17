@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -9,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Log;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,12 +19,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractExtensionMethodImportCompletionProvider : AbstractImportCompletionProvider
     {
-        private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
-
         protected abstract string GenericSuffix { get; }
 
         protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
-            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document, completionContext.Options.GetOption(CompletionServiceOptions.DisallowAddingImports));
+            => syntaxContext.IsRightOfNameSeparator && IsAddingImportsSupported(completionContext.Document);
 
         protected override void LogCommit()
             => CompletionProvidersLogger.LogCommitOfExtensionMethodImportCompletionItem();
@@ -33,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             CompletionContext completionContext,
             SyntaxContext syntaxContext,
             HashSet<string> namespaceInScope,
-            bool isExpandedCompletion,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
@@ -41,61 +38,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
                 {
-                    using var nestedTokenSource = new CancellationTokenSource();
-                    using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken);
-                    var inferredTypes = IsTargetTypeCompletionFilterExperimentEnabled(completionContext.Document.Project.Solution.Workspace)
+                    var ticks = Environment.TickCount;
+                    var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
                         ? syntaxContext.InferredTypes
                         : ImmutableArray<ITypeSymbol>.Empty;
 
-                    var getItemsTask = Task.Run(() => ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
                         completionContext.Document,
                         completionContext.Position,
                         receiverTypeSymbol,
                         namespaceInScope,
                         inferredTypes,
-                        forceIndexCreation: isExpandedCompletion,
-                        linkedTokenSource.Token));
+                        forceIndexCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                        hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
+                        cancellationToken).ConfigureAwait(false);
 
-                    var timeoutInMilliseconds = completionContext.Options.GetOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion);
-
-                    // Timebox is enabled if timeout value is >= 0 and we are not triggered via expander
-                    if (timeoutInMilliseconds >= 0 && !isExpandedCompletion)
-                    {
-                        // timeout == 0 means immediate timeout (for testing purpose)
-                        if (timeoutInMilliseconds == 0 || await Task.WhenAny(getItemsTask, Task.Delay(timeoutInMilliseconds, linkedTokenSource.Token)).ConfigureAwait(false) != getItemsTask)
-                        {
-                            nestedTokenSource.Cancel();
-                            CompletionProvidersLogger.LogExtensionMethodCompletionTimeoutCount();
-                            return;
-                        }
-                    }
-
-                    // Either the timebox is not enabled, so we need to wait until the operation for complete,
-                    // or there's no timeout, and we now have all completion items ready.
-                    var items = await getItemsTask.ConfigureAwait(false);
+                    if (result is null)
+                        return;
 
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(items.Select(i => Convert(i, receiverTypeKey)));
-                }
-                else
-                {
-                    // If we can't get a valid receiver type, then we don't show expander as available.
-                    // We need to set this explicitly here because we didn't do the (more expensive) symbol check inside 
-                    // `ShouldProvideCompletion` method above, which is intended for quick syntax based check.
-                    completionContext.ExpandItemsAvailable = false;
+                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+
+                    // report telemetry:
+                    var totalTicks = Environment.TickCount - ticks;
+                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
+                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, result.IsRemote);
+
+                    if (result.IsPartialResult)
+                        CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
                 }
             }
-        }
-
-        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
-        {
-            if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
-            {
-                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-                _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
-            }
-
-            return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
         private static bool TryGetReceiverTypeSymbol(
@@ -114,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (expressionNode != null)
             {
                 // Check if we are accessing members of a type, no extension methods are exposed off of types.
-                if (!(syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is ITypeSymbol))
+                if (syntaxContext.SemanticModel.GetSymbolInfo(expressionNode, cancellationToken).GetAnySymbol() is not ITypeSymbol)
                 {
                     // The expression we're calling off of needs to have an actual instance type.
                     // We try to be more tolerant to errors here so completion would still be available in certain case of partially typed code.

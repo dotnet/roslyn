@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-# nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -107,7 +103,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
             }
 
-            private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
+            private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
             {
                 var watch = _progress != null
                     ? Stopwatch.StartNew()
@@ -123,7 +119,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (_progress != null && watch != null)
                     {
                         watch.Stop();
-                        _progress.Report(new ProjectLoadProgress(projectPath, operation, targetFramework, watch.Elapsed));
+                        _progress.Report(new ProjectLoadProgress(projectPath ?? string.Empty, operation, targetFramework, watch.Elapsed));
                     }
                 }
 
@@ -285,15 +281,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 var language = projectFileInfo.Language;
                 var projectPath = projectFileInfo.FilePath;
-
-                var projectName = Path.GetFileNameWithoutExtension(projectPath);
-                if (addDiscriminator && !string.IsNullOrWhiteSpace(projectFileInfo.TargetFramework))
+                var projectName = Path.GetFileNameWithoutExtension(projectPath) ?? string.Empty;
+                if (addDiscriminator && !RoslynString.IsNullOrWhiteSpace(projectFileInfo.TargetFramework))
                 {
                     projectName += "(" + projectFileInfo.TargetFramework + ")";
                 }
 
-                var version = VersionStamp.Create(
-                    FileUtilities.GetFileTimeStamp(projectPath));
+                var version = projectPath is null
+                    ? VersionStamp.Default
+                    : VersionStamp.Create(FileUtilities.GetFileTimeStamp(projectPath));
 
                 if (projectFileInfo.IsEmpty)
                 {
@@ -334,7 +330,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                     if (commandLineParser is null)
                     {
-                        throw new Exception($"Unable to find a '{nameof(ICommandLineParserService)}' for '{projectFileInfo.Language}'");
+                        var message = string.Format(WorkspaceMSBuildResources.Unable_to_find_a_0_for_1, nameof(ICommandLineParserService), projectFileInfo.Language);
+                        throw new Exception(message);
                     }
 
                     var commandLineArgs = commandLineParser.Parse(
@@ -344,7 +341,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
                     var assemblyName = commandLineArgs.CompilationName;
-                    if (string.IsNullOrWhiteSpace(assemblyName))
+                    if (RoslynString.IsNullOrWhiteSpace(assemblyName))
                     {
                         // if there isn't an assembly name, make one from the file path.
                         // Note: This may not be necessary any longer if the command line args
@@ -397,16 +394,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         isSubmission: false,
                         hostObjectType: null)
                         .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
-                        .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
+                        .WithAnalyzerConfigDocuments(analyzerConfigDocuments)
+                        .WithCompilationOutputInfo(new CompilationOutputInfo(projectFileInfo.OutputFilePath));
                 });
             }
 
-            private static string GetAssemblyNameFromProjectPath(string projectFilePath)
+            private static string GetAssemblyNameFromProjectPath(string? projectFilePath)
             {
                 var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
 
                 // if this is still unreasonable, use a fixed name.
-                if (string.IsNullOrWhiteSpace(assemblyName))
+                if (RoslynString.IsNullOrWhiteSpace(assemblyName))
                 {
                     assemblyName = "assembly";
                 }
@@ -419,7 +417,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var analyzerService = GetWorkspaceService<IAnalyzerService>();
                 if (analyzerService is null)
                 {
-                    throw new Exception($"Unable to find '{nameof(IAnalyzerService)}'");
+                    var message = string.Format(WorkspaceMSBuildResources.Unable_to_find_0, nameof(IAnalyzerService));
+                    throw new Exception(message);
                 }
 
                 var analyzerLoader = analyzerService.GetLoader();
@@ -472,16 +471,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var pathNames = logicalPath.Split(s_directorySplitChars, StringSplitOptions.RemoveEmptyEntries);
                 if (pathNames.Length > 0)
                 {
-                    if (pathNames.Length > 1)
-                    {
-                        folders = pathNames.Take(pathNames.Length - 1).ToImmutableArray();
-                    }
-                    else
-                    {
-                        folders = ImmutableArray<string>.Empty;
-                    }
+                    folders = pathNames.Length > 1
+                        ? pathNames.Take(pathNames.Length - 1).ToImmutableArray()
+                        : ImmutableArray<string>.Empty;
 
-                    name = pathNames[pathNames.Length - 1];
+                    name = pathNames[^1];
                 }
                 else
                 {
@@ -490,7 +484,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, string projectFilePath, ProjectId projectId)
+            private void CheckForDuplicateDocuments(ImmutableArray<DocumentInfo> documents, string? projectFilePath, ProjectId projectId)
             {
                 var paths = new HashSet<string>(PathUtilities.Comparer);
                 foreach (var doc in documents)

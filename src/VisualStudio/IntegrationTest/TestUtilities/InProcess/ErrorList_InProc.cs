@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,9 +22,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void ShowErrorList()
             => ExecuteCommand("View.ErrorList");
-
-        public int ErrorListErrorCount
-            => GetErrorCount();
 
         public void WaitForNoErrorsInErrorList(TimeSpan timeout)
         {
@@ -102,7 +97,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private IVsEnumTaskItems GetErrorItems()
+        private static IVsEnumTaskItems GetErrorItems()
         {
             return InvokeOnUIThread(cancellationToken =>
             {
@@ -150,7 +145,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public static string GetProject(this IVsTaskItem item)
         {
-            var errorItem = item as IVsErrorItem;
+            var errorItem = (IVsErrorItem)item;
             ErrorHandler.ThrowOnFailure(errorItem.GetHierarchy(out var hierarchy));
             ErrorHandler.ThrowOnFailure(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var name));
             return (string)name;

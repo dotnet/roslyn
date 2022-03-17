@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         private static readonly string[] s_separator = { Environment.NewLine };
 
-        internal override void LogMessages(string output, MessageImportance messageImportance)
+        internal override void LogCompilerOutput(string output, MessageImportance messageImportance)
         {
             var lines = output.Split(s_separator, StringSplitOptions.None);
             foreach (string line in lines)
@@ -614,15 +614,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// This method intercepts the lines to be logged coming from STDOUT from VBC.
-        /// Once we see a standard vb warning or error, then we capture it and grab the next 3
-        /// lines so we can transform the string form the form of FileName.vb(line) to FileName.vb(line,column)
-        /// which will allow us to report the line and column to the IDE, and thus filter the error
-        /// in the duplicate case for multi-targeting, or just squiggle the appropriate token 
-        /// instead of the entire line.
+        /// This method is called by MSBuild when running vbc as a separate process, it does not get called
+        /// for normal VBCSCompiler compilations. 
+        /// 
+        /// The vbc process emits multi-line error messages and this method is called for every line of 
+        /// output one at a time. This method must queue up the messages and re-hydrate them back into the 
+        /// original vbc structure such that we can call <see cref="TaskLoggingHelper.LogMessageFromText(string, MessageImportance)" />
+        /// with the complete error message.
         /// </summary>
-        /// <param name="singleLine">A single line from the STDOUT of the vbc compiler</param>
-        /// <param name="messageImportance">High,Low,Normal</param>
         protected override void LogEventsFromTextOutput(string singleLine, MessageImportance messageImportance)
         {
             // We can return immediately if this was not called by the out of proc compiler
@@ -649,12 +648,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Given a string, parses it to find out whether it's an error or warning and, if so,
         /// make sure it's validated properly.  
         /// </summary>
-        /// <comments>
-        /// INTERNAL FOR UNITTESTING ONLY
-        /// </comments>
         /// <param name="singleLine">The line to parse</param>
         /// <param name="messageImportance">The MessageImportance to use when reporting the error.</param>
-        internal void ParseVBErrorOrWarning(string singleLine, MessageImportance messageImportance)
+        private void ParseVBErrorOrWarning(string singleLine, MessageImportance messageImportance)
         {
             // if this string is empty then we haven't seen the first line of an error yet
             if (_vbErrorLines.Count > 0)
@@ -690,7 +686,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     string originalVBErrorString = originalVBError.Message;
 
                     int column = singleLine.IndexOf('~') + 1;
-                    int endParenthesisLocation = originalVBErrorString.IndexOf(')');
+                    int endParenthesisLocation = originalVBErrorString.IndexOf(") :", StringComparison.Ordinal);
 
                     // If for some reason the line does not contain any ~ then something went wrong
                     // so abort and return the original string.

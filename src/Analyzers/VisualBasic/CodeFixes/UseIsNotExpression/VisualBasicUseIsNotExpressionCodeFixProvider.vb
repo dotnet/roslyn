@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.UseIsNullCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseIsNotExpression), [Shared]>
     Friend Class VisualBasicUseIsNotExpressionCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 

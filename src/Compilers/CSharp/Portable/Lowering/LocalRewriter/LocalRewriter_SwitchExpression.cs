@@ -49,8 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
                 var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
+
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.DecisionDag, loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+                    node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? defaultLabel),
+                    loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
+
                 Debug.Assert(savedInputExpression != null);
 
                 object restorePointForEnclosingStatement = new object();
@@ -59,6 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // lower the decision dag.
                 (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
                     LowerDecisionDag(decisionDag);
+
+                if (_whenNodeIdentifierLocal is not null)
+                {
+                    outerVariables.Add(_whenNodeIdentifierLocal);
+                }
 
                 if (produceDetailedSequencePoints)
                 {
@@ -110,9 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 _factory.Syntax = node.Syntax;
-                if (node.DefaultLabel != null)
+                if (defaultLabel is not null)
                 {
-                    result.Add(_factory.Label(node.DefaultLabel));
+                    result.Add(_factory.Label(defaultLabel));
                     if (produceDetailedSequencePoints)
                         result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
@@ -138,8 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
                 {
-                    HashSet<DiagnosticInfo>? discarded = null;
-                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discarded);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discardedUseSiteInfo);
                     return c.IsImplicit;
                 }
             }

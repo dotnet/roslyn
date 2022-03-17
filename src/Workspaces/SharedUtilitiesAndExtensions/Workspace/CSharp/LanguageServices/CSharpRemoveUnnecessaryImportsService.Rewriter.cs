@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -57,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                         currentUsings[i] = null;
 
                         var leadingTrivia = currentUsing.GetLeadingTrivia();
-                        if (ShouldPreserveTrivia(leadingTrivia))
+                        // We always preserve trivia on the first using in a file scoped namespace
+                        if (ShouldPreserveTrivia(leadingTrivia) ||
+                            (i == 0 && currentUsing.IsParentKind(SyntaxKind.FileScopedNamespaceDeclaration)))
                         {
                             // This using had trivia we want to preserve.  If we're the last
                             // directive, then copy this trivia out so that our caller can place
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 // follows the usings.
                 if (finalTrivia.Count > 0)
                 {
-                    var nextToken = compilationUnit.Usings.Last().GetLastToken().GetNextToken();
+                    var nextToken = compilationUnit.Usings.Last().GetLastToken().GetNextTokenOrEndOfFile();
                     compilationUnit = compilationUnit.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(finalTrivia));
                 }
 
@@ -148,14 +151,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 return resultCompilationUnit;
             }
 
+            public override SyntaxNode VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
+                => VisitBaseNamespaceDeclaration(node, (BaseNamespaceDeclarationSyntax)base.VisitFileScopedNamespaceDeclaration(node));
+
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+                => VisitBaseNamespaceDeclaration(node, (BaseNamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node));
+
+            private SyntaxNode VisitBaseNamespaceDeclaration(
+                BaseNamespaceDeclarationSyntax node,
+                BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
-                var namespaceDeclaration = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
                 var usingsToRemove = GetUsingsToRemove(node.Usings, namespaceDeclaration.Usings);
                 if (usingsToRemove.Count == 0)
-                {
                     return namespaceDeclaration;
-                }
 
                 ProcessUsings(namespaceDeclaration.Usings, usingsToRemove, out var finalUsings, out var finalTrivia);
 

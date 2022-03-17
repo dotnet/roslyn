@@ -182,4 +182,13 @@
     <value>Add Missing Usings on Paste</value>
     <comment>"usings" is a language specific term and should not be localized</comment>
   </data>
+  <data name="Outside_namespace" xml:space="preserve">
+    <value>Outside namespace</value>
+  </data>
+  <data name="Split_raw_string" xml:space="preserve">
+    <value>Split raw string</value>
+  </data>
+  <data name="Grow_raw_string" xml:space="preserve">
+    <value>Grow raw string</value>
+  </data>
 </root>

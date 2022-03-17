@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -54,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                                                    If kvp.Key = annotationString Then
                                                                        Return kvp.Value.Select(Function(ts) ts.ToSpan())
                                                                    End If
+
                                                                    Return SpecializedCollections.EmptyEnumerable(Of Span)
                                                                End Function)
         End Function
@@ -1673,10 +1675,11 @@ static class E
                 Dim location = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
                 Dim textBuffer = workspace.Documents(0).GetTextBuffer()
                 Dim session = StartSession(workspace)
-                session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=True)
+
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions(RenameInComments:=True))
                 Await WaitForRename(workspace)
 
-                session.RefreshRenameSessionWithOptionsChanged(CodeAnalysis.Rename.RenameOptions.RenameInComments, newValue:=False)
+                session.RefreshRenameSessionWithOptionsChanged(New SymbolRenameOptions())
                 Await WaitForRename(workspace)
 
                 textBuffer.Replace(New Span(location, 3), "Bar")

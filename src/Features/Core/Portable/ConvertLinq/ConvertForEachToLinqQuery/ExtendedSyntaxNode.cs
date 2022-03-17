@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             SyntaxNode node,
             IEnumerable<SyntaxToken> extraLeadingTokens,
             IEnumerable<SyntaxToken> extraTrailingTokens)
-         : this(node, extraLeadingTokens.GetTrivia(), extraTrailingTokens.GetTrivia())
+            : this(node, extraLeadingTokens.GetTrivia(), extraTrailingTokens.GetTrivia())
         {
         }
 

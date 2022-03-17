@@ -81,7 +81,7 @@ class C
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
+            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream);
 
             var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
             var expectedIL = @"
@@ -152,7 +152,7 @@ class C
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
+            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream);
 
             var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
 
@@ -481,7 +481,8 @@ class C
             var compilation0 = CreateEmptyCompilation(src0, new[] { MscorlibRef, ref01, ref11 }, assemblyName: "C", options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(src1).WithReferences(new[] { MscorlibRef, ref02, ref12 });
 
-            var v0 = CompileAndVerify(compilation0);
+            // ILVerify: Multiple modules named 'Lib' were found
+            var v0 = CompileAndVerify(compilation0, verify: Verification.FailsILVerify);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");

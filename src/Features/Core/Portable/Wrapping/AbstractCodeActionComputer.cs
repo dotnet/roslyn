@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,11 +50,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected readonly Document OriginalDocument;
             protected readonly SourceText OriginalSourceText;
             protected readonly CancellationToken CancellationToken;
-
-            protected readonly bool UseTabs;
-            protected readonly int TabSize;
-            protected readonly string NewLine;
-            protected readonly int WrappingColumn;
+            protected readonly SyntaxWrappingOptions Options;
 
             protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
@@ -69,47 +66,41 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 TWrapper service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                SyntaxWrappingOptions options,
                 CancellationToken cancellationToken)
             {
                 Wrapper = service;
                 OriginalDocument = document;
                 OriginalSourceText = originalSourceText;
                 CancellationToken = cancellationToken;
-
-                UseTabs = options.GetOption(FormattingOptions.UseTabs);
-                TabSize = options.GetOption(FormattingOptions.TabSize);
-                NewLine = options.GetOption(FormattingOptions.NewLine);
-                WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
+                Options = options;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                NewLineTrivia = new SyntaxTriviaList(generator.EndOfLine(NewLine));
+                var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(options.NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
             protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
+                => GetIndentationAfter(nodeOrToken, FormattingOptions.IndentStyle.Smart);
+
+            protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
             {
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), Options.NewLine));
                 newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + NewLine.Length, newSourceText.Length), ""));
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + Options.NewLine.Length, newSourceText.Length), ""));
                 var newDocument = OriginalDocument.WithText(newSourceText);
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
                 var desiredIndentation = indentationService.GetIndentation(
                     newDocument, originalLineNumber + 1,
-                    FormattingOptions.IndentStyle.Smart,
+                    indentStyle,
                     CancellationToken);
 
-                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
-
-                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
-                return indentString;
+                return desiredIndentation.GetIndentationString(newSourceText, Options.UseTabs, Options.TabSize);
             }
 
             /// <summary>

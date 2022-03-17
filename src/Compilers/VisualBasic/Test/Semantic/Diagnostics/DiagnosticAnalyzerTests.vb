@@ -1530,11 +1530,11 @@ Block[B2] - Exit
             verifyFlowGraphs(comp, analyzer.GetControlFlowGraphs(), expectedFlowGraphs)
         End Sub
 
-        Private Shared Sub verifyFlowGraphs(compilation As Compilation, flowGraphs As ImmutableArray(Of ControlFlowGraph), expectedFlowGraphs As String())
+        Private Shared Sub verifyFlowGraphs(compilation As Compilation, flowGraphs As ImmutableArray(Of (Graph As ControlFlowGraph, AssociatedSymbol As ISymbol)), expectedFlowGraphs As String())
             For i As Integer = 0 To expectedFlowGraphs.Length - 1
                 Dim expectedFlowGraph As String = expectedFlowGraphs(i)
-                Dim actualFlowGraph As ControlFlowGraph = flowGraphs(i)
-                ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph)
+                Dim actualFlowGraphAndSymbol As (Graph As ControlFlowGraph, AssociatedSymbol As ISymbol) = flowGraphs(i)
+                ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraphAndSymbol.Graph, actualFlowGraphAndSymbol.AssociatedSymbol)
             Next
         End Sub
 

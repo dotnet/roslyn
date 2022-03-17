@@ -23,9 +23,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public string DestinationPath { get; set; }
 
         public CopyRefAssembly()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
-
             // These required properties will all be assigned by MSBuild. Suppress warnings about leaving them with
             // their default values.
             SourcePath = null!;
@@ -86,9 +85,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e)
             {
-                var util = new TaskLoggingHelper(this);
-                util.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                util.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
+                Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
+                Log.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
                 return false;
             }
 

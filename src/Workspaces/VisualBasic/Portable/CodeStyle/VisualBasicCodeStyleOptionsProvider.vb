@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Options.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-    <ExportOptionProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportSolutionOptionProvider(LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class VisualBasicCodeStyleOptionsProvider
         Implements IOptionProvider
 

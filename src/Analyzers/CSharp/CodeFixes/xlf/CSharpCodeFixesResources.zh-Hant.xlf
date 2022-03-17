@@ -12,14 +12,34 @@
         <target state="translated">將 'typeof' 轉換為 'nameof'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_record_declaration">
+        <source>Fix_record_declaration</source>
+        <target state="new">Fix_record_declaration</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
         <source>Pass in captured variables as arguments</source>
         <target state="translated">以引數形式傳入擷取到的變數</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_colon_on_following_line">
+        <source>Place colon on following line</source>
+        <target state="translated">將冒號放在下一行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">將陳述式放在下一行</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_Unnecessary_Usings">
         <source>Remove Unnecessary Usings</source>
         <target state="translated">移除不必要的 Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="translated">移除大括弧之間的空白行</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

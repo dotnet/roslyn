@@ -297,6 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IMethodSymbol.IsPartialDefinition => _underlying.IsPartialDefinition();
+
         INamedTypeSymbol IMethodSymbol.AssociatedAnonymousDelegate
         {
             get
@@ -308,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         int IMethodSymbol.Arity => _underlying.Arity;
 
         bool IMethodSymbol.IsExtensionMethod => _underlying.IsExtensionMethod;
+
+        System.Reflection.MethodImplAttributes IMethodSymbol.MethodImplementationFlags => _underlying.ImplementationAttributes;
 
         bool IMethodSymbol.IsVararg => _underlying.IsVararg;
 

@@ -702,5 +702,28 @@ namespace System
 
 #End Region
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub CannotRenameSymbolDefinedInSourceGeneratedDocument(host As RenameTestHost)
+            Using workspace = CreateWorkspaceWithWaiter(
+                   <Workspace>
+                       <Project Language="C#" CommonReferences="true">
+                           <Document>
+class Program
+{
+    private $$C _c;
+}
+                           </Document>
+                           <DocumentFromSourceGenerator>
+class C
+{
+}
+                           </DocumentFromSourceGenerator>
+                       </Project>
+                   </Workspace>, host)
+
+                AssertTokenNotRenamable(workspace)
+            End Using
+        End Sub
     End Class
 End Namespace

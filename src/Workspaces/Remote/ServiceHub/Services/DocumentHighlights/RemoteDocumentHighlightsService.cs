@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, CancellationToken cancellationToken)
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, int position, ImmutableArray<DocumentId> documentIdsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 // (like the JS parts of a .cshtml file). Filter them out here.  This will
                 // need to be revisited if we someday support FAR between these languages.
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetDocument(documentId);
-                var documentsToSearch = ImmutableHashSet.CreateRange(
-                    documentIdsToSearch.Select(solution.GetDocument).WhereNotNull());
+                var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var documentsToSearch = await documentIdsToSearch.SelectAsArrayAsync(id => solution.GetDocumentAsync(id, includeSourceGenerated: true, cancellationToken)).ConfigureAwait(false);
+                var documentsToSearchSet = ImmutableHashSet.CreateRange(documentsToSearch.WhereNotNull());
 
                 var service = document.GetLanguageService<IDocumentHighlightsService>();
                 var result = await service.GetDocumentHighlightsAsync(
-                    document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                    document, position, documentsToSearchSet, options, cancellationToken).ConfigureAwait(false);
 
                 return result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
             }, cancellationToken);

@@ -44,7 +44,7 @@ namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : S
             string source = @"
 using System.Runtime.CompilerServices;
 
-interface i
+interface @i
 {
     [ModuleInitializer]
     internal void M1();
@@ -52,8 +52,6 @@ interface i
     [ModuleInitializer]
     internal void M2() { }
 }
-
-namespace System.Runtime.CompilerServices { class ModuleInitializerAttribute : System.Attribute { } }
 ";
             var compilation = CreateCompilation(source, parseOptions: s_parseOptions, targetFramework: TargetFramework.NetCoreApp);
             compilation.VerifyEmitDiagnostics(

@@ -941,7 +941,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "readonly"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System", navigationAction:=Sub() Return, "System"),
+                        New ClassifiedTextRun(ClassificationTypeNames.NamespaceName, "System"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
                         New ClassifiedTextRun(ClassificationTypeNames.DelegateName, "Action", navigationAction:=Sub() Return, "Action"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
@@ -1142,9 +1142,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     ContainerElementStyle.Wrapped,
                     New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
                     New ClassifiedTextElement(
-                        New ClassifiedTextRun(ClassificationTypeNames.RecordName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
-                        New ClassifiedTextRun(ClassificationTypeNames.RecordName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
@@ -1154,6 +1154,141 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                         New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "Y", navigationAction:=Sub() Return, "int Y"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")>
+        Public Async Function QuickInfoForUnderlyingEnumTypes() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            public enum E$$ : byte { A, B }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.EnumerationPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "enum"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.EnumName, "E", navigationAction:=Sub() Return, "E"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "byte", navigationAction:=Sub() Return, "byte"))))
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function QuickInfoForRecordClass() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            public sealed record class TestRecord(int X, int Y) { }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    var x = new Test$$Record(1, 2);
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordClassName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "X", navigationAction:=Sub() Return, "int X"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ","),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "Y", navigationAction:=Sub() Return, "int Y"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
+
+            ToolTipAssert.EqualContent(expected, container)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function QuickInfoForRecordStructs() As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            public sealed record struct TestRecord(int X, int Y) { }
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    var x = new Test$$Record(1, 2);
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim intellisenseQuickInfo = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPublic)),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordStructName, "TestRecord", navigationAction:=Sub() Return, "TestRecord"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                        New ClassifiedTextRun(ClassificationTypeNames.RecordStructName, "TestRecord", navigationAction:=Sub() Return, "TestRecord.TestRecord(int X, int Y)"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "X", navigationAction:=Sub() Return, "int X"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ","),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int", navigationAction:=Sub() Return, "int"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "Y", navigationAction:=Sub() Return, "int Y"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                        New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "+"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "1"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, FeaturesResources.overload),
                         New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))))
 
             ToolTipAssert.EqualContent(expected, container)

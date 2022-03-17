@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class SelectKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SelectInQueryTest()
             VerifyRecommendationsContain(<MethodBody>Dim x = From y In z |</MethodBody>, "Select")

@@ -67,6 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IFieldSymbol.IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return _underlying.IsExplicitlyNamedTupleElement;
+            }
+        }
+
         bool IFieldSymbol.IsConst => _underlying.IsConst;
 
         bool IFieldSymbol.IsReadOnly => _underlying.IsReadOnly;
@@ -74,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         bool IFieldSymbol.IsVolatile => _underlying.IsVolatile;
 
         bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
+
+        int IFieldSymbol.FixedSize => _underlying.FixedSize;
 
         bool IFieldSymbol.HasConstantValue => _underlying.HasConstantValue;
 

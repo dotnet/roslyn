@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
         {
-            if (!(node is SimpleNameSyntax simpleName))
+            if (node is not SimpleNameSyntax simpleName)
             {
                 return false;
             }
@@ -97,11 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
             // If the name is a type that is part of a using directive, eg. "using Math" then we can go further and
-            // instead of just changing to "using System.Math", we can make it "using static System.Math"
-            // and avoid the CS0138 that would result from the former.
+            // instead of just changing to "using System.Math", we can make it "using static System.Math" and avoid the
+            // CS0138 that would result from the former.  Don't do this for using aliases though as `static` and using
+            // aliases cannot be combined.
             if (resultingSymbolIsType &&
-                node.Parent is UsingDirectiveSyntax usingDirective &&
-                usingDirective.StaticKeyword == default)
+                node.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword: { RawKind: 0 } } usingDirective)
             {
                 var newUsingDirective = usingDirective
                     .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))

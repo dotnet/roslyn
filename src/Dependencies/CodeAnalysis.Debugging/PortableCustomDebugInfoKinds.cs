@@ -21,5 +21,6 @@ namespace Microsoft.CodeAnalysis.Debugging
         public static readonly Guid EmbeddedSource = new("0E8A571B-6926-466E-B4AD-8AB04611F5FE");
         public static readonly Guid CompilationMetadataReferences = new("7E4D4708-096E-4C5C-AEDA-CB10BA6A740D");
         public static readonly Guid CompilationOptions = new("B5FEEC05-8CD0-4A83-96DA-466284BB4BD8");
+        public static readonly Guid TypeDefinitionDocuments = new("932E74BC-DBA9-4478-8D46-0F32A7BAB3D3");
     }
 }

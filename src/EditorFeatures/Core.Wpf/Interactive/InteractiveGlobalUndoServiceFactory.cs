@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), WorkspaceKind.Interactive), Shared]
     internal sealed class InteractiveGlobalUndoServiceFactory : IWorkspaceServiceFactory
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             public bool CanUndo(Workspace workspace)
             {
                 // only primary workspace supports global undo
-                return workspace is InteractiveWorkspace;
+                return workspace is InteractiveWindowWorkspace;
             }
 
             public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
             private ITextUndoHistory GetHistory(Workspace workspace)
             {
-                var interactiveWorkspace = (InteractiveWorkspace)workspace;
+                var interactiveWorkspace = (InteractiveWindowWorkspace)workspace;
                 var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
 
                 Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out var textUndoHistory));

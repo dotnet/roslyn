@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
     <ItemGroup>
         <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0\mscorlib.dll">
           <LogicalName>net20.mscorlib.dll</LogicalName>
@@ -151,94 +151,6 @@
         <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net461)\build\.NETFramework\v4.6.1\Microsoft.VisualBasic.dll">
           <LogicalName>net461.Microsoft.VisualBasic.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net461\Microsoft.VisualBasic.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\mscorlib.dll">
-          <LogicalName>netcoreapp.mscorlib.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\mscorlib.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.dll">
-          <LogicalName>netcoreapp.System.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Core.dll">
-          <LogicalName>netcoreapp.System.Core.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Core.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Collections.dll">
-          <LogicalName>netcoreapp.System.Collections.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Collections.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Console.dll">
-          <LogicalName>netcoreapp.System.Console.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Console.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Linq.dll">
-          <LogicalName>netcoreapp.System.Linq.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Linq.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Linq.Expressions.dll">
-          <LogicalName>netcoreapp.System.Linq.Expressions.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Linq.Expressions.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Runtime.dll">
-          <LogicalName>netcoreapp.System.Runtime.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Runtime.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Runtime.InteropServices.dll">
-          <LogicalName>netcoreapp.System.Runtime.InteropServices.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Runtime.InteropServices.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Runtime.InteropServices.WindowsRuntime.dll">
-          <LogicalName>netcoreapp.System.Runtime.InteropServices.WindowsRuntime.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Runtime.InteropServices.WindowsRuntime.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\System.Threading.Tasks.dll">
-          <LogicalName>netcoreapp.System.Threading.Tasks.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\System.Threading.Tasks.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\netstandard.dll">
-          <LogicalName>netcoreapp.netstandard.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\netstandard.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\Microsoft.CSharp.dll">
-          <LogicalName>netcoreapp.Microsoft.CSharp.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\Microsoft.CSharp.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETCore_App_Ref)\ref\netcoreapp3.1\Microsoft.VisualBasic.dll">
-          <LogicalName>netcoreapp.Microsoft.VisualBasic.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netcoreapp\Microsoft.VisualBasic.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\mscorlib.dll">
-          <LogicalName>netstandard20.mscorlib.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\mscorlib.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.dll">
-          <LogicalName>netstandard20.System.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\System.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Core.dll">
-          <LogicalName>netstandard20.System.Core.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\System.Core.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Dynamic.Runtime.dll">
-          <LogicalName>netstandard20.System.Dynamic.Runtime.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\System.Dynamic.Runtime.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Linq.dll">
-          <LogicalName>netstandard20.System.Linq.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\System.Linq.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Linq.Expressions.dll">
-          <LogicalName>netstandard20.System.Linq.Expressions.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\System.Linq.Expressions.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\System.Runtime.dll">
-          <LogicalName>netstandard20.System.Runtime.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\System.Runtime.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref\netstandard.dll">
-          <LogicalName>netstandard20.netstandard.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\netstandard20\netstandard.dll</Link>
         </EmbeddedResource>
         <EmbeddedResource Include="$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)\ref\netstandard1.0\Microsoft.CSharp.dll">
           <LogicalName>netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>

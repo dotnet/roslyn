@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -16,9 +15,9 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentFoldingRangeName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]>
+    [ExportXamlLspRequestHandlerProvider(typeof(FoldingRangesHandler)), Shared]
+    [Method(Methods.TextDocumentFoldingRangeName)]
+    internal class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,9 +25,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
-        public async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
+
+        public override async Task<FoldingRange[]> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 

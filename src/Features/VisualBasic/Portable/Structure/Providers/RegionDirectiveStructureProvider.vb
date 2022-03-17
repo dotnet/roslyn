@@ -22,9 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Return text
         End Function
 
-        Protected Overrides Sub CollectBlockSpans(regionDirective As RegionDirectiveTriviaSyntax,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  regionDirective As RegionDirectiveTriviaSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   CancellationToken As CancellationToken)
             Dim matchingDirective = regionDirective.GetMatchingStartOrEndDirective(CancellationToken)
             If matchingDirective IsNot Nothing Then
@@ -36,15 +37,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 '   #End Region
                 '
                 ' For other files, auto-collapse regions based on the user option.
-                Dim autoCollapse = optionProvider.IsMetadataAsSource OrElse optionProvider.GetOption(
-                    BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.VisualBasic)
+                Dim autoCollapse = options.IsMetadataAsSource OrElse options.CollapseRegionsWhenCollapsingToDefinitions
 
                 Dim span = TextSpan.FromBounds(regionDirective.SpanStart, matchingDirective.Span.End)
                 spans.AddIfNotNull(CreateBlockSpan(
                     span, span,
                     GetBannerText(regionDirective),
                     autoCollapse:=autoCollapse,
-                    isDefaultCollapsed:=Not optionProvider.IsMetadataAsSource,
+                    isDefaultCollapsed:=Not options.IsMetadataAsSource,
                     type:=BlockTypes.PreprocessorRegion,
                     isCollapsible:=True))
             End If

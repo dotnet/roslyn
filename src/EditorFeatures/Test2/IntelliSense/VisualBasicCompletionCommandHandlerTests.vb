@@ -8,6 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -144,7 +145,7 @@ End Module
         End Sub
 
         <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/48870"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                   <Document><![CDATA[
@@ -410,7 +411,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -448,7 +449,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -482,7 +483,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -499,8 +500,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/48870")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigateOutOfItemChangeSpan() As Task
             ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -993,6 +993,12 @@ End Class
                        isTriggerCharacter:=Function(t, p) True)
             End Sub
 
+            Friend Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.VisualBasic
+                End Get
+            End Property
+
             Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 e.WaitOne()
                 Return MyBase.ProvideCompletionsAsync(context)
@@ -1309,8 +1315,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/48870")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionUpAfterBackSpacetoWord() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
@@ -1828,9 +1833,9 @@ Class Class1
 End Class
 </Document>)
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
+
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
                 Assert.Equal(<text>
@@ -1854,9 +1859,8 @@ Class Class1
 End Class
 </Document>)
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -2160,9 +2164,9 @@ Class G
 End Class
             ]]></Document>)
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.TriggerOnTyping, LanguageNames.VisualBasic, False)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.VisualBasic), False)
+
                 state.SendBackspace()
                 Await state.AssertNoCompletionSession()
             End Using
@@ -2499,7 +2503,7 @@ End Class
                 Await state.AssertSelectedCompletionItem(description:=
 $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Types_colon }
     'a { FeaturesResources.is_ } New With {{ .x As Integer }}")
             End Using
         End Function
@@ -2521,7 +2525,7 @@ End Class
                 Await state.AssertSelectedCompletionItem(description:=
 $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Types_colon }
     'a { FeaturesResources.is_ } New With {{ Key .x As Integer }}")
             End Using
         End Function
@@ -2651,9 +2655,8 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2674,9 +2677,8 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2698,9 +2700,8 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("x", "Shortcut")

@@ -827,7 +827,7 @@ class C1 : IInterface
 
         [WorkItem(540410, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540410")]
         [Fact]
-        public void InterfaceDiamondInheritenceWithNewMember()
+        public void InterfaceDiamondInheritanceWithNewMember()
         {
             var source = @"
 interface IBase

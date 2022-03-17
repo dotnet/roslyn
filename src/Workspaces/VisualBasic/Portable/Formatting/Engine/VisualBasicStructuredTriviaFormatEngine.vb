@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Shared Function FormatTrivia(trivia As SyntaxTrivia,
                                       initialColumn As Integer,
-                                      options As AnalyzerConfigOptions,
+                                      options As SyntaxFormattingOptions,
                                       formattingRules As ChainedFormattingRules,
                                       cancellationToken As CancellationToken) As IFormattingResult
             Dim root = trivia.GetStructure()
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Sub New(trivia As SyntaxTrivia,
                        initialColumn As Integer,
-                       options As AnalyzerConfigOptions,
+                       options As SyntaxFormattingOptions,
                        formattingRules As ChainedFormattingRules,
                        token1 As SyntaxToken,
                        token2 As SyntaxToken)
@@ -32,11 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                        options, formattingRules, token1, token2)
         End Sub
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
             Return New TriviaDataFactory(Me.TreeData, Me.Options)

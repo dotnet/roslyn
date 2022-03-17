@@ -14,11 +14,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.ServiceModel.Description;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -28,7 +28,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 => string.Format("<member name='{0}'><summary>{0}</summary></member>", documentationMemberID);
 
             public override bool Equals(object obj)
-                => (object)this == obj;
+                => ReferenceEquals(this, obj);
 
             public override int GetHashCode()
                 => RuntimeHelpers.GetHashCode(this);
@@ -102,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 compilationOptions,
                 parseOptions,
                 files,
+                sourceGeneratedFiles: Array.Empty<string>(),
                 metadataReferences,
                 extension,
                 commonReferences);
@@ -337,8 +337,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 documents.Add(document);
             }
 
+            SingleFileTestGenerator testGenerator = null;
             foreach (var sourceGeneratedDocumentElement in projectElement.Elements(DocumentFromSourceGeneratorElementName))
             {
+                if (testGenerator is null)
+                {
+                    testGenerator = new SingleFileTestGenerator();
+                    analyzers.Add(new TestGeneratorReference(testGenerator));
+                }
+
                 var name = GetFileName(workspace, sourceGeneratedDocumentElement, ref documentId);
 
                 var markupCode = sourceGeneratedDocumentElement.NormalizedValue();
@@ -346,10 +353,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var documentFilePath = typeof(SingleFileTestGenerator).Assembly.GetName().Name + '\\' + typeof(SingleFileTestGenerator).FullName + '\\' + name;
-                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, isSourceGenerated: true);
+                var document = new TestHostDocument(exportProvider, languageServices, code, name, documentFilePath, cursorPosition, spans, generator: testGenerator);
                 documents.Add(document);
 
-                analyzers.Add(new TestGeneratorReference(new SingleFileTestGenerator(code, name)));
+                testGenerator.AddSource(code, name);
             }
 
             var additionalDocuments = new List<TestHostDocument>();
@@ -389,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private static ParseOptions GetParseOptions(XElement projectElement, string language, HostLanguageServices languageServices)
         {
-            return language == LanguageNames.CSharp || language == LanguageNames.VisualBasic
+            return language is LanguageNames.CSharp or LanguageNames.VisualBasic
                 ? GetParseOptionsWorker(projectElement, language, languageServices)
                 : null;
         }
@@ -537,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (GetLanguage(workspace, projectElement) == LanguageNames.VisualBasic)
             {
-                // For VB tests, root namespace value must be defined in compilation options element, 
+                // For VB tests, root namespace value must be defined in compilation options element,
                 // it can't use the property in project element to avoid confusion.
                 Assert.Null(rootNamespaceAttribute);
 
@@ -556,7 +563,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ParseOptions parseOptions)
         {
             var compilationOptionsElement = projectElement.Element(CompilationOptionsElementName);
-            return language == LanguageNames.CSharp || language == LanguageNames.VisualBasic
+            return language is LanguageNames.CSharp or LanguageNames.VisualBasic
                 ? CreateCompilationOptions(workspace, language, compilationOptionsElement, parseOptions)
                 : null;
         }
@@ -587,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var outputKindAttribute = compilationOptionsElement.Attribute(OutputKindName);
                 if (outputKindAttribute != null)
                 {
-                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), (string)outputKindAttribute.Value);
+                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), outputKindAttribute.Value);
                 }
 
                 var checkOverflowAttribute = compilationOptionsElement.Attribute(CheckOverflowAttributeName);
@@ -640,7 +647,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var nullableAttribute = compilationOptionsElement.Attribute(NullableAttributeName);
                 if (nullableAttribute != null)
                 {
-                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), (string)nullableAttribute.Value);
+                    nullable = (NullableContextOptions)Enum.Parse(typeof(NullableContextOptions), nullableAttribute.Value);
                 }
 
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
@@ -654,7 +661,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                     return language == LanguageNames.CSharp
-                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, allowUnsafe: allowUnsafe)
+                       ? new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata, allowUnsafe: allowUnsafe)
                        : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace)
                             .WithParseOptions((VisualBasicParseOptions)parseOptions ?? VisualBasicParseOptions.Default);
                 }
@@ -780,8 +787,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
 
-            TestFileMarkupParser.GetPositionAndSpans(markupCode,
-                out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            var markupAttribute = documentElement.Attribute(MarkupAttributeName);
+            var isMarkup = markupAttribute == null || (bool)markupAttribute == true;
+
+            string code;
+            int? cursorPosition;
+            ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
+
+            if (isMarkup)
+            {
+                TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+            }
+            else
+            {
+                code = markupCode;
+                cursorPosition = null;
+                spans = ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty;
+            }
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
 
@@ -876,10 +898,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         /// <summary>
-        /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using 
+        /// Takes completely valid code, compiles it, and emits it to a MetadataReference without using
         /// the file system
         /// </summary>
-        private static MetadataReference CreateMetadataReferenceFromSource(TestWorkspace workspace, XElement referencedSource)
+        private static MetadataReference CreateMetadataReferenceFromSource(TestWorkspace workspace, XElement projectElement, XElement referencedSource)
         {
             var compilation = CreateCompilation(workspace, referencedSource);
 
@@ -895,7 +917,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 includeXmlDocComments = true;
             }
 
-            return MetadataReference.CreateFromImage(compilation.EmitToArray(), new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
+            var referencesOnDisk = projectElement.Attribute(ReferencesOnDiskAttributeName) is { } onDiskAttribute
+                && ((bool?)onDiskAttribute).GetValueOrDefault();
+
+            var image = compilation.EmitToArray();
+            var metadataReference = MetadataReference.CreateFromImage(image, new MetadataReferenceProperties(aliases: aliases), includeXmlDocComments ? new DeferredDocumentationProvider(compilation) : null);
+            if (referencesOnDisk)
+            {
+                AssemblyResolver.TestAccessor.AddInMemoryImage(metadataReference, "unknown", image);
+            }
+
+            return metadataReference;
         }
 
         private static Compilation CreateCompilation(TestWorkspace workspace, XElement referencedSource)
@@ -955,13 +987,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // objects that are no longer in use. There are no public APIs available to directly dispose of these
                 // images, so we are relying on GC running finalizers to avoid OutOfMemoryException during tests.
                 var content = File.ReadAllBytes(reference.Value);
-                var peImage = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref content);
-                references.Add(MetadataReference.CreateFromImage(peImage, filePath: reference.Value));
+                references.Add(MetadataReference.CreateFromImage(content, filePath: reference.Value));
             }
 
             foreach (var metadataReferenceFromSource in element.Elements(MetadataReferenceFromSourceElementName))
             {
-                references.Add(CreateMetadataReferenceFromSource(workspace, metadataReferenceFromSource));
+                references.Add(CreateMetadataReferenceFromSource(workspace, element, metadataReferenceFromSource));
             }
 
             return references;
@@ -991,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)net45).HasValue &&
                 ((bool?)net45).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.SystemRuntimeSerializationRef_v4_0_30319_17929 };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef);
@@ -1051,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netcore30).HasValue &&
                 ((bool?)netcore30).Value)
             {
-                references = TargetFrameworkUtil.NetCoreAppReferences.ToList();
+                references = NetCoreApp.StandardReferences.ToList();
             }
 
             var netstandard20 = element.Attribute(CommonReferencesNetStandard20Name);
@@ -1060,6 +1091,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netstandard20).Value)
             {
                 references = TargetFrameworkUtil.NetStandard20References.ToList();
+            }
+
+            var net6 = element.Attribute(CommonReferencesNet6Name);
+            if (net6 != null &&
+                ((bool?)net6).HasValue &&
+                ((bool?)net6).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
             }
 
             return references;

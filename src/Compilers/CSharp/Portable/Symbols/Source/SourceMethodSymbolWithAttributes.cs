@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -56,11 +55,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case CompilationUnitSyntax _ when this is SynthesizedSimpleProgramEntryPointSymbol entryPoint:
                     return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
                 case RecordDeclarationSyntax recordDecl:
+                    Debug.Assert(recordDecl.IsKind(SyntaxKind.RecordDeclaration));
                     return recordDecl;
                 default:
                     return null;
             }
         }
+
+        internal virtual Binder? SignatureBinder => null;
+
+        internal virtual Binder? ParameterBinder => null;
+
 #nullable disable
 
         internal SyntaxReference SyntaxRef
@@ -278,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declarations,
                     ref lazyCustomAttributesBag,
                     symbolPart,
-                    binderOpt: (this as LocalFunctionSymbol)?.SignatureBinder);
+                    binderOpt: SignatureBinder);
             }
 
             if (bagCreatedOnThisThread)
@@ -312,7 +317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal sealed override CSharpAttributeData EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
+#nullable enable
+        internal sealed override (CSharpAttributeData?, BoundAttribute?) EarlyDecodeWellKnownAttribute(ref EarlyDecodeWellKnownAttributeArguments<EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None || arguments.SymbolPart == AttributeLocation.Return);
 
@@ -322,27 +328,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
                 {
-                    var boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
-                    if (!boundAttribute.HasErrors)
+                    var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+                    if (!attributeData.HasErrors)
                     {
-                        string name = boundAttribute.GetConstructorArgument<string>(0, SpecialType.System_String);
+                        string? name = attributeData.GetConstructorArgument<string>(0, SpecialType.System_String);
                         arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().AddConditionalSymbol(name);
                         if (!hasAnyDiagnostics)
                         {
-                            return boundAttribute;
+                            return (attributeData, boundAttribute);
                         }
                     }
 
-                    return null;
+                    return (null, null);
                 }
-                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData boundAttribute, out ObsoleteAttributeData obsoleteData))
+                else if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out CSharpAttributeData? attributeData, out BoundAttribute? boundAttribute, out ObsoleteAttributeData? obsoleteData))
                 {
                     if (obsoleteData != null)
                     {
                         arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().ObsoleteAttributeData = obsoleteData;
                     }
 
-                    return boundAttribute;
+                    return (attributeData, boundAttribute);
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.UnmanagedCallersOnlyAttribute))
                 {
@@ -350,12 +356,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // We can't actually decode this attribute yet: CallConvs is an array, and it cannot be bound yet or we could hit a cycle
                     // in error cases. We only detect whether or not the attribute is present for use in ensuring that we create as few lazily-computed
                     // diagnostics that might later get thrown away as possible when binding method calls.
-                    return null;
+                    return (null, null);
                 }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
+#nullable disable
 
         public override bool AreLocalsZeroed
         {
@@ -479,6 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.PreserveSigAttribute))
@@ -503,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ConditionalAttribute))
             {
-                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, arguments.Diagnostics);
+                ValidateConditionalAttribute(attribute, arguments.AttributeSyntaxOpt, diagnostics);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute))
             {
@@ -528,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (IsAsync)
                 {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                    diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
@@ -541,17 +549,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullAttribute))
             {
-                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.MemberNotNullWhenAttribute))
             {
-                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                MessageID.IDS_FeatureMemberNotNull.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 CSharpAttributeData.DecodeMemberNotNullWhenAttribute<MethodWellKnownAttributeData>(ContainingType, ref arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ModuleInitializerAttribute))
             {
-                MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                MessageID.IDS_FeatureModuleInitializers.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                 DecodeModuleInitializerAttribute(arguments);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.UnmanagedCallersOnlyAttribute))
@@ -596,15 +604,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsAccessor())
                 {
+                    var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
+
                     if (this is SourceEventAccessorSymbol)
                     {
                         // CS1667: Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.
                         AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
-                        arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
+                        diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
                     }
                     else
                     {
-                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(arguments.Diagnostics, arguments.AttributeSyntaxOpt);
+                        MessageID.IDS_FeatureObsoleteOnPropertyAccessor.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
                     }
                 }
 
@@ -614,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, DiagnosticBag diagnostics)
+        private void ValidateConditionalAttribute(CSharpAttributeData attribute, AttributeSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(this.IsConditional);
 
@@ -636,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (!this.CanBeReferencedByName || this.MethodKind == MethodKind.Destructor)
             {
-                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, or explicit interface implementation
+                // CS0577: The Conditional attribute is not valid on '{0}' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 diagnostics.Add(ErrorCode.ERR_ConditionalOnSpecialMethod, node.Location, this);
             }
             else if (!this.ReturnsVoid)
@@ -684,6 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.MarshalAsAttribute))
@@ -715,13 +726,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             RoslynDebug.Assert(arguments.AttributeSyntaxOpt?.ArgumentList is object);
 
             var attribute = arguments.Attribute;
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
             Debug.Assert(!attribute.HasErrors);
             bool hasErrors = false;
 
             var implementationPart = this.PartialImplementationPart ?? this;
             if (!implementationPart.IsExtern || !implementationPart.IsStatic)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_DllImportOnInvalidMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
             }
 
@@ -737,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isAnyNestedMethodGeneric || ContainingType?.IsGenericType == true)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
+                diagnostics.Add(ErrorCode.ERR_DllImportOnGenericMethod, arguments.AttributeSyntaxOpt.Name.Location);
                 hasErrors = true;
             }
 
@@ -746,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Dev10 reports CS0647: "Error emitting attribute ..."
                 CSharpSyntaxNode attributeArgumentSyntax = attribute.GetAttributeArgumentSyntax(0, arguments.AttributeSyntaxOpt);
-                arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
+                diagnostics.Add(ErrorCode.ERR_InvalidAttributeArgument, attributeArgumentSyntax.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 hasErrors = true;
                 moduleName = null;
             }
@@ -775,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!MetadataHelpers.IsValidMetadataIdentifier(importName))
                         {
                             // Dev10 reports CS0647: "Error emitting attribute ..."
-                            arguments.Diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
+                            diagnostics.Add(ErrorCode.ERR_InvalidNamedArgument, arguments.AttributeSyntaxOpt.ArgumentList.Arguments[position].Location, namedArg.Key);
                             hasErrors = true;
                             importName = null;
                         }
@@ -838,34 +850,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeModuleInitializerAttribute(DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             if (MethodKind != MethodKind.Ordinary)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
                 return;
             }
 
             Debug.Assert(ContainingType is object);
             var hasError = false;
 
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteDiagnostics))
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+            if (!AccessCheck.IsSymbolAccessible(this, ContainingAssembly, ref useSiteInfo))
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name);
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeAccessibleOutsideTopLevelType, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
             }
 
-            arguments.Diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteDiagnostics);
+            diagnostics.Add(arguments.AttributeSyntaxOpt, useSiteInfo);
 
             if (!IsStatic || ParameterCount > 0 || !ReturnsVoid)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeStaticParameterlessVoid, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
             }
 
             if (IsGenericMethod || ContainingType.IsGenericType)
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric, arguments.AttributeSyntaxOpt.Location, Name);
                 hasError = true;
             }
 
@@ -873,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // to run the module initializer.
             if (_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData is MethodEarlyWellKnownAttributeData { UnmanagedCallersOnlyAttributePresent: true })
             {
-                arguments.Diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
+                diagnostics.Add(ErrorCode.ERR_ModuleInitializerCannotBeUnmanagedCallersOnly, arguments.AttributeSyntaxOpt.Location);
                 hasError = true;
             }
 
@@ -886,11 +899,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void DecodeUnmanagedCallersOnlyAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
             Debug.Assert(arguments.AttributeSyntaxOpt != null);
+            var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
             arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
-                DecodeUnmanagedCallersOnlyAttributeData(this, arguments.Attribute, arguments.AttributeSyntaxOpt.Location, arguments.Diagnostics);
+                DecodeUnmanagedCallersOnlyAttributeData(this, arguments.Attribute, arguments.AttributeSyntaxOpt.Location, diagnostics);
 
-            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, arguments.Diagnostics);
+            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, diagnostics);
 
             var returnTypeSyntax = this.ExtractReturnTypeSyntax();
 
@@ -904,14 +918,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            checkAndReportManagedTypes(ReturnType, returnTypeSyntax, isParam: false, arguments.Diagnostics);
+            checkAndReportManagedTypes(ReturnType, this.RefKind, returnTypeSyntax, isParam: false, diagnostics);
             foreach (var param in Parameters)
             {
-                checkAndReportManagedTypes(param.Type, param.GetNonNullSyntaxNode(), isParam: true, arguments.Diagnostics);
+                checkAndReportManagedTypes(param.Type, param.RefKind, param.GetNonNullSyntaxNode(), isParam: true, diagnostics);
             }
 
-            static void checkAndReportManagedTypes(TypeSymbol type, SyntaxNode syntax, bool isParam, DiagnosticBag diagnostics)
+            static void checkAndReportManagedTypes(TypeSymbol type, RefKind refKind, SyntaxNode syntax, bool isParam, BindingDiagnosticBag diagnostics)
             {
+                if (refKind != RefKind.None)
+                {
+                    diagnostics.Add(ErrorCode.ERR_CannotUseRefInUnmanagedCallersOnly, syntax.Location);
+                }
+
                 // use-site diagnostics will be reported at actual parameter declaration site, we're only interested
                 // in reporting managed types being used
                 switch (type.ManagedKindNoUseSiteDiagnostics)
@@ -933,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, DiagnosticBag diagnostics)
+            static UnmanagedCallersOnlyAttributeData DecodeUnmanagedCallersOnlyAttributeData(SourceMethodSymbolWithAttributes @this, CSharpAttributeData attribute, Location location, BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(attribute.AttributeClass is not null);
                 ImmutableHashSet<CodeAnalysis.Symbols.INamedTypeSymbolInternal>? callingConventionTypes = null;
@@ -962,9 +981,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnmanagedCallersOnlyAttributeData.Create(callingConventionTypes);
             }
         }
-#nullable disable
 
-        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, DiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
+        internal sealed override void PostDecodeWellKnownAttributes(ImmutableArray<CSharpAttributeData> boundAttributes, ImmutableArray<AttributeSyntax> allAttributeSyntaxNodes, BindingDiagnosticBag diagnostics, AttributeLocation symbolPart, WellKnownAttributeData decodedData)
         {
             Debug.Assert(!boundAttributes.IsDefault);
             Debug.Assert(!allAttributeSyntaxNodes.IsDefault);
@@ -1018,44 +1036,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        protected void AsyncMethodChecks(DiagnosticBag diagnostics)
+        protected void AsyncMethodChecks(BindingDiagnosticBag diagnostics)
+        {
+            AsyncMethodChecks(verifyReturnType: true, this.Locations[0], diagnostics);
+        }
+
+        protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
             if (IsAsync)
             {
-                var errorLocation = this.Locations[0];
+                bool hasErrors = false;
 
-                if (this.RefKind != RefKind.None)
+                if (verifyReturnType)
                 {
-                    var returnTypeSyntax = this.SyntaxNode switch
+                    if (this.RefKind != RefKind.None)
                     {
-                        MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
-                        LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
-                        var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
-                    };
+                        var returnTypeSyntax = this.SyntaxNode switch
+                        {
+                            MethodDeclarationSyntax { ReturnType: var methodReturnType } => methodReturnType,
+                            LocalFunctionStatementSyntax { ReturnType: var localReturnType } => localReturnType,
+                            ParenthesizedLambdaExpressionSyntax { ReturnType: { } lambdaReturnType } => lambdaReturnType,
+                            var unexpected => throw ExceptionUtilities.UnexpectedValue(unexpected)
+                        };
 
-                    ReportBadRefToken(returnTypeSyntax, diagnostics);
-                }
-                else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
-                {
-                    diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
-                }
-
-                for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
-                {
-                    var sourceNamedTypeSymbol = curr as SourceNamedTypeSymbol;
-                    if ((object)sourceNamedTypeSymbol != null && sourceNamedTypeSymbol.HasSecurityCriticalAttributes)
+                        ReportBadRefToken(returnTypeSyntax, diagnostics);
+                        hasErrors = true;
+                    }
+                    else if (isBadAsyncReturn(this))
                     {
-                        diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
-                        break;
+                        diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
+                        hasErrors = true;
+                    }
+                }
+
+                if (this.HasAsyncMethodBuilderAttribute(out _))
+                {
+                    hasErrors |= MessageID.IDS_AsyncMethodBuilderOverride.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, errorLocation);
+                }
+
+                // Avoid checking attributes on containing types to avoid a potential cycle when a lambda
+                // is used in an attribute argument - see https://github.com/dotnet/roslyn/issues/54074.
+                // (ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct was never reported
+                // for lambda expressions and is not a .NET Core scenario so it's not necessary to handle.)
+                if (this.MethodKind != MethodKind.LambdaMethod)
+                {
+                    for (NamedTypeSymbol curr = this.ContainingType; (object)curr != null; curr = curr.ContainingType)
+                    {
+                        if (curr is SourceNamedTypeSymbol { HasSecurityCriticalAttributes: true })
+                        {
+                            diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsyncInClassOrStruct, errorLocation);
+                            hasErrors = true;
+                            break;
+                        }
                     }
                 }
 
                 if ((this.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) != 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_SynchronizedAsyncMethod, errorLocation);
+                    hasErrors = true;
                 }
 
-                if (!diagnostics.HasAnyResolvedErrors())
+                if (!hasErrors)
                 {
                     ReportAsyncParameterErrors(diagnostics, errorLocation);
                 }
@@ -1080,6 +1122,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_MultipleEnumeratorCancellationAttributes, errorLocation);
                     }
                 }
+            }
+
+            static bool isBadAsyncReturn(MethodSymbol methodSymbol)
+            {
+                var returnType = methodSymbol.ReturnType;
+                var declaringCompilation = methodSymbol.DeclaringCompilation;
+                return !returnType.IsErrorType() &&
+                    !returnType.IsVoidType() &&
+                    !returnType.IsIAsyncEnumerableType(declaringCompilation) &&
+                    !returnType.IsIAsyncEnumeratorType(declaringCompilation) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningTask(declaringCompilation) &&
+                    !methodSymbol.IsAsyncEffectivelyReturningGenericTask(declaringCompilation);
             }
         }
 
@@ -1176,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var wellKnownData = (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
-                SecurityWellKnownAttributeData securityData = wellKnownData.SecurityInformation;
+                SecurityWellKnownAttributeData? securityData = wellKnownData.SecurityInformation;
                 if (securityData != null)
                 {
                     return securityData.GetSecurityAttributes(attributesBag.Attributes);
@@ -1186,13 +1240,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SpecializedCollections.EmptyEnumerable<Cci.SecurityAttribute>();
         }
 
-        public override DllImportData GetDllImportData()
+        public override DllImportData? GetDllImportData()
         {
             var data = this.GetDecodedWellKnownAttributeData();
             return data != null ? data.DllImportPlatformInvokeData : null;
         }
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
+        internal override MarshalPseudoCustomAttributeData? ReturnValueMarshallingInformation
         {
             get
             {

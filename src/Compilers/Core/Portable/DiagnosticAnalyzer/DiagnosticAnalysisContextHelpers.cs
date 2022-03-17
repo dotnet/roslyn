@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
+                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, location, compilation);
                 }
             }
         }
@@ -111,13 +111,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
-            }
-
-            // Disallow async methods to be registered.
-            // Suppression due to bug fixed in .NET 5: https://github.com/dotnet/runtime/issues/30968
-            if (action.GetMethodInfo()!.IsDefined(typeof(AsyncStateMachineAttribute)))
-            {
-                throw new ArgumentException(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered, nameof(action));
             }
         }
 

@@ -4,7 +4,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
@@ -14,11 +16,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 {
     internal sealed partial class SourceGeneratedFileItem : BaseItem
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly string _languageName;
 
-        public SourceGeneratedFileItem(DocumentId documentId, string hintName, string languageName, Workspace workspace)
+        public SourceGeneratedFileItem(
+            IThreadingContext threadingContext,
+            DocumentId documentId,
+            string hintName,
+            string languageName,
+            Workspace workspace)
             : base(name: hintName)
         {
+            _threadingContext = threadingContext;
             DocumentId = documentId;
             HintName = hintName;
             _languageName = languageName;
@@ -50,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public bool Invoke(IEnumerable<object> items, InputSource inputSource, bool preview)
             {
-                bool didNavigate = false;
+                var didNavigate = false;
 
                 foreach (var item in items.OfType<SourceGeneratedFileItem>())
                 {
@@ -58,7 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     if (documentNavigationService != null)
                     {
                         // TODO: we're navigating back to the top of the file, do we have a way to just bring it to the focus and that's it?
-                        didNavigate |= documentNavigationService.TryNavigateToPosition(item.Workspace, item.DocumentId, 0);
+                        // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
+                        didNavigate |= item._threadingContext.JoinableTaskFactory.Run(() =>
+                            documentNavigationService.TryNavigateToPositionAsync(item.Workspace, item.DocumentId, position: 0, CancellationToken.None));
                     }
                 }
 

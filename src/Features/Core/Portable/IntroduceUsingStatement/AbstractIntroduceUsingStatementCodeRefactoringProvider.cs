@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround);
         protected abstract SyntaxNode WithStatements(SyntaxNode parentOfStatementsToSurround, SyntaxList<TStatementSyntax> statements);
 
-        protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<TStatementSyntax> statementsToSurround);
+        protected abstract TStatementSyntax CreateUsingStatement(TLocalDeclarationSyntax declarationStatement, SyntaxList<TStatementSyntax> statementsToSurround);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -50,15 +48,15 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             }
         }
 
-        private async Task<TLocalDeclarationSyntax> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
+        private async Task<TLocalDeclarationSyntax?> FindDisposableLocalDeclarationAsync(Document document, TextSpan selection, CancellationToken cancellationToken)
         {
             var declarationSyntax = await document.TryGetRelevantNodeAsync<TLocalDeclarationSyntax>(selection, cancellationToken).ConfigureAwait(false);
-            if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.Parent))
+            if (declarationSyntax is null || !CanRefactorToContainBlockStatements(declarationSyntax.GetRequiredParent()))
             {
                 return null;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var disposableType = semanticModel.Compilation.GetSpecialType(SpecialType.System_IDisposable);
             if (disposableType is null)
@@ -122,38 +120,29 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             TLocalDeclarationSyntax declarationStatement,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var statementsToSurround = GetStatementsToSurround(declarationStatement, semanticModel, syntaxFactsService, cancellationToken);
+            var statementsToSurround = GetStatementsToSurround(declarationStatement, semanticModel, syntaxFacts, cancellationToken);
 
-            // Separate the newline from the trivia that is going on the using declaration line.
-            var (sameLine, endOfLine) = SplitTrailingTrivia(declarationStatement, syntaxFactsService);
-
-            var usingStatement =
-                CreateUsingStatement(
-                    declarationStatement,
-                    sameLine,
-                    statementsToSurround)
-                    .WithLeadingTrivia(declarationStatement.GetLeadingTrivia())
-                    .WithTrailingTrivia(endOfLine);
+            var usingStatement = CreateUsingStatement(declarationStatement, statementsToSurround);
 
             if (statementsToSurround.Any())
             {
-                var parentStatements = GetStatements(declarationStatement.Parent);
+                var parentStatements = GetStatements(declarationStatement.GetRequiredParent());
                 var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
 
                 var newParent = WithStatements(
-                    declarationStatement.Parent,
+                    declarationStatement.GetRequiredParent(),
                     new SyntaxList<TStatementSyntax>(parentStatements
                         .Take(declarationStatementIndex)
                         .Concat(usingStatement)
                         .Concat(parentStatements.Skip(declarationStatementIndex + 1 + statementsToSurround.Count))));
 
                 return document.WithSyntaxRoot(root.ReplaceNode(
-                    declarationStatement.Parent,
+                    declarationStatement.GetRequiredParent(),
                     newParent.WithAdditionalAnnotations(Formatter.Annotation)));
             }
             else
@@ -186,23 +175,13 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
                 return default;
             }
 
-            var parentStatements = GetStatements(declarationStatement.Parent);
+            var parentStatements = GetStatements(declarationStatement.GetRequiredParent());
             var declarationStatementIndex = parentStatements.IndexOf(declarationStatement);
             var lastUsageStatementIndex = parentStatements.IndexOf(lastUsageStatement, declarationStatementIndex + 1);
 
             return new SyntaxList<TStatementSyntax>(parentStatements
                 .Take(lastUsageStatementIndex + 1)
                 .Skip(declarationStatementIndex + 1));
-        }
-
-        private static (SyntaxTriviaList sameLine, SyntaxTriviaList endOfLine) SplitTrailingTrivia(SyntaxNode node, ISyntaxFactsService syntaxFactsService)
-        {
-            var trailingTrivia = node.GetTrailingTrivia();
-            var lastIndex = trailingTrivia.Count - 1;
-
-            return lastIndex != -1 && syntaxFactsService.IsEndOfLineTrivia(trailingTrivia[lastIndex])
-                ? (sameLine: trailingTrivia.RemoveAt(lastIndex), endOfLine: new SyntaxTriviaList(trailingTrivia[lastIndex]))
-                : (sameLine: trailingTrivia, endOfLine: SyntaxTriviaList.Empty);
         }
 
         private static TStatementSyntax FindSiblingStatementContainingLastUsage(
@@ -218,7 +197,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
             // the last variable usage index to include the local's last usage.
 
             // Take all the statements starting with the trigger variable's declaration.
-            var statementsFromDeclarationToEnd = declarationSyntax.Parent.ChildNodesAndTokens()
+            var statementsFromDeclarationToEnd = declarationSyntax.GetRequiredParent().ChildNodesAndTokens()
                 .Select(nodeOrToken => nodeOrToken.AsNode())
                 .OfType<TStatementSyntax>()
                 .SkipWhile(node => node != declarationSyntax)
@@ -336,7 +315,7 @@ namespace Microsoft.CodeAnalysis.IntroduceUsingStatement
         private sealed class MyCodeAction : DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

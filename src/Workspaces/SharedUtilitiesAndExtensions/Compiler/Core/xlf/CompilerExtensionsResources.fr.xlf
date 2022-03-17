@@ -97,6 +97,11 @@
         <target state="translated">Styles de nommage</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Préférences de nouvelle ligne</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">Membres autres que des champs</target>

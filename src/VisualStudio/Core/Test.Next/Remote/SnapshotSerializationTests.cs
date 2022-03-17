@@ -24,14 +24,29 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
+    [CollectionDefinition(Name)]
+    public class AssemblyLoadTestFixtureCollection : ICollectionFixture<AssemblyLoadTestFixture>
+    {
+        public const string Name = nameof(AssemblyLoadTestFixtureCollection);
+        private AssemblyLoadTestFixtureCollection() { }
+    }
+
+    [Collection(AssemblyLoadTestFixtureCollection.Name)]
     [UseExportProvider]
     public class SnapshotSerializationTests
     {
+        private readonly AssemblyLoadTestFixture _testFixture;
+        public SnapshotSerializationTests(AssemblyLoadTestFixture testFixture)
+        {
+            _testFixture = testFixture;
+        }
+
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(TestHost.OutOfProcess).GetHostServices());
 
@@ -157,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
+            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
             Assert.Equal(1, solutionObject.Projects.Count);
             await validator.VerifySnapshotInServiceAsync(validator.ToProjectObjects(solutionObject.Projects)[0], 1, 0, 0, 0, 0).ConfigureAwait(false);
@@ -196,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             await validator.VerifySynchronizationObjectInServiceAsync(syncObject).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Attributes, WellKnownSynchronizationKind.SolutionAttributes).ConfigureAwait(false);
             await validator.VerifyChecksumInServiceAsync(solutionObject.Options, WellKnownSynchronizationKind.OptionSet).ConfigureAwait(false);
-            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects).ConfigureAwait(false);
+            await validator.VerifyChecksumInServiceAsync(solutionObject.Projects.Checksum, WellKnownSynchronizationKind.ChecksumCollection).ConfigureAwait(false);
 
             Assert.Equal(2, solutionObject.Projects.Count);
 
@@ -517,8 +532,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var dir = temp.CreateDirectory();
 
             // create two analyzer assembly files whose content is identical but path is different:
-            var file1 = dir.CreateFile("analyzer1.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
-            var file2 = dir.CreateFile("analyzer2.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+            var file1 = dir.CreateFile("analyzer1.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
+            var file2 = dir.CreateFile("analyzer2.dll").CopyContentFrom(_testFixture.FaultyAnalyzer.Path);
 
             var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
             var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
@@ -785,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private class MissingAnalyzerLoader : AnalyzerAssemblyLoader
         {
-            protected override Assembly LoadFromPathImpl(string fullPath)
+            protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
                 => throw new FileNotFoundException(fullPath);
         }
 

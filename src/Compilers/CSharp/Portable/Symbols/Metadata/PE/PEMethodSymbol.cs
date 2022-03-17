@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyConditionalAttributeSymbols;
             public ObsoleteAttributeData _lazyObsoleteAttributeData;
             public UnmanagedCallersOnlyAttributeData _lazyUnmanagedCallersOnlyAttributeData;
-            public DiagnosticInfo _lazyUseSiteDiagnostic;
+            public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo;
             public ImmutableArray<string> _lazyNotNullMembers;
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
@@ -370,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _name = string.Empty;
                 }
 
-                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             Debug.Assert((uint)localflags <= ushort.MaxValue);
@@ -389,6 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public override NamedTypeSymbol ContainingType => _containingType;
 
         public override string Name => _name;
+
+        public override int MetadataToken => MetadataTokens.GetToken(_handle);
 
         private bool HasFlag(MethodAttributes flag)
         {
@@ -821,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (makeBad || isBadParameter)
             {
-                InitializeUseSiteDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
+                InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             var signature = new SignatureData(signatureHeader, @params, returnParam);
@@ -837,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var typeParams = EnsureTypeParametersAreLoaded(ref diagnosticInfo);
                 if (diagnosticInfo != null)
                 {
-                    InitializeUseSiteDiagnostic(diagnosticInfo);
+                    InitializeUseSiteDiagnostic(new UseSiteInfo<AssemblySymbol>(diagnosticInfo));
                 }
 
                 return typeParams;
@@ -1174,16 +1177,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return MethodKind.DelegateInvoke;
                         }
                         break;
-                    default:
-                        // Note: this is expensive, so check it last
-                        // Note: method being processed may have an explicit method .override but still be 
-                        //       publicly accessible, the decision here is being made based on the method's name
-                        if (!SyntaxFacts.IsValidIdentifier(this.Name) && !this.ExplicitInterfaceImplementations.IsEmpty)
-                        {
-                            return MethodKind.ExplicitInterfaceImplementation;
-                        }
-                        break;
                 }
+            }
+
+            // Note: this is expensive, so check it last
+            // Note: method being processed may have an explicit method .override but still be 
+            //       publicly accessible, the decision here is being made based on the method's name
+            if (!SyntaxFacts.IsValidIdentifier(this.Name) && !this.ExplicitInterfaceImplementations.IsEmpty)
+            {
+                return MethodKind.ExplicitInterfaceImplementation;
             }
 
             return MethodKind.Ordinary;
@@ -1325,44 +1327,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref AccessUncommonFields()._lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (!_packedFlags.IsUseSiteDiagnosticPopulated)
             {
-                DiagnosticInfo result = null;
+                UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                EnsureTypeParametersAreLoaded(ref result);
-                if (result == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
+
+                var diagnosticInfo = result.DiagnosticInfo;
+                EnsureTypeParametersAreLoaded(ref diagnosticInfo);
+                if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
                     Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
                     if (CheckAndReportValidUnmanagedCallersOnlyTarget(location: null, diagnostics: null))
                     {
-                        result = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                        diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                     }
                 }
 
-                return InitializeUseSiteDiagnostic(result);
+                return InitializeUseSiteDiagnostic(result.AdjustDiagnosticInfo(diagnosticInfo));
             }
 
-            return _uncommonFields?._lazyUseSiteDiagnostic;
+            return GetCachedUseSiteInfo();
         }
 
-        private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
+        private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()
+        {
+            return (_uncommonFields?._lazyCachedUseSiteInfo ?? default).ToUseSiteInfo(PrimaryDependency);
+        }
+
+        private UseSiteInfo<AssemblySymbol> InitializeUseSiteDiagnostic(UseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (_packedFlags.IsUseSiteDiagnosticPopulated)
             {
-                return _uncommonFields?._lazyUseSiteDiagnostic;
+                return GetCachedUseSiteInfo();
             }
 
-            if (diagnostic != null)
+            if (useSiteInfo.DiagnosticInfo is object || !useSiteInfo.SecondaryDependencies.IsNullOrEmpty())
             {
-                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
-                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic);
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
-            return diagnostic;
+            return useSiteInfo;
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()

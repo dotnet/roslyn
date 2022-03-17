@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var builder = ArrayBuilder<Cci.ITypeReference>.GetInstance();
             foreach (TypeWithAnnotations type in UnderlyingNamedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                builder.Add(moduleBeingBuilt.Translate(type.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
+                builder.Add(moduleBeingBuilt.Translate(type.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics));
             }
 
             return builder.ToImmutableAndFree();
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             System.Diagnostics.Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+            return moduleBeingBuilt.Translate(this.UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics, needDeclaration: true);
         }
 

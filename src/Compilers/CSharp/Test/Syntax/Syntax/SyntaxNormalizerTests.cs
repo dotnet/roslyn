@@ -4,18 +4,246 @@
 
 #nullable disable
 
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using System;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizePatternInIf()
+        {
+            TestNormalizeStatement(
+                @"{object x = 1;
+                if (x is {})
+                {
+                }
+                if (x is {} t)
+                {
+                }
+                if (x is int {} t2)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10 } t3)
+                {
+                }
+                if (x is System.ValueTuple<int, int>(_, _) { Item1: > 10, Item2: < 20 })
+                {
+                }
+}",
+                @"{
+  object x = 1;
+  if (x is { })
+  {
+  }
+
+  if (x is { } t)
+  {
+  }
+
+  if (x is int { } t2)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10 } t3)
+  {
+  }
+
+  if (x is System.ValueTuple<int, int> (_, _) { Item1: > 10, Item2: < 20 })
+  {
+  }
+}".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchExpression()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => ""one"", 2 => ""two"", 3 => ""three"", {} => "">= 4"" };",
+                @"var x = (int)1 switch
+{
+  1 => ""one"",
+  2 => ""two"",
+  3 => ""three"",
+  { } => "">= 4""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact]
+        public void TestNormalizeSwitchExpressionRawStrings()
+        {
+            TestNormalizeStatement(
+                @"var x = (int)1 switch { 1 => """"""one"""""", 2 => """"""two"""""", 3 => """"""three"""""", {} => """""">= 4"""""" };",
+                @"var x = (int)1 switch
+{
+  1 => """"""one"""""",
+  2 => """"""two"""""",
+  3 => """"""three"""""",
+  { } => """""">= 4""""""
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchRecPattern()
+        {
+            TestNormalizeStatement(
+                @"var x = (object)1 switch {
+		int { } => ""two"",
+		{ } t when t.GetHashCode() == 42 => ""42"",
+		System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
+		System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
+		System.ValueType {} => ""not null value"",
+		object {} i when i is not 42 => ""not 42"",
+		{ } => ""not null"",
+		null => ""null"",
+};",
+                @"var x = (object)1 switch
+{
+  int { } => ""two"",
+  { } t when t.GetHashCode() == 42 => ""42"",
+  System.ValueTuple<int, int> (1, _) { Item2: > 2 and < 20 } => ""tuple.Item2 < 20"",
+  System.ValueTuple<int, int> (1, _) { Item2: >= 100 } greater => greater.ToString(),
+  System.ValueType { } => ""not null value"",
+  object { } i when i is not 42 => ""not 42"",
+  { } => ""not null"",
+  null => ""null"",
+};".NormalizeLineEndings()
+            );
+        }
+
+        [Fact, WorkItem(52543, "https://github.com/dotnet/roslyn/issues/52543")]
+        public void TestNormalizeSwitchExpressionComplex()
+        {
+            var a = @"var x = vehicle switch
+            {
+                Car { Passengers: 0 } => 2.00m + 0.50m,
+                Car { Passengers: 1 } => 2.0m,
+                Car { Passengers: 2 } => 2.0m - 0.50m,
+                Car c => 2.00m - 1.0m,
+
+                Taxi { Fares: 0 } => 3.50m + 1.00m,
+                Taxi { Fares: 1 } => 3.50m,
+                Taxi { Fares: 2 } => 3.50m - 0.50m,
+                Taxi t => 3.50m - 1.00m,
+
+                Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,
+                Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,
+                Bus b => 5.00m,
+
+                DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
+                DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
+                DeliveryTruck t => 10.00m,
+                { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+                null => 0//throw new ArgumentNullException(nameof(vehicle))
+            };";
+            var b = @"var x = vehicle switch
+{
+  Car { Passengers: 0 } => 2.00m + 0.50m,
+  Car { Passengers: 1 } => 2.0m,
+  Car { Passengers: 2 } => 2.0m - 0.50m,
+  Car c => 2.00m - 1.0m,
+  Taxi { Fares: 0 } => 3.50m + 1.00m,
+  Taxi { Fares: 1 } => 3.50m,
+  Taxi { Fares: 2 } => 3.50m - 0.50m,
+  Taxi t => 3.50m - 1.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) < 0.50 => 5.00m + 2.00m,
+  Bus b when ((double)b.Riders / (double)b.Capacity) > 0.90 => 5.00m - 1.00m,
+  Bus b => 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass > 5000) => 10.00m + 5.00m,
+  DeliveryTruck t when (t.GrossWeightClass < 3000) => 10.00m - 2.00m,
+  DeliveryTruck t => 10.00m,
+  { } => -1, //throw new ArgumentException(message: ""Not a known vehicle type"", paramName: nameof(vehicle)),
+  null => 0 //throw new ArgumentNullException(nameof(vehicle))
+};".NormalizeLineEndings();
+            TestNormalizeStatement(a, b);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern()
+        {
+            var text = "_ = this is[ 1,2,.. var rest ];";
+            var expected = @"_ = this is [1, 2, ..var rest];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_TrailingComma()
+        {
+            var text = "_ = this is[ 1,2, 3,];";
+            var expected = @"_ = this is [1, 2, 3, ];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeListPattern_EmptyList()
+        {
+            var text = "_ = this is[];";
+            var expected = @"_ = this is [];";
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestLineBreakInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""",
+                @"$""Printed: {new Printer(){TextToPrint = ""Hello world!""}.PrintedText}"""
+            );
+        }
+
+        [Fact]
+        public void TestLineBreakRawInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""""""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""""""",
+                @"$""""""Printed: {new Printer()
+{TextToPrint = ""Hello world!""}.PrintedText}""""""".Replace("\r\n", "\n").Replace("\n", "\r\n")
+            );
+        }
+
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestVerbatimStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($@""Test with line
+breaks
+{
+                new[]{
+     1, 2, 3
+  }[2]
+}
+            "");",
+            @"Console.WriteLine($@""Test with line
+breaks
+{new[]{1, 2, 3}[2]}
+            "");"
+            );
+        }
+
+        [Fact]
+        public void TestRawStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {
+                            new[]{
+                 1, 2, 3
+              }[2]
+            }
+            """""");",
+            @"Console.WriteLine($""""""
+            Test with line
+            breaks
+            {new[]{1, 2, 3}[2]}
+            """""");"
+            );
+        }
+
         [Fact]
         public void TestNormalizeExpression1()
         {
@@ -171,6 +399,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeStatement("Func<string, int> f = blah;", "Func<string, int> f = blah;");
         }
 
+        [Theory]
+        [InlineData("[ return:A ]void Local( [ B ]object o){}", "[return: A]\r\nvoid Local([B] object o)\r\n{\r\n}")]
+        [InlineData("[A,B][C]T Local<T>()=>default;", "[A, B]\r\n[C]\r\nT Local<T>() => default;")]
+        public void TestLocalFunctionAttributes(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Theory]
+        [InlineData("( [ A ]x)=>x", "([A] x) => x")]
+        [InlineData("[return:A]([B]object o)=>{}", "[return: A]\r\n([B] object o) =>\r\n{\r\n}")]
+        [InlineData("[ A ,B ] [C]()=>x", "[A, B]\r\n[C]\r\n() => x")]
+        [InlineData("[A]B()=>{ }", "[A]\r\nB() =>\r\n{\r\n}")]
+        [WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
+        public void TestLambdaAttributes(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
+        [InlineData("int( x )=>x", "int (x) => x")]
+        [InlineData("A( B b )=>{}", "A(B b) =>\r\n{\r\n}")]
+        [InlineData("static\r\nasync\r\nA<int>()=>x", "static async A<int>() => x")]
+        [WorkItem(59653, "https://github.com/dotnet/roslyn/issues/59653")]
+        public void TestLambdaReturnType(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
+        [InlineData("int*p;", "int* p;")]
+        [InlineData("int *p;", "int* p;")]
+        [InlineData("int*p1,p2;", "int* p1, p2;")]
+        [InlineData("int *p1, p2;", "int* p1, p2;")]
+        [InlineData("int**p;", "int** p;")]
+        [InlineData("int **p;", "int** p;")]
+        [InlineData("int**p1,p2;", "int** p1, p2;")]
+        [InlineData("int **p1, p2;", "int** p1, p2;")]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerDeclaration(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(49733, "https://github.com/dotnet/roslyn/issues/49733")]
+        public void TestNormalizeAsteriskInPointerReturnTypeOfIndexer()
+        {
+            var text = @"public unsafe class C
+{
+  int*this[int x,int y]{get=>(int*)0;}
+}";
+            var expected = @"public unsafe class C
+{
+  int* this[int x, int y] { get => (int*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeAsteriskInVoidPointerCast()
+        {
+            var text = @"public unsafe class C
+{
+  void*this[int x,int y]{get   =>  (  void  *   ) 0;}
+}";
+            var expected = @"public unsafe class C
+{
+  void* this[int x, int y] { get => (void*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
+        }
+
         private void TestNormalizeStatement(string text, string expected)
         {
             var node = SyntaxFactory.ParseStatement(text);
@@ -187,9 +488,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("using a.b;", "using a.b;");
             TestNormalizeDeclaration("using A; using B; class C {}", "using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
 
+            TestNormalizeDeclaration("global  using  a;", "global using a;");
+            TestNormalizeDeclaration("global  using  a=b;", "global using a = b;");
+            TestNormalizeDeclaration("global  using  a.b;", "global using a.b;");
+            TestNormalizeDeclaration("global using A; global using B; class C {}", "global using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("global using A; using B; class C {}", "global using A;\r\nusing B;\r\n\r\nclass C\r\n{\r\n}");
+            TestNormalizeDeclaration("using A; global using B; class C {}", "using A;\r\nglobal using B;\r\n\r\nclass C\r\n{\r\n}");
+
             // namespace
             TestNormalizeDeclaration("namespace a{}", "namespace a\r\n{\r\n}");
             TestNormalizeDeclaration("namespace a{using b;}", "namespace a\r\n{\r\n  using b;\r\n}");
+            TestNormalizeDeclaration("namespace a{global  using  b;}", "namespace a\r\n{\r\n  global using b;\r\n}");
             TestNormalizeDeclaration("namespace a{namespace b{}}", "namespace a\r\n{\r\n  namespace b\r\n  {\r\n  }\r\n}");
             TestNormalizeDeclaration("namespace a{}namespace b{}", "namespace a\r\n{\r\n}\r\n\r\nnamespace b\r\n{\r\n}");
 
@@ -231,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
             TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
 
-            // properties with initalizers
+            // properties with initializers
             TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}=1;\r\n}", "class i4\r\n{\r\n  int p { set; } = 1;\r\n}");
             TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}=1;\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
             TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}=1;\r\n}", "class i6\r\n{\r\n  int p { init; } = 1;\r\n}");
@@ -297,6 +606,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestFileScopedNamespace()
+        {
+            TestNormalizeDeclaration("namespace NS;class C{}", "namespace NS;\r\nclass C\r\n{\r\n}");
+        }
+
+        [Fact]
+        public void TestSpacingOnRecord()
+        {
+            TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
+            TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
+        }
+
+        [Fact]
         [WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {
@@ -318,12 +640,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // no space between this and (
             TestNormalizeDeclaration(
                 "class C { C() : this () { } }",
-                "class C\r\n{\r\n  C(): this()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : this()\r\n  {\r\n  }\r\n}");
 
             // no space between base and (
             TestNormalizeDeclaration(
                 "class C { C() : base () { } }",
-                "class C\r\n{\r\n  C(): base()\r\n  {\r\n  }\r\n}");
+                "class C\r\n{\r\n  C() : base()\r\n  {\r\n  }\r\n}");
 
             // no space between checked and (
             TestNormalizeExpression("checked (a)", "checked(a)");
@@ -341,6 +663,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestNormalizeExpression("$\"{3:C}\"", "$\"{3:C}\"");
             TestNormalizeExpression("$\"{3: C}\"", "$\"{3: C}\"");
+        }
+
+        [Fact]
+        public void TestSpacingOnRawInterpolatedString()
+        {
+            TestNormalizeExpression("$\"\"\"{3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3:C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3:C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3: C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
+
+            TestNormalizeExpression("$\"\"\"{ 3 :C}\"\"\"", "$\"\"\"{3:C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C}\"\"\"", "$\"\"\"{3: C}\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 :C }\"\"\"", "$\"\"\"{3:C }\"\"\"");
+            TestNormalizeExpression("$\"\"\"{ 3 : C }\"\"\"", "$\"\"\"{3: C }\"\"\"");
         }
 
         [Fact]
@@ -381,6 +726,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNormalizeInterpolatedString()
         {
             TestNormalizeExpression(@"$""Message is {a}""", @"$""Message is {a}""");
+        }
+
+        [Fact]
+        public void TestNormalizeRawInterpolatedString()
+        {
+            TestNormalizeExpression(@"$""""""Message is {a}""""""", @"$""""""Message is {a}""""""");
         }
 
         [WorkItem(528584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528584")]
@@ -498,6 +849,29 @@ namespace goo
 ");
             // Note: without all the escaping, it looks like this '#line 1 @"""a\b"""' (i.e. the string literal has a value of '"a\b"').
             // Note: the literal was formatted as a C# string literal, not as a directive string literal.
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveNode()
+        {
+            TestNormalize(
+                SyntaxFactory.LineSpanDirectiveTrivia(
+                    SyntaxFactory.Token(SyntaxKind.HashToken),
+                    SyntaxFactory.Token(SyntaxKind.LineKeyword),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(1), SyntaxFactory.Literal(2)),
+                    SyntaxFactory.Token(SyntaxKind.MinusToken),
+                    SyntaxFactory.LineDirectivePosition(SyntaxFactory.Literal(3), SyntaxFactory.Literal(4)),
+                    SyntaxFactory.Literal(5),
+                    SyntaxFactory.Literal("a.txt"),
+                    SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken),
+                    isActive: true),
+                "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+        }
+
+        [Fact]
+        public void TestNormalizeLineSpanDirectiveTrivia()
+        {
+            TestNormalizeTrivia("  #  line( 1,2 )-(3,4)5\"a.txt\"", "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
         }
 
         [WorkItem(538115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538115")]
@@ -622,6 +996,121 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointer()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate * < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate*<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithManagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *managed < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* managed<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged [ Cdecl ,  Thiscall ] < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged[Cdecl, Thiscall]<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(53254, "https://github.com/dotnet/roslyn/issues/53254")]
+        public void TestNormalizeColonInConstructorInitializer()
+        {
+            var content =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived():base(){}
+}";
+
+            var expected =
+@"class Base
+{
+}
+
+class Derived : Base
+{
+  public Derived() : base()
+  {
+  }
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
+        public void TestNormalizeXmlInDocComment()
+        {
+            var code = @"/// <returns>
+/// If this method succeeds, it returns <b xmlns:loc=""http://microsoft.com/wdcml/l10n"">S_OK</b>.
+/// </returns>";
+            TestNormalizeDeclaration(code, code);
+        }
+
         [Theory]
         [InlineData("_=()=>{};", "_ = () =>\r\n{\r\n};")]
         [InlineData("_=x=>{};", "_ = x =>\r\n{\r\n};")]
@@ -632,6 +1121,15 @@ $"  ///  </summary>{Environment.NewLine}" +
         public void TestNormalizeBlockAnonymousFunctions(string actual, string expected)
         {
             TestNormalizeStatement(actual, expected);
+        }
+
+        [Fact]
+        public void TestNormalizeExtendedPropertyPattern()
+        {
+            var text = "_ = this is{Property . Property :2};";
+
+            var expected = @"_ = this is { Property.Property: 2 };";
+            TestNormalizeStatement(text, expected);
         }
 
         private void TestNormalize(CSharpSyntaxNode node, string expected)

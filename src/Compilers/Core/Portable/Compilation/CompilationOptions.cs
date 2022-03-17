@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Emit mode that favors debuggability. 
         /// </summary>
-        internal bool DebugPlusMode { get; private protected set; }
+        internal bool DebugPlusMode { get; set; }
 
         /// <summary>
         /// Specifies whether to import members with accessibility other than public or protected by default. 
@@ -551,6 +551,8 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
+
+        internal abstract DeterministicKeyBuilder CreateDeterministicKeyBuilder();
 
         /// <summary>
         /// Performs validation of options compatibilities and generates diagnostics if needed

@@ -2,7 +2,8 @@ This document provides guidance for thinking about language interactions and tes
 
 # General concerns:
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
-- Other external documentation
+- *Ping* for new breaking changes and general ping for partner teams (Bill, Kathleen, Mads, IDE, Razor)
+- Help review external documentation
 - Backward and forward compatibility (interoperation with previous and future compilers, each in both directions)
 - Error handling/recovery (missing libraries, including missing types in mscorlib; errors in parsing, ambiguous lookup, inaccessible lookup, wrong kind of thing found, instance vs static thing found, wrong type for the context, value vs variable)
 - BCL (including mono) and other customer impact
@@ -29,18 +30,20 @@ This document provides guidance for thinking about language interactions and tes
     - GetOperation (`IOperation`)
     - GetCFG (`ControlFlowGraph`)
 - VB/F# interop
+- C++/CLI interop (particularly for metadata format changes, e.g. DIMs, static abstracts in interfaces, or generic attributes)
 - Performance and stress testing
 - Can build VS
+- Check that `Obsolete` is honored for members used in binding/lowering
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-- type declarations (class, record with or without positional members, struct, interface, type parameter)
+- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
 - methods
 - fields
 - properties (including get/set/init accessors)
 - events (including add/remove accessors)
 - Parameter modifiers (ref, out, in, params)
-- Attributes (including security attribute)
+- Attributes (including generic attributes and security attributes)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
 - Partial classes
@@ -55,6 +58,7 @@ This document provides guidance for thinking about language interactions and tes
 - Partial method
 - Named and optional parameters
 - String interpolation
+- Raw strings (including interpolation)
 - Properties (read-write, read-only, init-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
 - Delegates
@@ -91,8 +95,9 @@ This document provides guidance for thinking about language interactions and tes
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property, and discard forms)
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
 - Switch expressions
+- With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
@@ -117,7 +122,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - "go to", Find All References, and renaming
     - cref comments
     - UpgradeProject code fixer
-    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
+    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
 
 - Debugger / EE
     - Stepping, setting breakpoints
@@ -129,10 +134,12 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Compiling expressions in Immediate/Watch windows or hovering over an expression
     - Compiling expressions in [DebuggerDisplay("...")]
 	- Assigning values in Locals/Autos/Watch windows
- 
-- Edit-and-continue
+
+- [Edit-and-continue](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Testing%20for%20Interactive%20readiness.md)
 
 - Live Unit Testing (instrumentation)
+
+- Engage with VS Templates team (if applicable)
 
 # Eric's cheatsheet
 
@@ -316,6 +323,7 @@ __makeref( x )
 - Tuple
 - Default literal
 - Implicit object creation (target-typed new)
+- Function type (in type inference comparing function types of lambdas or method groups)
 
 ## Types 
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal enum ErrorCode
@@ -263,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewBoundMustBeLast = 401,
         WRN_MainCantBeGeneric = 402,
         ERR_TypeVarCantBeNull = 403,
-        ERR_AttributeCantBeGeneric = 404,
+        // ERR_AttributeCantBeGeneric = 404,
         ERR_DuplicateBound = 405,
         ERR_ClassBoundNotFirst = 406,
         ERR_BadRetType = 407,
@@ -386,12 +384,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadBinaryOperatorSignature = 563,
         ERR_BadShiftOperatorSignature = 564,
         ERR_InterfacesCantContainConversionOrEqualityOperators = 567,
-        ERR_StructsCantContainDefaultConstructor = 568,
+        //ERR_StructsCantContainDefaultConstructor = 568,
         ERR_CantOverrideBogusMethod = 569,
         ERR_BindToBogus = 570,
         ERR_CantCallSpecialMethod = 571,
         ERR_BadTypeReference = 572,
-        ERR_FieldInitializerInStruct = 573,
+        //ERR_FieldInitializerInStruct = 573,
         ERR_BadDestructorName = 574,
         ERR_OnlyClassesCanContainDestructors = 575,
         ERR_ConflictAliasAndMember = 576,
@@ -486,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TypeParameterSameAsOuterTypeParameter = 693,
         ERR_TypeVariableSameAsParent = 694,
         ERR_UnifyingInterfaceInstantiations = 695,
-        ERR_GenericDerivingFromAttribute = 698,
+        // ERR_GenericDerivingFromAttribute = 698,
         ERR_TyVarNotFoundInConstraint = 699,
         ERR_BadBoundType = 701,
         ERR_SpecialTypeAsBound = 702,
@@ -1209,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //WRN_PDBConstantStringValueTooLong = 7063,     gave up on this warning
         ERR_CantOpenIcon = 7064,
         ERR_ErrorBuildingWin32Resources = 7065,
-        ERR_IteratorInInteractive = 7066,
+        // ERR_IteratorInInteractive = 7066,
         ERR_BadAttributeParamDefaultArgument = 7067,
         ERR_MissingTypeInSource = 7068,
         ERR_MissingTypeInAssembly = 7069,
@@ -1228,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerLineNumberPreferredOverCallerFilePath = 7082,
         ERR_InvalidDynamicCondition = 7083,
         ERR_WinRtEventPassedByRef = 7084,
-        ERR_ByRefReturnUnsupported = 7085,
+        //ERR_ByRefReturnUnsupported = 7085,
         ERR_NetModuleNameMismatch = 7086,
         ERR_BadModuleName = 7087,
         ERR_BadCompilationOptionValue = 7088,
@@ -1310,7 +1308,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DictionaryInitializerInExpressionTree = 8074,
         ERR_ExtensionCollectionElementInitializerInExpressionTree = 8075,
         ERR_UnclosedExpressionHole = 8076,
-        ERR_SingleLineCommentInExpressionHole = 8077,
+        // This is now handled by the single ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString error.
+        // ERR_SingleLineCommentInExpressionHole = 8077,
         ERR_InsufficientStack = 8078,
         ERR_UseDefViolationProperty = 8079,
         ERR_AutoPropertyMustOverrideSet = 8080,
@@ -1441,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
         ERR_DiscardTypeInferenceFailed = 8183,
-        ERR_MixedDeconstructionUnsupported = 8184,
+        // ERR_MixedDeconstructionUnsupported = 8184,
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
         ERR_TupleElementNamesInDeconstruction = 8187,
@@ -1470,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignNetModule = 8202,
         ERR_BadAssemblyName = 8203,
         ERR_BadAsyncMethodBuilderTaskProperty = 8204,
-        ERR_AttributesInLocalFuncDecl = 8205,
+        // ERR_AttributesInLocalFuncDecl = 8205,
         ERR_TypeForwardedToMultipleAssemblies = 8206,
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
@@ -1721,7 +1720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,
-        ERR_DefaultInterfaceImplementationModifier = 8703,
+        ERR_InvalidModifierForLanguageVersion = 8703,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
         ERR_MostSpecificImplementationIsNotFound = 8705,
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
@@ -1797,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotUseReducedExtensionMethodInAddressOf = 8788,
         ERR_CannotUseFunctionPointerAsFixedLocal = 8789,
 
-        ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer = 8790,
+        ERR_ExpressionTreeContainsPatternImplicitIndexer = 8790,
         ERR_ExpressionTreeContainsFromEndIndexExpression = 8791,
         ERR_ExpressionTreeContainsRangeExpression = 8792,
         WRN_GivenExpressionAlwaysMatchesPattern = 8793,
@@ -1839,6 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultConstraintOverrideOnly = 8823,
         WRN_ParameterNotNullIfNotNull = 8824,
         WRN_ReturnNotNullIfNotNull = 8825,
+        WRN_PartialMethodTypeDifference = 8826,
 
         ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses = 8830,
         ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses = 8831,
@@ -1860,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitPropertyMismatchInitOnly = 8855,
         ERR_BadInitAccessor = 8856,
         ERR_InvalidWithReceiverType = 8857,
-        ERR_NoSingleCloneMethod = 8858,
+        ERR_CannotClone = 8858,
         ERR_CloneDisallowedInRecord = 8859,
         WRN_RecordNamedDisallowed = 8860,
         ERR_UnexpectedArgumentList = 8861,
@@ -1928,8 +1928,129 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_DoNotCompareFunctionPointers = 8909,
         ERR_RecordAmbigCtor = 8910,
+        ERR_FunctionPointerTypesInAttributeNotSupported = 8911,
 
         #endregion diagnostics introduced for C# 9.0
+
+        #region diagnostics introduced for C# 10.0
+
+        ERR_InheritingFromRecordWithSealedToString = 8912,
+        ERR_HiddenPositionalMember = 8913,
+        ERR_GlobalUsingInNamespace = 8914,
+        ERR_GlobalUsingOutOfOrder = 8915,
+        ERR_AttributesRequireParenthesizedLambdaExpression = 8916,
+        ERR_CannotInferDelegateType = 8917,
+        ERR_InvalidNameInSubpattern = 8918,
+
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces = 8919,
+        ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers = 8920,
+        ERR_BadAbstractUnaryOperatorSignature = 8921,
+        ERR_BadAbstractIncDecSignature = 8922,
+        ERR_BadAbstractIncDecRetType = 8923,
+        ERR_BadAbstractBinaryOperatorSignature = 8924,
+        ERR_BadAbstractShiftOperatorSignature = 8925,
+        ERR_BadAbstractStaticMemberAccess = 8926,
+        ERR_ExpressionTreeContainsAbstractStaticMemberAccess = 8927,
+        ERR_CloseUnimplementedInterfaceMemberNotStatic = 8928,
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember = 8929,
+        ERR_ExplicitImplementationOfOperatorsMustBeStatic = 8930,
+        ERR_AbstractConversionNotInvolvingContainedType = 8931,
+        ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod = 8932,
+        HDN_DuplicateWithGlobalUsing = 8933,
+        ERR_CantConvAnonMethReturnType = 8934,
+        ERR_BuilderAttributeDisallowed = 8935,
+        ERR_FeatureNotAvailableInVersion10 = 8936,
+        ERR_SimpleProgramIsEmpty = 8937,
+        ERR_LineSpanDirectiveInvalidValue = 8938,
+        ERR_LineSpanDirectiveEndLessThanStart = 8939,
+        ERR_WrongArityAsyncReturn = 8940,
+
+        ERR_InterpolatedStringHandlerMethodReturnMalformed = 8941,
+        ERR_InterpolatedStringHandlerMethodReturnInconsistent = 8942,
+        ERR_NullInvalidInterpolatedStringHandlerArgumentName = 8943,
+        ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName = 8944,
+        ERR_InvalidInterpolatedStringHandlerArgumentName = 8945,
+        ERR_TypeIsNotAnInterpolatedStringHandlerType = 8946,
+        WRN_ParameterOccursAfterInterpolatedStringHandlerParameter = 8947,
+        ERR_CannotUseSelfAsInterpolatedStringHandlerArgument = 8948,
+        ERR_InterpolatedStringHandlerArgumentAttributeMalformed = 8949,
+        ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString = 8950,
+        ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified = 8951,
+        ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion = 8952,
+        ERR_InterpolatedStringHandlerCreationCannotUseDynamic = 8953,
+        ERR_MultipleFileScopedNamespace = 8954,
+        ERR_FileScopedAndNormalNamespace = 8955,
+        ERR_FileScopedNamespaceNotBeforeAllMembers = 8956,
+        ERR_NoImplicitConvTargetTypedConditional = 8957,
+        ERR_NonPublicParameterlessStructConstructor = 8958,
+        ERR_NoConversionForCallerArgumentExpressionParam = 8959,
+        WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 8960,
+        WRN_CallerFilePathPreferredOverCallerArgumentExpression = 8961,
+        WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 8962,
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 8963,
+        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 8964,
+        WRN_CallerArgumentExpressionAttributeSelfReferential = 8965,
+        WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8966,
+        ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString = 8967,
+        ERR_AttrTypeArgCannotBeTypeVar = 8968,
+        // WRN_AttrDependentTypeNotAllowed = 8969, // Backed out of of warning wave 6, may be reintroduced later
+        ERR_AttrDependentTypeNotAllowed = 8970,
+        WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters = 8971,
+        ERR_LambdaWithAttributesToExpressionTree = 8972,
+
+        WRN_CompileTimeCheckedOverflow = 8973,
+        WRN_MethGrpToNonDel = 8974,
+        ERR_LambdaExplicitReturnTypeVar = 8975,
+        ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers = 8976,
+
+        // Added in VS 17.1. Technically a breaking change, but the code it breaks was already guaranteed to throw
+        // at runtime.
+        ERR_CannotUseRefInUnmanagedCallersOnly = 8977,
+
+        #endregion
+
+        #region diagnostics introduced for C# 11.0
+
+        ERR_CannotBeMadeNullable = 8978,
+        ERR_UnsupportedTypeForListPattern = 8979,
+        ERR_MisplacedSlicePattern = 8980,
+
+        WRN_LowerCaseTypeName = 8981,
+        ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
+        ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
+        ERR_EncUpdateFailedDelegateTypeChanged = 8984,
+
+        ERR_ListPatternRequiresLength = 8985,
+        ERR_DiscardCannotBeNullChecked = 8990,
+        ERR_MustNullCheckInImplementation = 8991,
+        ERR_NonNullableValueTypeIsNullChecked = 8992,
+        WRN_NullCheckedHasDefaultNull = 8993,
+        ERR_NullCheckingOnOutParameter = 8994,
+        WRN_NullCheckingOnNullableType = 8995,
+
+        ERR_RawStringNotInDirectives = 8996,
+        ERR_UnterminatedRawString = 8997,
+        ERR_TooManyQuotesForRawString = 8998,
+        ERR_LineDoesNotStartWithSameWhitespace = 8999,
+        ERR_RawStringDelimiterOnOwnLine = 9000,
+        ERR_RawStringInVerbatimInterpolatedStrings = 9001,
+        ERR_RawStringMustContainContent = 9002,
+        ERR_LineContainsDifferentWhitespace = 9003,
+
+        // raw interpolated string literals
+        ERR_NotEnoughQuotesForRawString = 9004,
+        ERR_NotEnoughCloseBracesForRawString = 9005,
+        ERR_TooManyOpenBracesForRawString = 9006,
+        ERR_TooManyCloseBracesForRawString = 9007,
+
+        ERR_IllegalAtSequence = 9008,
+        ERR_StringMustStartWithQuoteCharacter = 9009,
+
+        ERR_NoEnumConstraint = 9010,
+        ERR_NoDelegateConstraint = 9011,
+        ERR_MisplacedRecord = 9012,
+
+        #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

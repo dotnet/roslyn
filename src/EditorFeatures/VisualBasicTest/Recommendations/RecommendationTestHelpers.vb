@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -23,13 +24,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
                     ToList()
             End If
 
-            Dim parseOptions = New VisualBasicParseOptions().WithKind(kind)
-            Dim tree = DirectCast(SyntaxFactory.ParseSyntaxTree(SourceText.From(source), parseOptions), VisualBasicSyntaxTree)
-            Dim comp = VisualBasicCompilation.Create("Text", syntaxTrees:={tree}, references:={TestMetadata.Net451.mscorlib})
-            Dim semanticModel = comp.GetSemanticModel(tree)
+            Using workspace = New TestWorkspace(composition:=FeaturesTestCompositions.Features)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.AddProject("test", "test", LanguageNames.VisualBasic)
+                Dim document = project.AddDocument("test.cs", source)
 
-            Dim context = VisualBasicSyntaxContext.TestAccessor.CreateContext(semanticModel, position, CancellationToken.None)
-            Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
+                Dim parseOptions = New VisualBasicParseOptions().WithKind(kind)
+                Dim tree = DirectCast(SyntaxFactory.ParseSyntaxTree(SourceText.From(source), parseOptions), VisualBasicSyntaxTree)
+                Dim comp = VisualBasicCompilation.Create("test", syntaxTrees:={tree}, references:={TestMetadata.Net451.mscorlib})
+                Dim semanticModel = comp.GetSemanticModel(tree)
+
+                Dim context = VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, CancellationToken.None)
+                Return s_parts.SelectMany(Function(part) part.RecommendKeywords_Test(context))
+            End Using
+
         End Function
 
         Private Function GetRecommendedKeywordStrings(source As String, position As Integer, kind As SourceCodeKind) As IEnumerable(Of String)

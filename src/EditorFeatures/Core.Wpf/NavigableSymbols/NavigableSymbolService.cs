@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -22,26 +23,29 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     internal partial class NavigableSymbolService : INavigableSymbolSourceProvider
     {
         private static readonly object s_key = new();
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public NavigableSymbolService(
-            IWaitIndicator waitIndicator,
+            IUIThreadOperationExecutor uiThreadOperationExecutor,
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
+            _listenerProvider = listenerProvider;
         }
 
         public INavigableSymbolSource TryCreateNavigableSymbolSource(ITextView textView, ITextBuffer buffer)
         {
             return textView.GetOrCreatePerSubjectBufferProperty(buffer, s_key,
-                (v, b) => new NavigableSymbolSource(_threadingContext, _streamingPresenter, _waitIndicator));
+                (v, b) => new NavigableSymbolSource(_threadingContext, _streamingPresenter, _uiThreadOperationExecutor, _listenerProvider));
         }
     }
 }

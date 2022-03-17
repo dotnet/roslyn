@@ -5,10 +5,8 @@
 #nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading;
@@ -243,33 +241,15 @@ class Test<T>
                 // (12,20): error CS1525: Invalid expression term 'int'
                 //         s = nameof(int);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 20),
-                // (13,20): error CS1026: ) expected
+                // (13,20): error CS1525: Invalid expression term 'void'
                 //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "void").WithLocation(13, 20),
-                // (13,20): error CS1002: ; expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "void").WithLocation(13, 20),
-                // (13,20): error CS1547: Keyword 'void' cannot be used in this context
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(13, 20),
-                // (13,24): error CS1001: Identifier expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(13, 24),
-                // (13,24): error CS1002: ; expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(13, 24),
-                // (13,24): error CS1513: } expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(13, 24),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(13, 20),
                 // (17,66): error CS1031: Type expected
                 //         s = nameof(System.Collections.Generic.Dictionary<Program,>.KeyCollection);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(17, 66),
                 // (11,27): error CS0305: Using the generic type 'Action<T>' requires 1 type arguments
                 //         s = nameof(System.Action<>);
                 Diagnostic(ErrorCode.ERR_BadArity, "Action<>").WithArguments("System.Action<T>", "type", "1").WithLocation(11, 27),
-                // (13,13): error CS0103: The name 'nameof' does not exist in the current context
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nameof").WithArguments("nameof").WithLocation(13, 13),
                 // (16,20): error CS0103: The name 'List' does not exist in the current context
                 //         s = nameof(List<int>.Enumerator);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List<int>").WithArguments("List").WithLocation(16, 20),

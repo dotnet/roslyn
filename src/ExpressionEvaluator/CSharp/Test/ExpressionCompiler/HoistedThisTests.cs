@@ -863,8 +863,8 @@ class C
                 foreach (var displayClassType in displayClassTypes)
                 {
                     var displayClassName = displayClassType.Name;
-                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNameParser.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNameParser.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
                     {
                         var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
                         var context = CreateMethodContext(runtime, lambdaMethodName);
@@ -926,8 +926,8 @@ class C
                 foreach (var displayClassType in displayClassTypes)
                 {
                     var displayClassName = displayClassType.Name;
-                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNames.GetKind(displayClassName));
-                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNames.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
+                    Assert.Equal(GeneratedNameKind.LambdaDisplayClass, GeneratedNameParser.GetKind(displayClassName));
+                    foreach (var displayClassMethod in displayClassType.GetMembers().OfType<MethodSymbol>().Where(m => GeneratedNameParser.GetKind(m.Name) == GeneratedNameKind.LambdaMethod))
                     {
                         var lambdaMethodName = string.Format("C.{0}.{1}", displayClassName, displayClassMethod.Name);
                         var context = CreateMethodContext(runtime, lambdaMethodName);
@@ -1443,11 +1443,11 @@ public class C
             var originalType = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var iteratorMethod = originalType.GetMembers("M").OfType<MethodSymbol>().Single(isDesiredOverload);
 
-            var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNames.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
+            var stateMachineType = originalType.GetMembers().OfType<NamedTypeSymbol>().Single(t => GeneratedNameParser.GetKind(t.Name) == GeneratedNameKind.StateMachineType);
             var moveNextMethod = stateMachineType.GetMember<MethodSymbol>("MoveNext");
 
-            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(moveNextMethod, sourceMethodMustBeInstance: true);
-            Assert.Equal(iteratorMethod, guessedIterator.OriginalDefinition);
+            var guessedIterator = CompilationContext.GetSubstitutedSourceMethod(new EECompilationContextMethod(comp2, moveNextMethod), sourceMethodMustBeInstance: true);
+            Assert.Equal(iteratorMethod, ((EECompilationContextMethod)guessedIterator.OriginalDefinition).UnderlyingMethod.OriginalDefinition);
         }
     }
 }

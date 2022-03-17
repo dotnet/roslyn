@@ -2,19 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpInitializeMemberFromParameterCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter), Shared]
     [ExtensionOrder(Before = nameof(CSharpAddParameterCheckCodeRefactoringProvider))]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.Wrapping)]
     internal class CSharpInitializeMemberFromParameterCodeRefactoringProvider :
@@ -30,14 +30,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         {
         }
 
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
+        protected override bool SupportsRecords(ParseOptions options)
+            => false;
+
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
 
-        protected override SyntaxNode TryGetLastStatement(IBlockOperation blockStatementOpt)
-            => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
+        protected override SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement)
+            => InitializeParameterHelpers.TryGetLastStatement(blockStatement);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, returnsVoid, statementToAddAfter, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);

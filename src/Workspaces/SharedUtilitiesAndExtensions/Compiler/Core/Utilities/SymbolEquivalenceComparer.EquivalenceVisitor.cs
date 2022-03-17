@@ -46,17 +46,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
 #endif
 
-                if (x is ITypeSymbol xType && y is ITypeSymbol yType)
-                {
-                    // Nullability is not considered a distinguishing factor between symbols in this component.  Strip
-                    // nullability from these symbols.  This also ensures we can do reference-equality checks later as
-                    // stripping nullability returns the underlying symbol and does not produce new symbols with the
-                    // updated nullability value.
-
-                    x = xType.WithNullableAnnotation(xType.IsValueType ? NullableAnnotation.NotAnnotated : NullableAnnotation.None);
-                    y = yType.WithNullableAnnotation(yType.IsValueType ? NullableAnnotation.NotAnnotated : NullableAnnotation.None);
-                }
-
                 if (ReferenceEquals(x, y))
                 {
                     return true;
@@ -118,6 +107,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
+            private bool NullableAnnotationsEquivalent(ITypeSymbol x, ITypeSymbol y)
+                => _symbolEquivalenceComparer._ignoreNullableAnnotations || x.NullableAnnotation == y.NullableAnnotation;
+
             private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(x.Kind == y.Kind && x.Kind == k);
@@ -125,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     SymbolKind.ArrayType => ArrayTypesAreEquivalent((IArrayTypeSymbol)x, (IArrayTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Assembly => AssembliesAreEquivalent((IAssemblySymbol)x, (IAssemblySymbol)y),
-                    SymbolKind.DynamicType => true,
+                    SymbolKind.DynamicType => NullableAnnotationsEquivalent((IDynamicTypeSymbol)x, (IDynamicTypeSymbol)y),
                     SymbolKind.Event => EventsAreEquivalent((IEventSymbol)x, (IEventSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Field => FieldsAreEquivalent((IFieldSymbol)x, (IFieldSymbol)y, equivalentTypesWithDifferingAssemblies),
                     SymbolKind.Label => LabelsAreEquivalent((ILabelSymbol)x, (ILabelSymbol)y),
@@ -151,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return
                     x.Rank == y.Rank &&
                     AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
-                    AreEquivalent(x.ElementType, y.ElementType, equivalentTypesWithDifferingAssemblies);
+                    AreEquivalent(x.ElementType, y.ElementType, equivalentTypesWithDifferingAssemblies) &&
+                    NullableAnnotationsEquivalent(x, y);
             }
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
@@ -201,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
                 else
                 {
-                    if (x.MethodKind == MethodKind.AnonymousFunction ||
-                        x.MethodKind == MethodKind.LocalFunction)
+                    if (x.MethodKind is MethodKind.AnonymousFunction or
+                        MethodKind.LocalFunction)
                     {
                         // Treat local and anonymous functions just like we do ILocalSymbols.  
                         // They're only equivalent if they have the same location.
@@ -339,18 +332,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
+                if (x.IsTupleType != y.IsTupleType)
+                    return false;
+
+                if (x.IsNativeIntegerType != y.IsNativeIntegerType)
+                    return false;
+
+                if (x.IsTupleType)
+                    return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
+
                 if (IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
                     x.Name != y.Name ||
                     x.IsAnonymousType != y.IsAnonymousType ||
                     x.IsUnboundGenericType != y.IsUnboundGenericType ||
-                    x.IsTupleType != y.IsTupleType)
+                    !NullableAnnotationsEquivalent(x, y))
                 {
                     return false;
                 }
-
-                if (x.IsTupleType)
-                    return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
 
                 if (x.Kind == SymbolKind.ErrorType &&
                     x.ContainingSymbol is INamespaceSymbol xNamespace &&

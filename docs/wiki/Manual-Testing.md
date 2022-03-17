@@ -66,7 +66,7 @@ When doing a test pass, copy this page and consider using these status indicator
 | **Typing** | :fast_forward: **General Typing**<br />- Type and paste new constructs<br />- Nothing interferes with verbatim typing | | | |
 | | :mag: :fast_forward: **Completion**<br />- Typing new keyword/construct names<br />- Dotting off of new constructs<br />- Matching part of the identifier is highlighted (including word prefix matches) [Visual Studio 2015 Update 1]<br />- Target type preselection [Visual Studio 2017]<br />IntelliSense filtering [Visual Studio 2017] | | | |
 | | :fast_forward: **Formatting** <br />- Spacing in and around new constructs<br />- Spacing options<br />- Format Document command<br /> `Tools > Options` settings should be respected | | | |
-| | :fast_forward: **Automatic Brace Completion** (*C# only*) <br />- Auto-insert close brace<br />- Shift+Enter commit of IntelliSense and any pending brace completion sessions (Known issue: https://github.com/dotnet/roslyn/issues/18065) | | | N/A |
+| | :fast_forward: **Automatic Brace Completion** (*C# only*) <br />- Auto-insert close brace<br />- Shift+Enter commit of IntelliSense and any pending brace completion sessions (Currently C# only: https://github.com/dotnet/roslyn/issues/18065) | | | N/A |
 | | :fast_forward: **Indentation** <br />- Typing `Enter` in an unfinished statement indents the next line | | | |
 | **Navigating** | :mag: :fast_forward: **Go To Definition** <br />- F12 from callsites to definition<br />- Ctrl+click [Visual Studio 2017 version 15.4] | | | |
 | | :fast_forward: **Go To Implementation** <br />- Ctrl+F12 to jump from virtual members to their implementations<br />- Jump from inheritable types to their implementations | | | N/A |

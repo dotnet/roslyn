@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             foreach (var member in enumType.GetMembers())
             {
                 // skip `.ctor` and `__value`
-                if (!(member is IFieldSymbol fieldSymbol) || fieldSymbol.Type.SpecialType != SpecialType.None)
+                if (member is not IFieldSymbol fieldSymbol || fieldSymbol.Type.SpecialType != SpecialType.None)
                 {
                     continue;
                 }

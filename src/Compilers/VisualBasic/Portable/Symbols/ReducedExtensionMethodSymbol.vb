@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If this is an extension method that can be applied to an instance of the given type,
         ''' returns the curried method symbol thus formed. Otherwise, returns Nothing.
         ''' </summary>
-        Public Shared Function Create(instanceType As TypeSymbol, possiblyExtensionMethod As MethodSymbol, proximity As Integer) As MethodSymbol
+        Public Shared Function Create(instanceType As TypeSymbol, possiblyExtensionMethod As MethodSymbol, proximity As Integer, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As MethodSymbol
             Debug.Assert(instanceType IsNot Nothing)
             Debug.Assert(possiblyExtensionMethod IsNot Nothing)
             Debug.Assert(proximity >= 0)
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim typeParametersToFixArray As ImmutableArray(Of TypeParameterSymbol) = Nothing
             Dim fixWithArray As ImmutableArray(Of TypeSymbol) = Nothing
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim reducedUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
 
             If hashSetOfTypeParametersToFix.Count > 0 Then
                 ' Try to infer type parameters from the supplied instanceType.
@@ -72,13 +72,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim inferenceLevel As TypeArgumentInference.InferenceLevel = TypeArgumentInference.InferenceLevel.None
                 Dim allFailedInferenceIsDueToObject As Boolean = False
                 Dim someInferenceFailed As Boolean = False
-                Dim inferenceErrorReasons As InferenceErrorReasons = inferenceErrorReasons.Other
+                Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
 
                 Dim fixTheseTypeParameters = BitVector.Create(possiblyExtensionMethod.Arity)
 
                 For Each typeParameter As TypeParameterSymbol In hashSetOfTypeParametersToFix
                     fixTheseTypeParameters(typeParameter.Ordinal) = True
                 Next
+
+                Dim inferenceDiagnostic = If(reducedUseSiteInfo.AccumulatesDependencies,
+                                             BindingDiagnosticBag.GetInstance(withDiagnostics:=False, withDependencies:=True),
+                                             BindingDiagnosticBag.Discarded)
 
                 Dim success As Boolean = TypeArgumentInference.Infer(possiblyExtensionMethod,
                                                arguments:=ImmutableArray.Create(Of BoundExpression)(
@@ -96,16 +100,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                inferredTypeByAssumption:=Nothing,
                                                typeArgumentsLocation:=Nothing,
                                                asyncLambdaSubToFunctionMismatch:=Nothing,
-                                               useSiteDiagnostics:=useSiteDiagnostics,
-                                               diagnostic:=Nothing,
+                                               useSiteInfo:=reducedUseSiteInfo,
+                                               diagnostic:=inferenceDiagnostic,
                                                inferTheseTypeParameters:=fixTheseTypeParameters)
 
 
                 parameterToArgumentMap.Free()
 
-                If Not success OrElse Not useSiteDiagnostics.IsNullOrEmpty() Then
+                If Not success OrElse Not reducedUseSiteInfo.Diagnostics.IsNullOrEmpty() Then
+                    inferenceDiagnostic.Free()
                     Return Nothing
                 End If
+
+                reducedUseSiteInfo.AddDependencies(inferenceDiagnostic.DependenciesBag)
+                inferenceDiagnostic.Free()
 
                 Dim toFixCount = hashSetOfTypeParametersToFix.Count
                 Dim typeParametersToFix = ArrayBuilder(Of TypeParameterSymbol).GetInstance(toFixCount)
@@ -137,19 +145,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                        typeParametersToFixArray,
                                                                        fixWithArray,
                                                                        diagnosticsBuilder,
-                                                                       useSiteDiagnosticsBuilder)
-                    diagnosticsBuilder.Free()
+                                                                       useSiteDiagnosticsBuilder,
+                                                                       template:=New CompoundUseSiteInfo(Of AssemblySymbol)(reducedUseSiteInfo))
 
                     If Not success Then
+                        diagnosticsBuilder.Free()
                         Return Nothing
                     End If
+
+                    If useSiteDiagnosticsBuilder IsNot Nothing Then
+                        diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
+                    End If
+
+                    For Each pair In diagnosticsBuilder
+                        reducedUseSiteInfo.AddDependencies(pair.UseSiteInfo)
+                    Next
+
+                    diagnosticsBuilder.Free()
 
                     receiverType = receiverType.InternalSubstituteTypeParameters(partialSubstitution).Type
                 End If
             End If
 
-            If Not OverloadResolution.DoesReceiverMatchInstance(instanceType, receiverType, useSiteDiagnostics) OrElse
-               Not useSiteDiagnostics.IsNullOrEmpty() Then
+            If Not OverloadResolution.DoesReceiverMatchInstance(instanceType, receiverType, reducedUseSiteInfo) OrElse
+               Not reducedUseSiteInfo.Diagnostics.IsNullOrEmpty() Then
                 Return Nothing
             End If
 
@@ -171,6 +190,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 fixedTypeParameters = fixed.ToImmutableAndFree()
             End If
+
+            useSiteInfo.AddDependencies(reducedUseSiteInfo)
 
             Return New ReducedExtensionMethodSymbol(receiverType, possiblyExtensionMethod, fixedTypeParameters, proximity)
         End Function
@@ -306,8 +327,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Return _curriedFromMethod.GetUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return _curriedFromMethod.GetUseSiteInfo()
         End Function
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
@@ -757,8 +778,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _curriedFromTypeParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
             End Function
 
-            Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-                Return _curriedFromTypeParameter.GetUseSiteErrorInfo()
+            Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+                Return _curriedFromTypeParameter.GetUseSiteInfo()
             End Function
 
             Public Overrides ReadOnly Property IsImplicitlyDeclared As Boolean
@@ -926,6 +947,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend NotOverridable Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return m_CurriedFromParameter.CallerArgumentExpressionParameterIndex - 1
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
             Get
                 Return m_CurriedFromParameter.HasExplicitDefaultValue
@@ -976,8 +1003,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return m_CurriedFromParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Return m_CurriedFromParameter.GetUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Return m_CurriedFromParameter.GetUseSiteInfo()
         End Function
 
         Public Overrides ReadOnly Property Name As String

@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             RoslynDebug.Assert(underlyingLocal is object);
             RoslynDebug.Assert(updatedContainingSymbol is object);
+            Debug.Assert(updatedContainingSymbol.DeclaringCompilation is not null);
             Debug.Assert(!assertContaining || updatedContainingSymbol.Equals(underlyingLocal.ContainingSymbol, TypeCompareKind.AllNullableIgnoreOptions));
             ContainingSymbol = updatedContainingSymbol;
             TypeWithAnnotations = updatedType;
@@ -88,9 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsCompilerGenerated => _underlyingLocal.IsCompilerGenerated;
         internal override uint RefEscapeScope => _underlyingLocal.RefEscapeScope;
         internal override uint ValEscapeScope => _underlyingLocal.ValEscapeScope;
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag? diagnostics = null) =>
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag? diagnostics = null) =>
             _underlyingLocal.GetConstantValue(node, inProgress, diagnostics);
-        internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
+        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue) =>
             _underlyingLocal.GetConstantValueDiagnostics(boundInitValue);
         internal override SyntaxNode GetDeclaratorSyntax() =>
             _underlyingLocal.GetDeclaratorSyntax();

@@ -28,12 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
 
-        private SyntaxTree Parse6(string text)
+        private SyntaxTree Parse(string text, LanguageVersion languageVersion)
         {
-            var options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6);
+            var options = new CSharpParseOptions(languageVersion: languageVersion);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
+
+        private SyntaxTree Parse6(string text)
+            => Parse(text, LanguageVersion.CSharp6);
+
+        private SyntaxTree ParsePreview(string text)
+            => Parse(text, LanguageVersion.Preview);
 
         [Fact]
         public void TestChangeClassNameWithNonMatchingMethod()
@@ -49,6 +55,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
                             SyntaxKind.IdentifierToken);
+        }
+
+        [Fact]
+        public void TestExclamationExclamation()
+        {
+            var text = @"#nullable enable
+
+public class C {
+    public void M(string? x  !!) { // no error.
+    }
+}";
+            var oldTree = this.ParsePreview(text);
+            var newTree = oldTree.WithReplaceFirst("?", "");
+            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
+            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
+
+            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            TestDiffsInOrder(diffs,
+                            SyntaxKind.CompilationUnit,
+                            SyntaxKind.ClassDeclaration,
+                            SyntaxKind.MethodDeclaration,
+                            SyntaxKind.ParameterList,
+                            SyntaxKind.Parameter,
+                            SyntaxKind.PredefinedType,
+                            SyntaxKind.StringKeyword);
         }
 
         [Fact]
@@ -3013,6 +3044,109 @@ class C
             var substring = @"Method";
             var span = new TextSpan(source.IndexOf(substring) + substring.Length, 1);
             var change = new TextChange(span, "2");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Theory]
+        [InlineData("[Attr] () => { }")]
+        [InlineData("[Attr] x => x")]
+        [InlineData("([Attr] x) => x")]
+        [InlineData("([Attr] int x) => x")]
+        public void Lambda_EditAttributeList(string lambdaExpression)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F({lambdaExpression});
+    }}
+}}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "Attr";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "1, Attr2");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Theory]
+        [InlineData("() => { }", "() => { }")]
+        [InlineData("x => x", "x => x")]
+        [InlineData("(x) => x", "x) => x")]
+        [InlineData("(int x) => x", "int x) => x")]
+        public void Lambda_AddFirstAttributeList(string lambdaExpression, string substring)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F({lambdaExpression});
+    }}
+}}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf(substring), 0);
+            var change = new TextChange(span, "[Attr]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Theory]
+        [InlineData("[Attr1] () => { }")]
+        [InlineData("[Attr1] x => x")]
+        [InlineData("([Attr1] x) => x")]
+        [InlineData("([Attr1] int x) => x")]
+        public void Lambda_AddSecondAttributeList(string lambdaExpression)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F({lambdaExpression});
+    }}
+}}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = @"[Attr1]";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, " [Attr2]");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Theory]
+        [InlineData("[Attr] () => { }")]
+        [InlineData("[Attr] x => x")]
+        [InlineData("([Attr] x) => x")]
+        [InlineData("([Attr] int x) => x")]
+        public void Lambda_RemoveAttributeList(string lambdaExpression)
+        {
+            var source =
+$@"class Program
+{{
+    static void Main()
+    {{
+        F({lambdaExpression});
+    }}
+}}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var substring = "[Attr] ";
+            var span = new TextSpan(source.IndexOf(substring) + substring.Length, 0);
+            var change = new TextChange(span, "");
             text = text.WithChanges(change);
             tree = tree.WithChangedText(text);
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());

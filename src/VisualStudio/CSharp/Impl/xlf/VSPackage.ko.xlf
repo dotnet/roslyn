@@ -33,7 +33,8 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Display inline hints;
+        <source>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -79,19 +80,28 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="translated">인라인 힌트 표시;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">다시 할당된 변수에 밑줄 긋기;
+인라인 힌트 표시;
 닫힌 파일에 대한 진단 표시;
-정규식 색 지정, 
-커서 아래의 관련 구성 요소 강조 표시, 
+정규식 색 지정; 
+커서 아래의 관련 구성 요소 강조 표시; 
 잘못된 정규식 보고;
 전체 솔루션 분석 사용;
-외부기 프로세스에서 편집기 기능 분석 수행;
+외부 프로세스에서 편집기 기능 분석 수행;
 디컴파일된 소스 탐색 사용;
 Using 지시문;
-nusing 정렬 시 system 지시문 먼저 배치;
-nusing 지시문 그룹 구분;
+using 정렬 시 system 지시문 먼저 배치;
+using 지시문 그룹 구분;
 참조 어셈블리의 형식에 using 제안;
 NuGet 패키지의 형식에 using 제안;
 강조 표시;
@@ -114,7 +124,7 @@ NuGet 패키지의 형식에 using 제안;
 ///에 대해 XML 문서 주석 생성;
 /* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입;
 이름 바꾸기 추적 미리 보기 표시;
-&amp;lt;Enter&amp;gt; 키를 누르면 문자열 리터럴 분할;
+&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할;
 string.Format 호출에서 잘못된 자리 표시자 보고;
 메서드 추출;
 사용자 지정 구조체에 ref 또는 out 추가 안 함;
@@ -128,7 +138,8 @@ throw되는 속성 선호;
 regex;
 정규식;
 향상된 색 사용;
-편집기 색 구성표;</target>
+편집기 색 구성표;
+상속 여백;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -279,6 +290,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -295,6 +307,7 @@ Show items from unimported namespaces (experimental);</source>
 인수 목록에 자동으로 완성 목록 표시(실험적);
 완성 목록 항목에서 일치하는 부분 강조 표시;
 완성 항목 필터 표시;
+세미콜론 입력 시 자동으로 문 완성;
 코드 조각 동작;
 코드 조각 포함 안 함;
 코드 조각 항상 포함;

@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
     <UseExportProvider>
@@ -26,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
                 {
                 GetType(FirstBuiltInCompletionProvider),
                 GetType(KeywordCompletionProvider),
+                GetType(AwaitCompletionProvider),
                 GetType(SymbolCompletionProvider),
                 GetType(PreprocessorCompletionProvider),
                 GetType(ObjectInitializerCompletionProvider),
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion
                 GetType(OverrideCompletionProvider),
                 GetType(XmlDocCommentCompletionProvider),
                 GetType(InternalsVisibleToCompletionProvider),
-                GetType(EmbeddedLanguageCompletionProvider),
+                GetType(AggregateEmbeddedLanguageCompletionProvider),
                 GetType(TypeImportCompletionProvider),
                 GetType(ExtensionMethodImportCompletionProvider),
                 GetType(LastBuiltInCompletionProvider)

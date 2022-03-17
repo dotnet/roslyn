@@ -122,6 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             If Not ValidateTypeToGenerateIn(typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
+
             Return True
         End Function
 
@@ -137,6 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             If Not ValidateTypeToGenerateIn(typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
+
             Return True
         End Function
 
@@ -144,6 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             If typeToGenerateIn.IsGenericType Then
                 typeToGenerateIn = typeToGenerateIn.ConstructUnboundGenericType.ConstructedFrom
             End If
+
             Return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes:=ImmutableArray(Of AttributeData).Empty,
                 accessibility:=Nothing,

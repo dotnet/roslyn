@@ -68,6 +68,8 @@ namespace Microsoft.CodeAnalysis
         public bool SetEarlyDecodedWellKnownAttributeData(EarlyWellKnownAttributeData data)
         {
             WellKnownAttributeData.Seal(data);
+            // Early decode must complete before full decode
+            Debug.Assert(!IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData) || IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData));
             var setOnOurThread = Interlocked.CompareExchange(ref _earlyDecodedWellKnownAttributeData, data, null) == null;
             NotePartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData);
             return setOnOurThread;
@@ -81,6 +83,8 @@ namespace Microsoft.CodeAnalysis
         public bool SetDecodedWellKnownAttributeData(WellKnownAttributeData data)
         {
             WellKnownAttributeData.Seal(data);
+            // Early decode must complete before full decode
+            Debug.Assert(IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData));
             var setOnOurThread = Interlocked.CompareExchange(ref _decodedWellKnownAttributeData, data, null) == null;
             NotePartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData);
             return setOnOurThread;
@@ -172,13 +176,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsEarlyDecodedWellKnownAttributeDataComputed
         {
-            get
-            {
-                bool earlyComplete = IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData);
-                // If late attributes are complete, early attributes must also be complete
-                Debug.Assert(!IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData) || earlyComplete);
-                return earlyComplete;
-            }
+            get { return IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData); }
         }
 
         /// <summary>
@@ -187,13 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool IsDecodedWellKnownAttributeDataComputed
         {
-            get
-            {
-                bool attributesComplete = IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData);
-                // If late attributes are complete, early attributes must also be complete
-                Debug.Assert(!attributesComplete || IsPartComplete(CustomAttributeBagCompletionPart.EarlyDecodedWellKnownAttributeData));
-                return attributesComplete;
-            }
+            get { return IsPartComplete(CustomAttributeBagCompletionPart.DecodedWellKnownAttributeData); }
         }
 
         /// <summary>

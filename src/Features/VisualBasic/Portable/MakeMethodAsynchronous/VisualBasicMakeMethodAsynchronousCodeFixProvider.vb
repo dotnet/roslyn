@@ -7,10 +7,11 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddAsync), [Shared]>
     Friend Class VisualBasicMakeMethodAsynchronousCodeFixProvider
         Inherits AbstractMakeMethodAsynchronousCodeFixProvider
 
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
             If Not IsTaskLike(methodSymbol.ReturnType, knownTypes) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
-                Dim returnType = knownTypes._taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax()
+                Dim returnType = knownTypes._taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
                 newFunctionStatement = newFunctionStatement.WithAsClause(
                 newFunctionStatement.AsClause.WithType(returnType))
             End If

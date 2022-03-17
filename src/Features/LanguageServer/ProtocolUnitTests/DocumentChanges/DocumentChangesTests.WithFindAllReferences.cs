@@ -28,34 +28,32 @@ class B
     }
 }";
 
-            var (workspace, locationTyped, documentText) = await GetWorkspaceAndLocationAsync(source);
+            var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source);
 
-            using (workspace)
+            using (testLspServer)
             {
-                var queue = CreateRequestQueue(workspace.CurrentSolution);
+                Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
 
-                Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
+                await DidOpen(testLspServer, locationTyped.Uri);
 
-                await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(locationTyped, documentText));
-
-                var findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(queue, workspace.CurrentSolution, locationTyped);
+                var findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Single(findResults);
 
                 Assert.Equal("A", findResults[0].ContainingType);
 
                 // Declare a local inside A.M()
-                await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (5, 0, "var i = someInt + 1;\r\n")));
+                await DidChange(testLspServer, locationTyped.Uri, (5, 0, "var i = someInt + 1;\r\n"));
 
-                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(queue, workspace.CurrentSolution, locationTyped);
+                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Equal(2, findResults.Length);
 
                 Assert.Equal("A", findResults[0].ContainingType);
                 Assert.Equal("M", findResults[1].ContainingMember);
 
                 // Declare a field in B
-                await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (10, 0, "int someInt = A.someInt + 1;\r\n")));
+                await DidChange(testLspServer, locationTyped.Uri, (10, 0, "int someInt = A.someInt + 1;\r\n"));
 
-                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(queue, workspace.CurrentSolution, locationTyped);
+                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Equal(3, findResults.Length);
 
                 Assert.Equal("A", findResults[0].ContainingType);
@@ -63,9 +61,9 @@ class B
                 Assert.Equal("M", findResults[1].ContainingMember);
 
                 // Declare a local inside B.M2()
-                await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(locationTyped.Uri, (13, 0, "var j = someInt + A.someInt;\r\n")));
+                await DidChange(testLspServer, locationTyped.Uri, (13, 0, "var j = someInt + A.someInt;\r\n"));
 
-                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(queue, workspace.CurrentSolution, locationTyped);
+                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Equal(4, findResults.Length);
 
                 Assert.Equal("A", findResults[0].ContainingType);
@@ -78,9 +76,9 @@ class B
                 // the original state will have been updated by back channels (text buffer sync, file changed on disk, etc.)
                 // This is validating that the above didn't succeed by any means except the FAR handler being passed
                 // the updated document, so if we regress and get lucky, we still know about it.
-                await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(locationTyped));
+                await DidClose(testLspServer, locationTyped.Uri);
 
-                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(queue, workspace.CurrentSolution, locationTyped);
+                findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
                 Assert.Single(findResults);
 
                 Assert.Equal("A", findResults[0].ContainingType);

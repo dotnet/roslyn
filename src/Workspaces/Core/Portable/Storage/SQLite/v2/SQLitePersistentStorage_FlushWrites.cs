@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -16,28 +14,28 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// A queue to batch up flush requests and ensure that we don't issue then more often than every <see
         /// cref="FlushAllDelayMS"/>.
         /// </summary>
-        private readonly AsyncBatchingDelay _flushQueue;
+        private readonly AsyncBatchingWorkQueue _flushQueue;
 
         private void EnqueueFlushTask()
         {
-            _flushQueue.RequeueWork();
+            _flushQueue.AddWork();
         }
 
-        private Task FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
+        private async ValueTask FlushInMemoryDataToDiskIfNotShutdownAsync(CancellationToken cancellationToken)
         {
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
+            await PerformWriteAsync(_flushInMemoryDataToDisk, cancellationToken).ConfigureAwait(false);
         }
 
-        private void FlushWritesOnClose()
+        private Task FlushWritesOnCloseAsync()
         {
             // Issue a write task to write this all out to disk.
             //
             // Note: this only happens on close, so we don't try to avoid allocations here.
 
-            var writeTask = PerformWriteAsync(
+            return PerformWriteAsync(
                 () =>
                 {
                     // Perform the actual write while having exclusive access to the scheduler.
@@ -59,9 +57,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // read/write after releasing us.
                     _shutdownTokenSource.Cancel();
                 }, CancellationToken.None);
-
-            // Wait for that task to finish.
-            writeTask.Wait();
         }
 
         private void FlushInMemoryDataToDisk()
@@ -76,14 +71,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             using var _ = _connectionPool.Target.GetPooledConnection(out var connection);
 
-            // Dummy value for RunInTransaction signature.
-            var unused = true;
-            connection.RunInTransaction(_ =>
+            connection.RunInTransaction(static state =>
             {
-                _solutionAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
-                _projectAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
-                _documentAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
-            }, unused);
+                state.self._solutionAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
+                state.self._projectAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
+                state.self._documentAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
+            }, (self: this, connection));
         }
     }
 }

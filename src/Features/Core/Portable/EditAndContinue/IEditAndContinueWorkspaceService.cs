@@ -7,47 +7,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal interface IEditAndContinueWorkspaceService : IWorkspaceService
     {
-        /// <summary>
-        /// Returns base active statement spans contained in each specified document.
-        /// </summary>
-        /// <returns>
-        /// <see langword="default"/> if called outside of an edit session.
-        /// The length of the returned array matches the length of <paramref name="documentIds"/> otherwise.
-        /// </returns>
-        Task<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
+        ValueTask<bool> HasChangesAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken);
+        ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Returns the adjusted active statements in the specified <paramref name="document"/> snapshot.
-        /// </summary>
-        /// <returns>
-        /// <see langword="default"/> if called outside of an edit session, or active statements for the document can't be determined for some reason
-        /// (e.g. the document has syntax errors or is out-of-sync).
-        /// </returns>
-        Task<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
+        void CommitSolutionUpdate(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze);
+        void DiscardSolutionUpdate(DebuggingSessionId sessionId);
 
-        Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
-        Task<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken);
-        Task<(SolutionUpdateStatus Summary, ImmutableArray<Deltas> Deltas)> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
-
-        void CommitSolutionUpdate();
-        void DiscardSolutionUpdate();
-
-        bool IsDebuggingSessionInProgress { get; }
         void OnSourceFileUpdated(Document document);
 
-        void StartDebuggingSession(Solution solution);
-        void StartEditSession(ActiveStatementProvider activeStatementProvider);
-        void EndEditSession();
-        void EndDebuggingSession();
+        ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedHotReloadService debuggerService, ImmutableArray<DocumentId> captureMatchingDocuments, bool captureAllMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken);
+        void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze);
+        void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze);
 
-        Task<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ActiveInstructionId instructionId, CancellationToken cancellationToken);
-        Task<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ActiveInstructionId instructionId, CancellationToken cancellationToken);
+        ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(DebuggingSessionId sessionId, Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken);
+        ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(DebuggingSessionId sessionId, Solution solution, ActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken);
 
-        void ReportApplyChangesException(Solution solution, string message);
+        ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<ActiveStatementSpan>> GetAdjustedActiveStatementSpansAsync(DebuggingSessionId sessionId, TextDocument document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
     }
 }

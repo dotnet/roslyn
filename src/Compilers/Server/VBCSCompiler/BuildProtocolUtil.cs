@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     break;
             }
 
-            return new RunRequest(language, currentDirectory, tempDirectory, libDirectory, arguments);
+            return new RunRequest(req.RequestId, language, currentDirectory, tempDirectory, libDirectory, arguments);
         }
 
         internal static string[] GetCommandLineArguments(BuildRequest req, out string? currentDirectory, out string? tempDirectory, out string? libDirectory)

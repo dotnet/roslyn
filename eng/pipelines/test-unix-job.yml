@@ -1,3 +1,4 @@
+# Test on Unix using Helix
 parameters:
 - name: testRunName
   type: string
@@ -17,24 +18,16 @@ parameters:
 - name: testArguments
   type: string
   default: ''
-- name: queueName
-  type: string
-  default: ''
-- name: vmImageName
-  type: string
-  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: NetCorePublic-Pool
-      queue: ${{ parameters.queueName }}
-
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
-  timeoutInMinutes: 40
+    # Note that when helix is enabled, the agent running this job is essentially
+    # a thin client that kicks off a helix job and waits for it to complete.
+    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
+    vmImage: ubuntu-20.04
+  timeoutInMinutes: 90
   steps:
     - checkout: none
 
@@ -44,31 +37,20 @@ jobs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
 
-    - task: PowerShell@2
-      displayName: Rehydrate Unit Tests Environment
+    - task: ShellScript@2
+      displayName: Rehydrate RunTests
       inputs:
-        filePath: rehydrate.ps1
-        pwsh: true
+        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.sh
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
-    # Work around for files not maintaining permissions after pipeline download
-    # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
-    - bash: |
-        find artifacts/bin -name ilasm | xargs chmod 755
-        chmod 755 eng/build.sh
-      workingDirectory: '$(Build.SourcesDirectory)'
-      displayName: Fix executable permissions in pipeline artifact
-
-    - script: ./eng/build.sh --ci --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+    - task: ShellScript@2
+      inputs:
+        scriptPath: ./eng/build.sh
+        args: --ci --helix --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
       displayName: Test
-
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
-        mergeTestResults: true
-        testRunTitle: ${{ parameters.testRunName }}
-      condition: always()
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
     - template: publish-logs.yml
       parameters:

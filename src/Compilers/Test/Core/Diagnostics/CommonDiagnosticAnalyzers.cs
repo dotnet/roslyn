@@ -785,6 +785,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly Location _invalidLocation;
             private readonly ActionKind _actionKind;
+            private readonly bool _testInvalidAdditionalLocation;
 
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
                 "ID",
@@ -805,17 +806,20 @@ namespace Microsoft.CodeAnalysis
                 SyntaxTree
             }
 
-            public AnalyzerWithInvalidDiagnosticLocation(SyntaxTree treeInAnotherCompilation, ActionKind actionKind)
+            public AnalyzerWithInvalidDiagnosticLocation(SyntaxTree treeInAnotherCompilation, ActionKind actionKind, bool testInvalidAdditionalLocation)
             {
                 _invalidLocation = treeInAnotherCompilation.GetRoot().GetLocation();
                 _actionKind = actionKind;
+                _testInvalidAdditionalLocation = testInvalidAdditionalLocation;
             }
 
             private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, ActionKind actionKindBeingRun)
             {
                 if (_actionKind == actionKindBeingRun)
                 {
-                    var diagnostic = Diagnostic.Create(Descriptor, _invalidLocation);
+                    var diagnostic = _testInvalidAdditionalLocation ?
+                        Diagnostic.Create(Descriptor, Location.None, additionalLocations: new[] { _invalidLocation }) :
+                        Diagnostic.Create(Descriptor, _invalidLocation);
                     addDiagnostic(diagnostic);
                 }
             }
@@ -838,56 +842,6 @@ namespace Microsoft.CodeAnalysis
 
                 context.RegisterSyntaxTreeAction(c => ReportDiagnostic(c.ReportDiagnostic, ActionKind.SyntaxTree));
                 context.RegisterCompilationAction(cc => ReportDiagnostic(cc.ReportDiagnostic, ActionKind.Compilation));
-            }
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public sealed class AnalyzerWithAsyncMethodRegistration : DiagnosticAnalyzer
-        {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID",
-                "Title1",
-                "Message1",
-                "Category1",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationAction(AsyncAction);
-            }
-
-#pragma warning disable VSTHRD100 // Avoid async void methods
-            private async void AsyncAction(CompilationAnalysisContext context)
-#pragma warning restore VSTHRD100 // Avoid async void methods
-            {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
-                await Task.FromResult(true);
-            }
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public sealed class AnalyzerWithAsyncLambdaRegistration : DiagnosticAnalyzer
-        {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID",
-                "Title1",
-                "Message1",
-                "Category1",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context)
-            {
-#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
-                context.RegisterCompilationAction(async (compilationContext) =>
-#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
-                {
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
-                    await Task.FromResult(true);
-                });
             }
         }
 
@@ -1117,7 +1071,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly ActionKind _actionKind;
             private readonly bool _verifyGetControlFlowGraph;
-            private readonly ConcurrentDictionary<IOperation, ControlFlowGraph> _controlFlowGraphMapOpt;
+            private readonly ConcurrentDictionary<IOperation, (ControlFlowGraph Graph, ISymbol AssociatedSymbol)> _controlFlowGraphMapOpt;
 
             public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
                 "ID",
@@ -1139,13 +1093,13 @@ namespace Microsoft.CodeAnalysis
             {
                 _actionKind = actionKind;
                 _verifyGetControlFlowGraph = verifyGetControlFlowGraph;
-                _controlFlowGraphMapOpt = verifyGetControlFlowGraph ? new ConcurrentDictionary<IOperation, ControlFlowGraph>() : null;
+                _controlFlowGraphMapOpt = verifyGetControlFlowGraph ? new ConcurrentDictionary<IOperation, (ControlFlowGraph, ISymbol)>() : null;
             }
 
-            public ImmutableArray<ControlFlowGraph> GetControlFlowGraphs()
+            public ImmutableArray<(ControlFlowGraph Graph, ISymbol AssociatedSymbol)> GetControlFlowGraphs()
             {
                 Assert.True(_verifyGetControlFlowGraph);
-                return _controlFlowGraphMapOpt.Values.OrderBy(flowGraph => flowGraph.OriginalOperation.Syntax.SpanStart).ToImmutableArray();
+                return _controlFlowGraphMapOpt.Values.OrderBy(flowGraphAndSymbol => flowGraphAndSymbol.Graph.OriginalOperation.Syntax.SpanStart).ToImmutableArray();
             }
 
             private void ReportDiagnostic(Action<Diagnostic> addDiagnostic, Location location)
@@ -1154,20 +1108,20 @@ namespace Microsoft.CodeAnalysis
                 addDiagnostic(diagnostic);
             }
 
-            private void CacheAndVerifyControlFlowGraph(ImmutableArray<IOperation> operationBlocks, Func<IOperation, ControlFlowGraph> getControlFlowGraph)
+            private void CacheAndVerifyControlFlowGraph(ImmutableArray<IOperation> operationBlocks, Func<IOperation, (ControlFlowGraph Graph, ISymbol AssociatedSymbol)> getControlFlowGraph)
             {
                 if (_verifyGetControlFlowGraph)
                 {
                     foreach (var operationBlock in operationBlocks)
                     {
-                        var controlFlowGraph = getControlFlowGraph(operationBlock);
-                        Assert.NotNull(controlFlowGraph);
-                        Assert.Same(operationBlock.GetRootOperation(), controlFlowGraph.OriginalOperation);
+                        var controlFlowGraphAndSymbol = getControlFlowGraph(operationBlock);
+                        Assert.NotNull(controlFlowGraphAndSymbol);
+                        Assert.Same(operationBlock.GetRootOperation(), controlFlowGraphAndSymbol.Graph.OriginalOperation);
 
-                        _controlFlowGraphMapOpt.Add(controlFlowGraph.OriginalOperation, controlFlowGraph);
+                        _controlFlowGraphMapOpt.Add(controlFlowGraphAndSymbol.Graph.OriginalOperation, controlFlowGraphAndSymbol);
 
                         // Verify analyzer driver caches the flow graph.
-                        Assert.Same(controlFlowGraph, getControlFlowGraph(operationBlock));
+                        Assert.Same(controlFlowGraphAndSymbol.Graph, getControlFlowGraph(operationBlock).Graph);
 
                         // Verify exceptions for invalid inputs.
                         try
@@ -1205,11 +1159,11 @@ namespace Microsoft.CodeAnalysis
                     if (inBlockAnalysisContext)
                     {
                         // Verify same flow graph returned from containing block analysis context.
-                        Assert.Same(controlFlowGraph, _controlFlowGraphMapOpt[rootOperation]);
+                        Assert.Same(controlFlowGraph, _controlFlowGraphMapOpt[rootOperation].Graph);
                     }
                     else
                     {
-                        _controlFlowGraphMapOpt[rootOperation] = controlFlowGraph;
+                        _controlFlowGraphMapOpt[rootOperation] = (controlFlowGraph, operationContext.ContainingSymbol);
                     }
                 }
             }
@@ -1223,7 +1177,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterOperationBlockStartAction(blockStartContext =>
                         {
                             blockStartContext.RegisterOperationBlockEndAction(c => ReportDiagnostic(c.ReportDiagnostic, c.OwningSymbol.Locations[0]));
-                            CacheAndVerifyControlFlowGraph(blockStartContext.OperationBlocks, blockStartContext.GetControlFlowGraph);
+                            CacheAndVerifyControlFlowGraph(blockStartContext.OperationBlocks, op => (blockStartContext.GetControlFlowGraph(op), blockStartContext.OwningSymbol));
                         });
 
                         break;
@@ -1232,7 +1186,7 @@ namespace Microsoft.CodeAnalysis
                         context.RegisterOperationBlockAction(blockContext =>
                         {
                             ReportDiagnostic(blockContext.ReportDiagnostic, blockContext.OwningSymbol.Locations[0]);
-                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, blockContext.GetControlFlowGraph);
+                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, op => (blockContext.GetControlFlowGraph(op), blockContext.OwningSymbol));
                         });
 
                         break;
@@ -1249,7 +1203,7 @@ namespace Microsoft.CodeAnalysis
                     case ActionKind.OperationInOperationBlockStart:
                         context.RegisterOperationBlockStartAction(blockContext =>
                         {
-                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, blockContext.GetControlFlowGraph);
+                            CacheAndVerifyControlFlowGraph(blockContext.OperationBlocks, op => (blockContext.GetControlFlowGraph(op), blockContext.OwningSymbol));
                             blockContext.RegisterOperationAction(operationContext =>
                             {
                                 ReportDiagnostic(operationContext.ReportDiagnostic, operationContext.Operation.Syntax.GetLocation());

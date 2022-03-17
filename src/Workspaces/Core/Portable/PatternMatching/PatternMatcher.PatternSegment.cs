@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -16,12 +17,13 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         /// text between the dots, as well as information about any individual 'Words' that we 
         /// can break the segment into.
         /// </summary>
+        [NonCopyable]
         private struct PatternSegment : IDisposable
         {
             // Information about the entire piece of text between the dots.  For example, if the 
             // text between the dots is 'Get-Keyword', then TotalTextChunk.Text will be 'Get-Keyword' and 
             // TotalTextChunk.CharacterSpans will correspond to 'G', 'et', 'K' and 'eyword'.
-            public readonly TextChunk TotalTextChunk;
+            public TextChunk TotalTextChunk;
 
             // Information about the subwords compromising the total word.  For example, if the 
             // text between the dots is 'Get-Keyword', then the subwords will be 'Get' and 'Keyword'
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            public bool IsInvalid => this.SubWordTextChunks.Length == 0;
+            public readonly bool IsInvalid => this.SubWordTextChunks.Length == 0;
 
             private static int CountTextChunks(string pattern)
             {

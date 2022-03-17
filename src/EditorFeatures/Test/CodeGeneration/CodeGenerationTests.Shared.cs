@@ -343,7 +343,7 @@ namespace N
     }
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                    context: new CodeGenerationContext(generateMethodBodies: false),
                     forceLanguage: LanguageNames.CSharp);
 
                 initial = "Namespace [|N|] \n End Namespace";
@@ -510,7 +510,7 @@ namespace N
     End Class
 End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                    context: new CodeGenerationContext(generateMethodBodies: false),
                     forceLanguage: LanguageNames.VisualBasic);
             }
 
@@ -562,7 +562,7 @@ End Structure";
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public async Task TestDefaultTypeMemberAccessibility2()
             {
-                var codeGenOptionNoBody = new CodeGenerationOptions(generateMethodBodies: false);
+                var codeGenOptionNoBody = new CodeGenerationContext(generateMethodBodies: false);
 
                 var generationSource = "public class [|C|] { private void B(){} public void C(){}  }";
                 var initial = "public interface [|I|] { void A(); }";
@@ -570,7 +570,7 @@ End Structure";
     void B();
     void C();
 }";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, codeGenerationOptions: codeGenOptionNoBody);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, context: codeGenOptionNoBody);
 
                 initial = "Public Interface [|I|] \n Sub A() \n End Interface";
                 expected = @"Public Interface I 
@@ -578,7 +578,7 @@ End Structure";
     Sub B()
     Sub C()
 End Interface";
-                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, codeGenerationOptions: codeGenOptionNoBody);
+                await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected, onlyGenerateMembers: true, context: codeGenOptionNoBody);
 
                 initial = "Public Class [|C|] \n Sub A() \n End Sub \n End Class";
                 expected = @"Public Class C 
@@ -670,7 +670,7 @@ public class [|C|]
     public C();
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false, generateDocumentationComments: true),
+                    context: new CodeGenerationContext(generateMethodBodies: false, generateDocumentationComments: true),
                     onlyGenerateMembers: true);
             }
 
@@ -705,7 +705,7 @@ namespace [|N|]
             public static abstract string Property1 { get; }
             public virtual string Property { get; }
 
-            public abstract static void Method2();
+            public static abstract void Method2();
             public virtual void Method1();
         }
 
@@ -718,7 +718,7 @@ namespace [|N|]
     }
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
 
                 var initialVB = "Namespace [|N|] End Namespace";
                 var expectedVB = @"Namespace N End NamespaceNamespace N
@@ -735,7 +735,7 @@ namespace [|N|]
         End Class
     End Namespace";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initialVB, expectedVB,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
         }
     }

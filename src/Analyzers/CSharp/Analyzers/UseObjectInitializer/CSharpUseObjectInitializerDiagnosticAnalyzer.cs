@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,18 +17,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
-            ObjectCreationExpressionSyntax,
+            BaseObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
     {
         protected override bool FadeOutOperatorToken => true;
 
-        protected override bool AreObjectInitializersSupported(SyntaxNodeAnalysisContext context)
+        protected override bool AreObjectInitializersSupported(Compilation compilation)
         {
             // object initializers are only available in C# 3.0 and above.  Don't offer this refactoring
             // in projects targeting a lesser version.
-            return ((CSharpParseOptions)context.Node.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp3;
+            return compilation.LanguageVersion() >= LanguageVersion.CSharp3;
         }
 
         protected override ISyntaxFacts GetSyntaxFacts() => CSharpSyntaxFacts.Instance;

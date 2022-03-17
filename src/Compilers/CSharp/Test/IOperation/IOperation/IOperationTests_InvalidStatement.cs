@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_InvalidStatement : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
@@ -90,7 +90,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
   Switch expression: 
     IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
       Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+          IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case 1: ... break;')
           Clauses:

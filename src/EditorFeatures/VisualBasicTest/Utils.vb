@@ -54,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
             If TypeOf (node) Is T Then
                 Return CType(node, T)
             End If
+
             For Each child In node.ChildNodesAndTokens()
                 If child.IsNode Then
                     Dim foundNode = child.AsNode().FindFirstNodeOfType(Of T)()
@@ -62,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
                     End If
                 End If
             Next
+
             Return Nothing
         End Function
 

@@ -230,6 +230,10 @@ namespace Microsoft.Cci
 
         public override void Visit(IPropertyDefinition propertyDefinition)
         {
+            this.Visit(propertyDefinition.RefCustomModifiers);
+            this.Visit(propertyDefinition.ReturnValueCustomModifiers);
+            this.Visit(propertyDefinition.GetType(Context));
+
             this.Visit(propertyDefinition.Parameters);
         }
 

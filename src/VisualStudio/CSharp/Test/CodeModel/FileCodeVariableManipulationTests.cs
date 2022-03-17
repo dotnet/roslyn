@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         {
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void DeleteField()
         {

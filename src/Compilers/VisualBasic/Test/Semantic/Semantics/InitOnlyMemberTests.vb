@@ -1741,6 +1741,43 @@ BC37311: Init-only property 'Property5' can only be assigned by an object member
         End Sub
 
         <Fact>
+        Public Sub EvaluationInitOnlySetter_10()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P2 { init { System.Console.Write(value + "" 2 ""); } }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim x = new B()
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        With (Me)
+            .P2 = 42
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="42 2 ").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
         Public Sub Overriding_01()
 
             Dim csSource =
@@ -2993,7 +3030,8 @@ BC30937: Member 'CL1.P' that matches this signature cannot be implemented becaus
             Assert.NotEmpty(p.ExplicitInterfaceImplementations.Single().TypeCustomModifiers)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
+        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_01()
 
             Dim csSource =
@@ -3020,13 +3058,37 @@ Public Class Test
         Dim x = new C()
         Dim ox As Object = x
 
-        ox.P0 = -40
+        Try
+            ox.P0 = -40
+        Catch ex As System.MissingMemberException
+            System.Console.Write(x.P0)
+            System.Console.Write(" ")
+        End Try
+
         b.Init(ox.P1, -41)
         ob.Init(x.P2, -42)
         ob.Init(ox.P3, -43)
 
-        ox(0) = 40
-        ox.Item(1) = 41
+        System.Console.Write(x.P1)
+        System.Console.Write(" ")
+        System.Console.Write(x.P2)
+        System.Console.Write(" ")
+        System.Console.Write(x.P3)
+
+        Try
+            ox(0) = 40
+        Catch ex As System.MissingMemberException
+            System.Console.Write(" ")
+            System.Console.Write(x(0))
+        End Try
+
+        Try
+            ox.Item(1) = 41
+        Catch ex As System.MissingMemberException
+            System.Console.Write(" ")
+            System.Console.Write(x(1))
+        End Try
+
         b.Init(ox(2), 42)
         ob.Init(x(3), 43)
         b.Init(ox.Item(4), 44)
@@ -3034,15 +3096,7 @@ Public Class Test
         ob.Init(ox(6), 46)
         ob.Init(ox.Item(7), 47)
 
-        System.Console.Write(x.P0)
-        System.Console.Write(" ")
-        System.Console.Write(x.P1)
-        System.Console.Write(" ")
-        System.Console.Write(x.P2)
-        System.Console.Write(" ")
-        System.Console.Write(x.P3)
-
-        For i as Integer = 0 To 7
+        For i as Integer = 2 To 7
             System.Console.Write(" ")
             System.Console.Write(x(i))
         Next
@@ -3057,7 +3111,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim expectedOutput As String = "-40 -41 0 -43 40 41 42 0 44 0 46 47"
+            Dim expectedOutput As String = "0 0 0 0 0 0 0 0 0 0 0 0"
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=expectedOutput).VerifyDiagnostics()
 
@@ -3065,7 +3119,8 @@ End Class
             CompileAndVerify(comp2, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(CoreClrOnly))>
+        <WorkItem(56665, "https://github.com/dotnet/roslyn/issues/56665")>
         Public Sub LateBound_02()
 
             Dim csSource =
@@ -3089,10 +3144,32 @@ Public Class Test
         Dim x = new C()
         Dim ox As Object = x
 
-        ox(0) = 40
-        ox.Item(1) = 41
-        x(CObj(2)) = 42
-        x.Item(CObj(3)) = 43
+        Try
+            ox(0) = 40
+        Catch ex As System.MissingMemberException
+            System.Console.Write(x(0))
+        End Try
+
+        Try
+            ox.Item(1) = 41
+        Catch ex As System.MissingMemberException
+            System.Console.Write(" ")
+            System.Console.Write(x(1))
+        End Try
+
+        Try
+            x(CObj(2)) = 42
+        Catch ex As System.MissingMemberException
+            System.Console.Write(" ")
+            System.Console.Write(x(2))
+        End Try
+
+        Try
+            x.Item(CObj(3)) = 43
+        Catch ex As System.MissingMemberException
+            System.Console.Write(" ")
+            System.Console.Write(x(3))
+        End Try
 
         b.Init(ox(4), 44)
         ob.Init(ox(5), 45)
@@ -3103,9 +3180,7 @@ Public Class Test
         b.Init(x.Item(CObj(10)), 50)
         ob.Init(x.Item(CObj(11)), 51)
 
-        System.Console.Write(x(0))
-
-        For i as Integer = 1 To 11
+        For i as Integer = 4 To 11
             System.Console.Write(" ")
             System.Console.Write(x(i))
         Next
@@ -3120,12 +3195,1102 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim expectedOutput As String = "40 41 42 43 44 45 46 47 48 49 50 51"
+            Dim expectedOutput As String = "0 0 0 0 0 0 0 0 0 0 0 0"
             Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=expectedOutput).VerifyDiagnostics()
 
             Dim comp2 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp2, expectedOutput:=expectedOutput).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Redim_01()
+
+            Dim csSource =
+"
+public class C
+{
+    public int[] Property0 { init; get; }
+    public int[] Property1 { init; get; }
+    public int[] Property2 { init; get; }
+    public int[] Property3 { init; get; }
+    public int[] Property4 { init; get; }
+    public int[] Property5 { init; get; }
+    public int[] Property6 { init; get; }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+
+        System.Console.Write(b.Property0.Length)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property3.Length)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property4.Length)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property5.Length)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property6.Length)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        ReDim Property0(41)
+        Redim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+
+        With Me
+            Redim .Property6(47)
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16_9, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="42 45 46 47 48").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp2.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        ReDim Property0(41)
+              ~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Redim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+              ~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Redim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+                                ~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Redim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+                                                      ~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            Redim .Property6(47)
+                  ~~~~~~~~~~
+]]></expected>)
+
+            Dim source3 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim x = new C()
+        ReDim x.Property1(42)
+
+        With New B()
+            Redim .Property2(43)
+        End With
+
+        Dim y As New B() With { .F = Sub()
+                                         ReDim .Property3(44)
+                                     End Sub}
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Dim y = new B()
+
+        With y
+            Redim .Property4(45)
+        End With
+
+        With Me
+            With y
+                Redim .Property6(47)
+            End With
+        End With
+
+        Dim x as New B()
+        Redim x.Property0(41)
+
+        Dim z = Sub()
+                  Redim Property5(46)
+                End Sub
+    End Sub
+
+    Public F As System.Action
+End Class
+]]></file>
+</compilation>
+
+            Dim comp3 = CreateCompilation(source3, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected3 =
+<expected>
+BC37311: Init-only property 'Property1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim x.Property1(42)
+              ~~~~~~~~~~~
+BC37311: Init-only property 'Property2' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Redim .Property2(43)
+                  ~~~~~~~~~~
+BC37311: Init-only property 'Property3' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                                         ReDim .Property3(44)
+                                               ~~~~~~~~~~
+BC37311: Init-only property 'Property4' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Redim .Property4(45)
+                  ~~~~~~~~~~
+BC37311: Init-only property 'Property6' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                Redim .Property6(47)
+                      ~~~~~~~~~~
+BC37311: Init-only property 'Property0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Redim x.Property0(41)
+              ~~~~~~~~~~~
+BC37311: Init-only property 'Property5' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                  Redim Property5(46)
+                        ~~~~~~~~~
+</expected>
+            comp3.AssertTheseDiagnostics(expected3)
+
+            Dim comp4 = CreateCompilation(source3, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp4.AssertTheseDiagnostics(expected3)
+
+            Dim source5 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class B
+    Inherits C
+
+    Public Sub Test()
+        ReDim Property0(41)
+        ReDim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+
+        With Me
+            ReDim .Property6(47)
+        End With
+    End Sub
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp5 = CreateCompilation(source5, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected5 =
+<expected>
+BC37311: Init-only property 'Property0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Property0(41)
+              ~~~~~~~~~
+BC37311: Init-only property 'Property3' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+              ~~~~~~~~~~~~
+BC37311: Init-only property 'Property4' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+                                ~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'Property5' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Me.Property3(44), MyBase.Property4(45), MyClass.Property5(46)
+                                                      ~~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'Property6' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            ReDim .Property6(47)
+                  ~~~~~~~~~~
+</expected>
+            comp5.AssertTheseDiagnostics(expected5)
+
+            Dim comp6 = CreateCompilation(source5, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp6.AssertTheseDiagnostics(expected5)
+        End Sub
+
+        <Fact>
+        Public Sub Redim_02()
+
+            Dim csSource =
+"
+public class C
+{
+    private int[][] _item = new int[6][];
+    public int[] this[int x]
+    {
+        init
+        {
+            _item[x] = value;
+        }
+
+        get => _item[x];
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        for i as Integer = 0 To 5
+            System.Console.Write(b(i).Length)
+            System.Console.Write(" "c)
+        Next
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        ReDim Item(0)(40)
+        ReDim Me(1)(41),  Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+
+        With Me
+            ReDim .Item(5)(45)
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16_9, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="41 42 43 44 45 46").VerifyDiagnostics()
+
+            Assert.True(DirectCast(comp1.GetMember(Of PropertySymbol)("C.Item").SetMethod, IMethodSymbol).IsInitOnly)
+
+            Dim comp2 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp2.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        ReDim Item(0)(40)
+              ~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        ReDim Me(1)(41),  Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+              ~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        ReDim Me(1)(41),  Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+                          ~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        ReDim Me(1)(41),  Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+                                          ~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        ReDim Me(1)(41),  Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+                                                              ~~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            ReDim .Item(5)(45)
+                  ~~~~~~~~
+]]></expected>)
+
+            Dim source3 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim x = new C()
+        ReDim x(0)(40)
+        ReDim x.Item(1)(41)
+
+        With New B()
+            ReDim .Item(2)(42)
+        End With
+
+        Dim y As New B() With { .F = Sub()
+                                         ReDim .Item(3)(43)
+                                     End Sub}
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Dim y = new B()
+
+        With y
+            ReDim .Item(4)(44)
+        End With
+
+        With Me
+            With y
+                ReDim .Item(5)(45)
+            End With
+        End With
+
+        Dim x as New B()
+        ReDim x(6)(46)
+        ReDim x.Item(7)(47)
+
+        Dim z = Sub()
+                  ReDim Item(8)(48)
+                  ReDim Me(9)(49)
+                End Sub
+    End Sub
+
+    Public F As System.Action
+End Class
+]]></file>
+</compilation>
+
+            Dim comp3 = CreateCompilation(source3, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected3 =
+<expected>
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim x(0)(40)
+              ~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim x.Item(1)(41)
+              ~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            ReDim .Item(2)(42)
+                  ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                                         ReDim .Item(3)(43)
+                                               ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            ReDim .Item(4)(44)
+                  ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                ReDim .Item(5)(45)
+                      ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim x(6)(46)
+              ~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim x.Item(7)(47)
+              ~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                  ReDim Item(8)(48)
+                        ~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                  ReDim Me(9)(49)
+                        ~~~~~
+</expected>
+            comp3.AssertTheseDiagnostics(expected3)
+
+            Dim comp4 = CreateCompilation(source3, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp4.AssertTheseDiagnostics(expected3)
+
+            Dim source5 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class B
+    Inherits C
+
+    Public Sub Test()
+        ReDim Item(0)(40)
+        ReDim Me(1)(41), Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+
+        With Me
+            ReDim .Item(5)(45)
+        End With
+    End Sub
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp5 = CreateCompilation(source5, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected5 =
+<expected>
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Item(0)(40)
+              ~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Me(1)(41), Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+              ~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Me(1)(41), Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+                         ~~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Me(1)(41), Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+                                         ~~~~~~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        ReDim Me(1)(41), Me.Item(2)(42), MyBase.Item(3)(43), MyClass.Item(4)(44)
+                                                             ~~~~~~~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            ReDim .Item(5)(45)
+                  ~~~~~~~~
+</expected>
+            comp5.AssertTheseDiagnostics(expected5)
+
+            Dim comp6 = CreateCompilation(source5, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp6.AssertTheseDiagnostics(expected5)
+        End Sub
+
+        <Fact>
+        Public Sub Erase_01()
+
+            Dim csSource =
+"
+public class C
+{
+    public int[] Property0 { init; get; } = new int[] {};
+    public int[] Property1 { init; get; } = new int[] {};
+    public int[] Property2 { init; get; } = new int[] {};
+    public int[] Property3 { init; get; } = new int[] {};
+    public int[] Property4 { init; get; } = new int[] {};
+    public int[] Property5 { init; get; } = new int[] {};
+    public int[] Property6 { init; get; } = new int[] {};
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+
+        System.Console.Write(b.Property0 Is Nothing)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property3 Is Nothing)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property4 Is Nothing)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property5 Is Nothing)
+        System.Console.Write(" "c)
+        System.Console.Write(b.Property6 Is Nothing)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Erase Property0
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+
+        With Me
+            Erase .Property6
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16_9, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="True True True True True").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp2.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Property0
+              ~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+              ~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+                            ~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+                                              ~~~~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            Erase .Property6
+                  ~~~~~~~~~~
+]]></expected>)
+
+            Dim source3 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim x = new C()
+        Erase x.Property1
+
+        With New B()
+            Erase .Property2
+        End With
+
+        Dim y As New B() With { .F = Sub()
+                                         Erase .Property3
+                                     End Sub}
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Dim y = new B()
+
+        With y
+            Erase .Property4
+        End With
+
+        With Me
+            With y
+                Erase .Property6
+            End With
+        End With
+
+        Dim x as New B()
+        Erase x.Property0
+
+        Dim z = Sub()
+                  Erase Property5
+                End Sub
+    End Sub
+
+    Public F As System.Action
+End Class
+]]></file>
+</compilation>
+
+            Dim comp3 = CreateCompilation(source3, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected3 =
+<expected>
+BC37311: Init-only property 'Property1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase x.Property1
+              ~~~~~~~~~~~
+BC37311: Init-only property 'Property2' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Erase .Property2
+                  ~~~~~~~~~~
+BC37311: Init-only property 'Property3' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                                         Erase .Property3
+                                               ~~~~~~~~~~
+BC37311: Init-only property 'Property4' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Erase .Property4
+                  ~~~~~~~~~~
+BC37311: Init-only property 'Property6' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                Erase .Property6
+                      ~~~~~~~~~~
+BC37311: Init-only property 'Property0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase x.Property0
+              ~~~~~~~~~~~
+BC37311: Init-only property 'Property5' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                  Erase Property5
+                        ~~~~~~~~~
+</expected>
+            comp3.AssertTheseDiagnostics(expected3)
+
+            Dim comp4 = CreateCompilation(source3, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp4.AssertTheseDiagnostics(expected3)
+
+            Dim source5 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class B
+    Inherits C
+
+    Public Sub Test()
+        Erase Property0
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+
+        With Me
+            Erase .Property6
+        End With
+    End Sub
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp5 = CreateCompilation(source5, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected5 =
+<expected>
+BC37311: Init-only property 'Property0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Property0
+              ~~~~~~~~~
+BC37311: Init-only property 'Property3' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+              ~~~~~~~~~~~~
+BC37311: Init-only property 'Property4' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+                            ~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'Property5' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Me.Property3, MyBase.Property4, MyClass.Property5
+                                              ~~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'Property6' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Erase .Property6
+                  ~~~~~~~~~~
+</expected>
+            comp5.AssertTheseDiagnostics(expected5)
+
+            Dim comp6 = CreateCompilation(source5, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp6.AssertTheseDiagnostics(expected5)
+        End Sub
+
+        <Fact>
+        Public Sub Erase_02()
+
+            Dim csSource =
+"
+public class C
+{
+    private int[][] _item = new int[6][] {new int[]{}, new int[]{}, new int[]{}, new int[]{}, new int[]{}, new int[]{}};
+    public int[] this[int x]
+    {
+        init
+        {
+            _item[x] = value;
+        }
+
+        get => _item[x];
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        for i as Integer = 0 To 5
+            System.Console.Write(b(i) Is Nothing)
+            System.Console.Write(" "c)
+        Next
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Erase Item(0)
+        Erase Me(1),  Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+
+        With Me
+            Erase .Item(5)
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16_9, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="True True True True True True ").VerifyDiagnostics()
+
+            Assert.True(DirectCast(comp1.GetMember(Of PropertySymbol)("C.Item").SetMethod, IMethodSymbol).IsInitOnly)
+
+            Dim comp2 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp2.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Item(0)
+              ~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Me(1),  Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+              ~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Me(1),  Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+                      ~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Me(1),  Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+                                  ~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Erase Me(1),  Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+                                                  ~~~~~~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            Erase .Item(5)
+                  ~~~~~~~~
+]]></expected>)
+
+            Dim source3 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim x = new C()
+        Erase x(0)
+        Erase x.Item(1)
+
+        With New B()
+            Erase .Item(2)
+        End With
+
+        Dim y As New B() With { .F = Sub()
+                                         Erase .Item(3)
+                                     End Sub}
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Dim y = new B()
+
+        With y
+            Erase .Item(4)
+        End With
+
+        With Me
+            With y
+                Erase .Item(5)
+            End With
+        End With
+
+        Dim x as New B()
+        Erase x(6)
+        Erase x.Item(7)
+
+        Dim z = Sub()
+                  Erase Item(8)
+                  Erase Me(9)
+                End Sub
+    End Sub
+
+    Public F As System.Action
+End Class
+]]></file>
+</compilation>
+
+            Dim comp3 = CreateCompilation(source3, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected3 =
+<expected>
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase x(0)
+              ~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase x.Item(1)
+              ~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Erase .Item(2)
+                  ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                                         Erase .Item(3)
+                                               ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Erase .Item(4)
+                  ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                Erase .Item(5)
+                      ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase x(6)
+              ~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase x.Item(7)
+              ~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                  Erase Item(8)
+                        ~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                  Erase Me(9)
+                        ~~~~~
+</expected>
+            comp3.AssertTheseDiagnostics(expected3)
+
+            Dim comp4 = CreateCompilation(source3, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp4.AssertTheseDiagnostics(expected3)
+
+            Dim source5 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class B
+    Inherits C
+
+    Public Sub Test()
+        Erase Item(0)
+        Erase Me(1), Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+
+        With Me
+            Erase .Item(5)
+        End With
+    End Sub
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp5 = CreateCompilation(source5, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected5 =
+<expected>
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Item(0)
+              ~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Me(1), Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+              ~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Me(1), Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+                     ~~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Me(1), Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+                                 ~~~~~~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Erase Me(1), Me.Item(2), MyBase.Item(3), MyClass.Item(4)
+                                                 ~~~~~~~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            Erase .Item(5)
+                  ~~~~~~~~
+</expected>
+            comp5.AssertTheseDiagnostics(expected5)
+
+            Dim comp6 = CreateCompilation(source5, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp6.AssertTheseDiagnostics(expected5)
+        End Sub
+
+        <Fact>
+        Public Sub DictionaryAccess_01()
+
+            Dim csSource =
+"
+public class C
+{
+    private int[] _item = new int[36];
+    public int this[string id]
+    {
+        init
+        {
+            int x = int.Parse(id.Substring(1, id.Length - 1));
+
+            if (x != 1 && x != 5 && x != 7 && x != 8)
+            {
+                throw new System.InvalidOperationException();
+            }
+
+            _item[x] = value;
+        }
+
+        get
+        {
+            int x = int.Parse(id.Substring(1, id.Length - 1));
+            return _item[x];
+        }
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+
+        B.Init(b!c9, 49)
+        B.Init((b!c19), 59)
+
+        With b
+            B.Init(!c11, 51)
+            B.Init((!c21), 61)
+        End With
+
+        for i as Integer = 0 To 35
+            System.Console.Write(b("c" & i))
+            System.Console.Write(" "c)
+        Next
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Me!c1 = 41
+
+        With Me
+            !c5 = 45
+        End With
+
+        Init(Me!c7, 47)
+        Init((Me!c23), 63)
+
+        Dim b = Me
+        Init(b!c12, 52)
+        Init((b!c24), 64)
+
+        With Me
+            Init(!c8, 48)
+            Init((!c26), 66)
+        End With
+
+        With b
+            Init(!c14, 54)
+            Init((!c27), 67)
+        End With
+
+        Test()
+
+        Dim d = Sub()
+                    Init(Me!c34, 74)
+                    Init((Me!c35), 75)
+                End Sub
+
+        d()
+
+    End Sub
+
+    Public Sub Test()
+        With Me
+            Init(!c15, 55)
+            Init((!c28), 68)
+        End With
+
+        Init(Me!c16, 56)
+        Init((Me!c29), 69)
+
+        Dim b = Me
+
+        With b
+            Init(!c18, 58)
+            Init((!c31), 71)
+        End With
+    End Sub
+
+
+    Public Shared Sub Init(ByRef p as Integer, val As Integer)
+        p = val
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16_9, options:=TestOptions.DebugExe, references:={csCompilation})
+            CompileAndVerify(comp1, expectedOutput:="0 41 0 0 0 45 0 47 48 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source1, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp2.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        B.Init(b!c9, 49)
+               ~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            B.Init(!c11, 51)
+                   ~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Me!c1 = 41
+        ~~~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            !c5 = 45
+            ~~~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Init(Me!c7, 47)
+             ~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Init(b!c12, 52)
+             ~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            Init(!c8, 48)
+                 ~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            Init(!c14, 54)
+                 ~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+                    Init(Me!c34, 74)
+                         ~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            Init(!c15, 55)
+                 ~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+        Init(Me!c16, 56)
+             ~~~~~~
+BC36716: Visual Basic 16 does not support assigning to or passing 'ByRef' properties with init-only setters.
+            Init(!c18, 58)
+                 ~~~~
+]]></expected>)
+
+            Dim source3 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim x = new C()
+        x!c0 = 40
+
+        With New B()
+            !c2 = 42
+        End With
+
+        Dim y As New B() With { .F = Sub()
+                                         !c3 = 43
+                                     End Sub}
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Dim y = new B()
+
+        With y
+            !c4 = 44
+        End With
+
+        With Me
+            With y
+                !c5 = 45
+            End With
+        End With
+
+        Dim x as New B()
+        x!c6 = 46
+
+        Dim z = Sub()
+                  Me!c9 = 49  
+                End Sub
+    End Sub
+
+    Public F As System.Action
+End Class
+]]></file>
+</compilation>
+
+            Dim comp3 = CreateCompilation(source3, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected3 =
+<expected>
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        x!c0 = 40
+        ~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            !c2 = 42
+            ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                                         !c3 = 43
+                                         ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            !c4 = 44
+            ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                !c5 = 45
+                ~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        x!c6 = 46
+        ~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+                  Me!c9 = 49  
+                  ~~~~~~~~~~
+</expected>
+            comp3.AssertTheseDiagnostics(expected3)
+
+            Dim comp4 = CreateCompilation(source3, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp4.AssertTheseDiagnostics(expected3)
+
+            Dim source5 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Class B
+    Inherits C
+
+    Public Sub Test()
+        Me!c1 = 41
+
+        With Me
+            !c5 = 45
+        End With
+    End Sub
+End Class
+
+]]></file>
+</compilation>
+
+            Dim comp5 = CreateCompilation(source5, parseOptions:=TestOptions.RegularLatest, references:={csCompilation})
+            Dim expected5 =
+<expected>
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        Me!c1 = 41
+        ~~~~~~~~~~
+BC37311: Init-only property 'Item' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            !c5 = 45
+            ~~~~~~~~
+</expected>
+            comp5.AssertTheseDiagnostics(expected5)
+
+            Dim comp6 = CreateCompilation(source5, parseOptions:=TestOptions.Regular16, references:={csCompilation})
+            comp6.AssertTheseDiagnostics(expected5)
         End Sub
 
         <Fact()>
@@ -3184,9 +4349,11 @@ End Class
 
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.ReleaseDll)
 
-            ' An expected error on the override is missing due to https://github.com/dotnet/roslyn/issues/50327
             compilation.AssertTheseDiagnostics(
 <expected>
+BC30657: 'Property1' has a return type that is not supported or parameter types that are not supported.
+        Set
+        ~~~
 BC30657: 'Property1' has a return type that is not supported or parameter types that are not supported.
         c.Property1 = 42
         ~~~~~~~~~~~
@@ -3771,9 +4938,11 @@ End Class
 
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.ReleaseDll)
 
-            ' An error on override is not reported due to https://github.com/dotnet/roslyn/issues/50327
             compilation.AssertTheseDiagnostics(
 <expected>
+BC30657: 'Property1' has a return type that is not supported or parameter types that are not supported.
+    Overrides Property Property1 As Integer
+                       ~~~~~~~~~
 BC30456: 'get_Property1' is not a member of 'C'.
         Dim x1 = c.get_Property1()
                  ~~~~~~~~~~~~~~~
@@ -4106,6 +5275,500 @@ End Module
 
             Dim compilation3 = CreateCompilation(vbSource1, references:={compilation2.ToMetadataReference()}, options:=TestOptions.ReleaseDll)
             verify(compilation3)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_01()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+public interface I2 {}
+
+public class C : I1, I2
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        DirectCast(Me, I1).P1 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(Me, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_02()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+public interface I2 {}
+
+public class C : I1, I2
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        With CType(Me, I1)
+            .P1 = 41
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            .P1 = 41
+            ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_03()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        TryCast(Me, I1).P1 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        TryCast(Me, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_04()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        With TryCast(Me, I1)
+            .P1 = 41
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            .P1 = 41
+            ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_05()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        CType(MyBase, I1).P1 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        CType(MyBase, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
+BC32027: 'MyBase' must be followed by '.' and an identifier.
+        CType(MyBase, I1).P1 = 41
+              ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_06()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+
+public class C : I1
+{
+    public int P0 { init; get; }
+    int I1.P1
+    {
+        get => P0;
+        init => P0 = value;
+    }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        DirectCast(MyClass, I1).P1 = 41
+
+        With MyClass
+            .P0 = 1
+        End With
+
+        With MyBase
+            .P0 = 2
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(MyClass, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC32028: 'MyClass' must be followed by '.' and an identifier.
+        DirectCast(MyClass, I1).P1 = 41
+                   ~~~~~~~
+BC32028: 'MyClass' must be followed by '.' and an identifier.
+        With MyClass
+             ~~~~~~~
+BC32027: 'MyBase' must be followed by '.' and an identifier.
+        With MyBase
+             ~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_07()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P0 { init; get; }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        Me.P0 = 41
+    End Sub
+End Class
+
+Class D
+    Public Shared Widening Operator CType(x As D) As B
+        Return Nothing
+    End Operator
+
+    Public Sub New()
+        CType(Me, B).P0 = 42
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        CType(Me, B).P0 = 42
+        ~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_08()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P0 { init; get; }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        DirectCast(Me, B).P0 = 41
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(Me, B).P0 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_09()
+
+            Dim csSource =
+"
+public class C
+{
+    public int P0 { init; get; }
+}
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+        Dim b = new B()
+        System.Console.Write(b.P0)
+    End Sub
+End Class
+
+Class B
+    Inherits C
+
+    Public Sub New()
+        With CType(Me, B)
+            .P0 = 41
+        End With
+    End Sub
+End Class
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC37311: Init-only property 'P0' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+            .P0 = 41
+            ~~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceConversion_10()
+
+            Dim csSource =
+"
+public interface I1 { int P1 { get; init; } }
+"
+            Dim csCompilation = CreateCSharpCompilation(csSource + IsExternalInitTypeDefinition).EmitToImageReference()
+
+            Dim source1 =
+<compilation>
+    <file name="c.vb"><![CDATA[
+Public Class Test
+    Shared Sub Main()
+    End Sub
+End Class
+
+Structure B
+    Implements I1
+
+    Public Sub New(x As Integer)
+        DirectCast(Me, I1).P1 = 41
+        CType(Me, I1).P1 = 42
+        DirectCast(CObj(Me), I1).P1 = 43
+    End Sub
+End Structure
+]]></file>
+</compilation>
+
+            Dim comp1 = CreateCompilation(source1, parseOptions:=TestOptions.RegularLatest, options:=TestOptions.DebugExe, references:={csCompilation})
+            comp1.AssertTheseDiagnostics(
+<expected>
+BC30149: Structure 'B' must implement 'Property P1 As Integer' for interface 'I1'.
+    Implements I1
+               ~~
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(Me, I1).P1 = 41
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        CType(Me, I1).P1 = 42
+        ~~~~~~~~~~~~~~~~~~~~~
+BC37311: Init-only property 'P1' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.
+        DirectCast(CObj(Me), I1).P1 = 43
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
     End Class

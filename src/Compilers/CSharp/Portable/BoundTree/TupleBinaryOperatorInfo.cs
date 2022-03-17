@@ -46,8 +46,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly BinaryOperatorKind Kind;
             internal readonly MethodSymbol? MethodSymbolOpt; // User-defined comparison operator, if applicable
+            internal readonly TypeSymbol? ConstrainedToTypeOpt;
 
-            internal readonly Conversion ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
+            internal readonly BoundValuePlaceholder? ConversionForBoolPlaceholder;
+            internal readonly BoundExpression? ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
+
             internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
 
             internal Single(
@@ -55,10 +58,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? rightConvertedTypeOpt,
                 BinaryOperatorKind kind,
                 MethodSymbol? methodSymbolOpt,
-                Conversion conversionForBool, UnaryOperatorSignature boolOperator) : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
+                TypeSymbol? constrainedToTypeOpt,
+                BoundValuePlaceholder? conversionForBoolPlaceholder,
+                BoundExpression? conversionForBool,
+                UnaryOperatorSignature boolOperator) : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
                 Kind = kind;
                 MethodSymbolOpt = methodSymbolOpt;
+                ConstrainedToTypeOpt = constrainedToTypeOpt;
+                ConversionForBoolPlaceholder = conversionForBoolPlaceholder;
                 ConversionForBool = conversionForBool;
                 BoolOperator = boolOperator;
 

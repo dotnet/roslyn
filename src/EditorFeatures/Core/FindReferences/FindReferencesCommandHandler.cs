@@ -8,11 +8,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +24,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.FindReferences
+namespace Microsoft.CodeAnalysis.FindReferences
 {
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         public string DisplayName => EditorFeaturesResources.Find_References;
@@ -39,11 +41,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public FindReferencesCommandHandler(
             IStreamingFindUsagesPresenter streamingPresenter,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             Contract.ThrowIfNull(listenerProvider);
 
             _streamingPresenter = streamingPresenter;
+            _globalOptions = globalOptions;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
@@ -97,6 +101,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             // a presenter that can accept streamed results.
             if (findUsagesService != null && _streamingPresenter != null)
             {
+                // kick this work off in a fire and forget fashion.  Importantly, this means we do
+                // not pass in any ambient cancellation information as the execution of this command
+                // will complete and will have no bearing on the computation of the references we compute.
                 _ = StreamingFindReferencesAsync(document, caretPosition, findUsagesService, _streamingPresenter);
                 return true;
             }
@@ -105,7 +112,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         }
 
         private async Task StreamingFindReferencesAsync(
-            Document document, int caretPosition,
+            Document document,
+            int caretPosition,
             IFindUsagesService findUsagesService,
             IStreamingFindUsagesPresenter presenter)
         {
@@ -113,9 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             {
                 using var token = _asyncListener.BeginAsyncOperation(nameof(StreamingFindReferencesAsync));
 
-                // Let the presented know we're starting a search.  It will give us back
-                // the context object that the FAR service will push results into.
-                var context = presenter.StartSearchWithCustomColumns(
+                // Let the presented know we're starting a search.  It will give us back the context object that the FAR
+                // service will push results into. This operation is not externally cancellable.  Instead, the find refs
+                // window will cancel it if another request is made to use it.
+                var (context, cancellationToken) = presenter.StartSearchWithCustomColumns(
                     EditorFeaturesResources.Find_References,
                     supportsReferences: true,
                     includeContainingTypeAndMemberColumns: document.Project.SupportsCompilation,
@@ -124,16 +133,16 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 using (Logger.LogBlock(
                     FunctionId.CommandHandler_FindAllReference,
                     KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                    context.CancellationToken))
+                    cancellationToken))
                 {
-                    await findUsagesService.FindReferencesAsync(document, caretPosition, context).ConfigureAwait(false);
-
-                    // Note: we don't need to put this in a finally.  The only time we might not hit
-                    // this is if cancellation or another error gets thrown.  In the former case,
-                    // that means that a new search has started.  We don't care about telling the
-                    // context it has completed.  In the latter case something wrong has happened
-                    // and we don't want to run any more code in this particular context.
-                    await context.OnCompletedAsync().ConfigureAwait(false);
+                    try
+                    {
+                        await findUsagesService.FindReferencesAsync(context, document, caretPosition, cancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        await context.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+                    }
                 }
             }
             catch (OperationCanceledException)

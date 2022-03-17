@@ -6474,7 +6474,7 @@ unsafe class C
     }
 }
 
-class var
+class @var
 {
 }
 ";
@@ -8935,6 +8935,8 @@ unsafe struct S
                 if (field != null)
                 {
                     Assert.Equal(0, field.FixedSize);
+                    Assert.True(field.Type.IsPointerType());
+                    Assert.True(field.HasPointerType);
                 }
             }
         }

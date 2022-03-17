@@ -226,31 +226,6 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static int IndexOfBalancedParenthesis(this string str, int openingOffset, char closing)
-        {
-            char opening = str[openingOffset];
-
-            int depth = 1;
-            for (int i = openingOffset + 1; i < str.Length; i++)
-            {
-                var c = str[i];
-                if (c == opening)
-                {
-                    depth++;
-                }
-                else if (c == closing)
-                {
-                    depth--;
-                    if (depth == 0)
-                    {
-                        return i;
-                    }
-                }
-            }
-
-            return -1;
-        }
-
         // String isn't IEnumerable<char> in the current Portable profile. 
         internal static char First(this string arg)
         {

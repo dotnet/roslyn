@@ -32,7 +32,7 @@ namespace BuildBoss
         public bool Check(TextWriter textWriter)
         {
             var allGood = true;
-            if (ProjectType == ProjectFileType.CSharp || ProjectType == ProjectFileType.Basic)
+            if (ProjectType is ProjectFileType.CSharp or ProjectFileType.Basic)
             {
                 if (!_projectUtil.IsNewSdk)
                 {
@@ -128,12 +128,12 @@ namespace BuildBoss
             var allGood = true;
             foreach (var packageRef in _projectUtil.GetPackageReferences())
             {
-                var allowedPackageVersons = GetAllowedPackageReferenceVersions(packageRef).ToList();
+                var allowedPackageVersions = GetAllowedPackageReferenceVersions(packageRef).ToList();
 
-                if (!allowedPackageVersons.Contains(packageRef.Version))
+                if (!allowedPackageVersions.Contains(packageRef.Version))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersons));
+                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersions));
                     allGood = false;
                 }
             }
@@ -157,6 +157,7 @@ namespace BuildBoss
                 var name = packageReference.Name.Replace(".", "").Replace("-", "");
                 yield return $"$({name}Version)";
                 yield return $"$({name}FixedVersion)";
+                yield return $"$(RefOnly{name}Version)";
             }
         }
 
@@ -234,8 +235,8 @@ namespace BuildBoss
         }
 
         /// <summary>
-        /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be 
-        /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up 
+        /// Unit test projects should not reference each other.  In order for unit tests to be run / F5 they must be
+        /// modeled as deployment projects.  Having Unit Tests reference each other hurts that because it ends up
         /// putting two copies of the unit test DLL into the UnitTest folder:
         ///
         ///     1. UnitTests\Current\TheUnitTest\TheUnitTest.dll
@@ -244,7 +245,7 @@ namespace BuildBoss
         ///             TheOtherTests.dll
         ///
         /// This is problematic as all of our tools do directory based searches for unit test DLLs.  Hence they end up
-        /// getting counted twice. 
+        /// getting counted twice.
         ///
         /// Consideration was given to fixing up all of the tools but it felt like fighting against the grain.  Pretty
         /// much every repo has this practice.
@@ -286,10 +287,10 @@ namespace BuildBoss
             {
                 switch (targetFramework)
                 {
-                    case "net20":
                     case "net472":
                     case "netcoreapp3.1":
-                    case "net5.0":
+                    case "net6.0":
+                    case "net6.0-windows":
                         continue;
                 }
 

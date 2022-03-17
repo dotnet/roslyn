@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var root = tree.GetRoot();
 
-            var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax || n is ClassDeclarationSyntax).ToList();
+            var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax or ClassDeclarationSyntax).ToList();
             var computations = 0;
             var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
             {

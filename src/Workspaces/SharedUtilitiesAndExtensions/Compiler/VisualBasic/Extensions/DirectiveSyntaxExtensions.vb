@@ -126,6 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If Not GetDirectiveInfo(directive, cancellationToken).ConditionalMap.TryGetValue(directive, result) Then
                 Return SpecializedCollections.EmptyReadOnlyList(Of DirectiveTriviaSyntax)()
             End If
+
             Return result
         End Function
     End Module

@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class Binder
     {
         // Diagnostics are generated in a separate pass when we emit.
-        internal ImmutableArray<Symbol> BindXmlNameAttribute(XmlNameAttributeSyntax syntax, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<Symbol> BindXmlNameAttribute(XmlNameAttributeSyntax syntax, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var identifier = syntax.Identifier;
 
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var name = identifier.Identifier.ValueText;
 
             var lookupResult = LookupResult.GetInstance();
-            this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics);
+            this.LookupSymbolsWithFallback(lookupResult, name, arity: 0, useSiteInfo: ref useSiteInfo);
 
             if (lookupResult.Kind == LookupResultKind.Empty)
             {

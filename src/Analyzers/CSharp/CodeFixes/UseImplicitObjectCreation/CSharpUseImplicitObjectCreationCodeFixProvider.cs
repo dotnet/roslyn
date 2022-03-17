@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitObjectCreation), Shared]
     internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

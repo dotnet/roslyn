@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <OptionStrict>Off</OptionStrict>
-    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows;net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">

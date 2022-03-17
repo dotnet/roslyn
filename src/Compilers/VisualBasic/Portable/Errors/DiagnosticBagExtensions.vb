@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function Add(
             diagnostics As DiagnosticBag,
             node As VisualBasicSyntaxNode,
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            useSiteDiagnostics As IReadOnlyCollection(Of DiagnosticInfo)
         ) As Boolean
             Return Not useSiteDiagnostics.IsNullOrEmpty AndAlso diagnostics.Add(node.GetLocation, useSiteDiagnostics)
         End Function
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function Add(
             diagnostics As DiagnosticBag,
             node As BoundNode,
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            useSiteDiagnostics As IReadOnlyCollection(Of DiagnosticInfo)
         ) As Boolean
             Return Not useSiteDiagnostics.IsNullOrEmpty AndAlso diagnostics.Add(node.Syntax.GetLocation, useSiteDiagnostics)
         End Function
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function Add(
             diagnostics As DiagnosticBag,
             node As SyntaxNodeOrToken,
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            useSiteDiagnostics As IReadOnlyCollection(Of DiagnosticInfo)
         ) As Boolean
             Return Not useSiteDiagnostics.IsNullOrEmpty AndAlso diagnostics.Add(node.GetLocation, useSiteDiagnostics)
         End Function
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function Add(
             diagnostics As DiagnosticBag,
             location As Location,
-            useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            useSiteDiagnostics As IReadOnlyCollection(Of DiagnosticInfo)
         ) As Boolean
 
             If useSiteDiagnostics.IsNullOrEmpty Then

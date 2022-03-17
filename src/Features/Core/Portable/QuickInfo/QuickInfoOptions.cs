@@ -2,13 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Options;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal static class QuickInfoOptions
+    [DataContract]
+    internal readonly record struct QuickInfoOptions(
+        [property: DataMember(Order = 0)] bool ShowRemarksInQuickInfo = true,
+        [property: DataMember(Order = 1)] bool IncludeNavigationHintsInQuickInfo = true)
     {
-        public static readonly PerLanguageOption2<bool> ShowRemarksInQuickInfo = new(nameof(QuickInfoOptions), nameof(ShowRemarksInQuickInfo), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowRemarks"));
+        public QuickInfoOptions()
+            : this(ShowRemarksInQuickInfo: true)
+        {
+        }
+
+        public static readonly QuickInfoOptions Default = new();
     }
 }

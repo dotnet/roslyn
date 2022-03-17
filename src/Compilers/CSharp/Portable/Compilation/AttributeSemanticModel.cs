@@ -84,12 +84,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.GetBindableSyntaxNode(node);
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             if (node.Kind() == SyntaxKind.Attribute)
             {
                 var attribute = (AttributeSyntax)node;
-                return binder.BindAttribute(attribute, AttributeType, diagnostics);
+                // note: we should find the attributed member before binding the attribute as part of https://github.com/dotnet/roslyn/issues/53618
+                return binder.BindAttribute(attribute, AttributeType, attributedMember: null, diagnostics);
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {

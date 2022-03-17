@@ -4,9 +4,10 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
@@ -28,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AddImports
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext) : base(threadingContext)
+        public CSharpAddImportsPasteCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+            : base(threadingContext, globalOptions)
         {
         }
 

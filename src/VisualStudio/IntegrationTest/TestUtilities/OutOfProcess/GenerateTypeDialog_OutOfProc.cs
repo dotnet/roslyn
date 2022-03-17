@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
@@ -39,9 +37,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetTargetFileToNewName(string newFileName)
             => _inProc.SetTargetFileToNewName(newFileName);
-
-        public void SetTargetFileToExisting(string existingFileName)
-            => _inProc.SetTargetFileToExisting(existingFileName);
 
         /// <summary>
         /// Clicks the "OK" button and waits for the related Code Action to complete.

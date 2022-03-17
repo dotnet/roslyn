@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ImmutableArray<ISymbol> ExplicitOrImplicitInterfaceImplementations(this ISymbol symbol)
         {
-            if (symbol.Kind != SymbolKind.Method && symbol.Kind != SymbolKind.Property && symbol.Kind != SymbolKind.Event)
+            if (symbol.Kind is not SymbolKind.Method and not SymbolKind.Property and not SymbolKind.Event)
                 return ImmutableArray<ISymbol>.Empty;
 
             var containingType = symbol.ContainingType;
@@ -135,9 +135,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (symbol.Kind == SymbolKind.Method)
                 {
                     var methodSymbol = (IMethodSymbol)symbol;
-                    if (methodSymbol.MethodKind == MethodKind.Ordinary ||
-                        methodSymbol.MethodKind == MethodKind.PropertyGet ||
-                        methodSymbol.MethodKind == MethodKind.PropertySet)
+                    if (methodSymbol.MethodKind is MethodKind.Ordinary or
+                        MethodKind.PropertyGet or
+                        MethodKind.PropertySet or
+                        MethodKind.UserDefinedOperator or
+                        MethodKind.Conversion)
                     {
                         return true;
                     }
@@ -240,13 +242,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOrdinaryMethodOrLocalFunction([NotNullWhen(returnValue: true)] this ISymbol? symbol)
         {
-            if (!(symbol is IMethodSymbol method))
+            if (symbol is not IMethodSymbol method)
             {
                 return false;
             }
 
-            return method.MethodKind == MethodKind.Ordinary
-                || method.MethodKind == MethodKind.LocalFunction;
+            return method.MethodKind is MethodKind.Ordinary
+                or MethodKind.LocalFunction;
         }
 
         public static bool IsDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)

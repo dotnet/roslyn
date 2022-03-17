@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(originalVariable != null);
             Debug.Assert(type.HasType);
             Debug.Assert(containingSymbol != null);
+            Debug.Assert(containingSymbol.DeclaringCompilation is not null);
 
             _originalVariable = originalVariable;
             _type = type;
@@ -109,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
-        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, DiagnosticBag diagnostics)
+        internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {
             return _originalVariable.GetConstantValue(node, inProgress, diagnostics);
         }
 
-        internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
             return _originalVariable.GetConstantValueDiagnostics(boundInitValue);
         }

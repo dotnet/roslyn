@@ -82,16 +82,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         <WorkItem(985007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
+            Dim options = New SignatureHelpOptions()
+
             ' Create a provider that will return an empty state when queried the second time
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
             slowProvider.Setup(Function(p) p.IsTriggerCharacter(" "c)).Returns(True)
             slowProvider.Setup(Function(p) p.IsRetriggerCharacter(" "c)).Returns(True)
-            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
             Dim controller = CreateController(provider:=slowProvider.Object, waitForPresentation:=True)
 
             ' Now force an update to the model that will result in stopping the session
-            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(Of SignatureHelpItems)(Nothing))
 
             DirectCast(controller, IChainedCommandHandler(Of TypeCharCommandArgs)).ExecuteCommand(
@@ -109,10 +111,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub DownKeyShouldNotBlockOnModelComputation()
+            Dim options = New SignatureHelpOptions()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
-            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), Options, It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              mre.WaitOne()
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
@@ -129,10 +132,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfFact>
         <WorkItem(179726, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub UpKeyShouldNotBlockOnModelComputation()
+            Dim options = New SignatureHelpOptions()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(items:=CreateItems(2), waitForPresentation:=False)
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
-            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              mre.WaitOne()
                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
@@ -151,12 +155,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
             Dim exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider()
             Dim threadingContext = exportProvider.GetExportedValue(Of IThreadingContext)()
+            Dim options = New SignatureHelpOptions()
 
             Dim worker = Async Function()
                              Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
                              slowProvider.Setup(Function(p) p.IsTriggerCharacter(" "c)).Returns(True)
                              slowProvider.Setup(Function(p) p.IsRetriggerCharacter(" "c)).Returns(True)
-                             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                                  .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
 
                              Await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync()
@@ -165,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              ' Update session so that providers are requeried.
                              ' SlowProvider now blocks on the checkpoint's task.
                              Dim checkpoint = New Checkpoint()
-                             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                                  .Returns(Function()
                                               checkpoint.Task.Wait()
                                               Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
@@ -191,6 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              GetMocks(controller).PresenterSession.Verify(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)),
                                                                                                 It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?)), Times.Exactly(2))
                          End Function
+
             Await worker().ConfigureAwait(False)
 
         End Function
@@ -272,16 +278,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional triggerSession As Boolean = True) As Controller
             Dim document As Document =
                 (Function()
-                     Dim workspace = TestWorkspace.CreateWorkspace(
+                     Dim w = TestWorkspace.CreateWorkspace(
                          <Workspace>
                              <Project Language="C#">
                                  <Document>
                                  </Document>
                              </Project>
                          </Workspace>)
-                     Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
+                     Return w.CurrentSolution.GetDocument(w.Documents.Single().Id)
                  End Function)()
-            Dim threadingContext = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of IThreadingContext)
+
+            Dim workspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
+            Dim threadingContext = workspace.GetService(Of IThreadingContext)
             Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
@@ -306,6 +314,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             mockCompletionBroker.Setup(Function(b) b.GetSession(It.IsAny(Of ITextView))).Returns(DirectCast(Nothing, IAsyncCompletionSession))
 
             Dim controller = New Controller(
+                workspace.GlobalOptions,
                 threadingContext,
                 view.Object,
                 buffer,
@@ -350,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Public Property GetItemsCount As Integer
 
-            Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
+            Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
                 GetItemsCount += 1
                 Return Task.FromResult(If(_items.Any(),
                                        New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),

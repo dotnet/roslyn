@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     _firstStatementOrFieldToReplace = firstStatementOrFieldToReplace;
                     _lastStatementOrFieldToReplace = lastStatementOrFieldToReplace;
 
-                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent);
+                    Contract.ThrowIfFalse(_firstStatementOrFieldToReplace.Parent == _lastStatementOrFieldToReplace.Parent
+                        || CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(_firstStatementOrFieldToReplace, _lastStatementOrFieldToReplace));
                 }
 
                 public SyntaxNode Generate()
@@ -353,6 +355,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
 
                     return node.WithStatement(ReplaceStatementIfNeeded(node.Statement));
+                }
+
+                public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+                {
+                    if (node != ContainerOfStatementsOrFieldToReplace)
+                    {
+                        return base.VisitInterfaceDeclaration(node);
+                    }
+
+                    return GetUpdatedTypeDeclaration(node);
                 }
 
                 public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)

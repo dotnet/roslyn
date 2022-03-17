@@ -57,6 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                     Exit While
                 End If
             End While
+
             Return node
         End Function
 

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IUnaryOperatorExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17591")]
@@ -3326,7 +3326,7 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '*p2')
+IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*p2')
   Children(1):
       ILocalReferenceOperation: p2 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p2')
 ";

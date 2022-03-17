@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,14 +24,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     [Export(typeof(ICodeRefactoringService)), Shared]
-    internal class CodeRefactoringService : ICodeRefactoringService
+    internal sealed class CodeRefactoringService : ICodeRefactoringService
     {
         private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
-        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap
-             = new();
+        private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap;
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap = new();
 
-        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap
-            = new();
+        private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
             = new(r => new ProjectCodeRefactoringProvider(r));
 
@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             .Select(grp => new KeyValuePair<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>(
                                 grp.Key,
                                 new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
+            _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
         }
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
@@ -66,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>> LanguageToProvidersMap
             => _lazyLanguageToProvidersMap.Value;
 
+        private ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata> RefactoringToMetadataMap
+            => _lazyRefactoringToMetadataMap.Value;
+
         private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(Document document)
         {
             var allRefactorings = ImmutableArray<CodeRefactoringProvider>.Empty;
@@ -80,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public async Task<bool> HasRefactoringsAsync(
             Document document,
             TextSpan state,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
@@ -87,9 +92,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             foreach (var provider in GetProviders(document))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, providerMetadata, extensionManager, options, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -100,23 +106,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             return false;
         }
 
-        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
-            Document document,
-            TextSpan state,
-            CancellationToken cancellationToken)
-            => GetRefactoringsAsync(document, state, isBlocking: false, cancellationToken);
-
-        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
-            Document document,
-            TextSpan state,
-            bool isBlocking,
-            CancellationToken cancellationToken)
-            => GetRefactoringsAsync(document, state, isBlocking, addOperationScope: _ => null, cancellationToken);
-
         public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
             Document document,
             TextSpan state,
-            bool isBlocking,
+            CodeActionRequestPriority priority,
+            CodeActionOptions options,
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
@@ -127,14 +121,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 foreach (var provider in GetProviders(document))
                 {
-                    tasks.Add(Task.Run(
-                        () =>
+                    if (priority != CodeActionRequestPriority.None && priority != provider.RequestPriority)
+                        continue;
+
+                    tasks.Add(Task.Run(() =>
                         {
                             var providerName = provider.GetType().Name;
+                            RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+
                             using (addOperationScope(providerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
-                                return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
+                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, options, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -149,8 +147,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,
+            CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
-            bool isBlocking,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -170,10 +169,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
                         lock (actions)
                         {
+                            // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
+                            // Always add a name even in cases of 3rd party refactorings that do not export
+                            // name metadata.
+                            action.AddCustomTag(providerMetadata?.Name ?? provider.GetTypeDisplayName());
+
                             actions.Add((action, applicableToSpan));
                         }
                     },
-                    isBlocking,
+                    options,
                     cancellationToken);
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;

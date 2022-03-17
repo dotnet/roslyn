@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_parameters.IsEmpty)
+                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
+                if (_parameters.IsDefault)
                 {
                     return ImmutableArray<ParameterSymbol>.Empty;
                 }
@@ -326,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics);
+        internal abstract override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics);
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

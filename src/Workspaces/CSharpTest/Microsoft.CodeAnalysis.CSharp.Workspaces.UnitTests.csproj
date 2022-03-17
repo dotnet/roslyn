@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
-    <TargetFrameworks>netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows;net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -24,5 +24,8 @@
     <ProjectReference Include="..\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -192,6 +193,32 @@ namespace System.Runtime.CompilerServices
                 TestCode = source,
                 FixedCode = fixedSource,
                 LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestRecordStructs()
+        {
+            var source = @"
+record struct [|Record|]
+{
+    int [|field|];
+}
+";
+            var fixedSource = @"
+internal record struct Record
+{
+    private int field;
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
             };
 
             await test.RunAsync();
@@ -501,6 +528,88 @@ public class Derived : TestClass
     public override string Test { get; }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestFileScopedNamespaces()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+namespace Test;
+
+struct [|S1|] { }
+",
+                FixedCode = @"
+namespace Test;
+
+internal struct S1 { }
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
+        public async Task TestPartial_WithExistingModifier()
+        {
+            var source = @"
+partial class [|C|]
+{
+}
+
+public partial class C
+{
+}
+";
+            var fixedSource = @"
+public partial class C
+{
+}
+
+public partial class C
+{
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(58914, "https://github.com/dotnet/roslyn/issues/58914")]
+        public async Task TestStaticOperatorInInterface()
+        {
+            var source = @"
+internal interface I<T> where T : I<T>
+{
+    abstract static int operator +(T x);
+}
+
+internal class C : I<C>
+{
+    static int I<C>.operator +(C x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Preview,
+                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
+            };
+
+            await test.RunAsync();
         }
     }
 }

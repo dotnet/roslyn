@@ -25,7 +25,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Protected Overrides Async Function GetSymbolsAsync(
+                completionContext As CompletionContext,
+                syntaxContext As VisualBasicSyntaxContext,
+                position As Integer,
+                options As CompletionOptions,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (symbol As ISymbol, preselect As Boolean)))
+
+            Dim symbols = Await GetSymbolsAsync(syntaxContext, position, cancellationToken).ConfigureAwait(False)
+            Return symbols.SelectAsArray(Function(s) (s, preselect:=False))
+        End Function
+
+        Private Overloads Shared Function GetSymbolsAsync(context As VisualBasicSyntaxContext, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
             If context.SyntaxTree.IsInNonUserCode(position, cancellationToken) OrElse
                 context.SyntaxTree.IsInSkippedText(position, cancellationToken) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
@@ -49,11 +66,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Private Shared Function GetTopLevelIdentifiers(
             context As VisualBasicSyntaxContext,

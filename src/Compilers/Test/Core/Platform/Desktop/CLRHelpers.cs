@@ -85,7 +85,7 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             if (MonoHelpers.IsRunningOnMono())
             {
-                // PEverify is currently unsupported on Mono hence return an empty 
+                // PEVerify is currently unsupported on Mono hence return an empty 
                 // set of messages
                 return new string[0];
             }

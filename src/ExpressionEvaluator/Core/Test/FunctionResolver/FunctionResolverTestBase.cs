@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         private static string GetMethodSignature(Module module, int token)
         {
-            var reader = module.GetMetadataInternal();
+            var reader = module.GetMetadataReader();
             return GetMethodSignature(reader, MetadataTokens.MethodDefinitionHandle(token));
         }
 

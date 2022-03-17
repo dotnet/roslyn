@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.InteractiveWindow;
@@ -21,7 +22,7 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
+namespace Microsoft.CodeAnalysis.Interactive
 {
     // This command handler must be invoked after the handlers specified in `Order` attribute
     // (those handlers also implement `ICommandHandler<PasteCommandArgs>`),
@@ -131,6 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             {
                 editorOperations.InsertText(text);
             }
+
             editorOperations.AddAfterTextBufferChangePrimitive();
             transaction.Complete();
         }
@@ -147,6 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     return true;
                 }
             }
+
             return false;
         }
 

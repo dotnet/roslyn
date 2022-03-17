@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -1178,7 +1179,8 @@ static T G<T>(T t, Func<T, Task<T>> f)
 
         #region References
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/53391")]
+        [WorkItem(15860, "https://github.com/dotnet/roslyn/issues/53391")]
         public void ReferenceDirective_FileWithDependencies()
         {
             var file1 = Temp.CreateFile();
@@ -1196,7 +1198,7 @@ public interface I
 public class C : I
 {
     public int F() => 1;
-}", new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, lib1.ToMetadataReference() });
+}", new MetadataReference[] { NetStandard13.SystemRuntime, lib1.ToMetadataReference() });
 
             lib2.Emit(file2.Path);
 
@@ -1258,7 +1260,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1288,7 +1290,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { TestReferences.NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -2100,7 +2102,7 @@ int F() => i + j + k + l;
 ");
 
             await Assert.ThrowsAsync<OperationCanceledException>(() =>
-                s3.RunAsync(globals, catchException: e => !(e is OperationCanceledException), cancellationToken: cancellationSource.Token));
+                s3.RunAsync(globals, catchException: e => e is not OperationCanceledException, cancellationToken: cancellationSource.Token));
         }
 
         #endregion

@@ -10,7 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
             {
-                if (!(token.Parent is XmlElementStartTagSyntax parentStartTag))
+                if (token.Parent is not XmlElementStartTagSyntax parentStartTag)
                 {
                     return;
                 }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 return false;
             }
 
-            if (!(parentStartTag.Parent is XmlElementSyntax parentElement))
+            if (parentStartTag.Parent is not XmlElementSyntax parentElement)
             {
                 return false;
             }

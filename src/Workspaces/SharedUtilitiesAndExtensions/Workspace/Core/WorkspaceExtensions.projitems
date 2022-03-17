@@ -9,10 +9,13 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeActionOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationPreferences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\ISyntaxContextService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
@@ -40,6 +43,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\ReplaceDiscardDeclarationsWithAssignments\IReplaceDiscardDeclarationsWithAssignmentsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IFileBannerFactsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\IHeaderFactsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxFactsService\ISyntaxKindsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\SyntaxGeneratorInternalExtensions\SyntaxGeneratorInternal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)LanguageServices\TypeInferenceService\AbstractTypeInferenceService.AbstractTypeInferrer.cs" />

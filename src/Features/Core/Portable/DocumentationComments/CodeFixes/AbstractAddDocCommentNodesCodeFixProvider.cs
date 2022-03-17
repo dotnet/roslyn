@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument)
+                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument, nameof(FeaturesResources.Add_missing_param_nodes))
             {
             }
         }

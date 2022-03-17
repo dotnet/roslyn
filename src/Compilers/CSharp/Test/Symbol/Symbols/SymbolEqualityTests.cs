@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -30,7 +32,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -70,7 +72,7 @@ class C
         s.StringExt();
     }
 }";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (17,9): warning CS8604: Possible null reference argument for parameter 'o' in 'void Extensions.StringExt(object o)'.
                 //         s.StringExt();
@@ -113,7 +115,7 @@ class C
         local(s2);
     }
 }";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -154,7 +156,7 @@ class B
     }
 }
 ";
-            var comp = CreateCompilation(src, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(src, options: WithNullableEnable());
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -909,6 +911,62 @@ public class A<T>
             VerifyEquality(event1ContainingType, event2ContainingType,
                 expectedIncludeNullability: false
                 );
+        }
+
+        [Fact]
+        [WorkItem(58226, "https://github.com/dotnet/roslyn/issues/58226")]
+        public void LambdaSymbol()
+        {
+            var source =
+@"
+#nullable enable
+
+using System;
+using System.Linq;
+
+M1(args => string.Join("" "", args.Select(a => a!.ToString())));
+void M1<TResult>(Func<object?[], TResult>? f) { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+
+            var lambdaSyntax = root.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
+            var semanticModel1 = comp.GetSemanticModel(syntaxTree);
+            var semanticModel2 = comp.GetSemanticModel(syntaxTree);
+
+            var lambdaSymbol = (IMethodSymbol)semanticModel1.GetSymbolInfo(lambdaSyntax).Symbol;
+            var p1 = lambdaSymbol.Parameters.Single();
+
+            var p2 = semanticModel2.GetDeclaredSymbol(lambdaSyntax.Parameter);
+            VerifyEquality(p1, p2, expectedIncludeNullability: true);
+        }
+
+        [Fact]
+        [WorkItem(58226, "https://github.com/dotnet/roslyn/issues/58226")]
+        public void LambdaSymbol_02()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var q = from i in new int[] { 4, 5 } where /*pos*/
+    }
+}";
+            var comp = CreateCompilation(source);
+            var syntaxTree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntaxTree);
+            var syntaxNode = syntaxTree.GetRoot().DescendantNodes().
+                OfType<QueryExpressionSyntax>().Single();
+            var operation = model.GetOperation(syntaxNode);
+            var lambdas = operation.Descendants().OfType<AnonymousFunctionOperation>().
+                Select(op => op.Symbol.GetSymbol<LambdaSymbol>()).ToImmutableArray();
+            Assert.Equal(2, lambdas.Length);
+            Assert.Equal(lambdas[0].SyntaxRef.Span, lambdas[1].SyntaxRef.Span);
+            Assert.NotEqual(lambdas[0], lambdas[1]);
         }
 
         private void VerifyEquality(ISymbol symbol1, ISymbol symbol2, bool expectedIncludeNullability)

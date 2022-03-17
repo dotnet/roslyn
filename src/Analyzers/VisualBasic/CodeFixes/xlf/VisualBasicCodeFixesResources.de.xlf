@@ -17,6 +17,11 @@
         <target state="translated">Unnötige Import-Direktiven entfernen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">Objekterstellung vereinfachen</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

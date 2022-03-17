@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,16 +27,16 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const int MagicTextLengthToTokensRatio = 10;
 
         // caches token information within given formatting span to improve perf
-        private readonly List<SyntaxToken> _tokens;
+        private readonly SegmentedList<SyntaxToken> _tokens;
 
         // caches original trivia info to improve perf
-        private readonly TriviaData[] _cachedOriginalTriviaInfo;
+        private readonly SegmentedArray<TriviaData> _cachedOriginalTriviaInfo;
 
         // formatting engine can be used either with syntax tree or without
         // this will reconstruct information that reside in syntax tree from root node
         // if syntax tree is not given
         private readonly TreeData _treeData;
-        private readonly AnalyzerConfigOptions _options;
+        private readonly SyntaxFormattingOptions _options;
 
         // hold onto information that are made to original trivia info
         private Changes _changes;
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly Func<TokenData, TokenData, TriviaData> _getTriviaData;
         private readonly Func<TokenData, TokenData, TriviaData> _getOriginalTriviaData;
 
-        public TokenStream(TreeData treeData, AnalyzerConfigOptions options, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
+        public TokenStream(TreeData treeData, SyntaxFormattingOptions options, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
             using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
             {
@@ -58,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
                 var sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
-                _tokens = new List<SyntaxToken>(sizeOfList);
+                _tokens = new SegmentedList<SyntaxToken>(sizeOfList);
                 _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
 
                 Debug.Assert(this.TokenCount > 0);
 
                 // initialize trivia related info
-                _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
+                _cachedOriginalTriviaInfo = new SegmentedArray<TriviaData>(this.TokenCount - 1);
 
                 // Func Cache
                 _getTriviaData = this.GetTriviaData;
@@ -324,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;
-                length = text.GetTextColumn(_options.GetOption(FormattingOptions2.TabSize), initialColumn: 0);
+                length = text.GetTextColumn(_options.TabSize, initialColumn: 0);
                 return;
             }
 
@@ -334,8 +335,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (text.ContainsTab())
             {
                 // do expansive calculation
-                var initialColumn = _treeData.GetOriginalColumn(_options.GetOption(FormattingOptions2.TabSize), token);
-                length = text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), initialColumn, text.Length);
+                var initialColumn = _treeData.GetOriginalColumn(_options.TabSize, token);
+                length = text.ConvertTabToSpace(_options.TabSize, initialColumn, text.Length);
                 return;
             }
 

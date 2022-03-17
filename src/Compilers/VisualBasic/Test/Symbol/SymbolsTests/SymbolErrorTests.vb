@@ -11825,6 +11825,7 @@ BC31407: Event 'Public Event evtTest3 As I1.evtTest1EventHandler' cannot impleme
                                                          ~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation1, expectedErrors1)
         End Sub
 
         <Fact>
@@ -12401,6 +12402,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
                           ~~~~~~~~~~~
     ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation, expectedErrors)
         End Sub
 
         <Fact()>
@@ -24619,6 +24621,18 @@ BC37208: Module 'C.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, Public
             ClassB.MethodB(obj)
             ~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
+        End Sub
+
+        <Fact>
+        <WorkItem(52516, "https://github.com/dotnet/roslyn/issues/52516")>
+        Public Sub ErrorInfo_01()
+            Dim [error] = New MissingMetadataTypeSymbol.Nested(New UnsupportedMetadataTypeSymbol(), "Test", 0, False)
+            Dim info = [error].ErrorInfo
+
+            Assert.Equal(ERRID.ERR_UnsupportedType1, CType(info.Code, ERRID))
+            Assert.Null([error].ContainingModule)
+            Assert.Null([error].ContainingAssembly)
+            Assert.NotNull([error].ContainingSymbol)
         End Sub
 
     End Class

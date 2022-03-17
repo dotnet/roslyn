@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override LexicalSortKey GetLexicalSortKey() => LexicalSortKey.GetSynthesizedMemberKey(_memberOffset);
 
-        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBodyStatements(SyntheticBoundNodeFactory F, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
         {
             // Tracking issue for copy constructor in inheritance scenario: https://github.com/dotnet/roslyn/issues/44902
             // Write assignments to fields
@@ -55,7 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType, NamedTypeSymbol within, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            Debug.Assert(IsImplicitlyDeclared);
+            var compilation = this.DeclaringCompilation;
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+        }
+
+        internal static MethodSymbol? FindCopyConstructor(NamedTypeSymbol containingType, NamedTypeSymbol within, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             MethodSymbol? bestCandidate = null;
             int bestModifierCountSoFar = -1; // stays as -1 unless we hit an ambiguity
@@ -63,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (HasCopyConstructorSignature(member) &&
                     !member.HasUnsupportedMetadata &&
-                    AccessCheck.IsSymbolAccessible(member, within, ref useSiteDiagnostics))
+                    AccessCheck.IsSymbolAccessible(member, within, ref useSiteInfo))
                 {
                     // If one has fewer custom modifiers, that is better
                     // (see OverloadResolution.BetterFunctionMember)
@@ -101,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsCopyConstructor(Symbol member)
         {
-            if (member is MethodSymbol { MethodKind: MethodKind.Constructor } method)
+            if (member is MethodSymbol { ContainingType.IsRecordStruct: false, MethodKind: MethodKind.Constructor } method)
             {
                 return HasCopyConstructorSignature(method);
             }

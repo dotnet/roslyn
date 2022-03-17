@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AssignOutParametersAtStart), Shared]
     internal class AssignOutParametersAtStartCodeFixProvider : AbstractAssignOutParametersCodeFixProvider
     {
         [ImportingConstructor]

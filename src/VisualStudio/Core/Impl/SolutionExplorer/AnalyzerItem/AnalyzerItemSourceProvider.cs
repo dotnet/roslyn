@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export(typeof(IAttachedCollectionSourceProvider))]
     [Name(nameof(AnalyzerItemSourceProvider))]
     [Order]
-    [AppliesToProject("(CSharp | VisualBasic) & !CPS")]  // in the CPS case, the Analyzers items are created by the project system
+    [AppliesToProject("(CSharp | VB) & !CPS")]  // in the CPS case, the Analyzers items are created by the project system
     internal sealed class AnalyzerItemSourceProvider : AttachedCollectionSourceProvider<AnalyzersFolderItem>
     {
         [Import(typeof(AnalyzersCommandHandler))]

@@ -42,6 +42,10 @@
   </Target>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.CommandLine.Experimental" Version="$(SystemCommandLineExperimentalVersion)" />
@@ -54,6 +58,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference to EditorFeatures should be removed once Hover is moved into the Features layer.
+         See https://github.com/dotnet/roslyn/issues/55142 for details -->
+    <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />

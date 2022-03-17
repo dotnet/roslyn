@@ -4,31 +4,35 @@
 
 #nullable disable
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class DocumentSpanExtensions
     {
-        public static bool CanNavigateTo(this DocumentSpan documentSpan)
+        public static Task<bool> CanNavigateToAsync(this DocumentSpan documentSpan, CancellationToken cancellationToken)
         {
             var workspace = documentSpan.Document.Project.Solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan);
+            return service.CanNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, cancellationToken);
         }
 
-        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool showInPreviewTab, bool activateTab)
+        private static (Workspace workspace, IDocumentNavigationService service) GetNavigationParts(DocumentSpan documentSpan)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
+            return (workspace, service);
+        }
 
-            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, showInPreviewTab);
-            options = options.WithChangedOption(NavigationOptions.ActivateTab, activateTab);
-
-            return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options);
+        public static Task<bool> TryNavigateToAsync(this DocumentSpan documentSpan, NavigationOptions options, CancellationToken cancellationToken)
+        {
+            var (workspace, service) = GetNavigationParts(documentSpan);
+            return service.TryNavigateToSpanAsync(workspace, documentSpan.Document.Id, documentSpan.SourceSpan, options, cancellationToken);
         }
 
         public static async Task<bool> IsHiddenAsync(

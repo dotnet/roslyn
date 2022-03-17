@@ -876,7 +876,7 @@ public class Outer<T, U>
                         DkmClrAliasKind.Variable,
                         "d2",
                         "d2",
-                        typeof(Dictionary<Dictionary<dynamic, Dictionary<object[], dynamic[]>>, object>).AssemblyQualifiedName,
+                        typeof(Dictionary<Dictionary<object, Dictionary<object[], object[]>>, object>).AssemblyQualifiedName,
                         MakeCustomTypeInfo(false, false, true, false, false, false, false, true, false)));
                 var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 string typeName;

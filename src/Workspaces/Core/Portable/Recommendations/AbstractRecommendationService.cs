@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -21,24 +20,27 @@ namespace Microsoft.CodeAnalysis.Recommendations
         where TSyntaxContext : SyntaxContext
     {
         protected abstract TSyntaxContext CreateContext(
-            Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+            Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
             TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
 
-        public Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
+        public RecommendedSymbols GetRecommendedSymbolsAtPosition(Document document, SemanticModel semanticModel, int position, RecommendationServiceOptions options, CancellationToken cancellationToken)
         {
-            var context = CreateContext(workspace, semanticModel, position, cancellationToken);
-            var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
-            var symbols = CreateRunner(context, filterOutOfScopeLocals, cancellationToken).GetSymbols();
+            var context = CreateContext(document, semanticModel, position, cancellationToken);
+            var result = CreateRunner(context, options.FilterOutOfScopeLocals, cancellationToken).GetRecommendedSymbols();
 
-            var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
-            symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
+            var namedSymbols = result.NamedSymbols;
+            var unnamedSymbols = result.UnnamedSymbols;
+
+            namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
+            unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
 
             var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
-            symbols = symbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
-            return Task.FromResult(symbols);
+            namedSymbols = namedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
+            unnamedSymbols = unnamedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
+
+            return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
         private sealed class ShouldIncludeSymbolContext

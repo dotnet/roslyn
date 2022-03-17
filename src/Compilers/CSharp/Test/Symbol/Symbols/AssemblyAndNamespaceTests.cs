@@ -46,13 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(sym.ContainingSymbol);
         }
 
-        [Fact, WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
-        public void SourceModule()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace)), WorkItem(1979, "DevDiv_Projects/Roslyn"), WorkItem(2026, "DevDiv_Projects/Roslyn"), WorkItem(544009, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544009")]
+        public void SourceModule(string ob, string cb)
         {
             var text = @"namespace NS.NS1.NS2
-{
+" + ob + @"
     class A {}
-}
+" + cb + @"
 ";
             var comp = CreateCompilation(text, assemblyName: "Test");
 
@@ -181,23 +181,23 @@ namespace NS.NS1 {
             Assert.Equal("NS.NS1.B", type2.BaseType().ToTestDisplayString());
         }
 
-        [Fact]
-        public void MultiModulesNamespace()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void MultiModulesNamespace(string ob, string cb)
         {
             var text1 = @"namespace N1
-{
+" + ob + @"
     class A {}
-}
+" + cb + @"
 ";
             var text2 = @"namespace N1
-{
+" + ob + @"
     interface IGoo {}
-}
+" + cb + @"
 ";
             var text3 = @"namespace N1
-{
+" + ob + @"
     struct SGoo {}
-}
+" + cb + @"
 ";
             var comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
             var comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
@@ -271,11 +271,11 @@ namespace NS.NS1 {
         }
 
         /// Container with nested types and non-type members with the same name
-        [Fact]
-        public void ClassWithNestedTypesAndMembersWithSameName()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void ClassWithNestedTypesAndMembersWithSameName(string ob, string cb)
         {
             var text1 = @"namespace N1
-{
+" + ob + @"
     class A 
     {
         class b
@@ -292,7 +292,7 @@ namespace NS.NS1 {
 
         int b(string s){}
     }
-}
+" + cb + @"
 ";
 
             var comp = CSharpCompilation.Create(
@@ -338,19 +338,19 @@ namespace NS
         }
 
         [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
-        [Fact]
-        public void GenericNamespace()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void GenericNamespace(string ob, string cb)
         {
             var compilation = CreateEmptyCompilation(@"
 namespace Goo<T>
-{
+" + ob + @"
     class Program    
     {        
         static void Main()
         { 
         }
     }
-}
+" + cb + @"
 ");
             var global = compilation.GlobalNamespace;
 
@@ -440,12 +440,12 @@ class App
         }
 
         [WorkItem(863435, "DevDiv/Personal")]
-        [Fact]
-        public void CS1671ERR_BadModifiersOnNamespace01()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void CS1671ERR_BadModifiersOnNamespace01(string ob, string cb)
         {
             var test = @"
 public namespace NS // CS1671
-{
+" + ob + @"
     class Test
     {
         public static int Main()
@@ -453,9 +453,9 @@ public namespace NS // CS1671
             return 1;
         }
     }
-}
+" + cb + @"
 ";
-            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
                 // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
                 Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
         }
@@ -470,6 +470,223 @@ namespace N { }
             CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
                 // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
                 Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void NamespaceWithSemicolon1()
+        {
+            var test =
+@"namespace A;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NamespaceWithSemicolon3()
+        {
+            var test =
+@"namespace A.B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MultipleFileScopedNamespaces()
+        {
+            var test =
+@"namespace A;
+namespace B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (2,11): error CS8907: Source file can only contain one file-scoped namespace declaration.
+                // namespace B;
+                Diagnostic(ErrorCode.ERR_MultipleFileScopedNamespace, "B").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void FileScopedNamespaceNestedInNormalNamespace()
+        {
+            var test =
+@"namespace A
+{
+    namespace B;
+}";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (3,15): error CS8908: Source file can not contain both file-scoped and normal namespace declarations.
+                //     namespace B;
+                Diagnostic(ErrorCode.ERR_FileScopedAndNormalNamespace, "B").WithLocation(3, 15));
+        }
+
+        [Fact]
+        public void NormalAndFileScopedNamespace1()
+        {
+            var test =
+@"namespace A;
+namespace B
+{
+}";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (2,11): error CS8908: error CS8908: Source file can not contain both file-scoped and normal namespace declarations.
+                // namespace B
+                Diagnostic(ErrorCode.ERR_FileScopedAndNormalNamespace, "B").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void NormalAndFileScopedNamespace2()
+        {
+            var test =
+@"namespace A
+{
+}
+namespace B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (4,11): error CS8909: File-scoped namespace must precede all other members in a file.
+                // namespace B;
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "B").WithLocation(4, 11));
+        }
+
+        [Fact]
+        public void NamespaceWithPrecedingUsing()
+        {
+            var test =
+@"using System;
+namespace A;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void NamespaceWithFollowingUsing()
+        {
+            var test =
+@"namespace X;
+using System;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1));
+        }
+
+        [Fact]
+        public void NamespaceWithPrecedingType()
+        {
+            var test =
+@"class X { }
+namespace System;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (2,11): error CS8909: File-scoped namespace must precede all other members in a file.
+                // namespace System;
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "System").WithLocation(2, 11));
+        }
+
+        [Fact]
+        public void NamespaceWithFollowingType()
+        {
+            var test =
+@"namespace System;
+class X { }";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FileScopedNamespaceWithPrecedingStatement()
+        {
+            var test =
+@"
+System.Console.WriteLine();
+namespace B;";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (3,11): error CS8914: File-scoped namespace must precede all other members in a file.
+                // namespace B;
+                Diagnostic(ErrorCode.ERR_FileScopedNamespaceNotBeforeAllMembers, "B").WithLocation(3, 11));
+        }
+
+        [Fact]
+        public void FileScopedNamespaceWithFollowingStatement()
+        {
+            var test =
+@"
+namespace B;
+System.Console.WriteLine();";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                    // (3,16): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "WriteLine").WithLocation(3, 16),
+                    // (3,26): error CS8124: Tuple must contain at least two elements.
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 26),
+                    // (3,27): error CS1022: Type or namespace definition, or end-of-file expected
+                    // System.Console.WriteLine();
+                    Diagnostic(ErrorCode.ERR_EOFExpected, ";").WithLocation(3, 27));
+        }
+
+        [Fact]
+        public void FileScopedNamespaceUsingsBeforeAndAfter()
+        {
+            var source1 = @"
+namespace A
+{
+    class C1 { }
+}
+
+namespace B
+{
+    class C2 { }
+}
+";
+            var source2 = @"
+using A;
+namespace X;
+using B;
+
+class C
+{
+    void M()
+    {
+        new C1();
+        new C2();
+    }
+}
+";
+
+            CreateCompilationWithMscorlib45(new[] { source1, source2 }, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FileScopedNamespaceFollowedByVariable()
+        {
+            var test = @"
+namespace B;
+int x; // 1
+";
+
+            CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.RegularWithFileScopedNamespaces).VerifyDiagnostics(
+                // (3,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // int x; // 1
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x").WithLocation(3, 5));
+        }
+
+        [Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")]
+        public void AssemblyRetargetableAttributeIsRespected()
+        {
+            var code = @"
+using System.Reflection;
+[assembly: AssemblyFlags(AssemblyNameFlags.Retargetable)]";
+
+            var comp = CreateCompilation(code);
+            Assert.True(comp.Assembly.Identity.IsRetargetable);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

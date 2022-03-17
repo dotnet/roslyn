@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Humanizer;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Words = System.Collections.Immutable.ImmutableArray<string>;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -18,13 +17,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
+            private const char DefaultInterfacePrefix = 'I';
+            private const char DefaultGenericParameterPrefix = 'T';
+
             internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
-                var baseName = TryRemoveInterfacePrefix(type);
-                var parts = StringBreaker.GetWordParts(baseName);
+                var baseName = TryRemoveKnownPrefixes(type);
+                using var parts = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddWordParts(baseName, ref parts.AsRef());
                 var result = GetInterleavedPatterns(parts, baseName, pluralize);
 
-                parts.Free();
                 return result;
             }
 
@@ -33,20 +35,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var name = alias.Name;
                 if (alias.Target.IsType &&
                     ((INamedTypeSymbol)alias.Target).IsInterfaceType() &&
-                    CanRemoveInterfacePrefix(name))
+                    CanRemovePrefix(name, DefaultInterfacePrefix))
                 {
-                    name = name.Substring(1);
+                    name = name[1..];
                 }
 
-                var breaks = StringBreaker.GetWordParts(name);
+                using var breaks = TemporaryArray<TextSpan>.Empty;
+                StringBreaker.AddWordParts(name, ref breaks.AsRef());
                 var result = GetInterleavedPatterns(breaks, name, pluralize: false);
-                breaks.Free();
                 return result;
             }
 
-            private static ImmutableArray<Words> GetInterleavedPatterns(ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static ImmutableArray<Words> GetInterleavedPatterns(
+                in TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
             {
-                var result = ArrayBuilder<Words>.GetInstance();
+                using var result = TemporaryArray<Words>.Empty;
                 var breakCount = breaks.Count;
                 result.Add(GetWords(0, breakCount, breaks, baseName, pluralize));
 
@@ -59,22 +62,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     result.Add(GetLongestBackwardSubsequence(length, breaks, baseName, pluralize));
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndClear();
             }
 
-            private static Words GetLongestBackwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static Words GetLongestBackwardSubsequence(int length, in TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
             {
                 var breakCount = breaks.Count;
                 var start = breakCount - length;
                 return GetWords(start, breakCount, breaks, baseName, pluralize);
             }
 
-            private static Words GetLongestForwardSubsequence(int length, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static Words GetLongestForwardSubsequence(int length, in TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
                 => GetWords(0, length, breaks, baseName, pluralize);
 
-            private static Words GetWords(int start, int end, ArrayBuilder<TextSpan> breaks, string baseName, bool pluralize)
+            private static Words GetWords(int start, int end, in TemporaryArray<TextSpan> breaks, string baseName, bool pluralize)
             {
-                var result = ArrayBuilder<string>.GetInstance();
+                using var result = TemporaryArray<string>.Empty;
                 // Add all the words but the last one
                 for (; start < end; start++)
                 {
@@ -91,23 +94,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutableAndClear();
             }
 
-            private static string TryRemoveInterfacePrefix(ITypeSymbol type)
+            //Tries to remove "I" prefix from interfaces and "T" prefix from generic parameter names
+            private static string TryRemoveKnownPrefixes(ITypeSymbol type)
             {
                 var name = type.Name;
-                if (type.TypeKind == TypeKind.Interface && name.Length > 1)
+
+                if (type.TypeKind == TypeKind.Interface)
                 {
-                    if (CanRemoveInterfacePrefix(name))
+                    if (CanRemovePrefix(name, DefaultInterfacePrefix))
                     {
-                        return name.Substring(1);
+                        return name[1..];
                     }
                 }
+
+                if (type.TypeKind == TypeKind.TypeParameter)
+                {
+                    if (CanRemovePrefix(name, DefaultGenericParameterPrefix))
+                    {
+                        return name[1..];
+                    }
+                    else if (name.Length == 1 && name[0] == DefaultGenericParameterPrefix)
+                    {
+                        return ITypeSymbolExtensions.DefaultParameterName;
+                    }
+                }
+
                 return type.CreateParameterName();
             }
         }
 
-        private static bool CanRemoveInterfacePrefix(string name) => name.Length > 1 && name[0] == 'I' && char.IsUpper(name[1]);
+        private static bool CanRemovePrefix(string name, char prefix) => name.Length > 1 && name[0] == prefix && char.IsUpper(name[1]);
     }
 }

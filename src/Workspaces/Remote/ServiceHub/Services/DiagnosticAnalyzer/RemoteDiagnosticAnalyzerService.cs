@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
@@ -34,6 +36,21 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask StartSolutionCrawlerAsync(CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                // register solution crawler:
+                var workspace = GetWorkspace();
+                workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
+
+                return ValueTaskFactory.CompletedTask;
+            }, cancellationToken);
+        }
+
+        /// <summary>
         /// Calculate dignostics. this works differently than other ones such as todo comments or designer attribute scanner
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes
@@ -52,9 +69,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     var documentId = arguments.DocumentId;
                     var projectId = arguments.ProjectId;
                     var project = solution.GetProject(projectId);
+                    var document = arguments.DocumentId != null
+                        ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
+                        : null;
                     var documentSpan = arguments.DocumentSpan;
                     var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                    var diagnosticComputer = new DiagnosticComputer(documentId, project, documentSpan, documentAnalysisKind, _analyzerInfoCache);
+                    var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache);
 
                     var result = await diagnosticComputer.GetDiagnosticsAsync(
                         arguments.AnalyzerIds,

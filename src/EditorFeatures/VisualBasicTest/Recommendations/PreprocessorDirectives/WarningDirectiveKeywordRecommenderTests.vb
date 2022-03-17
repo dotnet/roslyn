@@ -4,6 +4,8 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class WarningDirectiveKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashEnableWarningInFileTest()
             VerifyRecommendationsContain(<File>|</File>, "#Enable Warning")

@@ -363,6 +363,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 1 Then
                     Return False
                 End If
+
                 If Not IsExpectedXmlEndCDataError(errors(0).Id) Then
                     Return False
                 End If
@@ -390,6 +391,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 1 Then
                     Return False
                 End If
+
                 If Not IsExpectedXmlEndCommentError(errors(0).Id) Then
                     Return False
                 End If
@@ -417,6 +419,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 1 Then
                     Return False
                 End If
+
                 If Not IsMissingXmlEndTagError(errors(0).Id) Then
                     Return False
                 End If
@@ -468,6 +471,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 If errors.Count <> 2 Then
                     Return False
                 End If
+
                 If Not (errors.Any(Function(e) IsExpectedXmlNameError(e.Id)) AndAlso
                         errors.Any(Function(e) IsExpectedXmlEndPIError(e.Id))) Then
                     Return False

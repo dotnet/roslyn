@@ -6,9 +6,12 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -563,11 +566,11 @@ index: 2);
 
     private class Generated
     {
-        private (int, int) p;
+        private (int, int) value;
 
-        public Generated((int, int) p)
+        public Generated((int, int) value)
         {
-            this.p = p;
+            this.value = value;
         }
     }
 }",
@@ -588,11 +591,11 @@ index: 2);
 
     private class Generated
     {
-        private (int a, int b, int) p;
+        private (int a, int b, int) value;
 
-        public Generated((int a, int b, int) p)
+        public Generated((int a, int b, int) value)
         {
-            this.p = p;
+            this.value = value;
         }
     }
 }",
@@ -1576,13 +1579,13 @@ index: 1);
 internal class T
 {
     private bool b;
-    private object p;
+    private object value;
 
-    public T(out int i, ref bool b, object p)
+    public T(out int i, ref bool b, object value)
     {
         i = 0;
         this.b = b;
-        this.p = p;
+        this.value = value;
     }
 }",
 index: 1);
@@ -1948,11 +1951,11 @@ class Class
 
 internal class T
 {
-    private Func<object, object> p;
+    private Func<object, object> value;
 
-    public T(Func<object, object> p)
+    public T(Func<object, object> value)
     {
-        this.p = p;
+        this.value = value;
     }
 }",
 index: 1);
@@ -3404,6 +3407,53 @@ expectedContainers: ImmutableArray.Create("Goo"),
 expectedDocumentName: "Bar.cs");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateIntoNewFileWithUsings1()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"class Class { void F() { new [|Goo|].Bar(new System.Collections.Generic.List<int>()); } }",
+@"using System.Collections.Generic;
+
+namespace Goo
+{
+    internal class Bar
+    {
+        private List<int> list;
+
+        public Bar(List<int> list)
+        {
+            this.list = list;
+        }
+    }
+}",
+expectedContainers: ImmutableArray.Create("Goo"),
+expectedDocumentName: "Bar.cs");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateIntoNewFileWithUsings2()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"class Class { void F() { new [|Goo|].Bar(new System.Collections.Generic.List<int>()); } }",
+@"namespace Goo
+{
+    using System.Collections.Generic;
+
+    internal class Bar
+    {
+        private List<int> list;
+
+        public Bar(List<int> list)
+        {
+            this.list = list;
+        }
+    }
+}",
+expectedContainers: ImmutableArray.Create("Goo"),
+expectedDocumentName: "Bar.cs",
+parameters: new TestParameters(options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+        }
+
         [WorkItem(539620, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539620")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestDeclarationSpan()
@@ -3472,6 +3522,36 @@ class Program
         using (Goo f = bar())
         {
         }
+    }
+}
+
+internal class Goo
+{
+}",
+index: 1);
+        }
+
+        [WorkItem(54493, "https://github.com/dotnet/roslyn/pull/54493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static [|Goo|]
+    }
+}",
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        static Goo
     }
 }
 
@@ -4878,6 +4958,36 @@ namespace Namespace1.Namespace2
                 expectedDocumentName: "ClassB.cs");
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestGenerateTypeInFolderNotDefaultNamespace_0_FileScopedNamespace()
+        {
+            var code = @"<Workspace>
+                    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" DefaultNamespace = ""Namespace1.Namespace2"">
+                        <Document FilePath=""Test1.cs"">
+namespace Namespace1.Namespace2;
+
+public class ClassA : [|$$ClassB|]
+{
+}
+                        </Document>
+                    </Project>
+                </Workspace>";
+
+            var expected = @"namespace Namespace1.Namespace2;
+
+public class ClassB
+{
+}";
+
+            await TestAddDocumentInRegularAndScriptAsync(code,
+                expected,
+                expectedContainers: ImmutableArray<string>.Empty,
+                expectedDocumentName: "ClassB.cs",
+                new TestParameters(
+                    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10),
+                    options: Option(CSharpCodeStyleOptions.NamespaceDeclarations, NamespaceDeclarationPreference.FileScoped, NotificationOption2.Silent)));
+        }
+
         [WorkItem(932602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932602")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task TestGenerateTypeInFolderNotDefaultNamespace_1()
@@ -5354,6 +5464,28 @@ internal class Goo
 }",
     expectedContainers: ImmutableArray<string>.Empty,
     expectedDocumentName: "Goo.cs");
+        }
+
+        [WorkItem(17361, "https://github.com/dotnet/roslyn/issues/17361")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task TestPreserveFileBanner4()
+        {
+            await TestAddDocumentInRegularAndScriptAsync(
+@"class Program
+{
+    void Main ( )
+    {
+        [|Goo|] f ;
+    }
+} ",
+@"// I am a banner
+
+internal class Goo
+{
+}",
+expectedContainers: ImmutableArray<string>.Empty,
+expectedDocumentName: "Goo.cs",
+new TestParameters(options: Option(CodeStyleOptions2.FileHeaderTemplate, "I am a banner")));
         }
 
         [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]

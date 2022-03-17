@@ -18,7 +18,7 @@ Friend Class MockNamespaceSymbol
 
     Private _container As NamespaceSymbol
     Private ReadOnly _extent As NamespaceExtent
-    Private _children As ImmutableArray(Of Symbol)
+    Private ReadOnly _children As ImmutableArray(Of Symbol)
     Private ReadOnly _name As String
 
     Public Sub New(name As String, extent As NamespaceExtent, children As IEnumerable(Of Symbol))
@@ -123,7 +123,7 @@ Friend Class MockNamedTypeSymbol
 
     Private ReadOnly _name As String
     Private ReadOnly _kind As TypeKind
-    Private _children As ImmutableArray(Of Symbol)
+    Private ReadOnly _children As ImmutableArray(Of Symbol)
     Private _container As NamespaceOrTypeSymbol
 
     Public Sub New(name As String, children As IEnumerable(Of Symbol), Optional kind As TypeKind = TypeKind.Class)
@@ -166,19 +166,19 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+    Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+    Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+    Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
         Throw New NotImplementedException()
     End Function
 
-    Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+    Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
         Throw New NotImplementedException()
     End Function
 

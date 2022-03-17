@@ -22,16 +22,6 @@
         <target state="translated">単語の大文字と小文字を修正しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="New_">
-        <source>New</source>
-        <target state="translated">新規</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Events">
-        <source>({0} Events)</source>
-        <target state="translated">({0} イベント)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="This_call_is_required_by_the_designer">
         <source>This call is required by the designer.</source>
         <target state="translated">この呼び出しはデザイナーで必要です。</target>
@@ -50,11 +40,6 @@
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">スマート インデント</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">ドキュメントのフォーマット</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_Document">

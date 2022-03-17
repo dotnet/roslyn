@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return name
         End Function
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
 
             Dim containingType = DirectCast(Me.ContainingType, SourceNamedTypeSymbol)
             Dim containingTypeName As String = MakeSafeName(containingType.Name)
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim typeBinder As Binder = BinderBuilder.CreateBinderForType(containingType.ContainingSourceModule, PropertyOrEvent.AttributeSyntax.SyntaxTree, containingType)
                 methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(Me, accessorBlock, typeBinder)
 
-                Dim bindingDiagnostics = DiagnosticBag.GetInstance()
+                Dim bindingDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance(), diagnostics.DependenciesBag)
 #If DEBUG Then
                 ' Enable DEBUG check for ordering of simple name binding.
                 methodBodyBinder.EnableSimpleNameBindingOrderChecks(True)
@@ -111,11 +111,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 methodBodyBinder.EnableSimpleNameBindingOrderChecks(False)
 #End If
 
-                For Each diag As VBDiagnostic In bindingDiagnostics.AsEnumerable()
+                For Each diag As VBDiagnostic In bindingDiagnostics.DiagnosticBag.AsEnumerable()
                     diagnostics.Add(diag.WithLocation(diagnosticLocation))
                 Next
 
-                bindingDiagnostics.Free()
+                bindingDiagnostics.DiagnosticBag.Free()
 
                 If boundStatement.Kind = BoundKind.Block Then
                     Return DirectCast(boundStatement, BoundBlock)

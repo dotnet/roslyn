@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractUnncessarySuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
-        public AbstractUnncessarySuppressionDiagnosticTest(ITestOutputHelper logger)
+        protected AbstractUnncessarySuppressionDiagnosticTest(ITestOutputHelper logger)
             : base(logger)
         {
         }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             return await GetDiagnosticAndFixesAsync(
                 diagnostics, CodeFixProvider, testDriver, document,
-                span, annotation, parameters.index);
+                span, CodeActionOptions.Default, annotation, parameters.index);
         }
     }
 }

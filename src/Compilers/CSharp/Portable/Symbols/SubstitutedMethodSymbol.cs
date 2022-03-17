@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, SubstituteParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, SubstituteParameters());
                 }
 
                 return _lazyParameters;

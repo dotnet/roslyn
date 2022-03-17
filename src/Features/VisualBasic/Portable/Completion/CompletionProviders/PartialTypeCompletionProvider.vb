@@ -42,11 +42,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerChars
 
         Protected Overrides Function GetPartialTypeSyntaxNode(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxNode
             Dim statement As TypeStatementSyntax = Nothing

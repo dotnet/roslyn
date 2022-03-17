@@ -100,15 +100,25 @@ namespace Microsoft.CodeAnalysis.Differencing
             return parent!;
         }
 
-        internal TNode GetAncestor(TNode node, int level)
+        internal bool TryGetAncestor(TNode node, int level, [MaybeNullWhen(false)] out TNode ancestor)
         {
             while (level > 0)
             {
-                node = GetParent(node);
+                if (TryGetParent(node, out var parent))
+                {
+                    node = parent;
+                }
+                else
+                {
+                    ancestor = default;
+                    return false;
+                }
+
                 level--;
             }
 
-            return node;
+            ancestor = node;
+            return true;
         }
 
         /// <summary>

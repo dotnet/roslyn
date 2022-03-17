@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
+            Dim diagnostics As BindingDiagnosticBag = BindingDiagnosticBag.GetInstance()
 
             ' Ensure explicit implementations are resolved.
             If Not Me.ExplicitInterfaceImplementations.IsEmpty Then
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.AllDiagnosticsReported, 0, diagnostics, CompilationStage.Declare)
+            ContainingSourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.AllDiagnosticsReported, 0, diagnostics)
             diagnostics.Free()
         End Sub
 
@@ -290,14 +290,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim params = _lazyTypeParameters
                 If params.IsDefault Then
 
-                    Dim diagBag = DiagnosticBag.GetInstance
+                    Dim diagBag = BindingDiagnosticBag.GetInstance
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
                     params = GetTypeParameters(sourceModule, diagBag)
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(_lazyTypeParameters,
-                                                                    params,
-                                                                    diagBag,
-                                                                    CompilationStage.Declare)
+                                                                params,
+                                                                diagBag)
 
                     diagBag.Free()
 
@@ -309,7 +308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetTypeParameters(sourceModule As SourceModuleSymbol,
-                                     diagBag As DiagnosticBag) As ImmutableArray(Of TypeParameterSymbol)
+                                     diagBag As BindingDiagnosticBag) As ImmutableArray(Of TypeParameterSymbol)
 
             Dim paramList = GetTypeParameterListSyntax(Me.DeclarationSyntax)
             If paramList Is Nothing Then
@@ -358,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyImplementedMethods.IsDefault Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim implementedMethods As ImmutableArray(Of MethodSymbol)
 
                     If Me.IsPartial Then
@@ -384,14 +383,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         implementedMethods = Me.GetExplicitInterfaceImplementations(sourceModule, diagnostics)
                     End If
 
-                    sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedMethods, implementedMethods, diagnostics, CompilationStage.Declare)
+                    sourceModule.AtomicStoreArrayAndDiagnostics(_lazyImplementedMethods, implementedMethods, diagnostics)
                     diagnostics.Free()
                 End If
                 Return _lazyImplementedMethods
             End Get
         End Property
 
-        Private Function GetExplicitInterfaceImplementations(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of MethodSymbol)
+        Private Function GetExplicitInterfaceImplementations(sourceModule As SourceModuleSymbol, diagBag As BindingDiagnosticBag) As ImmutableArray(Of MethodSymbol)
             Debug.Assert(Not Me.IsPartial)
             Dim syntax = TryCast(Me.DeclarationSyntax, MethodStatementSyntax)
 
@@ -419,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Validate method type parameter constraints against implemented methods.
         ''' </summary>
-        Friend Sub ValidateImplementedMethodConstraints(diagnostics As DiagnosticBag)
+        Friend Sub ValidateImplementedMethodConstraints(diagnostics As BindingDiagnosticBag)
             If Me.IsPartial AndAlso Me.OtherPartOfPartial IsNot Nothing Then
                 Me.OtherPartOfPartial.ValidateImplementedMethodConstraints(diagnostics)
             Else
@@ -544,7 +543,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             If Me.IsPartial Then
                 Throw ExceptionUtilities.Unreachable
             End If
@@ -561,13 +560,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _lazyHandles.IsDefault Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
 
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim boundHandledEvents = Me.GetHandles(sourceModule, diagnostics)
 
                     sourceModule.AtomicStoreArrayAndDiagnostics(Of HandledEvent)(_lazyHandles,
-                                                                                  boundHandledEvents,
-                                                                                  diagnostics,
-                                                                                  CompilationStage.Declare)
+                                                                                 boundHandledEvents,
+                                                                                 diagnostics)
 
                     diagnostics.Free()
                 End If
@@ -576,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function GetHandles(sourceModule As SourceModuleSymbol, diagBag As DiagnosticBag) As ImmutableArray(Of HandledEvent)
+        Private Function GetHandles(sourceModule As SourceModuleSymbol, diagBag As BindingDiagnosticBag) As ImmutableArray(Of HandledEvent)
             Dim syntax = TryCast(Me.DeclarationSyntax, MethodStatementSyntax)
 
             If (syntax Is Nothing) OrElse (syntax.HandlesClause Is Nothing) Then
@@ -600,7 +598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function BindSingleHandlesClause(singleHandleClause As HandlesClauseItemSyntax,
                                            typeBinder As Binder,
-                                           diagBag As DiagnosticBag,
+                                           diagBag As BindingDiagnosticBag,
                                            Optional candidateEventSymbols As ArrayBuilder(Of Symbol) = Nothing,
                                            Optional candidateWithEventsSymbols As ArrayBuilder(Of Symbol) = Nothing,
                                            Optional candidateWithEventsPropertySymbols As ArrayBuilder(Of Symbol) = Nothing,
@@ -622,7 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim eventContainerKind = singleHandleClause.EventContainer.Kind
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = typeBinder.GetNewCompoundUseSiteInfo(diagBag)
 
             If eventContainerKind = SyntaxKind.KeywordEventContainer Then
                 Select Case DirectCast(singleHandleClause.EventContainer, KeywordEventContainerSyntax).Keyword.Kind
@@ -651,12 +649,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 witheventsProperty = FindWithEventsProperty(m_containingType,
                                                             typeBinder,
                                                             witheventsName,
-                                                            useSiteDiagnostics,
+                                                            useSiteInfo,
                                                             candidateWithEventsSymbols,
                                                             resultKind)
 
-                diagBag.Add(singleHandleClause.EventContainer, useSiteDiagnostics)
-                useSiteDiagnostics = Nothing
+                diagBag.Add(singleHandleClause.EventContainer, useSiteInfo)
+                useSiteInfo = New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo)
 
                 If witheventsProperty Is Nothing Then
                     Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_NoWithEventsVarOnHandlesList)
@@ -684,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     withEventsSourceProperty = FindProperty(witheventsProperty.Type,
                                                           typeBinder,
                                                           propName,
-                                                          useSiteDiagnostics,
+                                                          useSiteInfo,
                                                           candidateWithEventsPropertySymbols,
                                                           resultKind)
 
@@ -705,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     witheventsPropertyInCurrentClass = witheventsProperty
                 End If
 
-                typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
+                typeBinder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, witheventsPropertyInCurrentClass, singleHandleClause.EventContainer)
             Else
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventContainer, ERRID.ERR_HandlesSyntaxInClass)
                 Return Nothing
@@ -715,19 +713,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim eventSymbol As EventSymbol = Nothing
 
             If eventContainingType IsNot Nothing Then
-                Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventContainingType)
+                Binder.ReportUseSite(diagBag, singleHandleClause.EventMember, eventContainingType)
 
                 ' Bind event symbol
                 eventSymbol = FindEvent(eventContainingType,
                                         typeBinder,
                                         eventName,
                                         handlesKind = HandledEventKind.MyBase,
-                                        useSiteDiagnostics,
+                                        useSiteInfo,
                                         candidateEventSymbols,
                                         resultKind)
             End If
 
-            diagBag.Add(singleHandleClause.EventMember, useSiteDiagnostics)
+            diagBag.Add(singleHandleClause.EventMember, useSiteInfo)
 
             If eventSymbol Is Nothing Then
                 'Event '{0}' cannot be found.
@@ -735,16 +733,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End If
 
-            typeBinder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, eventSymbol, singleHandleClause.EventMember)
+            typeBinder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, eventSymbol, singleHandleClause.EventMember)
 
-            Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol)
+            Binder.ReportUseSite(diagBag, singleHandleClause.EventMember, eventSymbol)
 
             If eventSymbol.AddMethod IsNot Nothing Then
-                Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol.AddMethod)
+                Binder.ReportUseSite(diagBag, singleHandleClause.EventMember, eventSymbol.AddMethod)
             End If
 
             If eventSymbol.RemoveMethod IsNot Nothing Then
-                Binder.ReportUseSiteError(diagBag, singleHandleClause.EventMember, eventSymbol.RemoveMethod)
+                Binder.ReportUseSite(diagBag, singleHandleClause.EventMember, eventSymbol.RemoveMethod)
             End If
 
             ' For WinRT events, we require that certain well-known members be present (needed in synthesize code).
@@ -826,7 +824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 
             ' AddressOf currentMethod
-            Dim syntheticAddressOf = New BoundAddressOfOperator(singleHandleClause, typeBinder, syntheticMethodGroup).MakeCompilerGenerated
+            Dim syntheticAddressOf = New BoundAddressOfOperator(singleHandleClause, typeBinder, diagBag.AccumulatesDependencies, syntheticMethodGroup).MakeCompilerGenerated
 
             ' 9.2.6  Event handling
             ' ... A handler method M is considered a valid event handler for an event E 
@@ -842,7 +840,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 'Method '{0}' cannot handle event '{1}' because they do not have a compatible signature.
                 Binder.ReportDiagnostic(diagBag, singleHandleClause.EventMember, ERRID.ERR_EventHandlerSignatureIncompatible2, Me.Name, eventName)
                 Return Nothing
-
+            Else
+                diagBag.AddDependencies(resolutionResult.Diagnostics.Dependencies)
             End If
 
             Dim delegateCreation = typeBinder.ReclassifyAddressOf(syntheticAddressOf, resolutionResult, eventSymbol.Type, diagBag, isForHandles:=True,
@@ -861,7 +860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function FindWithEventsProperty(containingType As TypeSymbol,
                                                       binder As Binder,
                                                       name As String,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                       Optional candidateEventSymbols As ArrayBuilder(Of Symbol) = Nothing,
                                                       Optional ByRef resultKind As LookupResultKind = Nothing) As PropertySymbol
 
@@ -869,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' WithEvents properties are always accessed via Me/MyBase
             Dim options = LookupOptions.IgnoreExtensionMethods Or LookupOptions.UseBaseReferenceAccessibility
-            binder.LookupMember(witheventsLookup, containingType, name, 0, options, useSiteDiagnostics)
+            binder.LookupMember(witheventsLookup, containingType, name, 0, options, useSiteInfo)
 
             If candidateEventSymbols IsNot Nothing Then
                 candidateEventSymbols.AddRange(witheventsLookup.Symbols)
@@ -900,7 +899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                          binder As Binder,
                                          name As String,
                                          isThroughMyBase As Boolean,
-                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                         <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                          Optional candidateEventSymbols As ArrayBuilder(Of Symbol) = Nothing,
                                          Optional ByRef resultKind As LookupResultKind = Nothing) As EventSymbol
 
@@ -910,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim eventLookup = LookupResult.GetInstance
-            binder.LookupMember(eventLookup, containingType, name, 0, options, useSiteDiagnostics)
+            binder.LookupMember(eventLookup, containingType, name, 0, options, useSiteInfo)
 
             If candidateEventSymbols IsNot Nothing Then
                 candidateEventSymbols.AddRange(eventLookup.Symbols)
@@ -937,7 +936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function FindProperty(containingType As TypeSymbol,
                                  binder As Binder,
                                  name As String,
-                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                 <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                  Optional candidatePropertySymbols As ArrayBuilder(Of Symbol) = Nothing,
                                  Optional ByRef resultKind As LookupResultKind = Nothing) As PropertySymbol
 
@@ -951,7 +950,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim options = CType(LookupOptions.IgnoreExtensionMethods Or LookupOptions.NoBaseClassLookup, LookupOptions)
 
             Dim propertyLookup = LookupResult.GetInstance
-            binder.LookupMember(propertyLookup, containingType, name, 0, options, useSiteDiagnostics)
+            binder.LookupMember(propertyLookup, containingType, name, 0, options, useSiteInfo)
 
             If candidatePropertySymbols IsNot Nothing Then
                 candidatePropertySymbols.AddRange(propertyLookup.Symbols)

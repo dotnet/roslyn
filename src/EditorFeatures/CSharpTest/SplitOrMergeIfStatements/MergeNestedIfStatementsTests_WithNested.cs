@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements
@@ -36,6 +37,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
+        }
+
+        [Fact]
+        [WorkItem(55563, "https://github.com/dotnet/roslyn/issues/55563")]
+        public async Task MergedOnOuterIf_TopLevelStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"var a = true;
+var b = true;
+
+[||]if (a)
+{
+    if (b)
+    {
+    }
+}
+",
+@"var a = true;
+var b = true;
+
+if (a && b)
+{
+}
+");
         }
 
         [Theory]

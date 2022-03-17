@@ -192,6 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => _underlyingType.HasCodeAnalysisEmbeddedAttribute;
 
+        internal override bool IsInterpolatedStringHandlerType => _underlyingType.IsInterpolatedStringHandlerType;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return _underlyingType.ObsoleteAttributeData; }

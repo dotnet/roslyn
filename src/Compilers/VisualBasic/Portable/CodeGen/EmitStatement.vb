@@ -1426,7 +1426,10 @@ OtherExpressions:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable)
 
             For Each field In scope.Fields
-                DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
+                Dim stateMachineField = DirectCast(field, StateMachineFieldSymbol)
+                If stateMachineField.SlotIndex >= 0 Then
+                    DefineUserDefinedStateMachineHoistedLocal(stateMachineField)
+                End If
             Next
 
             EmitStatement(scope.Statement)

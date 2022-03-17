@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.ConvertTypeOfToNameOf;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -23,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
         protected override bool IsValidTypeofAction(OperationAnalysisContext context)
         {
             var node = context.Operation.Syntax;
-            var syntaxTree = node.SyntaxTree;
+
             // nameof was added in CSharp 6.0, so don't offer it for any languages before that time
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp6)
+            if (node.GetLanguageVersion() < LanguageVersion.CSharp6)
             {
                 return false;
             }
@@ -33,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertTypeOfToNameOf
             // Make sure that the syntax that we're looking at is actually a typeof expression and that
             // the parent syntax is a member access expression otherwise the syntax is not the kind of
             // expression that we want to analyze
-            return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax _ };
+            return node is TypeOfExpressionSyntax { Parent: MemberAccessExpressionSyntax } typeofExpression &&
+                // nameof(System.Void) isn't allowed in C#.
+                typeofExpression is not { Type: PredefinedTypeSyntax { Keyword.RawKind: (int)SyntaxKind.VoidKeyword } };
         }
     }
 }

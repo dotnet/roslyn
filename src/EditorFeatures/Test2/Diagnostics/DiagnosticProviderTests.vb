@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Shared.Options
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -204,35 +204,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub TestDiagnosticsFromTurnedOff()
-            Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
-                               <Document FilePath="Test.cs">
-                                        class Program
-                                        {
-                                            -
-                                            void Test()
-                                            {
-                                                int a = 5 - "2";
-                                            }
-                                        }
-                               </Document>
-                           </Project>
-                           <Project Language="Visual Basic" CommonReferences="true">
-                               <Document FilePath="Test.vb">
-                                        Class GooClass
-                                            Sub Blah() End Sub
-                                        End Class
-                               </Document>
-                           </Project>
-                       </Workspace>
-
-            Dim diagnostics = <Diagnostics></Diagnostics>
-
-            VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False, enabled:=False)
-        End Sub
-
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub WarningsAsErrors()
             Dim test =
                 <Workspace>
@@ -283,16 +254,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        Private Shared Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True, Optional enabled As Boolean = True)
+        Private Shared Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True)
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_composition)
-
-                ' turn off diagnostic
-                If Not enabled Then
-                    workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                                                  .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
-                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.Default) _
-                                                  .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.Default)))
-                End If
+                ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
+                For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
+                    workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language), BackgroundAnalysisScope.OpenFiles)
+                Next
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
                 registrationService.Register(workspace)
@@ -357,6 +324,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                     result.Add(SourceWarning(Id, message, documentId, documentId.ProjectId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile))
                 End If
             Next
+
             Return result
         End Function
 
@@ -388,7 +356,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 id:=id,
                 category:="test",
                 message:=message,
-                enuMessageForBingSearch:=message,
                 severity:=severity,
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,

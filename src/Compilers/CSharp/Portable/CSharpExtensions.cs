@@ -1033,7 +1033,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Analyze data-flow within an expression.
+        /// Analyze data-flow within a <see cref="ConstructorInitializerSyntax"/>.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ConstructorInitializerSyntax constructorInitializer)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(constructorInitializer);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within a <see cref="PrimaryConstructorBaseTypeSyntax.ArgumentList"/> initializer.
+        /// </summary>
+        public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.AnalyzeDataFlow(primaryConstructorBaseType);
+        }
+
+        /// <summary>
+        /// Analyze data-flow within an <see cref="ExpressionSyntax"/>.
         /// </summary>
         public static DataFlowAnalysis? AnalyzeDataFlow(this SemanticModel? semanticModel, ExpressionSyntax expression)
         {
@@ -1312,6 +1330,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the declaration assembly.
         /// </summary>
         public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a namespace declaration syntax node, get the corresponding namespace symbol for
+        /// the declaration assembly.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static INamespaceSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, FileScopedNamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);

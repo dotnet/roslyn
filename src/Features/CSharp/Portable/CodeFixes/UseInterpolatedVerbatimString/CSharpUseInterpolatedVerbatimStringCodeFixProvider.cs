@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
     /// <summary>
     /// Converts a verbatim interpolated string @$"" to an interpolated verbatim string $@""
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseInterpolatedVerbatimString), Shared]
     internal partial class CSharpUseInterpolatedVerbatimStringCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_interpolated_verbatim_string, createChangedDocument)
+                : base(FeaturesResources.Use_interpolated_verbatim_string, createChangedDocument, nameof(FeaturesResources.Use_interpolated_verbatim_string))
             {
             }
         }

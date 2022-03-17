@@ -10,11 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         protected abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
         /// <inheritdoc/>
-        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
         {
-            var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var analysisResult = await AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             return await AddMissingImportsAsync(document, analysisResult, cancellationToken).ConfigureAwait(false);
         }
 
@@ -49,18 +49,25 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
         }
 
         /// <inheritdoc/>
-        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
         {
             // Get the diagnostics that indicate a missing import.
-            var diagnostics = await GetDiagnosticsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (diagnostics.IsEmpty)
-            {
-                return new AddMissingImportsAnalysisResult(
-                    ImmutableArray<AddImportFixData>.Empty);
-            }
+            var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
 
-            // Find fixes for the diagnostic where there is only a single fix.
-            var unambiguousFixes = await GetUnambiguousFixesAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
+            var solution = document.Project.Solution;
+            var symbolSearchService = solution.Workspace.Services.GetRequiredService<ISymbolSearchService>();
+
+            // Since we are not currently considering NuGet packages, pass an empty array
+            var packageSources = ImmutableArray<PackageSource>.Empty;
+
+            var addImportOptions = new AddImportOptions(
+                SearchOptions: new(SearchReferenceAssemblies: true, SearchNuGetPackages: false),
+                HideAdvancedMembers: options.HideAdvancedMembers,
+                Placement: options.Placement);
+
+            var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
+                document, textSpan, FixableDiagnosticIds, symbolSearchService,
+                addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
             // We do not want to add project or framework references without the user's input, so filter those out.
             var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
@@ -73,54 +80,6 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             return (fixData.ProjectReferenceToAdd is null || fixData.ProjectReferenceToAdd == currentProjectId)
                 && (fixData.PortableExecutableReferenceProjectId is null || fixData.PortableExecutableReferenceProjectId == currentProjectId)
                 && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
-        }
-
-        private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (semanticModel is null)
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            return semanticModel.GetDiagnostics(textSpan, cancellationToken)
-                .Where(diagnostic => FixableDiagnosticIds.Contains(diagnostic.Id))
-                .ToImmutableArray();
-        }
-
-        private static async Task<ImmutableArray<AddImportFixData>> GetUnambiguousFixesAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
-        {
-            var solution = document.Project.Solution;
-            var symbolSearchService = solution.Workspace.Services.GetRequiredService<ISymbolSearchService>();
-            // Since we are not currently considering NuGet packages, pass an empty array
-            var packageSources = ImmutableArray<PackageSource>.Empty;
-            var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
-
-            // We only need to receive 2 results back per diagnostic to determine that the fix is ambiguous.
-            var getFixesForDiagnosticsTasks = diagnostics
-                .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
-                .Select(diagnosticsForSourceSpan => addImportService
-                    .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
-                        maxResultsPerDiagnostic: 2, symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
-
-            using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var fixes);
-            foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)
-            {
-                var fixesForDiagnostics = await getFixesForDiagnosticsTask.ConfigureAwait(false);
-
-                foreach (var fixesForDiagnostic in fixesForDiagnostics)
-                {
-                    // When there is more than one potential fix for a missing import diagnostic,
-                    // which is possible when the same class name is present in multiple namespaces,
-                    // we do not want to choose for the user and be wrong. We will not attempt to
-                    // fix this diagnostic and instead leave it for the user to resolve since they
-                    // will have more context for determining the proper fix.
-                    if (fixesForDiagnostic.Fixes.Length == 1)
-                        fixes.Add(fixesForDiagnostic.Fixes[0]);
-                }
-            }
-
-            return fixes.ToImmutable();
         }
 
         private static async Task<Document> ApplyFixesAsync(Document document, ImmutableArray<AddImportFixData> fixes, CancellationToken cancellationToken)
@@ -187,8 +146,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private static async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
         {
-            var languageFormatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             var newDocument = document;
 
@@ -197,21 +155,19 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // to separate the import section from the other content.
             foreach (var insertSpan in insertSpans)
             {
-                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, languageFormatter, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, options, cancellationToken).ConfigureAwait(false);
             }
 
             return newDocument;
         }
 
-        private static async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet optionSet, CancellationToken cancellationToken)
+        private static async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, SyntaxFormattingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingOptions.AllowDisjointSpanMerging);
-            var options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language);
+            var services = document.Project.Solution.Workspace.Services;
 
-            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges(cancellationToken);
+            var textChanges = Formatter.GetFormattedTextChanges(root, new[] { insertSpan }, services, options, rules: new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken);
 
             // If there are no changes then, do less work.
             if (textChanges.Count == 0)

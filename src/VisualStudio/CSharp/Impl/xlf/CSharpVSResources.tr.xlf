@@ -7,14 +7,39 @@
         <target state="translated">Yapıştırırken eksik using yönergelerini ekle</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="translated">Oluşturucu başlatıcıda iki noktadan sonra boş satıra izin ver</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="translated">Ardışık küme ayraçları arasında boş satırlara izin ver</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="translated">Aynı satırda katıştırılmış ifadelere izin ver</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">Tüm C# biçimlendirme kurallarını (girinti, kaydırma, boşluklar) uygula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="translated">Deyimi noktalı virgülle otomatik olarak tamamla</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster (deneysel)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="translated">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">Blok kapsama alındı</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -32,6 +57,11 @@
         <target state="translated">C# biçimlendirme kuralları</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Tamamlama</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">At</target>
@@ -42,9 +72,9 @@
         <target state="translated">Renk düzenini düzenle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">Belgeyi biçimlendir</target>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">Dosya kapsama alındı</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -59,7 +89,7 @@
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">İlişkisel işleçleri içinde: &lt;&gt; = &lt; &gt; = == gibi! =</target>
+        <target state="translated">İlişkisel işleçleri içinde: &lt;&gt; = &lt;&gt; = == gibi! =</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
@@ -87,6 +117,16 @@
         <target state="translated">Biçimlendirme sırasında ek kod temizleme gerçekleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="translated">Nesne, koleksiyon, dizi ve with başlatıcıları için açma küme ayracını yeni satıra yerleştir</target>
+        <note>{Locked="with"}</note>
+      </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Genişletilmiş özellik desenini tercih et</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Tür görünür olduğunda örtük nesne oluşturmayı tercih et</target>
@@ -96,6 +136,16 @@
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>
         <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Tür denetimi yerine 'null' denetimini tercih edin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
+        <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
@@ -265,11 +315,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Metotlar ve yerel işlemler için yeni satıra açma küme ayracı yerleştirin</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Nesne, koleksiyon ve dizi başlatıcıları için açma küme ayracını yeni satıra yerleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">
@@ -570,11 +615,6 @@
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
         <target state="translated">_Kod parçacıklarını tamamlama listelerine yerleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">Tamamlama Listeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">

@@ -958,7 +958,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //     public static async Task<int> M1(Span<int> arg)
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
             );
@@ -990,7 +990,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local = default(Span<int>);
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
@@ -998,7 +998,7 @@ public class Program
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local = default(Span<int>);
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
@@ -1803,6 +1803,132 @@ struct Struct2
                 //         return span; // 4
                 Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(43, 16)
                 );
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_01()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        _ = Test(stackalloc int[5]);
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_02()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static int[] _array = new int[] {};
+
+    static void Main()
+    {
+        _ = Test;
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test => _array;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            CompileAndVerify(comp, expectedOutput: "Done", verify: Verification.FailsILVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_03()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var l = Test(stackalloc int[5]);
+        _ = l;
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_04()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var l = Test(stackalloc int[5]);
+
+        {
+            int i = 0;
+            _ = l;
+            i++;
+        }
+
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_05()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Test(stackalloc int[5]);
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
         }
     }
 }

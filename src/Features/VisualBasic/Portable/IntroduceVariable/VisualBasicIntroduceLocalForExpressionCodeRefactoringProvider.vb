@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), [Shared]>
     Friend Class VisualBasicIntroduceLocalForExpressionCodeRefactoringProvider
         Inherits AbstractIntroduceLocalForExpressionCodeRefactoringProvider(Of
             ExpressionSyntax,

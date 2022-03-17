@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
     <IsShipping>false</IsShipping>
@@ -15,5 +15,6 @@
     <PackageReference Include="System.Management" Version="$(SystemManagementVersion)" />
     <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="$(MicrosoftWin32RegistryVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
 </Project>

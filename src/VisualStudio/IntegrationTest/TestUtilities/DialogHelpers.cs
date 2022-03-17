@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -56,46 +54,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 stoppingCondition: (automationElement, _) => isOpen ? automationElement != null : automationElement == null,
                 delay: TimeSpan.FromMilliseconds(250),
                 cancellationToken);
-        }
-
-        /// <summary>
-        /// Selects a specific item in a combo box.
-        /// Note that combo box is found using its Automation ID, but the item is identified by name.
-        /// </summary>
-        public static void SelectComboBoxItem(IntPtr visualStudioHWnd, string dialogAutomationName, string comboBoxAutomationName, string itemText)
-        {
-            var dialogAutomationElement = GetOpenDialogById(visualStudioHWnd, dialogAutomationName);
-
-            var comboBoxAutomationElement = dialogAutomationElement.FindDescendantByAutomationId(comboBoxAutomationName);
-            comboBoxAutomationElement.Expand();
-
-            var comboBoxItemAutomationElement = comboBoxAutomationElement.FindDescendantByName(itemText);
-            comboBoxItemAutomationElement.Select();
-
-            comboBoxAutomationElement.Collapse();
-        }
-
-        /// <summary>
-        /// Selects a specific radio button from a dialog found by Id.
-        /// </summary>
-        public static void SelectRadioButton(IntPtr visualStudioHWnd, string dialogAutomationName, string radioButtonAutomationName)
-        {
-            var dialogAutomationElement = GetOpenDialogById(visualStudioHWnd, dialogAutomationName);
-
-            var radioButton = dialogAutomationElement.FindDescendantByAutomationId(radioButtonAutomationName);
-            radioButton.Select();
-        }
-
-        /// <summary>
-        /// Sets the value of the specified element in the dialog.
-        /// Used for setting the values of things like combo boxes and text fields.
-        /// </summary>
-        public static void SetElementValue(IntPtr visualStudioHWnd, string dialogAutomationId, string elementAutomationId, string value)
-        {
-            var dialogAutomationElement = GetOpenDialogById(visualStudioHWnd, dialogAutomationId);
-
-            var control = dialogAutomationElement.FindDescendantByAutomationId(elementAutomationId);
-            control.SetValue(value);
         }
 
         /// <summary>

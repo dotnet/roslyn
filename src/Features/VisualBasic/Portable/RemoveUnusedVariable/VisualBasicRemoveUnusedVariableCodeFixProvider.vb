@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
         Inherits AbstractRemoveUnusedVariableCodeFixProvider(Of
             LocalDeclarationStatementSyntax, ModifiedIdentifierSyntax, VariableDeclaratorSyntax)
 
-        Private Const BC42024 As String = NameOf(BC42024)
+        Public Const BC42024 As String = NameOf(BC42024)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -44,6 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
         Protected Overrides Function GetVariables(localDeclarationStatement As LocalDeclarationStatementSyntax) As SeparatedSyntaxList(Of SyntaxNode)
             Return localDeclarationStatement.Declarators
+        End Function
+
+        Protected Overrides Function ShouldOfferFixForLocalDeclaration(syntaxFactsService As ISyntaxFactsService, node As SyntaxNode) As Boolean
+            Return True
         End Function
     End Class
 End Namespace

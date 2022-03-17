@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Reflection
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <summary>
         ''' First error calculating bounds.
         ''' </summary>
-        Private _lazyBoundsErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedBoundsUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     _name = String.Empty
                 End If
 
-                _lazyBoundsErrorInfo = ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)
+                _lazyCachedBoundsUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
             End Try
 
             ' Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
@@ -106,6 +107,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Name As String
             Get
                 Return _name
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 
@@ -175,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 constraints = metadataReader.GetGenericParameter(_handle).GetConstraints()
             Catch mrEx As BadImageFormatException
                 constraints = Nothing
-                Interlocked.CompareExchange(_lazyBoundsErrorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me), ErrorFactory.EmptyErrorInfo)
+                _lazyCachedBoundsUseSiteInfo.InterlockedCompareExchange(primaryDependency:=Nothing, New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
             End Try
 
             If constraints.Count > 0 Then
@@ -272,20 +279,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 ' necessary to report redundant constraints since redundant constraints are still
                 ' valid. Redundant constraints are dropped silently.
                 Dim constraints = Me.RemoveDirectConstraintConflicts(GetDeclaredConstraints(), inProgress.Prepend(Me), DirectConstraintConflictKind.None, diagnosticsBuilder)
-                Dim errorInfo = If(diagnosticsBuilder.Count > 0, diagnosticsBuilder(0).DiagnosticInfo, Nothing)
+                Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+                Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(primaryDependency)
+
+                For Each pair In diagnosticsBuilder
+                    useSiteInfo = MergeUseSiteInfo(useSiteInfo, pair.UseSiteInfo)
+                    If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                        Exit For
+                    End If
+                Next
+
                 diagnosticsBuilder.Free()
 
-                Interlocked.CompareExchange(_lazyBoundsErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
+                _lazyCachedBoundsUseSiteInfo.InterlockedCompareExchange(primaryDependency, useSiteInfo)
                 ImmutableInterlocked.InterlockedInitialize(_lazyConstraintTypes, GetConstraintTypesOnly(constraints))
             End If
 
-            Debug.Assert(_lazyBoundsErrorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            Debug.Assert(_lazyCachedBoundsUseSiteInfo.IsInitialized)
         End Sub
 
-        Friend Overrides Function GetConstraintsUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetConstraintsUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             EnsureAllConstraintsAreResolved()
-            Debug.Assert(_lazyBoundsErrorInfo IsNot ErrorFactory.EmptyErrorInfo)
-            Return _lazyBoundsErrorInfo
+            Debug.Assert(_lazyCachedBoundsUseSiteInfo.IsInitialized)
+            Return _lazyCachedBoundsUseSiteInfo.ToUseSiteInfo(PrimaryDependency)
         End Function
 
         ''' <remarks>

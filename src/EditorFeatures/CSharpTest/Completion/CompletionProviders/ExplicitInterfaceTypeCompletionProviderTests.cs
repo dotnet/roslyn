@@ -35,19 +35,22 @@ class C : IList
             await VerifyItemExistsAsync(markup, "IList");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestAtStartOfRecord()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestAtStartOfRecord(string record)
         {
-            var markup = @"
+            var markup = $@"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""Preview"">
         <Document>
 using System.Collections;
 
-record C : IList
-{
+{record} C : IList
+{{
     int $$
-}
+}}
         </Document>
     </Project>
 </Workspace>";

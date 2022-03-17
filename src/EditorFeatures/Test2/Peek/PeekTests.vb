@@ -7,10 +7,12 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Peek
 Imports Microsoft.CodeAnalysis.Editor.Peek
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Imaging.Interop
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Utilities
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
@@ -183,6 +185,45 @@ End Module
 
         End Sub
 
+        <WpfFact, WorkItem(820363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820363"), Trait(Traits.Feature, Traits.Features.Peek)>
+        Public Sub TestFileMapping()
+            Using workspace = CreateTestWorkspace(<Workspace>
+                                                      <Project Language="C#" CommonReferences="true">
+                                                          <Document><![CDATA[
+public class D
+{
+    public void M()
+    {
+        new Component().$$M();
+    }
+}
+                                                          ]]></Document>
+                                                          <Document FilePath="Test.razor"><![CDATA[
+@code
+{
+    public void {|Identifier:M|}()
+    {
+    }
+}
+                                                          ]]></Document>
+                                                          <Document FilePath="Test.razor.g.cs"><![CDATA[
+public class Component
+{
+#line 4 "Test.razor"
+    public void M()
+    {
+    }
+}
+                                                          ]]></Document>
+                                                      </Project>
+                                                  </Workspace>)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal(1, result.Items.Count)
+                result.AssertNavigatesToIdentifier(0, "Identifier")
+            End Using
+        End Sub
+
         Private Shared Function CreateTestWorkspace(element As XElement) As TestWorkspace
             Return TestWorkspace.Create(element, composition:=EditorTestCompositions.EditorFeaturesWpf)
         End Function
@@ -206,7 +247,8 @@ End Module
             Dim peekableItemSource As New PeekableItemSource(textBuffer,
                                                              workspace.GetService(Of IPeekableItemFactory),
                                                              New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IWaitIndicator))
+                                                             workspace.GetService(Of IThreadingContext),
+                                                             workspace.GetService(Of IUIThreadOperationExecutor))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)
             Dim triggerPoint = New SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value)

@@ -396,7 +396,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get's the enumerator for this list.
         /// </summary>
+#pragma warning disable RS0041 // uses oblivious reference types
         public Enumerator GetEnumerator()
+#pragma warning restore RS0041 // uses oblivious reference types
         {
             return new Enumerator(this);
         }

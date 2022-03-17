@@ -545,7 +545,7 @@ public class Test
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,6): error CS0577: The Conditional attribute is not valid on 'Test.~Test()' because it is a constructor, destructor, operator, or explicit interface implementation
+                // (5,6): error CS0577: The Conditional attribute is not valid on 'Test.~Test()' because it is a constructor, destructor, operator, lambda expression, or explicit interface implementation
                 //     [Conditional("Debug")]
                 Diagnostic(ErrorCode.ERR_ConditionalOnSpecialMethod, @"Conditional(""Debug"")").WithArguments("Test.~Test()"));
         }

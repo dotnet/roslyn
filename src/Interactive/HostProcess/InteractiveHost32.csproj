@@ -7,6 +7,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -14,10 +15,6 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformAttributes.cs" Link="Utilities\PlatformAttributes.cs" />
   </ItemGroup>
 
   <!--

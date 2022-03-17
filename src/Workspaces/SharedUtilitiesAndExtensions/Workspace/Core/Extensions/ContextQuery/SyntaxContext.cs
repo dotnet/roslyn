@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         private ISet<INamedTypeSymbol> _outerTypes;
 
         protected SyntaxContext(
-            Workspace workspace,
+            Document document,
             SemanticModel semanticModel,
             int position,
             SyntaxToken leftToken,
@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isPreProcessorExpressionContext,
             bool isRightOfNameSeparator,
             bool isStatementContext,
+            bool isGlobalStatementContext,
             bool isAnyExpressionContext,
             bool isAttributeNameContext,
             bool isEnumTypeMemberAccessContext,
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isOnArgumentListBracketOrComma,
             CancellationToken cancellationToken)
         {
-            this.Workspace = workspace;
+            this.Document = document;
             this.SemanticModel = semanticModel;
             this.SyntaxTree = semanticModel.SyntaxTree;
             this.Position = position;
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsStatementContext = isStatementContext;
+            this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsAnyExpressionContext = isAnyExpressionContext;
             this.IsAttributeNameContext = isAttributeNameContext;
             this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
@@ -67,12 +69,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.IsPossibleTupleContext = isPossibleTupleContext;
             this.IsAtStartOfPattern = isAtStartOfPattern;
             this.IsAtEndOfPattern = isAtEndOfPattern;
-            this.InferredTypes = ComputeInferredTypes(workspace, semanticModel, position, cancellationToken);
+            this.InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
             this.IsRightSideOfNumericType = isRightSideOfNumericType;
             this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
         }
 
-        public Workspace Workspace { get; }
+        public Document Document { get; }
         public SemanticModel SemanticModel { get; }
         public SyntaxTree SyntaxTree { get; }
         public int Position { get; }
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsRightOfNameSeparator { get; }
         public bool IsStatementContext { get; }
+        public bool IsGlobalStatementContext { get; }
         public bool IsAnyExpressionContext { get; }
         public bool IsAttributeNameContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
@@ -130,17 +133,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             return SpecializedCollections.EmptySet<INamedTypeSymbol>();
         }
 
-        protected ImmutableArray<ITypeSymbol> ComputeInferredTypes(Workspace workspace,
-            SemanticModel semanticModel,
-            int position,
-            CancellationToken cancellationToken)
-        {
-            var typeInferenceService = workspace?.Services.GetLanguageService<ITypeInferenceService>(semanticModel.Language)
-                ?? GetTypeInferenceServiceWithoutWorkspace();
-            return typeInferenceService.InferTypes(semanticModel, position, cancellationToken);
-        }
-
-        internal abstract ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace();
+        internal abstract bool IsAwaitKeywordContext();
 
         public ISet<INamedTypeSymbol> GetOuterTypes(CancellationToken cancellationToken)
         {
@@ -153,9 +146,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         }
 
         public TService GetLanguageService<TService>() where TService : class, ILanguageService
-            => this.Workspace.Services.GetLanguageService<TService>(this.SemanticModel.Language);
-
-        public TService GetWorkspaceService<TService>() where TService : class, IWorkspaceService
-            => this.Workspace.Services.GetService<TService>();
+            => Document.GetLanguageService<TService>();
     }
 }

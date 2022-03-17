@@ -8,6 +8,16 @@
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="InlineCompletions\TestSnippets.snippet">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Label="Package References">
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(BenchmarkDotNetDiagnosticsWindowsVersion)" />
+  </ItemGroup>
 
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -15,7 +25,6 @@
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
-    <ProjectReference Include="..\..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\CSharp\Microsoft.CodeAnalysis.CSharp.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
@@ -38,5 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="IdeBenchmarks" />
   </ItemGroup>
 </Project>

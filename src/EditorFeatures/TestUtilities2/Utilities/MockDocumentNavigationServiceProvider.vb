@@ -3,11 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
@@ -36,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public ProvidedOffset As Integer
             Public ProvidedPosition As Integer
             Public ProvidedVirtualSpace As Integer
-            Public ProvidedOptions As OptionSet
+            Public ProvidedOptions As NavigationOptions
 
             Public CanNavigateToLineAndOffsetReturnValue As Boolean = True
             Public CanNavigateToPositionReturnValue As Boolean = True
@@ -46,52 +48,52 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public TryNavigateToPositionReturnValue As Boolean = True
             Public TryNavigateToSpanReturnValue As Boolean = True
 
-            Public Function CanNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer) As Boolean Implements IDocumentNavigationService.CanNavigateToLineAndOffset
+            Public Function CanNavigateToLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToLineAndOffsetAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedLineNumber = lineNumber
 
-                Return CanNavigateToLineAndOffsetReturnValue
+                Return If(CanNavigateToLineAndOffsetReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function CanNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, Optional virtualSpace As Integer = 0) As Boolean Implements IDocumentNavigationService.CanNavigateToPosition
+            Public Function CanNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToPositionAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedPosition = position
                 Me.ProvidedVirtualSpace = virtualSpace
 
-                Return CanNavigateToPositionReturnValue
+                Return If(CanNavigateToPositionReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function CanNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan) As Boolean Implements IDocumentNavigationService.CanNavigateToSpan
+            Public Function CanNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToSpanAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedTextSpan = textSpan
 
-                Return CanNavigateToSpanReturnValue
+                Return If(CanNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, Optional options As OptionSet = Nothing) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
+            Public Function TryNavigateToLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToLineAndOffsetAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedLineNumber = lineNumber
                 Me.ProvidedOffset = offset
                 Me.ProvidedOptions = options
 
-                Return TryNavigateToLineAndOffsetReturnValue
+                Return If(TryNavigateToLineAndOffsetReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function TryNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, Optional virtualSpace As Integer = 0, Optional options As OptionSet = Nothing) As Boolean Implements IDocumentNavigationService.TryNavigateToPosition
+            Public Function TryNavigateToPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, options As NavigationOptions, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToPositionAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedPosition = position
                 Me.ProvidedVirtualSpace = virtualSpace
                 Me.ProvidedOptions = options
 
-                Return TryNavigateToPositionReturnValue
+                Return If(TryNavigateToPositionReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
 
-            Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, Optional options As OptionSet = Nothing) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
+            Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As NavigationOptions, allowInvalidSpans As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
                 Me.ProvidedDocumentId = documentId
                 Me.ProvidedTextSpan = textSpan
                 Me.ProvidedOptions = options
 
-                Return TryNavigateToSpanReturnValue
+                Return If(TryNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
             End Function
         End Class
     End Class

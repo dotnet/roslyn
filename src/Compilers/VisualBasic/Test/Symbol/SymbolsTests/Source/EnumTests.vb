@@ -1530,6 +1530,37 @@ End Enum
             Dim item2000 = comp.GetMember(Of FieldSymbol)("Test.Item2000")
             Assert.Equal(2001, item2000.ConstantValue)
         End Sub
+
+        <Fact>
+        <WorkItem(52624, "https://github.com/dotnet/roslyn/issues/52624")>
+        Public Sub Issue52624()
+            Dim source1 =
+"
+Public Enum SyntaxKind As UShort
+    None = 0
+    List = GreenNode.ListKind
+End Enum
+"
+            Dim source2 =
+"
+Friend Class GreenNode
+    Public Const ListKind = 1
+End Class
+"
+
+            For i As Integer = 1 To 1000
+                Dim comp = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll)
+                comp.VerifyDiagnostics()
+
+                Dim listKind = comp.GlobalNamespace.GetMember(Of FieldSymbol)("GreenNode.ListKind")
+                Assert.Equal(1, listKind.ConstantValue)
+                Assert.Equal("System.Int32", listKind.Type.ToTestDisplayString())
+
+                Dim list = comp.GlobalNamespace.GetMember(Of FieldSymbol)("SyntaxKind.List")
+                Assert.Equal(1US, list.ConstantValue)
+                Assert.Equal("SyntaxKind", list.Type.ToTestDisplayString())
+            Next
+        End Sub
     End Class
 
 End Namespace

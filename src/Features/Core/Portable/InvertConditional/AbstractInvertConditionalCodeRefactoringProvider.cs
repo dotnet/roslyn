@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InvertConditional
 {
@@ -32,12 +31,11 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                FeaturesResources.Invert_conditional,
                 c => InvertConditionalAsync(document, span, c)),
                 conditional.Span);
         }
 
-        private static async Task<TConditionalExpressionSyntax> FindConditionalAsync(
+        private static async Task<TConditionalExpressionSyntax?> FindConditionalAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
             => await document.TryGetRelevantNodeAsync<TConditionalExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
 
@@ -45,11 +43,12 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
             var conditional = await FindConditionalAsync(document, span, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(conditional);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
 
             editor.Generator.SyntaxFacts.GetPartsOfConditionalExpression(conditional,
                 out var condition, out var whenTrue, out var whenFalse);
@@ -63,8 +62,8 @@ namespace Microsoft.CodeAnalysis.InvertConditional
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Invert_conditional, createChangedDocument, nameof(FeaturesResources.Invert_conditional))
             {
             }
         }

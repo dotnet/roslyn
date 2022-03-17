@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.MakeTypeAbstract;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpMakeTypeAbstractCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeTypeAbstract), Shared]
     internal sealed class CSharpMakeTypeAbstractCodeFixProvider : AbstractMakeTypeAbstractCodeFixProvider<TypeDeclarationSyntax>
     {
         [ImportingConstructor]
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                         typeDeclaration = null;
                         return false;
                     }
+
                     break;
 
                 case AccessorDeclarationSyntax accessor:
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeAbstract
                         typeDeclaration = null;
                         return false;
                     }
+
                     break;
 
                 default:

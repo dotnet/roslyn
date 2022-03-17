@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class DoStatementSyntax
     {
         public DoStatementSyntax Update(SyntaxToken doKeyword, StatementSyntax statement, SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
+            => Update(AttributeLists, doKeyword, statement, whileKeyword, openParenToken, condition, closeParenToken, semicolonToken);
     }
 }
 

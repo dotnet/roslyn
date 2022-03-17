@@ -182,6 +182,25 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             }
         }
 
+        public void AddRange(in TemporaryArray<T> items)
+        {
+            if (_count + items.Count <= InlineCapacity)
+            {
+                foreach (var item in items)
+                {
+                    // Increase _count before assigning values since the indexer has a bounds check.
+                    _count++;
+                    this[_count - 1] = item;
+                }
+            }
+            else
+            {
+                MoveInlineToBuilder();
+                foreach (var item in items)
+                    _builder.Add(item);
+            }
+        }
+
         public void Clear()
         {
             if (_builder is not null)
@@ -267,6 +286,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         private static void ThrowIndexOutOfRangeException()
             => throw new IndexOutOfRangeException();
 
+        [NonCopyable]
         public struct Enumerator
         {
             private readonly TemporaryArray<T> _array;

@@ -17,6 +17,11 @@
         <target state="translated">不要なインポートの削除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">オブジェクトの作成を簡略化</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

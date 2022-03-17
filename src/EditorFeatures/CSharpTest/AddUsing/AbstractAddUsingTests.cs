@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
     public abstract class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        public AbstractAddUsingTests(ITestOutputHelper logger = null)
+        protected AbstractAddUsingTests(ITestOutputHelper logger = null)
             : base(logger)
         {
         }

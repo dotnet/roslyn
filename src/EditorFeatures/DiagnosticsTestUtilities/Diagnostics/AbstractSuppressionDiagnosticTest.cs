@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractSuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
-        public AbstractSuppressionDiagnosticTest(ITestOutputHelper logger = null)
+        protected AbstractSuppressionDiagnosticTest(ITestOutputHelper logger = null)
             : base(logger)
         {
         }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
             return await GetDiagnosticAndFixesAsync(
                 filteredDiagnostics, wrapperCodeFixer, testDriver, document,
-                span, annotation, parameters.index);
+                span, CodeActionOptions.Default, annotation, parameters.index);
         }
     }
 }

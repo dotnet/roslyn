@@ -51,7 +51,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
 #If DEBUG Then
-                ValidateConstantValue(Me.Type, result)
+                If constantsInProgress Is Nothing OrElse
+                   constantsInProgress.IsEmpty OrElse
+                   Not constantsInProgress.AnyDependencies() Then
+                    ValidateConstantValue(Me.Type, result)
+                End If
 #End If
                 Return result
             End Get

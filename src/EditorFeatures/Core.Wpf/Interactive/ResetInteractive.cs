@@ -5,22 +5,20 @@
 #nullable disable
 
 extern alias InteractiveHost;
-
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Interactive;
+using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.InteractiveWindow;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
-using System.Collections.Generic;
-using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     /// <summary>
     /// ResetInteractive class that implements base functionality for reset interactive command.
@@ -49,8 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             {
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
-                var waitIndicator = GetWaitIndicator();
-                var waitContext = waitIndicator.StartWait(title, InteractiveEditorFeaturesResources.Building_Project, allowCancel: true, showProgress: false);
+                var uiThreadOperationExecutor = GetUIThreadOperationExecutor();
+                var context = uiThreadOperationExecutor.BeginExecute(title, EditorFeaturesWpfResources.Building_Project, allowCancellation: true, showProgress: false);
 
                 var resetInteractiveTask = ResetInteractiveAsync(
                     interactiveWindow,
@@ -60,13 +58,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     projectNamespaces,
                     projectDirectory,
                     platform,
-                    waitContext);
+                    context);
 
                 // Once we're done resetting, dismiss the wait indicator and focus the REPL window.
                 return resetInteractiveTask.SafeContinueWith(
                     _ =>
                     {
-                        waitContext.Dispose();
+                        context.Dispose();
                         ExecutionCompleted?.Invoke(this, new EventArgs());
                     },
                     TaskScheduler.FromCurrentSynchronizationContext());
@@ -83,14 +81,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             ImmutableArray<string> projectNamespaces,
             string projectDirectory,
             InteractiveHostPlatform? platform,
-            IWaitContext waitContext)
+            IUIThreadOperationContext uiThreadOperationContext)
         {
             // First, open the repl window.
             var evaluator = (IResettableInteractiveEvaluator)interactiveWindow.Evaluator;
 
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
-            using (waitContext.CancellationToken.Register(() =>
+            using (uiThreadOperationContext.UserCancellationToken.Register(() =>
                 CancelBuildProject(), useSynchronizationContext: true))
             {
                 // First, start a build.
@@ -103,15 +101,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
 
             // Then reset the REPL
-            waitContext.Message = InteractiveEditorFeaturesResources.Resetting_Interactive;
+            using var scope = uiThreadOperationContext.AddScope(allowCancellation: true, EditorFeaturesWpfResources.Resetting_Interactive);
             evaluator.ResetOptions = new InteractiveEvaluatorResetOptions(platform);
             await interactiveWindow.Operations.ResetAsync(initialize: true).ConfigureAwait(true);
 
             // TODO: load context from an rsp file.
 
             // Now send the reference paths we've collected to the repl.
-            // The SetPathsAsync method is not available through an Interface.
-            // Execute the method only if the cast to a concrete InteractiveEvaluator succeeds.
             await evaluator.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
             var editorOptions = _editorOptionsFactoryService.GetOptions(interactiveWindow.CurrentLanguageBuffer);
@@ -153,6 +149,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         /// </summary>
         protected abstract void CancelBuildProject();
 
-        protected abstract IWaitIndicator GetWaitIndicator();
+        protected abstract IUIThreadOperationExecutor GetUIThreadOperationExecutor();
     }
 }

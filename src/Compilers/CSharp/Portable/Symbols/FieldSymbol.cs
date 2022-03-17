@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.RuntimeMembers;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -327,22 +329,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
             }
 
-            return this.OriginalDefinition.GetUseSiteDiagnostic();
+            return this.OriginalDefinition.GetUseSiteInfo();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref UseSiteInfo<AssemblySymbol> result)
         {
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile))
+            if (DeriveUseSiteInfoFromType(ref result, this.TypeWithAnnotations, AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile))
             {
                 return true;
             }
@@ -352,10 +354,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
+                DiagnosticInfo diagnosticInfo = result.DiagnosticInfo;
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes))
                 {
+                    result = result.AdjustDiagnosticInfo(diagnosticInfo);
                     return true;
                 }
+
+                result = result.AdjustDiagnosticInfo(diagnosticInfo);
             }
 
             return false;
@@ -376,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
+                DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
                 return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
@@ -401,6 +407,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
+                return TupleElementIndex >= 0;
+            }
+        }
+
+        public virtual bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol));
                 return false;
             }
         }
@@ -414,6 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!(this is TupleElementFieldSymbol));
                 return ContainingType.IsTupleType ? this : null;
             }
         }
@@ -426,7 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return null;
+                Debug.Assert(!(this is TupleElementFieldSymbol));
+                return TupleElementIndex >= 0 ? this : null;
             }
         }
 
@@ -447,7 +465,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return -1;
+                // wrapped tuple fields already have this information and override this property
+                Debug.Assert(!(this is TupleElementFieldSymbol or TupleErrorFieldSymbol or Retargeting.RetargetingFieldSymbol));
+                if (!ContainingType.IsTupleType)
+                {
+                    return -1;
+                }
+
+                if (!ContainingType.IsDefinition)
+                {
+                    return this.OriginalDefinition.TupleElementIndex;
+                }
+
+                var tupleElementPosition = NamedTypeSymbol.MatchesCanonicalTupleElementName(Name);
+                int arity = ContainingType.Arity;
+                if (tupleElementPosition <= 0 || tupleElementPosition > arity)
+                {
+                    // ex: no "Item2" in 'ValueTuple<T1>'
+                    return -1;
+                }
+                Debug.Assert(tupleElementPosition < NamedTypeSymbol.ValueTupleRestPosition);
+
+                WellKnownMember wellKnownMember = NamedTypeSymbol.GetTupleTypeMember(arity, tupleElementPosition);
+                MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
+                Symbol found = CSharpCompilation.GetRuntimeMember(ImmutableArray.Create<Symbol>(this), descriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
+                    accessWithinOpt: null); // force lookup of public members only
+
+                return found is not null
+                    ? tupleElementPosition - 1
+                    : -1;
             }
         }
 

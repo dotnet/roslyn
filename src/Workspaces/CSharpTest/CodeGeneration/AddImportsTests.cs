@@ -8,10 +8,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -51,15 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     });
                 doc = doc.WithSyntaxRoot(root);
             }
+
             return doc;
         }
 
         private static Task TestNoImportsAddedAsync(
             string initialText,
-            bool useSymbolAnnotations,
-            Func<OptionSet, OptionSet> optionsTransform = null)
+            bool useSymbolAnnotations)
         {
-            return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, optionsTransform, performCheck: false);
+            return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, performCheck: false);
         }
 
         private static async Task TestAsync(
@@ -67,31 +67,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             string importsAddedText,
             string simplifiedText,
             bool useSymbolAnnotations,
-            Func<OptionSet, OptionSet> optionsTransform = null,
+            bool placeSystemNamespaceFirst = true,
+            bool placeImportsInsideNamespaces = false,
             bool performCheck = true)
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
-            OptionSet options = await doc.GetOptionsAsync();
-            if (optionsTransform != null)
-            {
-                options = optionsTransform(options);
-            }
+
+            var addImportOptions = new AddImportPlacementOptions(
+                PlaceSystemNamespaceFirst: placeSystemNamespaceFirst,
+                PlaceImportsInsideNamespaces: placeImportsInsideNamespaces,
+                AllowInHiddenRegions: false);
 
             var imported = useSymbolAnnotations
-                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, options)
-                : await ImportAdder.AddImportsFromSyntaxesAsync(doc, options);
+                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)
+                : await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None);
 
             if (importsAddedText != null)
             {
-                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options);
+                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation);
                 var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(importsAddedText, actualText);
             }
 
             if (simplifiedText != null)
             {
-                var reduced = await Simplifier.ReduceAsync(imported, options);
-                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options);
+                var reduced = await Simplifier.ReduceAsync(imported);
+                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation);
 
                 var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(simplifiedText, actualText);
@@ -189,7 +190,7 @@ class C
     public List<int> F;
 }",
                 useSymbolAnnotations,
-                options => options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
+                placeSystemNamespaceFirst: false
 );
         }
 
@@ -797,10 +798,12 @@ class C
             editor.AddAttribute(p1SyntaxNode, attributeSyntax);
             var documentWithAttribute = editor.GetChangedDocument();
 
+            var addImportOptions = new AddImportPlacementOptions();
+
             // Add namespace import.
             var imported = useSymbolAnnotations
-                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, null, CancellationToken.None).ConfigureAwait(false)
-                : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, null, CancellationToken.None).ConfigureAwait(false);
+                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false)
+                : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false);
 
             var formatted = await Formatter.FormatAsync(imported, options);
             var actualText = (await formatted.GetTextAsync()).ToString();
@@ -1204,6 +1207,108 @@ namespace N
         public static void M1(this int a){}
     }
 }", useSymbolAnnotations: true);
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"namespace N
+{
+    class C
+    {
+        public System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace N
+{
+    using System.Collections.Generic;
+
+    class C
+    {
+        public System.Collections.Generic.List<int> F;
+    }
+}",
+
+@"namespace N
+{
+    using System.Collections.Generic;
+
+    class C
+    {
+        public List<int> F;
+    }
+}", useSymbolAnnotations, placeImportsInsideNamespaces: true);
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace_NoNamespace(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"class C
+{
+    public System.Collections.Generic.List<int> F;
+}",
+
+@"using System.Collections.Generic;
+
+class C
+{
+    public System.Collections.Generic.List<int> F;
+}",
+
+@"using System.Collections.Generic;
+
+class C
+{
+    public List<int> F;
+}", useSymbolAnnotations, placeImportsInsideNamespaces: true);
+        }
+
+        [Theory, MemberData(nameof(TestAllData))]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestAddImport_InsideNamespace_MultipleNamespaces(bool useSymbolAnnotations)
+        {
+            await TestAsync(
+@"namespace N1
+{
+    namespace N2
+    {
+        class C
+        {
+            public System.Collections.Generic.List<int> F;
+        }
+    }
+}",
+
+@"namespace N1
+{
+    namespace N2
+    {
+        using System.Collections.Generic;
+
+        class C
+        {
+            public System.Collections.Generic.List<int> F;
+        }
+    }
+}",
+
+@"namespace N1
+{
+    namespace N2
+    {
+        using System.Collections.Generic;
+
+        class C
+        {
+            public List<int> F;
+        }
+    }
+}", useSymbolAnnotations, placeImportsInsideNamespaces: true);
         }
 
         #endregion

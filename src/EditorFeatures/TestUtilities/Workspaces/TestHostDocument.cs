@@ -4,9 +4,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -36,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private TestHostProject? _project;
 
         /// <summary>
-        /// The <see cref="ITextBuffer"/> for this document. Null if not yet created.
+        /// The <see cref="ITextBuffer2"/> for this document. Null if not yet created.
         /// </summary>
-        private ITextBuffer? _textBuffer;
+        private ITextBuffer2? _textBuffer;
 
         /// <summary>
         /// The <see cref="ITextSnapshot"/> when the buffer was first created, which can be used for tracking changes to the current buffer.
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     var workspace = _languageServiceProvider!.WorkspaceServices.Workspace;
                     var project = workspace.CurrentSolution.GetRequiredProject(_project!.Id);
-                    var sourceGeneratedDocuments = project.GetSourceGeneratedDocumentsAsync(CancellationToken.None).Result;
+                    var sourceGeneratedDocuments = project.GetSourceGeneratedDocumentsAsync(CancellationToken.None).AsTask().Result;
                     _id = sourceGeneratedDocuments.Single(d => d.FilePath == this.FilePath).Id;
                 }
 
@@ -94,9 +96,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public bool IsLinkFile { get; }
 
         /// <summary>
+        /// If this is a source generated file, the source generator that produced this document.
+        /// </summary>
+        public ISourceGenerator? Generator;
+
+        /// <summary>
         /// Returns true if this will be a source generated file instead of a regular one.
         /// </summary>
-        public bool IsSourceGenerated { get; }
+        [MemberNotNullWhen(true, nameof(Generator))]
+        public bool IsSourceGenerated => Generator is not null;
 
         internal TestHostDocument(
             ExportProvider exportProvider,
@@ -111,8 +119,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             bool isLinkFile = false,
             IDocumentServiceProvider? documentServiceProvider = null,
             ImmutableArray<string> roles = default,
-            ITextBuffer? textBuffer = null,
-            bool isSourceGenerated = false)
+            ITextBuffer2? textBuffer = null,
+            ISourceGenerator? generator = null)
         {
             Contract.ThrowIfNull(filePath);
 
@@ -125,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.CursorPosition = cursorPosition;
             SourceCodeKind = sourceCodeKind;
             this.IsLinkFile = isLinkFile;
-            IsSourceGenerated = isSourceGenerated;
+            Generator = generator;
             _documentServiceProvider = documentServiceProvider;
             _roles = roles.IsDefault ? s_defaultRoles : roles;
 
@@ -237,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return _textView;
         }
 
-        public ITextBuffer GetTextBuffer()
+        public ITextBuffer2 GetTextBuffer()
         {
             var workspace = (TestWorkspace?)_languageServiceProvider?.WorkspaceServices.Workspace;
 
@@ -261,8 +269,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     {
                         if (!workspace.IsDocumentOpen(linkedId))
                         {
-                            // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
-                            workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
+                            if (testDocument.IsSourceGenerated)
+                            {
+                                var threadingContext = workspace.GetService<IThreadingContext>();
+                                var document = threadingContext.JoinableTaskFactory.Run(() => workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(testDocument.Id, CancellationToken.None).AsTask());
+                                Contract.ThrowIfNull(document);
+
+                                workspace.OnSourceGeneratedDocumentOpened(_textBuffer.AsTextContainer(), document);
+                            }
+                            else
+                            {
+                                // If there is a linked file, we'll start the non-linked one as being the primary context, which some tests depend on.
+                                workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
+                            }
                         }
                     }
                 }

@@ -33,17 +33,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             await VerifyAtPositionAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags);
 
             await VerifyAtEndOfFileAsync(
                 code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
-                matchingFilters, flags);
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
+                isComplexTextEdit, matchingFilters, flags);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
@@ -52,12 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 await VerifyAtPosition_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters);
+                    displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
 
                 await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
                     code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                     sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                    inlineDescription, matchingFilters);
+                    displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters);
             }
         }
 
@@ -439,7 +440,7 @@ class C
 class C
 {
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, ExportProvider);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider: ExportProvider);
             var called = false;
 
             var hostDocument = workspace.DocumentWithCursor;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.MSBuild.Logging;
@@ -17,12 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override string Language
-        {
-            get { return LanguageNames.CSharp; }
-        }
+        public override string Language => LanguageNames.CSharp;
 
-        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project project, ProjectBuildManager buildManager, DiagnosticLog log)
+        protected override ProjectFile CreateProjectFile(MSB.Evaluation.Project? project, ProjectBuildManager buildManager, DiagnosticLog log)
         {
             return new CSharpProjectFile(this, project, buildManager, log);
         }

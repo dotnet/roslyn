@@ -97,6 +97,11 @@
         <target state="translated">Stili di denominazione</target>
         <note />
       </trans-unit>
+      <trans-unit id="New_line_preferences">
+        <source>New line preferences</source>
+        <target state="translated">Preferenze per nuova riga</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Non_Field_Members">
         <source>Non-Field Members</source>
         <target state="translated">Membri non di campo</target>

@@ -8,6 +8,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Editor.Commanding;
 using Microsoft.VisualStudio.LanguageServices;
+using Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
 namespace Microsoft.VisualStudio.Editor.Implementation
 {
@@ -28,5 +29,9 @@ namespace Microsoft.VisualStudio.Editor.Implementation
         [Export]
         [CommandBinding(Guids.CSharpGroupIdString, ID.CSharpCommands.ContextOrganizeRemoveAndSort, typeof(SortAndRemoveUnnecessaryImportsCommandArgs))]
         internal CommandBindingDefinition contextOrganizeRemoveAndSortCommandBinding;
+
+        [Export]
+        [CommandBinding(Guids.RoslynGroupIdString, ID.RoslynCommands.GoToValueTrackingWindow, typeof(ValueTrackingEditorCommandArgs))]
+        internal CommandBindingDefinition gotoDataFlowToolCommandBinding;
     }
 }

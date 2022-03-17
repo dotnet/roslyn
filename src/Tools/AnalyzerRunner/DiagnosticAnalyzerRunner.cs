@@ -42,7 +42,7 @@ namespace AnalyzerRunner
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId)!;
-                if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     continue;
 
                 var modifiedSpecificDiagnosticOptions = project.CompilationOptions.SpecificDiagnosticOptions
@@ -93,7 +93,7 @@ namespace AnalyzerRunner
                 // Make sure we have a compilation for each project
                 foreach (var project in solution.Projects)
                 {
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                         continue;
 
                     _ = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -104,7 +104,7 @@ namespace AnalyzerRunner
                 foreach (var projectId in solution.ProjectIds)
                 {
                     var project = solution.GetProject(projectId);
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     {
                         continue;
                     }
@@ -186,7 +186,7 @@ namespace AnalyzerRunner
             var stopwatch = PerformanceTracker.StartNew();
             for (int i = 0; i < analyzerOptionsInternal.TestDocumentIterations; i++)
             {
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, analyzerOptionsInternal.IdeOptions);
                 CompilationWithAnalyzers compilationWithAnalyzers = compilation.WithAnalyzers(languageAnalyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
 
                 SyntaxTree tree = await project.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -326,7 +326,7 @@ namespace AnalyzerRunner
                 // Make sure we analyze the projects in parallel
                 foreach (var project in solution.Projects)
                 {
-                    if (project.Language != LanguageNames.CSharp && project.Language != LanguageNames.VisualBasic)
+                    if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     {
                         continue;
                     }
@@ -393,7 +393,7 @@ namespace AnalyzerRunner
                 Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var newCompilation = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(compilation.SyntaxTrees);
 
-                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution);
+                var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution, analyzerOptionsInternal.IdeOptions);
                 CompilationWithAnalyzers compilationWithAnalyzers = newCompilation.WithAnalyzers(analyzers, new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, null, analyzerOptionsInternal.RunConcurrent, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: analyzerOptionsInternal.ReportSuppressedDiagnostics));
                 var analystResult = await compilationWithAnalyzers.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
                 return analystResult;

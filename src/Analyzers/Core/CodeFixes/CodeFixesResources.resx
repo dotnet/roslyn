@@ -147,4 +147,10 @@
   <data name="Fix_all_occurrences_in" xml:space="preserve">
     <value>Fix all occurrences in</value>
   </data>
+  <data name="Remove_extra_blank_lines" xml:space="preserve">
+    <value>Remove extra blank lines</value>
+  </data>
+  <data name="Add_blank_line_after_block" xml:space="preserve">
+    <value>Add blank line after block</value>
+  </data>
 </root>

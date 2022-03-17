@@ -4,16 +4,21 @@
 
 #nullable disable
 
+using System;
 using System.IO;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class StatementEditingTests : EditingTestBase
     {
         #region Strings
@@ -151,6 +156,56 @@ var (a1, a3) = (1, () => { return 8; });
         }
 
         [Fact]
+        public void ParenthesizedVariableDeclaration_Insert_Mixed1()
+        {
+            var src1 = @"int a; (var z1, a) = (1, 2);";
+            var src2 = @"int a; (var z1, a, var z3) = (1, 2, 5);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var z1, a) = (1, 2);]@9 -> [(var z1, a, var z3) = (1, 2, 5);]@9",
+                "Insert [z3]@25");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Insert_Mixed2()
+        {
+            var src1 = @"int a; (var z1, var z2) = (1, 2);";
+            var src2 = @"int a; (var z1, var z2, a) = (1, 2, 5);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var z1, var z2) = (1, 2);]@9 -> [(var z1, var z2, a) = (1, 2, 5);]@9");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Delete_Mixed1()
+        {
+            var src1 = @"int a; (var y1, var y2, a) = (1, 2, 7);";
+            var src2 = @"int a; (var y1, var y2) = (1, 4);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var y1, var y2, a) = (1, 2, 7);]@9 -> [(var y1, var y2) = (1, 4);]@9");
+        }
+
+        [Fact]
+        public void ParenthesizedVariableDeclaration_Delete_Mixed2()
+        {
+            var src1 = @"int a; (var y1, a, var y3) = (1, 2, 7);";
+            var src2 = @"int a; (var y1, a) = (1, 4);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(var y1, a, var y3) = (1, 2, 7);]@9 -> [(var y1, a) = (1, 4);]@9",
+                "Delete [y3]@25");
+        }
+
+        [Fact]
         public void VariableDeclaraions_Reorder()
         {
             var src1 = @"var (a, b) = (1, 2); var (c, d) = (3, 4);";
@@ -160,6 +215,18 @@ var (a1, a3) = (1, () => { return 8; });
 
             edits.VerifyEdits(
                 "Reorder [var (c, d) = (3, 4);]@23 -> @2");
+        }
+
+        [Fact]
+        public void VariableDeclaraions_Reorder_Mixed()
+        {
+            var src1 = @"int a; (a, int b) = (1, 2); (int c, int d) = (3, 4);";
+            var src2 = @"int a; (int c, int d) = (3, 4); (a, int b) = (1, 2);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Reorder [(int c, int d) = (3, 4);]@30 -> @9");
         }
 
         [Fact]
@@ -173,6 +240,18 @@ var (a1, a3) = (1, () => { return 8; });
             edits.VerifyEdits(
                 "Update [var (a, b) = (1, 2);]@2 -> [var (b, a) = (2, 1);]@2",
                 "Reorder [b]@10 -> @7");
+        }
+
+        [Fact]
+        public void VariableNames_Reorder_Mixed()
+        {
+            var src1 = @"int a; (a, int b) = (1, 2);";
+            var src2 = @"int a; (int b, a) = (2, 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(a, int b) = (1, 2);]@9 -> [(int b, a) = (2, 1);]@9");
         }
 
         [Fact]
@@ -232,7 +311,7 @@ var (a1, a3) = (1, () => { return 8; });
 
         #endregion
 
-        #region Switch
+        #region Switch Statement
 
         [Fact]
         public void Switch1()
@@ -301,6 +380,70 @@ switch(shape)
                 "Delete [case Point p:]@26",
                 "Delete [p]@37",
                 "Delete [return 0;]@40");
+        }
+
+        #endregion
+
+        #region Switch Expression
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression1()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, _ => 2 };]@18");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression2()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 1 => 0, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 1 => 0, _ => 2 };]@18");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void MethodUpdate_UpdateSwitchExpression3()
+        {
+            var src1 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, _ => 1 };
+}";
+            var src2 = @"
+class C
+{
+    static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Update [static int F(int a) => a switch { 0 => 0, _ => 1 };]@18 -> [static int F(int a) => a switch { 0 => 0, 1 => 1, _ => 2 };]@18");
+
+            edits.VerifySemanticDiagnostics();
         }
 
         #endregion
@@ -1832,6 +1975,32 @@ foreach (var (a, b) in e1) { }
         #region Lambdas
 
         [Fact]
+        public void Lambdas_AddAttribute()
+        {
+            var src1 = "Func<int, int> x = (a) => a;";
+            var src2 = "Func<int, int> x = [A][return:A]([A]a) => a;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(a) => a]@21 -> [[A][return:A]([A]a) => a]@21",
+                "Update [a]@22 -> [[A]a]@35");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.method),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "([A]a)", FeaturesResources.parameter)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            GetTopEdits(edits).VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true) },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+        }
+
+        [Fact]
         public void Lambdas_InVariableDeclarator()
         {
             var src1 = "Action x = a => a, y = b => b;";
@@ -1841,7 +2010,10 @@ foreach (var (a, b) in e1) { }
 
             edits.VerifyEdits(
                 "Update [a => a]@13 -> [(a) => a]@13",
-                "Update [b => b]@25 -> [b => b + 1]@27");
+                "Update [b => b]@25 -> [b => b + 1]@27",
+                "Insert [(a)]@13",
+                "Insert [a]@14",
+                "Delete [a]@13");
         }
 
         [Fact]
@@ -1894,7 +2066,9 @@ foreach (var (a, b) in e1) { }
 
             // changes were made to the outer lambda signature:
             edits.VerifyEdits(
-                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4");
+                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4",
+                "Insert [q]@4",
+                "Delete [()]@4");
         }
 
         [Fact]
@@ -1918,7 +2092,7 @@ foreach (var (a, b) in e1) { }
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(ref int a) => a = 1]@4 -> [(out int a) => a = 1]@4");
+                "Update [ref int a]@5 -> [out int a]@5");
         }
 
         [Fact]
@@ -1947,7 +2121,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -1981,7 +2156,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2017,7 +2193,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
@@ -2618,6 +2794,105 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Insert_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a", CSharpFeaturesResources.lambda) },
+                capabilities: EditAndContinueTestHelpers.BaselineCapabilities);
+        }
+
+        [Fact]
+        public void Lambdas_Insert_Second_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var f = new Func<int, int>(a => a);
+        var g = new Func<int, int>(b => b);
+    }
+}
+";
+            var capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.NewTypeDefinition;
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda) },
+                capabilities);
+        }
+
+        [Fact]
+        public void Lambdas_Insert_FirstInClass_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        var g = new Func<int, int>(b => b);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                // TODO: https://github.com/dotnet/roslyn/issues/52759
+                // This is incorrect, there should be no rude edit reported
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "b", CSharpFeaturesResources.lambda) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
         public void Lambdas_Update_CeaseCapture_This()
         {
             var src1 = @"
@@ -2873,6 +3148,18 @@ class C
         }
 
         [Fact]
+        public void Lambdas_Update_Signature_ReturnType2()
+        {
+            var src1 = "var x = int (int a) => a;";
+            var src2 = "var x = long (int a) => a;";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "(int a)", CSharpFeaturesResources.lambda));
+        }
+
+        [Fact]
         public void Lambdas_Update_Signature_BodySyntaxOnly()
         {
             var src1 = @"
@@ -3118,7 +3405,7 @@ class C
         }
 
         [Fact]
-        public void Lambdas_Signature_SemanticErrors()
+        public void Lambdas_Signature_MatchingErrorType()
         {
             var src1 = @"
 using System;
@@ -3148,10 +3435,49 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                semanticEdits: new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("F").Single(), preserveLocalVariables: true)
+                });
+        }
+
+        [Fact]
+        public void Lambdas_Signature_NonMatchingErrorType()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void G1(Func<Unknown1, Unknown1> f) {}
+    void G2(Func<Unknown2, Unknown2> f) {}
+
+    void F()
+    {
+        G1(a => 1);
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void G1(Func<Unknown1, Unknown1> f) {}
+    void G2(Func<Unknown2, Unknown2> f) {}
+
+    void F()
+    {
+        G2(a => 2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
             edits.VerifySemanticDiagnostics(
-                // (6,17): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
-                //     void G(Func<Unknown, Unknown> f) {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(6, 17));
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.lambda));
         }
 
         [Fact]
@@ -4726,8 +5052,57 @@ class Program
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int X", FeaturesResources.parameter));
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.Main"), preserveLocalVariables: true)
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void Lambdas_Parameter_To_Discard1()
+        {
+            var src1 = "var x = new System.Func<int, int, int>((a, b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((a, _) => 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [b]@45 -> [_]@45");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Parameter_To_Discard2()
+        {
+            var src1 = "var x = new System.Func<int, int, int>((int a, int b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((_, _) => 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int a]@42 -> [_]@42",
+                "Update [int b]@49 -> [_]@45");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Lambdas_Parameter_To_Discard3()
+        {
+            var src1 = "var x = new System.Func<int, int, int>((a, b) => 1);";
+            var src2 = "var x = new System.Func<int, int, int>((_, _) => 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [a]@42 -> [_]@42",
+                "Update [b]@45 -> [_]@45");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
         }
 
         #endregion
@@ -4745,7 +5120,10 @@ class Program
             edits.VerifyEdits(
                 "Update [a => a]@4 -> [int x(int a) => a + 1;]@2",
                 "Move [a => a]@4 -> @2",
-                "Update [F(a => a, b => b);]@2 -> [F(b => b, x);]@25");
+                "Update [F(a => a, b => b);]@2 -> [F(b => b, x);]@25",
+                "Insert [(int a)]@7",
+                "Insert [int a]@8",
+                "Delete [a]@4");
         }
 
         [Fact]
@@ -4774,7 +5152,10 @@ class Program
                 "Update [int x(int a) => a + 1;]@28 -> [a => a]@11",
                 "Move [int x(int a) => a + 1;]@28 -> @11",
                 "Move [{ /*1*/ }]@5 -> @20",
-                "Delete [do { /*1*/ } while (F(x));]@2");
+                "Insert [a]@11",
+                "Delete [do { /*1*/ } while (F(x));]@2",
+                "Delete [(int a)]@33",
+                "Delete [int a]@34");
         }
 
         [Fact]
@@ -4796,8 +5177,7 @@ class Program
 
             var edits = GetMethodEdits(src1, src2);
             // changes were made to the outer local function signature:
-            edits.VerifyEdits(
-                "Update [int x() { int y(int a) => a; return y(b); }]@2 -> [int x(int z) { int y() => c; return y(); }]@2");
+            edits.VerifyEdits("Insert [int z]@8");
         }
 
         [Fact]
@@ -4809,7 +5189,9 @@ class Program
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [() => { int y(int a) => a; G(y); }]@4 -> [q => { G(() => y); }]@4");
+                "Update [() => { int y(int a) => a; G(y); }]@4 -> [q => { G(() => y); }]@4",
+                "Insert [q]@4",
+                "Delete [()]@4");
         }
 
         [Fact]
@@ -4821,7 +5203,7 @@ class Program
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [void f(ref int a) => a = 1;]@2 -> [void f(out int a) => a = 1;]@2");
+                "Update [ref int a]@9 -> [out int a]@9");
         }
 
         [Fact]
@@ -4850,7 +5232,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -4887,7 +5270,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -4924,7 +5308,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -5031,7 +5416,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            // TODO: allow creating a new leaf closure
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.CapturingVariable, "F", "this"));
         }
@@ -5293,7 +5678,6 @@ class C
             int f0(int a) => x0;
             int f1(int a) => x1;
 
-            int f0(int a) => x0;
             int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
         }
     }
@@ -5427,6 +5811,39 @@ class C
 
             edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
+        }
+
+        [Fact]
+        public void LocalFunctions_Insert_NotSupported()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+    }
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    void F()
+    {
+        void M()
+        {
+        }
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "M", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
@@ -5618,7 +6035,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6730,8 +7148,58 @@ class Program
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Renamed, "int X", FeaturesResources.parameter));
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.Main"), preserveLocalVariables: true)
+                },
+                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+        }
+
+        [Fact]
+        public void LocalFunctions_Update()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        N(3);
+        
+        void N(int x)
+        {
+            if (x > 3)
+            {
+                x.ToString();
+            }
+            else
+            {
+                N(x - 1);
+            }
+        }
+    }
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        N(3);
+        
+        void N(int x)
+        {
+            Console.WriteLine(""Hello"");
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -6745,7 +7213,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6759,7 +7228,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "local", CSharpFeaturesResources.local_function));
         }
 
         [Fact]
@@ -6773,7 +7243,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "local", CSharpFeaturesResources.local_function));
         }
 
         [Fact]
@@ -6787,7 +7258,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6801,7 +7273,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "local", CSharpFeaturesResources.local_function));
         }
 
         [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
@@ -6845,11 +7318,11 @@ interface I
             // lambdas are ok as they are emitted to a nested type
             edits.VerifySemanticDiagnostics(
                 targetFrameworks: new[] { TargetFramework.NetCoreApp },
-                expectedDiagnostics: new[]
+                diagnostics: new[]
                 {
-                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1"),
-                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2"),
-                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3")
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f1", CSharpFeaturesResources.local_function),
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f2", CSharpFeaturesResources.local_function),
+                    Diagnostic(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, "f3", CSharpFeaturesResources.local_function)
                 });
         }
 
@@ -6864,7 +7337,7 @@ interface I
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { static int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -6878,7 +7351,7 @@ interface I
             edits.VerifyEdits(
                 "Update [void M() { static int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -6892,7 +7365,7 @@ interface I
             edits.VerifyEdits(
                 "Update [void M() { int local() { throw null; } }]@13 -> [void M() { unsafe int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -6906,7 +7379,7 @@ interface I
             edits.VerifyEdits(
                 "Update [void M() { unsafe int local() { throw null; } }]@13 -> [void M() { int local() { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -6917,7 +7390,7 @@ interface I
             var src2 = @"class Test { void M() { async Task<int> local() => throw null; } }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -6929,8 +7402,414 @@ interface I
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "local", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunction_AddAttribute()
+        {
+            var src1 = "void L() { }";
+            var src2 = "[A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [void L() { }]@2 -> [[A]void L() { }]@2");
+
+            // Get top edits so we can validate rude edits
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_RemoveAttribute()
+        {
+            var src1 = "[A]void L() { }";
+            var src2 = "void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A]void L() { }]@2 -> [void L() { }]@2");
+
+            // Get top edits so we can validate rude edits
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_ReorderAttribute()
+        {
+            var src1 = "[A, B]void L() { }";
+            var src2 = "[B, A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[A, B]void L() { }]@2 -> [[B, A]void L() { }]@2");
+
+            // Get top edits so we can validate rude edits
+            GetTopEdits(edits).VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_CombineAttributeLists()
+        {
+            var src1 = "[A][B]void L() { }";
+            var src2 = "[A, B]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A][B]void L() { }]@2 -> [[A, B]void L() { }]@2");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_SplitAttributeLists()
+        {
+            var src1 = "[A, B]void L() { }";
+            var src2 = "[A][B]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A, B]void L() { }]@2 -> [[A][B]void L() { }]@2");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_ChangeAttributeListTarget1()
+        {
+            var src1 = "[return: A]void L() { }";
+            var src2 = "[A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[return: A]void L() { }]@2 -> [[A]void L() { }]@2");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_ChangeAttributeListTarget2()
+        {
+            var src1 = "[A]void L() { }";
+            var src2 = "[return: A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[A]void L() { }]@2 -> [[return: A]void L() { }]@2");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_AddAttribute()
+        {
+            var src1 = "int L() { return 1; }";
+            var src2 = "[return: A]int L() { return 1; }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int L() { return 1; }]@2 -> [[return: A]int L() { return 1; }]@2");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_RemoveAttribute()
+        {
+            var src1 = "[return: A]int L() { return 1; }";
+            var src2 = "int L() { return 1; }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[return: A]int L() { return 1; }]@2 -> [int L() { return 1; }]@2");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.local_function) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_ReorderAttribute()
+        {
+            var src1 = "[return: A, B]int L() { return 1; }";
+            var src2 = "[return: B, A]int L() { return 1; }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[return: A, B]int L() { return 1; }]@2 -> [[return: B, A]int L() { return 1; }]@2");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_AddAttribute()
+        {
+            var src1 = "void L(int i) { }";
+            var src2 = "void L([A]int i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int i]@9 -> [[A]int i]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_RemoveAttribute()
+        {
+            var src1 = "void L([A]int i) { }";
+            var src2 = "void L(int i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A]int i]@9 -> [int i]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_ReorderAttribute()
+        {
+            var src1 = "void L([A, B]int i) { }";
+            var src2 = "void L([B, A]int i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[A, B]int i]@9 -> [[B, A]int i]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_AddAttribute()
+        {
+            var src1 = "void L<T>(T i) { }";
+            var src2 = "void L<[A] T>(T i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [T]@9 -> [[A] T]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.type_parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_RemoveAttribute()
+        {
+            var src1 = "void L<[A] T>(T i) { }";
+            var src2 = "void L<T>(T i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A] T]@9 -> [T]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "L", FeaturesResources.type_parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_ReorderAttribute()
+        {
+            var src1 = "void L<[A, B] T>(T i) { }";
+            var src2 = "void L<[B, A] T>(T i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[A, B] T]@9 -> [[B, A] T]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Insert1()
+        {
+            var src1 = @"void L() {}";
+            var src2 = @"void L<A>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Insert [<A>]@8",
+                "Insert [A]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Insert2()
+        {
+            var src1 = @"void L<A>() {}";
+            var src2 = @"void L<A,B>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [<A>]@8 -> [<A,B>]@8",
+                "Insert [B]@11");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Delete1()
+        {
+            var src1 = @"void L<A>() {}";
+            var src2 = @"void L() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Delete [<A>]@8",
+                "Delete [A]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Delete2()
+        {
+            var src1 = @"void L<A,B>() {}";
+            var src2 = @"void L<B>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [<A,B>]@8 -> [<B>]@8",
+                "Delete [A]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Update()
+        {
+            var src1 = @"void L<A>() {}";
+            var src2 = @"void L<B>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [A]@9 -> [B]@9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Theory]
+        [InlineData("Enum", "Delegate")]
+        [InlineData("IDisposable", "IDisposable, new()")]
+        public void LocalFunctions_TypeParameter_Constraint_Clause_Update(string oldConstraint, string newConstraint)
+        {
+            var src1 = "void L<A>() where A : " + oldConstraint + " {}";
+            var src2 = "void L<A>() where A : " + newConstraint + " {}";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [where A : " + oldConstraint + "]@14 -> [where A : " + newConstraint + "]@14");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Theory]
+        [InlineData("nonnull")]
+        [InlineData("struct")]
+        [InlineData("class")]
+        [InlineData("new()")]
+        [InlineData("unmanaged")]
+        [InlineData("System.IDisposable")]
+        [InlineData("System.Delegate")]
+        public void LocalFunctions_TypeParameter_Constraint_Clause_Delete(string oldConstraint)
+        {
+            var src1 = "void L<A>() where A : " + oldConstraint + " {}";
+            var src2 = "void L<A>() {}";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [where A : " + oldConstraint + "]@14");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Constraint_Clause_Add()
+        {
+            var src1 = "void L<A,B>() where A : new() {}";
+            var src2 = "void L<A,B>() where A : new() where B : System.IDisposable {}";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [where B : System.IDisposable]@32");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Reorder()
+        {
+            var src1 = @"void L<A,B>() {}";
+            var src2 = @"void L<B,A>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Reorder [B]@11 -> @9");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_ReorderAndUpdate()
+        {
+            var src1 = @"void L<A,B>() {}";
+            var src2 = @"void L<B,C>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Reorder [B]@11 -> @9",
+                "Update [A]@9 -> [C]@11");
+
+            GetTopEdits(edits).VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
         #endregion
@@ -7408,6 +8287,87 @@ class C
     void F()
     {
         var result = from a in new[] {1} group a by a + 1.0 into z select z;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.groupby_clause));
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_GroupBy_MatchingErrorTypes()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown G1(int a) => null;
+    Unknown G2(int a) => null;
+
+    void F()
+    {
+        var result = from a in new[] {1} group G1(a) by a into z select z;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown G1(int a) => null;
+    Unknown G2(int a) => null;
+    
+    void F()
+    {
+        var result = from a in new[] {1} group G2(a) by a into z select z;
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Queries_Update_Signature_GroupBy_NonMatchingErrorTypes()
+        {
+            var src1 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown1 G1(int a) => null;
+    Unknown2 G2(int a) => null;
+
+    void F()
+    {
+        var result = from a in new[] {1} group G1(a) by a into z select z;
+    }
+}
+";
+            var src2 = @"
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    Unknown1 G1(int a) => null;
+    Unknown2 G2(int a) => null;
+    
+    void F()
+    {
+        var result = from a in new[] {1} group G2(a) by a into z select z;
     }
 }
 ";
@@ -8211,7 +9171,8 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
@@ -8245,7 +9206,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield break;", CSharpFeaturesResources.yield_return_statement, CSharpFeaturesResources.yield_break_statement),
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "yield return 4;", CSharpFeaturesResources.yield_break_statement, CSharpFeaturesResources.yield_return_statement));
         }
@@ -8295,7 +9256,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.yield_return_statement));
         }
 
@@ -8347,7 +9308,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "yield return 4;", CSharpFeaturesResources.yield_return_statement),
                 Diagnostic(RudeEditKind.Insert, "yield return 2;", CSharpFeaturesResources.yield_return_statement));
         }
@@ -8379,14 +9340,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                null,
-                null,
-                null,
-                null,
-                new[]
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore },
+                diagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
                 });
@@ -8419,13 +9375,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                edits,
-                ActiveStatementsDescription.Empty,
-                null,
-                null,
-                null,
-                null);
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
@@ -8489,7 +9441,7 @@ class C
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         /// <summary>
@@ -8533,7 +9485,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             // consider: these edits can be allowed if we get more sophisticated
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "F(2, await F(1));"),
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "F(1, await F(2));"),
                 Diagnostic(RudeEditKind.AwaitStatementUpdate, "F(await F(2));"),
@@ -8596,7 +9548,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "F(2);", CSharpFeaturesResources.await_expression));
         }
 
@@ -8623,7 +9575,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "await F(1);", CSharpFeaturesResources.await_expression));
         }
 
@@ -8644,7 +9596,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
@@ -8665,7 +9617,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "static async Task<int> F()", CSharpFeaturesResources.await_expression));
         }
 
@@ -8692,7 +9644,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var x in G())", CSharpFeaturesResources.foreach_statement));
         }
 
@@ -8719,7 +9671,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "foreach (var (x, y) in G())", CSharpFeaturesResources.foreach_statement));
         }
 
@@ -8745,7 +9697,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
                 Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_foreach_statement));
         }
 
@@ -8772,7 +9724,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
                 Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
@@ -8799,7 +9751,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
                 Diagnostic(RudeEditKind.Delete, "await using", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
@@ -8825,7 +9777,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
                 Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration),
                 Diagnostic(RudeEditKind.Delete, "{", CSharpFeaturesResources.asynchronous_using_declaration));
         }
@@ -8853,7 +9805,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(ActiveStatementsDescription.Empty,
+            edits.VerifySemanticDiagnostics(ActiveStatementsDescription.Empty,
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration),
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "using", CSharpFeaturesResources.using_declaration));
         }
@@ -8908,7 +9860,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression),
                 Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
         }
@@ -8938,7 +9890,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.await_expression),
                 Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression),
                 Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression),
@@ -8962,7 +9914,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
         }
 
@@ -8983,7 +9935,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -9010,7 +9963,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             // ok to add awaits if there were none before and no active statements
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -9040,7 +9994,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "await", "await"));
         }
 
@@ -9067,7 +10021,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "y = new D()", CSharpFeaturesResources.asynchronous_using_declaration));
         }
 
@@ -9096,7 +10050,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "await", "await"));
         }
 
@@ -9134,7 +10088,7 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "await foreach (var x in G()) { }", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_foreach_statement),
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "x = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
                 Diagnostic(RudeEditKind.ChangingStateMachineShape, "y = new D()", CSharpFeaturesResources.await_expression, CSharpFeaturesResources.asynchronous_using_declaration),
@@ -9172,9 +10126,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(
+            edits.VerifySemanticDiagnostics(
                 targetFrameworks: new[] { TargetFramework.MinimalAsync },
-                expectedDiagnostics: new[]
+                diagnostics: new[]
                 {
                     Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static async Task<int> F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")
                 });
@@ -9208,7 +10162,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(targetFrameworks: new[] { TargetFramework.MinimalAsync });
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.MinimalAsync },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -9817,6 +10773,121 @@ int G1(int[] p) { return p[2]; }
                 "Update [(int, int) x]@35 -> [(int, int) y]@35");
         }
 
-        #endregion 
+        #endregion
+
+        #region With Expressions
+
+        [Fact]
+        public void WithExpression_PropertyAdd()
+        {
+            var src1 = @"var x = y with { X = 1 };";
+            var src2 = @"var x = y with { X = 1, Y = 2 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1 }]@6 -> [x = y with { X = 1, Y = 2 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyDelete()
+        {
+            var src1 = @"var x = y with { X = 1, Y = 2 };";
+            var src2 = @"var x = y with { X = 1 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 2 }]@6 -> [x = y with { X = 1 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyChange()
+        {
+            var src1 = @"var x = y with { X = 1 };";
+            var src2 = @"var x = y with { Y = 1 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1 }]@6 -> [x = y with { Y = 1 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyValueChange()
+        {
+            var src1 = @"var x = y with { X = 1, Y = 1 };";
+            var src2 = @"var x = y with { X = 1, Y = 2 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 1 }]@6 -> [x = y with { X = 1, Y = 2 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyValueReorder()
+        {
+            var src1 = @"var x = y with { X = 1, Y = 1 };";
+            var src2 = @"var x = y with { Y = 1, X = 1 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 1 }]@6 -> [x = y with { Y = 1, X = 1 }]@6");
+        }
+
+        #endregion
+
+        #region Top Level Statements
+
+        [Fact]
+        public void TopLevelStatement_CaptureArgs()
+        {
+            var src1 = @"
+using System;
+
+var x = new Func<string>(() => ""Hello"");
+
+Console.WriteLine(x());
+";
+            var src2 = @"
+using System;
+
+var x = new Func<string>(() => ""Hello"" + args[0]);
+
+Console.WriteLine(x());
+";
+            var edits = GetTopEdits(src1, src2);
+
+            // TODO: allow creating a new leaf closure: https://github.com/dotnet/roslyn/issues/54672
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.CapturingVariable, "using System;\r\n\r\nvar x = new Func<string>(() => \"Hello\" + args[0]);\r\n\r\nConsole.WriteLine(x());\r\n", "args"));
+        }
+
+        [Fact, WorkItem(21499, "https://github.com/dotnet/roslyn/issues/21499")]
+        public void TopLevelStatement_InsertMultiScopeCapture()
+        {
+            var src1 = @"
+using System;
+
+foreach (int x0 in new[] { 1 })  // Group #0
+{                                // Group #1
+    int x1 = 0;
+
+    int f0(int a) => x0;
+    int f1(int a) => x1;
+}
+";
+            var src2 = @"
+using System;
+
+foreach (int x0 in new[] { 1 })  // Group #0
+{                                // Group #1
+    int x1 = 0;                  
+
+    int f0(int a) => x0;
+    int f1(int a) => x1;
+
+    int f2(int a) => x0 + x1;   // error: connecting previously disconnected closures
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertLambdaWithMultiScopeCapture, "x1", CSharpFeaturesResources.local_function, "x0", "x1"));
+        }
+
+        #endregion
     }
 }

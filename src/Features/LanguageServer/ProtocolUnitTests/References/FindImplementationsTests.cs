@@ -31,10 +31,10 @@ class A : IA
     {
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
-            AssertLocationsEqual(locations["implementation"], results);
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
         [Fact]
@@ -60,10 +60,10 @@ class A : IA
 }"
             };
 
-            using var workspace = CreateTestWorkspace(markups, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markups);
 
-            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
-            AssertLocationsEqual(locations["implementation"], results);
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
         [Fact]
@@ -80,12 +80,12 @@ class A : IA
     {
     }
 }";
-            using var workspace = CreateTestWorkspace(string.Empty, out var _);
+            using var testLspServer = await CreateTestLspServerAsync(string.Empty);
 
-            AddMappedDocument(workspace, markup);
+            AddMappedDocument(testLspServer.TestWorkspace, markup);
 
             var position = new LSP.Position { Line = 2, Character = 9 };
-            var results = await RunFindImplementationAsync(workspace.CurrentSolution, new LSP.Location
+            var results = await RunFindImplementationAsync(testLspServer, new LSP.Location
             {
                 Uri = new Uri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
@@ -104,9 +104,9 @@ class A : IA
         {|caret:|}
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 
@@ -119,17 +119,38 @@ class A : IA
 class {|implementation:B|} : A { }
 
 class {|implementation:C|} : A { }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunFindImplementationAsync(workspace.CurrentSolution, locations["caret"].Single());
-            AssertLocationsEqual(locations["implementation"], results);
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
         }
 
-        private static async Task<LSP.Location[]> RunFindImplementationAsync(Solution solution, LSP.Location caret)
+        [Fact]
+        public async Task TestFindImplementationAsync_NoMetadataResults()
         {
-            var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(queue, LSP.Methods.TextDocumentImplementationName,
-                           CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var markup = @"
+using System;
+class C : IDisposable
+{
+    public void {|implementation:Dispose|}()
+    {
+        IDisposable d;
+        d.{|caret:|}Dispose();
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var results = await RunFindImplementationAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+            // At the moment we only support source results here, so verify we haven't accidentally
+            // broken that without work to make sure they display nicely
+            AssertLocationsEqual(testLspServer.GetLocations("implementation"), results);
+        }
+
+        private static async Task<LSP.Location[]> RunFindImplementationAsync(TestLspServer testLspServer, LSP.Location caret)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentImplementationName,
+                           CreateTextDocumentPositionParams(caret), CancellationToken.None);
         }
     }
 }

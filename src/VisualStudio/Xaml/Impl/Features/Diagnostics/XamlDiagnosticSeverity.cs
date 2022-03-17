@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
         /// <summary>
         /// Represents a hidden note.
         /// </summary>
-        Hidden
+        Hidden,
+
+        /// <summary>
+        /// Represents a hinted suggestion.
+        /// </summary>
+        HintedSuggestion
     }
 }

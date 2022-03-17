@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument: delegateCreationArgument,
                 methodOpt: eventSymbol.RemoveMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: actionType);
 
             BoundExpression? clearCall = null;
@@ -134,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argument: delegateCreationArgument,
                     methodOpt: eventSymbol.AddMethod,
                     isExtensionMethod: false,
+                    wasTargetTyped: false,
                     type: func2Type);
 
                 helper = WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal__AddEventHandler_T;
@@ -313,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var module = this.EmitModule;
             if (module != null)
             {
-                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event.GetCciAdapter(), node.Syntax, _diagnostics, isUsedForComAwareEventBinding: true);
+                module.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo(node.Event.GetCciAdapter(), node.Syntax, _diagnostics.DiagnosticBag, isUsedForComAwareEventBinding: true);
             }
 
             if (result != null)

@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
@@ -19,63 +17,61 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         [Fact]
         public async Task LinkedDocuments_AllTracked()
         {
+            var documentText = "class C { }";
             var workspaceXml =
-@"<Workspace>
+@$"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{|caret:|}</Document>
+        <Document FilePath=""C:\C.cs"">{documentText}{{|caret:|}}</Document>
     </Project>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
         <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
     </Project>
 </Workspace>";
 
-            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            var documentText = "class C { }";
+            await DidOpen(testLspServer, caretLocation.Uri);
 
-            var queue = CreateRequestQueue(workspace.CurrentSolution);
-            await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(caretLocation, documentText));
+            var trackedDocuments = testLspServer.GetQueueAccessor().GetTrackedTexts();
+            Assert.Equal(1, trackedDocuments.Length);
 
-            var trackedDocuments = queue.GetTestAccessor().GetTrackedTexts();
-            Assert.Equal(1, trackedDocuments.Count);
-
-            var solution = await GetLSPSolution(queue, caretLocation.Uri);
+            var solution = GetLSPSolution(testLspServer, caretLocation.Uri);
 
             foreach (var document in solution.Projects.First().Documents)
             {
                 Assert.Equal(documentText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
-            await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(caretLocation));
+            await DidClose(testLspServer, caretLocation.Uri);
 
-            Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
+            Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
 
         [Fact]
         public async Task LinkedDocuments_AllTextChanged()
         {
+            var initialText =
+@"class A
+{
+    void M()
+    {
+        {|caret:|}
+    }
+}";
             var workspaceXml =
-@"<Workspace>
+@$"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{|caret:|}</Document>
+        <Document FilePath=""C:\C.cs"">{initialText}</Document>
     </Project>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
         <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
     </Project>
 </Workspace>";
 
-            using var workspace = CreateXmlTestWorkspace(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            var initialText =
-@"class A
-{
-    void M()
-    {
-        
-    }
-}";
             var updatedText =
 @"class A
 {
@@ -85,37 +81,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     }
 }";
 
-            var queue = CreateRequestQueue(workspace.CurrentSolution);
-            await DidOpen(queue, workspace.CurrentSolution, CreateDidOpenTextDocumentParams(caretLocation, initialText));
+            await DidOpen(testLspServer, caretLocation.Uri);
 
-            Assert.Equal(1, queue.GetTestAccessor().GetTrackedTexts().Count);
+            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Length);
 
-            await DidChange(queue, workspace.CurrentSolution, CreateDidChangeTextDocumentParams(caretLocation.Uri, (4, 8, "// hi there")));
+            await DidChange(testLspServer, caretLocation.Uri, (4, 8, "// hi there"));
 
-            var solution = await GetLSPSolution(queue, caretLocation.Uri);
+            var solution = GetLSPSolution(testLspServer, caretLocation.Uri);
 
             foreach (var document in solution.Projects.First().Documents)
             {
                 Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
-            await DidClose(queue, workspace.CurrentSolution, CreateDidCloseTextDocumentParams(caretLocation));
+            await DidClose(testLspServer, caretLocation.Uri);
 
-            Assert.Empty(queue.GetTestAccessor().GetTrackedTexts());
+            Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
 
-        private static Task<Solution> GetLSPSolution(Handler.RequestExecutionQueue queue, Uri uri)
+        private static Solution GetLSPSolution(TestLspServer testLspServer, Uri uri)
         {
-            return queue.ExecuteAsync(false, new GetLSPSolutionHandler(), uri, new ClientCapabilities(), null, "test/getLSPSolution", CancellationToken.None);
-        }
-
-        private class GetLSPSolutionHandler : IRequestHandler<Uri, Solution>
-        {
-            public TextDocumentIdentifier? GetTextDocumentIdentifier(Uri request)
-                => new TextDocumentIdentifier { Uri = request };
-
-            public Task<Solution> HandleRequestAsync(Uri request, RequestContext context, CancellationToken cancellationToken)
-                => Task.FromResult(context.Solution);
+            var lspDocument = testLspServer.GetManager().GetLspDocument(new TextDocumentIdentifier { Uri = uri }, null);
+            Contract.ThrowIfNull(lspDocument);
+            return lspDocument.Project.Solution;
         }
     }
 }

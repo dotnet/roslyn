@@ -6,9 +6,11 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 #If CODE_STYLE Then
@@ -18,7 +20,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
 
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseConditionalExpressionForAssignment), [Shared]>
     Friend Class VisualBasicUseConditionalExpressionForAssignmentCodeFixProvider
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
@@ -32,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             ' VB does not have throw expressions
             Throw ExceptionUtilities.Unreachable
         End Function
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance

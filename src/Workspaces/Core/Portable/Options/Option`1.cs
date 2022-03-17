@@ -38,17 +38,22 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public Option(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation>())
+            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation>.Empty)
         {
         }
 
         public Option(string feature, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations.ToImmutableArray())
         {
         }
 
-        internal Option(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
-            : this(feature, group, name, defaultValue, storageLocations.ToImmutableArray())
+        internal Option(string feature, string name, T defaultValue, OptionStorageLocation storageLocation)
+            : this(feature, name, defaultValue, storageLocations: ImmutableArray.Create(storageLocation))
+        {
+        }
+
+        internal Option(string feature, string name, T defaultValue, ImmutableArray<OptionStorageLocation> storageLocations)
+            : this(feature, OptionGroup.Default, name, defaultValue, storageLocations)
         {
         }
 

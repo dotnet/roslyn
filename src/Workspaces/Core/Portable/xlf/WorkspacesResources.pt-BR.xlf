@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="A_project_may_not_reference_itself">
+        <source>A project may not reference itself.</source>
+        <target state="translated">Um projeto não pode fazer referência a si mesmo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">Não há suporte para a adição de documentos da configuração do analisador.</target>
@@ -80,6 +85,11 @@
       <trans-unit id="Options_did_not_come_from_specified_Solution">
         <source>Options did not come from specified Solution</source>
         <target state="translated">As opções não vieram da Solução especificada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="translated">Conversão predefinida de {0} em {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
@@ -310,11 +320,6 @@
       <trans-unit id="The_project_already_references_the_target_project">
         <source>The project already references the target project.</source>
         <target state="translated">O projeto já referencia o projeto de destino.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_project_already_transitively_references_the_target_project">
-        <source>The project already transitively references the target project.</source>
-        <target state="translated">O projeto já referencia transitivamente o projeto de destino.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_document">

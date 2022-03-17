@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
             TextSpan span,
             string diagnosticId,
             int maxResults,
-            bool placeSystemNamespaceFirst,
-            bool allowInHiddenRegions,
-            bool searchReferenceAssemblies,
+            AddImportOptions options,
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
@@ -55,8 +53,35 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var result = await service.GetFixesAsync(
                     document, span, diagnosticId, maxResults,
-                    placeSystemNamespaceFirst, allowInHiddenRegions,
-                    symbolSearchService, searchReferenceAssemblies,
+                    symbolSearchService, options,
+                    packageSources, cancellationToken).ConfigureAwait(false);
+
+                return result;
+            }, cancellationToken);
+        }
+
+        public ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
+            PinnedSolutionInfo solutionInfo,
+            RemoteServiceCallbackId callbackId,
+            DocumentId documentId,
+            TextSpan span,
+            ImmutableArray<string> diagnosticIds,
+            AddImportOptions options,
+            ImmutableArray<PackageSource> packageSources,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var document = solution.GetDocument(documentId);
+
+                var service = document.GetLanguageService<IAddImportFeatureService>();
+
+                var symbolSearchService = new SymbolSearchService(_callback, callbackId);
+
+                var result = await service.GetUniqueFixesAsync(
+                    document, span, diagnosticIds,
+                    symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
                 return result;

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Rename
             public override string GetDescription(CultureInfo? culture)
                 => WorkspacesResources.ResourceManager.GetString("Sync_namespace_to_folder_structure", culture ?? WorkspacesResources.Culture)!;
 
-            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, OptionSet _, CancellationToken cancellationToken)
+            internal override async Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken)
             {
                 var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
                 var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (document.Project.Language == LanguageNames.CSharp)
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var targetNamespace = WorkspacePathUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts);
+                    var targetNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(newFolders, syntaxFacts, document.Project.DefaultNamespace);
 
                     if (targetNamespace is null)
                     {

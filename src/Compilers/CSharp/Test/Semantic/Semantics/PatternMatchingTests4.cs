@@ -64,7 +64,7 @@ class C
         [WorkItem(34980, "https://github.com/dotnet/roslyn/issues/34980")]
         public void PatternMatchGenericParameterToMethodGroup()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     public void M1(object o)
@@ -85,7 +85,9 @@ class C
                 break;
         }
     }
-}");
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0428: Cannot convert method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
                 //         _ = o is M1;
@@ -98,8 +100,28 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
                 // (18,18): error CS0150: A constant value is expected
                 //             case M2:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
+
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(6, 18),
+                // (6,18): error CS0150: A constant value is expected
+                //         _ = o is M1;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(6, 18),
+                // (9,18): warning CS8974: Converting method group 'M1' to non-delegate type 'object'. Did you intend to invoke the method?
+                //             case M1:
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M1").WithArguments("M1", "object").WithLocation(9, 18),
+                // (9,18): error CS0150: A constant value is expected
+                //             case M1:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M1").WithLocation(9, 18),
+                // (15,18): error CS0150: A constant value is expected
+                //         _ = t is M2;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(15, 18),
+                // (18,18): error CS0150: A constant value is expected
+                //             case M2:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "M2").WithLocation(18, 18));
         }
 
         [Fact]
@@ -3050,6 +3072,32 @@ class Program
                 );
         }
 
+        [Fact, WorkItem(48591, "https://github.com/dotnet/roslyn/issues/48591")]
+        public void PointerAsInput_05()
+        {
+            var source =
+@"public class C
+{
+    unsafe static void F2<T>(nint i) where T : unmanaged
+    {
+        T* p = (T*)i;
+        _ = p == null;
+        _ = p != null;
+        _ = p is null;
+        _ = p is not null;
+        _ = p switch { not null => true, null => false };
+        _ = p switch { { } => true, null => false }; // 1
+    }
+}
+";
+            var compilation = CreatePatternCompilation(source, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (11,24): error CS8521: Pattern-matching is not permitted for pointer types.
+                //         _ = p switch { { } => true, null => false }; // 1
+                Diagnostic(ErrorCode.ERR_PointerTypeInPatternMatching, "{ }").WithLocation(11, 24)
+                );
+        }
+
         [Fact]
         public void UnmatchedInput_06()
         {
@@ -3505,5 +3553,320 @@ class Class1
             CreatePatternCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 );
         }
+
+#if DEBUG
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchStatement_01()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M(object obj)
+    {
+        switch (obj)
+        {
+            case ""a"":
+                Console.Write(""b"");
+                break;
+            case string { Length: 1 } s:
+                Console.Write(s);
+                break;
+            case int and < 42:
+                Console.Write(43);
+                break;
+            case int i when (i % 2) == 0:
+                obj = i + 1;
+                break;
+            default:
+                Console.Write(false);
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is string ? [1] : [8]
+[1]: t1 = (string)t0; [2]
+[2]: t1 == ""a"" ? [3] : [4]
+[3]: leaf `case ""a"":`
+[4]: t2 = t1.Length; [5]
+[5]: t2 == 1 ? [6] : [13]
+[6]: when <true> ? [7] : <unreachable>
+[7]: leaf `case string { Length: 1 } s:`
+[8]: t0 is int ? [9] : [13]
+[9]: t3 = (int)t0; [10]
+[10]: t3 < 42 ? [11] : [12]
+[11]: leaf `case int and < 42:`
+[12]: when ((i % 2) == 0) ? [14] : [13]
+[13]: leaf `default`
+[14]: leaf `case int i when (i % 2) == 0:`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchStatement_02()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void Deconstruct(out int i1, out string i2, out int? i3)
+    {
+        i1 = 1;
+        i2 = ""a"";
+        i3 = null;
+    }
+
+    void M(C c)
+    {
+        switch (c)
+        {
+            case null:
+                Console.Write(0);
+                break;
+            case (42, ""b"", 43):
+                Console.Write(1);
+                break;
+            case (< 10, { Length: 0 }, { }):
+                Console.Write(2);
+                break;
+            case (< 10, object): // 1, 2
+                Console.Write(3);
+                break;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (26,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'i3' of 'C.Deconstruct(out int, out string, out int?)'
+                //             case (< 10, object): // 1, 2
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(< 10, object)").WithArguments("i3", "C.Deconstruct(out int, out string, out int?)").WithLocation(26, 18),
+                // (26,18): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+                //             case (< 10, object): // 1, 2
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(< 10, object)").WithArguments("C", "2").WithLocation(26, 18)
+            );
+
+            var tree = comp.SyntaxTrees.Single();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 == null ? [1] : [2]
+[1]: leaf `case null:`
+[2]: (Item1, Item2, Item3) t1 = t0; [3]
+[3]: t1.Item1 == 42 ? [4] : [9]
+[4]: t1.Item2 == ""b"" ? [5] : [15]
+[5]: t1.Item3 != null ? [6] : [15]
+[6]: t2 = (int)t1.Item3; [7]
+[7]: t2 == 43 ? [8] : [15]
+[8]: leaf `case (42, ""b"", 43):`
+[9]: t1.Item1 < 10 ? [10] : [15]
+[10]: t1.Item2 != null ? [11] : [15]
+[11]: t3 = t1.Item2.Length; [12]
+[12]: t3 == 0 ? [13] : [15]
+[13]: t1.Item3 != null ? [14] : [15]
+[14]: leaf `case (< 10, { Length: 0 }, { }):`
+[15]: t0 is <error type> ? [16] : [17]
+[16]: leaf `case (< 10, object):`
+[17]: leaf <break> `switch (c)
+        {
+            case null:
+                Console.Write(0);
+                break;
+            case (42, ""b"", 43):
+                Console.Write(1);
+                break;
+            case (< 10, { Length: 0 }, { }):
+                Console.Write(2);
+                break;
+            case (< 10, object): // 1, 2
+                Console.Write(3);
+                break;
+        }`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchStatement_03()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class C : ITuple
+{
+    int ITuple.Length => 3;
+    object ITuple.this[int i] => i + 3;
+
+    void M(C c)
+    {
+        switch (c)
+        {
+            case (3, 4, 4):
+                Console.Write(0);
+                break;
+            case (3, 4, 5):
+                Console.Write(1);
+                break;
+            case (int x, 4, 5):
+                Console.Write(2);
+                break;
+        }
+    }
+}
+";
+            var comp = CreatePatternCompilation(source, TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is System.Runtime.CompilerServices.ITuple ? [1] : [28]
+[1]: t1 = t0.Length; [2]
+[2]: t1 == 3 ? [3] : [28]
+[3]: t2 = t0[0]; [4]
+[4]: t2 is int ? [5] : [28]
+[5]: t3 = (int)t2; [6]
+[6]: t3 == 3 ? [7] : [18]
+[7]: t4 = t0[1]; [8]
+[8]: t4 is int ? [9] : [28]
+[9]: t5 = (int)t4; [10]
+[10]: t5 == 4 ? [11] : [28]
+[11]: t6 = t0[2]; [12]
+[12]: t6 is int ? [13] : [28]
+[13]: t7 = (int)t6; [14]
+[14]: t7 == 4 ? [15] : [16]
+[15]: leaf `case (3, 4, 4):`
+[16]: t7 == 5 ? [17] : [28]
+[17]: leaf `case (3, 4, 5):`
+[18]: t4 = t0[1]; [19]
+[19]: t4 is int ? [20] : [28]
+[20]: t5 = (int)t4; [21]
+[21]: t5 == 4 ? [22] : [28]
+[22]: t6 = t0[2]; [23]
+[23]: t6 is int ? [24] : [28]
+[24]: t7 = (int)t6; [25]
+[25]: t7 == 5 ? [26] : [28]
+[26]: when <true> ? [27] : <unreachable>
+[27]: leaf `case (int x, 4, 5):`
+[28]: leaf <break> `switch (c)
+        {
+            case (3, 4, 4):
+                Console.Write(0);
+                break;
+            case (3, 4, 5):
+                Console.Write(1);
+                break;
+            case (int x, 4, 5):
+                Console.Write(2);
+                break;
+        }`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_IsPattern()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M(object obj)
+    {
+        if (obj
+            is < 5
+                or string { Length: 1 }
+                or bool)
+        {
+            Console.Write(1);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var @is = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@is.SpanStart);
+            var boundIsPattern = (BoundIsPatternExpression)binder.BindExpression(@is, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is int ? [1] : [3]
+[1]: t1 = (int)t0; [2]
+[2]: t1 < 5 ? [8] : [9]
+[3]: t0 is string ? [4] : [7]
+[4]: t2 = (string)t0; [5]
+[5]: t3 = t2.Length; [6]
+[6]: t3 == 1 ? [8] : [9]
+[7]: t0 is bool ? [8] : [9]
+[8]: leaf <isPatternSuccess> `< 5
+                or string { Length: 1 }
+                or bool`
+[9]: leaf <isPatternFailure> `< 5
+                or string { Length: 1 }
+                or bool`
+", boundIsPattern.ReachabilityDecisionDag.Dump());
+        }
+
+        [Fact, WorkItem(53868, "https://github.com/dotnet/roslyn/issues/53868")]
+        public void DecisionDag_Dump_SwitchExpression()
+        {
+            var source = @"
+class C
+{
+    void M(object obj)
+    {
+        var x = obj switch
+        {
+            < 5 => 1,
+            string { Length: 1 } => 2,
+            bool => 3,
+            _ => 4
+        };
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var @switch = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single();
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(@switch.SpanStart);
+            var boundSwitch = (BoundSwitchExpression)binder.BindExpression(@switch, BindingDiagnosticBag.Discarded);
+            AssertEx.Equal(
+@"[0]: t0 is int ? [1] : [4]
+[1]: t1 = (int)t0; [2]
+[2]: t1 < 5 ? [3] : [11]
+[3]: leaf <arm> `< 5 => 1`
+[4]: t0 is string ? [5] : [9]
+[5]: t2 = (string)t0; [6]
+[6]: t3 = t2.Length; [7]
+[7]: t3 == 1 ? [8] : [11]
+[8]: leaf <arm> `string { Length: 1 } => 2`
+[9]: t0 is bool ? [10] : [11]
+[10]: leaf <arm> `bool => 3`
+[11]: leaf <arm> `_ => 4`
+", boundSwitch.ReachabilityDecisionDag.Dump());
+        }
+#endif
     }
 }

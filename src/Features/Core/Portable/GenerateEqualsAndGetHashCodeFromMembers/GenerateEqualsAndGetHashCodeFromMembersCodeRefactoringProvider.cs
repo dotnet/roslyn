@@ -71,14 +71,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         {
             var (document, textSpan, cancellationToken) = context;
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // We offer the refactoring when the user is either on the header of a class/struct,
             // or if they're between any members of a class/struct and are on a blank line.
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
-                !syntaxFacts.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+            if (!helpers.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
+                !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
             {
                 return;
             }
@@ -87,16 +87,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             // Only supported on classes/structs.
             var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
-            if (containingType?.TypeKind != TypeKind.Class && containingType?.TypeKind != TypeKind.Struct)
-            {
+            if (containingType?.TypeKind is not TypeKind.Class and not TypeKind.Struct)
                 return;
-            }
 
             // No overrides in static classes.
             if (containingType.IsStatic)
-            {
                 return;
-            }
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
@@ -108,9 +104,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 .ToImmutableArray();
 
             if (viableMembers.Length == 0)
-            {
                 return;
-            }
 
             GetExistingMemberInfo(
                 containingType, out var hasEquals, out var hasGetHashCode);
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 document, typeDeclaration, containingType, viableMembers,
                 hasEquals, hasGetHashCode, withDialog: true, cancellationToken).ConfigureAwait(false);
 
-            context.RegisterRefactorings(actions);
+            context.RegisterRefactorings(actions, textSpan);
         }
 
         private static bool HasOperators(INamedTypeSymbol containingType)

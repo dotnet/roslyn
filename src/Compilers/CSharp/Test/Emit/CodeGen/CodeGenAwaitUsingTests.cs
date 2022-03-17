@@ -1850,6 +1850,10 @@ public class C
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InterfacePreferredOverInstanceMethod()
         {
+            // SPEC: In the situation where a type can be implicitly converted to IDisposable and also fits the disposable pattern,
+            // then IDisposable will be preferred.
+            // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/using.md#pattern-based-using
+
             string source = @"
 public class C : System.IAsyncDisposable
 {
@@ -2054,7 +2058,7 @@ public class C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
 
-            // Sequence point higlights `await using ...`
+            // Sequence point highlights `await using ...`
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      303 (0x12f)

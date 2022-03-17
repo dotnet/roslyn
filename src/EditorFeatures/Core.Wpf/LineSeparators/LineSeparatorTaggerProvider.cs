@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Tagging;
+using Microsoft.CodeAnalysis.Editor.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LineSeparators;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -50,14 +52,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         public LineSeparatorTaggerProvider(
             IThreadingContext threadingContext,
             IEditorFormatMapService editorFormatMapService,
-            IForegroundNotificationService notificationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-                : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.LineSeparators), notificationService)
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.LineSeparators))
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
             _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
         }
+
+        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
         private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
@@ -71,43 +75,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             ITextView textView, ITextBuffer subjectBuffer)
         {
             return TaggerEventSources.Compose(
-                new EditorFormatMapChangedEventSource(_editorFormatMap, TaggerDelay.NearImmediate),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate));
+                new EditorFormatMapChangedEventSource(_editorFormatMap),
+                TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
             if (document == null)
-            {
                 return;
-            }
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-            if (!documentOptions.GetOption(FeatureOnOffOptions.LineSeparator))
-            {
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
                 return;
-            }
-
-            LineSeparatorTag tag;
-            lock (_lineSeperatorTagGate)
-            {
-                tag = _lineSeparatorTag;
-            }
 
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
             {
                 var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
                 var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
+                if (lineSeparatorService == null)
+                    return;
+
                 var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                foreach (var span in lineSeparatorSpans)
+                if (lineSeparatorSpans.Length == 0)
+                    return;
+
+                LineSeparatorTag tag;
+                lock (_lineSeperatorTagGate)
                 {
-                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
+                    tag = _lineSeparatorTag;
                 }
+
+                foreach (var span in lineSeparatorSpans)
+                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
             }
         }
     }

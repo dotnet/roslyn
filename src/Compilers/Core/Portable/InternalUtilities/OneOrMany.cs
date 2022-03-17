@@ -4,19 +4,23 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// Represents a single item or many items.
+    /// Represents a single item or many items (including none).
     /// </summary>
     /// <remarks>
     /// Used when a collection usually contains a single item but sometimes might contain multiple.
     /// </remarks>
-    internal struct OneOrMany<T>
+    internal readonly struct OneOrMany<T>
         where T : notnull
     {
+        public static readonly OneOrMany<T> Empty = new OneOrMany<T>(ImmutableArray<T>.Empty);
+
         private readonly T? _one;
         private readonly ImmutableArray<T> _many;
 
@@ -37,18 +41,22 @@ namespace Roslyn.Utilities
             _many = many;
         }
 
+        [MemberNotNullWhen(true, nameof(_one))]
+        private bool HasOne
+            => _many.IsDefault;
+
         public T this[int index]
         {
             get
             {
-                if (_many.IsDefault)
+                if (HasOne)
                 {
                     if (index != 0)
                     {
                         throw new IndexOutOfRangeException();
                     }
 
-                    return _one!;
+                    return _one;
                 }
                 else
                 {
@@ -58,24 +66,23 @@ namespace Roslyn.Utilities
         }
 
         public int Count
-        {
-            get
-            {
-                return _many.IsDefault ? 1 : _many.Length;
-            }
-        }
+            => HasOne ? 1 : _many.Length;
+
+        public bool IsEmpty
+            => Count == 0;
 
         public OneOrMany<T> Add(T one)
         {
             var builder = ArrayBuilder<T>.GetInstance();
-            if (_many.IsDefault)
+            if (HasOne)
             {
-                builder.Add(_one!);
+                builder.Add(_one);
             }
             else
             {
                 builder.AddRange(_many);
             }
+
             builder.Add(one);
             return new OneOrMany<T>(builder.ToImmutableAndFree());
         }
@@ -83,7 +90,7 @@ namespace Roslyn.Utilities
         public bool Contains(T item)
         {
             RoslynDebug.Assert(item != null);
-            if (Count == 1)
+            if (HasOne)
             {
                 return item.Equals(_one);
             }
@@ -102,7 +109,7 @@ namespace Roslyn.Utilities
 
         public OneOrMany<T> RemoveAll(T item)
         {
-            if (_many.IsDefault)
+            if (HasOne)
             {
                 return item.Equals(_one) ? default : this;
             }
@@ -125,10 +132,60 @@ namespace Roslyn.Utilities
             return builder.Count == Count ? this : new OneOrMany<T>(builder.ToImmutableAndFree());
         }
 
-        public Enumerator GetEnumerator()
+        public OneOrMany<TResult> Select<TResult>(Func<T, TResult> selector)
+            where TResult : notnull
         {
-            return new Enumerator(this);
+            return HasOne ?
+                OneOrMany.Create(selector(_one)) :
+                OneOrMany.Create(_many.SelectAsArray(selector));
         }
+
+        public OneOrMany<TResult> Select<TResult, TArg>(Func<T, TArg, TResult> selector, TArg arg)
+            where TResult : notnull
+        {
+            return HasOne ?
+                OneOrMany.Create(selector(_one, arg)) :
+                OneOrMany.Create(_many.SelectAsArray(selector, arg));
+        }
+
+        public T? FirstOrDefault(Func<T, bool> predicate)
+        {
+            if (HasOne)
+            {
+                return predicate(_one) ? _one : default;
+            }
+
+            foreach (var item in _many)
+            {
+                if (predicate(item))
+                {
+                    return item;
+                }
+            }
+
+            return default;
+        }
+
+        public T? FirstOrDefault<TArg>(Func<T, TArg, bool> predicate, TArg arg)
+        {
+            if (HasOne)
+            {
+                return predicate(_one, arg) ? _one : default;
+            }
+
+            foreach (var item in _many)
+            {
+                if (predicate(item, arg))
+                {
+                    return item;
+                }
+            }
+
+            return default;
+        }
+
+        public Enumerator GetEnumerator()
+            => new(this);
 
         internal struct Enumerator
         {

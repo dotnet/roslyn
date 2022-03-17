@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -88,27 +89,30 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public ImplementInterfaceWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
-                ISymbol? throughMember) : base(service, document, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
+                ISymbol? throughMember) : base(service, document, options, state, explicitly, abstractly, onlyRemaining: !explicitly, throughMember)
             {
             }
 
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, state, explicitly: false, abstractly: false, throughMember: null);
+                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
             }
 
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
+                ImplementTypeOptions options,
                 State state)
             {
-                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, state, explicitly: true, abstractly: false, throughMember: null);
+                return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
             }
 
             public override string Title
@@ -147,15 +151,20 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var firstGeneratedMember = rootWithCoreMembers.GetAnnotatedNodes(CodeGenerator.Annotation).First();
                 var typeDeclarationWithCoreMembers = firstGeneratedMember.Parent!;
 
-                var typeDeclarationWithAllMembers = CodeGenerator.AddMemberDeclarations(
+                var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+
+                var context = new CodeGenerationContext(
+                    addImports: false,
+                    sortMembers: false,
+                    autoInsertionLocation: false);
+
+                var codeGenerationOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+
+                var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    document.Project.Solution.Workspace,
-                    new CodeGenerationOptions(
-                        addImports: false,
-                        parseOptions: rootWithCoreMembers.SyntaxTree.Options,
-                        sortMembers: false,
-                        autoInsertionLocation: false));
+                    codeGenerationOptions,
+                    cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(
                     rootWithCoreMembers.ReplaceNode(
@@ -287,12 +296,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             g.Argument(DisposingName, RefKind.None, g.TrueLiteralExpression())))));
 
                 // GC.SuppressFinalize(this);
-                statements.Add(g.ExpressionStatement(
-                    g.InvocationExpression(
-                        g.MemberAccessExpression(
-                            g.TypeExpression(compilation.GetTypeByMetadataName(typeof(GC).FullName!)),
-                            nameof(GC.SuppressFinalize)),
-                        g.ThisExpression())));
+                var gcType = compilation.GetTypeByMetadataName(typeof(GC).FullName!);
+                if (gcType != null)
+                {
+                    statements.Add(g.ExpressionStatement(
+                        g.InvocationExpression(
+                            g.MemberAccessExpression(
+                                g.TypeExpression(gcType),
+                                nameof(GC.SuppressFinalize)),
+                            g.ThisExpression())));
+                }
 
                 var modifiers = DeclarationModifiers.From(disposeMethod);
                 modifiers = modifiers.WithIsAbstract(false);
@@ -322,7 +335,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
-                var accessibilityLevel = requireAccessiblity.Value == AccessibilityModifiersRequired.Never || requireAccessiblity.Value == AccessibilityModifiersRequired.OmitIfDefault
+                var accessibilityLevel = requireAccessiblity.Value is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault
                     ? Accessibility.NotApplicable
                     : Accessibility.Private;
 

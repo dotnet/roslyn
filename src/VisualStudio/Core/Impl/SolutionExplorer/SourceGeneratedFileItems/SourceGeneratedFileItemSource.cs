@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -29,18 +30,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// The returned collection of items. Can only be mutated on the UI thread, as other parts of WPF are subscribed to the change
         /// events and expect that.
         /// </summary>
-        private readonly BulkObservableCollectionWithInit<BaseItem> _items = new();
+        private readonly BulkObservableCollectionWithInit<BaseItem> _items;
 
         /// <summary>
-        /// Gate to guard mutation of <see cref="_cancellationTokenSource"/> and <see cref="_resettableDelay"/>.
+        /// Gate to guard mutation of <see cref="_resettableDelay"/>.
         /// </summary>
         private readonly object _gate = new object();
 
-        private CancellationTokenSource? _cancellationTokenSource;
+        private readonly CancellationSeries _cancellationSeries = new();
         private ResettableDelay? _resettableDelay;
 
         public SourceGeneratedFileItemSource(SourceGeneratorItem parentGeneratorItem, Workspace workspace, IAsynchronousOperationListener asyncListener, IThreadingContext threadingContext)
         {
+            // Construction of BulkObservableCollection requires the main thread
+            threadingContext.ThrowIfNotOnUIThread();
+            _items = new BulkObservableCollectionWithInit<BaseItem>();
+
             _parentGeneratorItem = parentGeneratorItem;
             _workspace = workspace;
             _asyncListener = asyncListener;
@@ -70,10 +75,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
 
             var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            var sourceGeneratedDocumentsForGeneratorById = sourceGeneratedDocuments.Where(d => d.SourceGenerator == _parentGeneratorItem.Generator).ToDictionary(d => d.Id);
+            var sourceGeneratedDocumentsForGeneratorById =
+                sourceGeneratedDocuments.Where(d => d.SourceGeneratorAssemblyName == _parentGeneratorItem.GeneratorAssemblyName &&
+                                                    d.SourceGeneratorTypeName == _parentGeneratorItem.GeneratorTypeName)
+                .ToDictionary(d => d.Id);
 
             // We must update the list on the UI thread, since the WPF elements bound to our list expect that
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             try
             {
@@ -98,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     }
                 }
 
-                for (int i = 0; i < _items.Count; i++)
+                for (var i = 0; i < _items.Count; i++)
                 {
                     // If this item that we already have is still a generated document, we'll remove it from our list; the list when we're
                     // done is going to have the new items remaining. If it no longer exists, remove it from list.
@@ -109,11 +117,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     }
                 }
 
-                // Whatever is left in sourceGeneratedDocumentsForGeneratorById we should add
-                if (sourceGeneratedDocumentsForGeneratorById.Count == 0)
+                // Whatever is left in sourceGeneratedDocumentsForGeneratorById we should add; if we have nothing to add and nothing
+                // in the list after removing anything, then we should add the placeholder.
+                if (sourceGeneratedDocumentsForGeneratorById.Count == 0 && _items.Count == 0)
                 {
-                    // We don't have any items at all, so add the placeholder
-                    Contract.ThrowIfFalse(_items.Count == 0);
                     _items.Add(new NoSourceGeneratedFilesPlaceholderItem());
                     return;
                 }
@@ -121,12 +128,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 foreach (var document in sourceGeneratedDocumentsForGeneratorById.Values)
                 {
                     // Binary search to figure out where to insert
-                    int low = 0;
-                    int high = _items.Count;
+                    var low = 0;
+                    var high = _items.Count;
 
                     while (low < high)
                     {
-                        int mid = (low + high) / 2;
+                        var mid = (low + high) / 2;
 
                         if (StringComparer.OrdinalIgnoreCase.Compare(document.HintName, ((SourceGeneratedFileItem)_items[mid]).HintName) < 0)
                         {
@@ -138,7 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         }
                     }
 
-                    _items.Insert(low, new SourceGeneratedFileItem(document.Id, document.HintName, document.Project.Language, _workspace));
+                    _items.Insert(low, new SourceGeneratedFileItem(
+                        _threadingContext, document.Id, document.HintName, document.Project.Language, _workspace));
                 }
             }
             finally
@@ -153,10 +161,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             lock (_gate)
             {
                 // We should not have an existing computation active
-                Contract.ThrowIfNull(_cancellationTokenSource == null);
+                Contract.ThrowIfTrue(_cancellationSeries.HasActiveToken);
 
-                _cancellationTokenSource = new CancellationTokenSource();
-                var cancellationToken = _cancellationTokenSource.Token;
+                var cancellationToken = _cancellationSeries.CreateNext();
                 var asyncToken = _asyncListener.BeginAsyncOperation(nameof(SourceGeneratedFileItemSource) + "." + nameof(BeforeExpand));
 
                 Task.Run(
@@ -199,8 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             lock (_gate)
             {
-                _cancellationTokenSource?.Cancel();
-                _cancellationTokenSource = null;
+                _cancellationSeries.CreateNext(new CancellationToken(canceled: true));
                 _workspace.WorkspaceChanged -= OnWorkpaceChanged;
                 _resettableDelay = null;
             }
@@ -224,17 +230,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 else
                 {
                     // Time to start the work all over again. We'll ensure any previous work is cancelled
-                    Contract.ThrowIfNull(_cancellationTokenSource, "We created a token when we expanded, how do we not have one when processing an update?");
-
-                    _cancellationTokenSource.Cancel();
-                    _cancellationTokenSource = new CancellationTokenSource();
-
-                    var cancellationToken = _cancellationTokenSource.Token;
+                    var cancellationToken = _cancellationSeries.CreateNext();
                     var asyncToken = _asyncListener.BeginAsyncOperation(nameof(SourceGeneratedFileItemSource) + "." + nameof(OnWorkpaceChanged));
 
                     // We're going to go with a really long delay: once the user expands this we will keep it updated, but it's fairly
                     // unlikely to change in a lot of cases if a generator only produces a stable set of names.
-                    _resettableDelay = new ResettableDelay(delayInMilliseconds: 5000, _asyncListener, _cancellationTokenSource.Token);
+                    _resettableDelay = new ResettableDelay(delayInMilliseconds: 5000, _asyncListener, cancellationToken);
                     _resettableDelay.Task.ContinueWith(_ =>
                     {
                         lock (_gate)
@@ -246,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         cancellationToken.ThrowIfCancellationRequested();
 
                         return UpdateSourceGeneratedFileItemsAsync(_workspace.CurrentSolution, cancellationToken);
-                    }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                    }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().CompletesAsyncOperation(asyncToken);
                 }
             }
         }

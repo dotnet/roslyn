@@ -49,27 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal async Task<CodeRefactoring> GetCodeRefactoringAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
-            return (await GetCodeRefactoringsAsync(workspace, parameters)).FirstOrDefault();
-        }
-
-        private async Task<IEnumerable<CodeRefactoring>> GetCodeRefactoringsAsync(
-            TestWorkspace workspace, TestParameters parameters)
-        {
             var provider = CreateCodeRefactoringProvider(workspace, parameters);
-            return SpecializedCollections.SingletonEnumerable(
-                await GetCodeRefactoringAsync(provider, workspace));
-        }
 
-        private static async Task<CodeRefactoring> GetCodeRefactoringAsync(
-            CodeRefactoringProvider provider,
-            TestWorkspace workspace)
-        {
             var documentsWithSelections = workspace.Documents.Where(d => !d.IsLinkFile && d.SelectedSpans.Count == 1);
             Debug.Assert(documentsWithSelections.Count() == 1, "One document must have a single span annotation");
             var span = documentsWithSelections.Single().SelectedSpans.Single();
             var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
             var document = workspace.CurrentSolution.GetDocument(documentsWithSelections.Single().Id);
-            var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), isBlocking: false, CancellationToken.None);
+            var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), parameters.codeActionOptions, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
 
             var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable()) : null;
@@ -88,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await VerifyPreviewContents(workspace, expectedPreviewContents, operations);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
-            applyChangesOperation.TryApply(workspace, new ProgressTracker(), CancellationToken.None);
+            await applyChangesOperation.TryApplyAsync(workspace, new ProgressTracker(), CancellationToken.None);
 
             foreach (var document in workspace.Documents)
             {
@@ -105,7 +92,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var content = (await editHandler.GetPreviews(workspace, operations, CancellationToken.None).GetPreviewsAsync())[0];
+                var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
+                var content = (await previews.GetPreviewsAsync())[0];
                 var diffView = content as DifferenceViewerPreview;
                 Assert.NotNull(diffView.Viewer);
                 var previewContents = diffView.Viewer.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();
@@ -143,13 +131,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string[] chosenSymbols,
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
-            TestParameters parameters = default)
+            TestParameters? parameters = null)
         {
+            var ps = parameters ?? TestParameters.Default;
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
                 index,
-                parameters.WithFixProviderData(pickMembersService));
+                ps.WithFixProviderData(pickMembersService));
         }
     }
 
@@ -176,15 +165,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #pragma warning restore RS0034 // Exported parts should be marked with 'ImportingConstructorAttribute'
 
         public PickMembersResult PickMembers(
-            string title, ImmutableArray<ISymbol> members,
-            ImmutableArray<PickMembersOption> options)
+            string title,
+            ImmutableArray<ISymbol> members,
+            ImmutableArray<PickMembersOption> options,
+            bool selectAll)
         {
             OptionsCallback?.Invoke(options);
             return new PickMembersResult(
                 MemberNames.IsDefault
                     ? members
                     : MemberNames.SelectAsArray(n => members.Single(m => m.Name == n)),
-                options);
+                options,
+                selectAll);
         }
     }
 }

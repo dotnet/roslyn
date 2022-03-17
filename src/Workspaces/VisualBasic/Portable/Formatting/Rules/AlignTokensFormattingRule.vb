@@ -24,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If tokens.Count > 1 Then
                     AddAlignIndentationOfTokensToBaseTokenOperation(operations, queryExpression, tokens(0), tokens.Skip(1))
                 End If
+
                 Return
             End If
         End Sub

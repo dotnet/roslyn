@@ -314,8 +314,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a verbatim token with kind IdentifierToken containing the specified text.
         /// </summary>
         /// <param name="leading">A list of trivia immediately preceding the token.</param>
-        /// <param name="text">The raw text of the identifier name, including any escapes or leading '@'
-        /// character as it is in source.</param>
+        /// <param name="text">The identifier, not including any escapes or leading '@'
+        /// character.</param>
         /// <param name="valueText">The canonical value of the token's text.</param>
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken VerbatimIdentifier(SyntaxTriviaList leading, string text, string valueText, SyntaxTriviaList trailing)
@@ -1402,7 +1402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of syntax nodes.</param>
         /// <param name="separators">A sequence of token to be interleaved between the nodes. The number of tokens must
         /// be one less than the number of nodes.</param>
-        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode> nodes, IEnumerable<SyntaxToken> separators) where TNode : SyntaxNode
+        public static SeparatedSyntaxList<TNode> SeparatedList<TNode>(IEnumerable<TNode>? nodes, IEnumerable<SyntaxToken>? separators) where TNode : SyntaxNode
         {
             // Interleave the nodes and the separators.  The number of separators must be equal to or 1 less than the number of nodes or
             // an argument exception is thrown.
@@ -1645,6 +1645,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Parse a sequence of C# language tokens.
+        /// Since this API does not create a <see cref="SyntaxNode"/> that owns all produced tokens,
+        /// the <see cref="SyntaxToken.GetLocation"/> API may yield surprising results for
+        /// the produced tokens and its behavior is generally unspecified.
         /// </summary>
         /// <param name="text">The text of all the tokens.</param>
         /// <param name="initialTokenPosition">An integer to use as the starting position of the first token.</param>
@@ -2431,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
             TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            ExplicitInterfaceSpecifierSyntax? explicitInterfaceSpecifier,
             SyntaxToken identifier,
             AccessorListSyntax accessorList)
         {
@@ -2453,7 +2456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken operatorKeyword,
             TypeSyntax type,
             ParameterListSyntax parameterList,
-            BlockSyntax body,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
         {
             return SyntaxFactory.ConversionOperatorDeclaration(
@@ -2468,6 +2471,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            SyntaxToken operatorKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: null,
+                operatorKeyword: operatorKeyword,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            SyntaxToken implicitOrExplicitKeyword,
+            TypeSyntax type,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody)
+        {
+            return SyntaxFactory.ConversionOperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                implicitOrExplicitKeyword: implicitOrExplicitKeyword,
+                explicitInterfaceSpecifier: null,
+                type: type,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
         public static OperatorDeclarationSyntax OperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2475,7 +2522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken operatorKeyword,
             SyntaxToken operatorToken,
             ParameterListSyntax parameterList,
-            BlockSyntax body,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
         {
             return SyntaxFactory.OperatorDeclaration(
@@ -2490,6 +2537,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorKeyword,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody,
+            SyntaxToken semicolonToken)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorKeyword: operatorKeyword,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody,
+                semicolonToken: semicolonToken);
+        }
+
+        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        public static OperatorDeclarationSyntax OperatorDeclaration(
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            SyntaxToken operatorToken,
+            ParameterListSyntax parameterList,
+            BlockSyntax? body,
+            ArrowExpressionClauseSyntax? expressionBody)
+        {
+            return SyntaxFactory.OperatorDeclaration(
+                attributeLists: attributeLists,
+                modifiers: modifiers,
+                returnType: returnType,
+                explicitInterfaceSpecifier: null,
+                operatorToken: operatorToken,
+                parameterList: parameterList,
+                body: body,
+                expressionBody: expressionBody);
+        }
+
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax alias, NameSyntax name)
         {
@@ -2499,6 +2592,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 alias: alias,
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
+        }
+
+        public static UsingDirectiveSyntax UsingDirective(SyntaxToken usingKeyword, SyntaxToken staticKeyword, NameEqualsSyntax? alias, NameSyntax name, SyntaxToken semicolonToken)
+        {
+            return UsingDirective(globalKeyword: default(SyntaxToken), usingKeyword, staticKeyword, alias, name, semicolonToken);
         }
 
         /// <summary>Creates a new ClassOrStructConstraintSyntax instance.</summary>
@@ -2517,7 +2615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, ArrowExpressionClauseSyntax expressionBody, SyntaxToken semicolonToken)
                 => SyntaxFactory.AccessorDeclaration(kind, attributeLists, modifiers, keyword, body: null, expressionBody, semicolonToken);
 
-        public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax equalsValue)
+        public static EnumMemberDeclarationSyntax EnumMemberDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken identifier, EqualsValueClauseSyntax? equalsValue)
             => EnumMemberDeclaration(attributeLists, modifiers: default,
                 identifier, equalsValue);
 

@@ -7,13 +7,14 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics);
+        private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics);
 
         private sealed class QueryUnboundLambdaState : UnboundLambdaState
         {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly RangeVariableMap _rangeVariableMap;
 
             public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory, bool includeCache = true)
-                : base(binder, unboundLambdaOpt: null, includeCache)
+                : base(binder, includeCache)
             {
                 _parameters = parameters;
                 _rangeVariableMap = rangeVariableMap;
@@ -31,8 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override string ParameterName(int index) { return _parameters[index].Name; }
             public override bool ParameterIsDiscard(int index) { return false; }
-            public override bool HasNames { get { return true; } }
+            public override bool ParameterIsNullChecked(int index) { return false; }
+            public override SyntaxList<AttributeListSyntax> ParameterAttributes(int index) => default;
             public override bool HasSignature { get { return true; } }
+
+            public override bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
+            {
+                refKind = default;
+                returnType = default;
+                return false;
+            }
+
             public override bool HasExplicitlyTypedParameterList { get { return false; } }
             public override int ParameterCount { get { return _parameters.Length; } }
             public override bool IsAsync { get { return false; } }
@@ -42,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed
 
-            public override void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType)
+            public override void GenerateAnonymousFunctionConversionError(BindingDiagnosticBag diagnostics, TypeSymbol targetType)
             {
                 // TODO: improved diagnostics for query expressions
                 base.GenerateAnonymousFunctionConversionError(diagnostics, targetType);
@@ -63,12 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, DiagnosticBag diagnostics)
+            protected override BoundBlock CreateBlockFromLambdaExpressionBody(Binder lambdaBodyBinder, BoundExpression expression, BindingDiagnosticBag diagnostics)
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics)
+            protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag diagnostics)
             {
                 return _bodyFactory(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }

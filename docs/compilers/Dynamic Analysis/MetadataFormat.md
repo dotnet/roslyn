@@ -1,7 +1,7 @@
 ﻿# Dynamic Analysis Metadata Format Specification (v 0.2)
 
 ### Overview
-The format is based on concepts defined in the ECMA-335 Partition II metadata standard and in [Portable PDB format](https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md).
+The format is based on concepts defined in the ECMA-335 Partition II metadata standard and in [Portable PDB format](https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md).
 
 ## Metadata Layout
 
@@ -112,7 +112,7 @@ Each _span-record_ represents a single _Span_. When decoding the blob the _Docum
 The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ of a Span are calculated based upon the values of the previous Span (if any) and the data stored in the record.
 
 - - -
-**Note** This encoding is similar to encoding of [sequence points blob](https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#SequencePointsBlob) in Portable PDB format.
+**Note** This encoding is similar to encoding of [sequence points blob](https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#SequencePointsBlob) in Portable PDB format.
 - - -
 
 ### <a name="DocumentNameBlob"></a>Document Name Blob
@@ -129,7 +129,7 @@ where
 The document name is a concatenation of the _parts_ separated by the _separator_.
 
 - - -
-**Note** This encoding is the same as the encoding of [document name blob](https://github.com/dotnet/corefx/blob/master/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#DocumentNameBlob) in Portable PDB format.
+**Note** This encoding is the same as the encoding of [document name blob](https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#DocumentNameBlob) in Portable PDB format.
 - - -
 
 

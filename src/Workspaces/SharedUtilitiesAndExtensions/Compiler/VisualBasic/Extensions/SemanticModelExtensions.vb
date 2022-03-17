@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return results.OfType(Of ITypeSymbol)().ToList()
                 End If
             End If
+
             Return SpecializedCollections.EmptyList(Of ITypeSymbol)()
         End Function
 
@@ -32,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If expression IsNot Nothing Then
                 Return semanticModel.LookupName(expression, namespacesAndTypesOnly, cancellationToken)
             End If
+
             Return SpecializedCollections.EmptyList(Of ISymbol)()
         End Function
 

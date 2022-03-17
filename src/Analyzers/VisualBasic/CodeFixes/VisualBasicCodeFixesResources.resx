@@ -126,4 +126,7 @@
   <data name="Convert_GetType_to_NameOf" xml:space="preserve">
     <value>Convert 'GetType' to 'NameOf'</value>
   </data>
+  <data name="Simplify_object_creation" xml:space="preserve">
+    <value>Simplify object creation</value>
+  </data>
 </root>

@@ -57,13 +57,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static SyntaxNode GetDefaultEqualityComparer(
             this SyntaxGenerator factory,
+            SyntaxGeneratorInternal generatorInternal,
             Compilation compilation,
             ITypeSymbol type)
         {
             var equalityComparerType = compilation.EqualityComparerOfTType();
             var typeExpression = equalityComparerType == null
                 ? factory.GenericName(nameof(EqualityComparer<int>), type)
-                : factory.TypeExpression(equalityComparerType.Construct(type));
+                : generatorInternal.Type(equalityComparerType.Construct(type), typeContext: false);
 
             return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
         }

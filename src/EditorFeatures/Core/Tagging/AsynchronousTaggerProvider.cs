@@ -6,6 +6,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -17,18 +18,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
     {
         protected AsynchronousTaggerProvider(
             IThreadingContext threadingContext,
-            IAsynchronousOperationListener asyncListener,
-            IForegroundNotificationService notificationService)
-                : base(threadingContext, asyncListener, notificationService)
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, globalOptions, asyncListener)
         {
         }
 
-        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextBuffer subjectBuffer) where T : ITag
         {
             if (subjectBuffer == null)
-            {
                 throw new ArgumentNullException(nameof(subjectBuffer));
-            }
 
             return this.CreateTaggerWorker<T>(null, subjectBuffer);
         }

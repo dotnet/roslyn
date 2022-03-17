@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
@@ -35,7 +36,8 @@ namespace Roslyn.Utilities
             return default!;
         }
 
-        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+        [return: NotNullIfNotNull("defaultValue")]
+        public static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue)
             where TKey : notnull
         {
             if (dictionary.TryGetValue(key, out var value))

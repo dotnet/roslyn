@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
@@ -25,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
             Return VisualBasicCodeFixesResources.Convert_GetType_to_NameOf
         End Function
 
-        Protected Overrides Function GetSymbolTypeExpression(semanticModel As SemanticModel, node As SyntaxNode) As SyntaxNode
+        Protected Overrides Function GetSymbolTypeExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As SyntaxNode
 
             Dim expression = DirectCast(node, MemberAccessExpressionSyntax).Expression
             Dim type = DirectCast(expression, GetTypeExpressionSyntax).Type
-            Dim symbolType = semanticModel.GetSymbolInfo(type).Symbol.GetSymbolType()
+            Dim symbolType = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol.GetSymbolType()
             Dim symbolExpression = symbolType.GenerateExpressionSyntax()
 
             If TypeOf symbolExpression Is IdentifierNameSyntax OrElse TypeOf symbolExpression Is MemberAccessExpressionSyntax Then
@@ -42,7 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
                     .WithAdditionalAnnotations(Simplifier.Annotation)
             End If
 
-            Return Nothing
+            ' Corresponding analyzer VisualBasicConvertTypeOfToNameOfDiagnosticAnalyzer validated the above syntax
+            Throw ExceptionUtilities.Unreachable
         End Function
     End Class
 End Namespace

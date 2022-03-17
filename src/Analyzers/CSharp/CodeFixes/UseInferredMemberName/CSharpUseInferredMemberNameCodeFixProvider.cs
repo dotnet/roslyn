@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.UseInferredMemberName;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseInferredMemberName), Shared]
     internal sealed class CSharpUseInferredMemberNameCodeFixProvider : AbstractUseInferredMemberNameCodeFixProvider
     {
         [ImportingConstructor]

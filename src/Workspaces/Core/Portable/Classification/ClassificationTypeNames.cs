@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
 
+        internal const string ReassignedVariable = "reassigned variable";
         public const string StaticSymbol = "static symbol";
 
         public const string PreprocessorText = "preprocessor text";
@@ -38,12 +39,13 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string StringEscapeCharacter = "string - escape character";
 
         public const string ClassName = "class name";
-        public const string RecordName = "record name";
+        public const string RecordClassName = "record class name";
         public const string DelegateName = "delegate name";
         public const string EnumName = "enum name";
         public const string InterfaceName = "interface name";
         public const string ModuleName = "module name";
         public const string StructName = "struct name";
+        public const string RecordStructName = "record struct name";
         public const string TypeParameterName = "type parameter name";
 
         public const string FieldName = "field name";
@@ -90,5 +92,17 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string RegexText = "regex - text";
         public const string RegexSelfEscapedCharacter = "regex - self escaped character";
         public const string RegexOtherEscape = "regex - other escape";
+
+        internal const string JsonComment = "json - comment";
+        internal const string JsonNumber = "json - number";
+        internal const string JsonString = "json - string";
+        internal const string JsonKeyword = "json - keyword";
+        internal const string JsonText = "json - text";
+        internal const string JsonOperator = "json - operator";
+        internal const string JsonPunctuation = "json - punctuation";
+        internal const string JsonArray = "json - array";
+        internal const string JsonObject = "json - object";
+        internal const string JsonPropertyName = "json - property name";
+        internal const string JsonConstructorName = "json - constructor name";
     }
 }

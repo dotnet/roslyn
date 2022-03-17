@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
 
                 public bool TryGetDocumentOption(OptionKey option, out object? value)
                 {
-                    var editorConfigPersistence = option.Option.StorageLocations.OfType<IEditorConfigStorageLocation>().SingleOrDefault();
+                    var editorConfigPersistence = (IEditorConfigStorageLocation?)option.Option.StorageLocations.SingleOrDefault(static location => location is IEditorConfigStorageLocation);
                     if (editorConfigPersistence == null)
                     {
                         value = null;

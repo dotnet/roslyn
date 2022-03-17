@@ -13,10 +13,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
@@ -44,9 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             bool useTabs = false)
         {
             using var workspace = TestWorkspace.CreateCSharp(inputMarkup);
+
+            // TODO: set SmartIndent to textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
+                .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)));
 
             if (useTabs && expectedOutputMarkup != null)
             {
@@ -56,6 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
 
+            view.Options.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, !useTabs);
+            view.Options.SetOptionValue(DefaultOptions.TabSizeOptionId, 4);
+
             var originalSnapshot = view.TextBuffer.CurrentSnapshot;
             var originalSelections = document.SelectedSpans;
 
@@ -64,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             {
                 snapshotSpans.Add(selection.ToSnapshotSpan(originalSnapshot));
             }
+
             view.SetMultiSelection(snapshotSpans);
 
             var undoHistoryRegistry = workspace.GetService<ITextUndoHistoryRegistry>();
@@ -892,6 +899,51 @@ $""[||]"";
 	}
 }",
             useTabs: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawStringLiteral()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = """"""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawStringLiteralInterpolation()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = $""""""Hello[||]there
+world
+"""""";
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
+        public void TestMissingInRawStringLiteralInterpolation_MultiBrace()
+        {
+            TestNotHandled(
+@"class C
+{
+    void M()
+    {
+        var v = ${|#0:|}$""""""Hello[||]there
+world
+"""""";
+    }
+}");
         }
     }
 }

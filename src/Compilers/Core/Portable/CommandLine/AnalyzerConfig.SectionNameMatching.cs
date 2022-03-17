@@ -114,6 +114,27 @@ namespace Microsoft.CodeAnalysis
                 numberRangePairs.ToImmutableAndFree());
         }
 
+        internal static string UnescapeSectionName(string sectionName)
+        {
+            var sb = new StringBuilder();
+            SectionNameLexer lexer = new SectionNameLexer(sectionName);
+            while (!lexer.IsDone)
+            {
+                var tokenKind = lexer.Lex();
+                if (tokenKind == TokenKind.SimpleCharacter)
+                {
+                    sb.Append(lexer.EatCurrentCharacter());
+                }
+                else
+                {
+                    // We only call this on strings that were already passed through IsAbsoluteEditorConfigPath, so
+                    // we shouldn't have any other token kinds here.
+                    throw ExceptionUtilities.UnexpectedValue(tokenKind);
+                }
+            }
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Test if a section name is an absolute path with no special chars
         /// </summary>

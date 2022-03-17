@@ -8,8 +8,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports Microsoft.CodeAnalysis.[Shared].Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -25,24 +24,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Protected Overrides ReadOnly Property GenericSuffix As String
             Get
                 Return "(Of ...)"
             End Get
         End Property
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
-        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken)
-        End Function
-
-        Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
-            Return ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel)
+        Protected Overrides Function GetImportedNamespacesAsync(syntaxContext As SyntaxContext, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of String))
+            Return ImportCompletionProviderHelper.GetImportedNamespacesAsync(syntaxContext, cancellationToken)
         End Function
 
         Protected Overrides Function IsFinalSemicolonOfUsingOrExtern(directive As SyntaxNode, token As SyntaxToken) As Boolean

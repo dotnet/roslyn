@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
             private async Task AnalyzeAsync()
             {
-                var workerBackOffTimeSpanInMS = _workspace.Options.GetOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS);
+                var workerBackOffTimeSpan = SolutionCrawlerTimeSpan.PreviewBackOff;
                 var incrementalAnalyzer = _owner._analyzerService.CreateIncrementalAnalyzer(_workspace);
 
                 var solution = _workspace.CurrentSolution;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                         }
 
                         // delay analyzing
-                        await Task.Delay(workerBackOffTimeSpanInMS, _source.Token).ConfigureAwait(false);
+                        await _owner._listener.Delay(workerBackOffTimeSpan, _source.Token).ConfigureAwait(false);
 
                         // do actual analysis
                         if (textDocument is Document document)
@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                             await incrementalAnalyzer.AnalyzeSyntaxAsync(document, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
                             await incrementalAnalyzer.AnalyzeDocumentAsync(document, bodyOpt: null, reasons: InvocationReasons.Empty, cancellationToken: _source.Token).ConfigureAwait(false);
                         }
-                        else if (incrementalAnalyzer is IIncrementalAnalyzer2 incrementalAnalyzer2)
+                        else
                         {
-                            await incrementalAnalyzer2.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
+                            await incrementalAnalyzer.AnalyzeNonSourceDocumentAsync(textDocument, InvocationReasons.Empty, _source.Token).ConfigureAwait(false);
                         }
 
                         // don't call project one.

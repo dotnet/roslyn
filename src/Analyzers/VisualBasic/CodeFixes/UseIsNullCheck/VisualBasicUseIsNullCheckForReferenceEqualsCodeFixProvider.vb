@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.UseIsNullCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseIsNullCheck), [Shared]>
     Friend Class VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider
         Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider(Of ExpressionSyntax)
 
@@ -18,12 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetIsNullTitle() As String
-            Return VisualBasicAnalyzersResources.Use_Is_Nothing_check
-        End Function
-
-        Protected Overrides Function GetIsNotNullTitle() As String
-            Return VisualBasicAnalyzersResources.Use_IsNot_Nothing_check
+        Protected Overrides Function GetTitle(negate As Boolean, options As ParseOptions) As String
+            Return If(negate, VisualBasicAnalyzersResources.Use_IsNot_Nothing_check, VisualBasicAnalyzersResources.Use_Is_Nothing_check)
         End Function
 
         Protected Overrides Function CreateNullCheck(argument As ExpressionSyntax, isUnconstrainedGeneric As Boolean) As SyntaxNode

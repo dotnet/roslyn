@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                     }
 
                                     // Do not flag unused entry point (Main) method.
-                                    if (IsEntryPoint(methodSymbol))
+                                    if (methodSymbol.IsEntryPoint(_taskType, _genericTaskType))
                                     {
                                         return false;
                                     }
@@ -698,14 +698,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 return false;
             }
-
-            private bool IsEntryPoint(IMethodSymbol methodSymbol)
-                => methodSymbol.Name is WellKnownMemberNames.EntryPointMethodName or WellKnownMemberNames.TopLevelStatementsEntryPointMethodName &&
-                   methodSymbol.IsStatic &&
-                   (methodSymbol.ReturnsVoid ||
-                    methodSymbol.ReturnType.SpecialType == SpecialType.System_Int32 ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(_taskType) ||
-                    methodSymbol.ReturnType.OriginalDefinition.Equals(_genericTaskType));
 
             private bool IsMethodWithSpecialAttribute(IMethodSymbol methodSymbol)
                 => methodSymbol.GetAttributes().Any(a => _attributeSetForMethodsToIgnore.Contains(a.AttributeClass));

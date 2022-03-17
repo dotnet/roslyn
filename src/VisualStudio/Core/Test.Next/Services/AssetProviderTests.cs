@@ -39,10 +39,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await TestAssetAsync(Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default);
         }
 
-        private async Task TestAssetAsync(object data)
+        private static async Task TestAssetAsync(object data)
         {
             var sessionId = 0;
-            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
 
             using var workspace = TestWorkspace.CreateCSharp(file: @"");
 
@@ -73,7 +73,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // build checksum
             await solution.State.GetChecksumAsync(CancellationToken.None);
 
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(includeProjectCones: true, CancellationToken.None);
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
@@ -101,7 +101,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // build checksum
             await solution.State.GetChecksumAsync(CancellationToken.None);
 
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(includeProjectCones: true, CancellationToken.None);
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 

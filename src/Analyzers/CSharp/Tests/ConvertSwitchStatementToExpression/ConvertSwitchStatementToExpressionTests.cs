@@ -760,6 +760,37 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(52258, "https://github.com/dotnet/roslyn/issues/52258")]
+        public async Task TestTrivia_03()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    int M(int i)
+    {
+        [|switch|] (i)
+        {   // Tip-toe through the trailing trivia
+            case 0: return 123;
+            case 1: return 234;
+            default: throw null;
+        }
+    }
+}",
+@"class Program
+{
+    int M(int i)
+    {
+        return i switch
+        {   // Tip-toe through the trailing trivia
+            0 => 123,
+            1 => 234,
+            _ => throw null,
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         [WorkItem(36086, "https://github.com/dotnet/roslyn/issues/36086")]
         public async Task TestSeverity()
         {
@@ -980,7 +1011,7 @@ class Program
 
         [WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public async Task TestMissingOnDirectives()
+        public async Task TestMissingFixOnDirectives()
         {
             var code = @"class Program
 {
@@ -988,7 +1019,7 @@ class Program
 
     static int GetValue(int input)
     {
-        switch (input)
+        [|switch|] (input)
         {
             case 1:
                 return 42;
@@ -1007,6 +1038,81 @@ class Program
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [WorkItem(37872, "https://github.com/dotnet/roslyn/issues/37872")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public async Task TestMissingFixAllOnDirectives()
+        {
+            var code = @"class Program
+{
+    static void Main() { }
+
+    static int GetValue(int input)
+    {
+        [|switch|] (input)
+        {
+            case 1:
+                return 42;
+            default:
+                return 80;
+        }
+
+        [|switch|] (input)
+        {
+            case 1:
+                return 42;
+            case 2:
+#if PLATFORM_UNIX
+                return 50;
+#else
+                return 51;
+#endif
+            case 3:
+                return 79;
+            default:
+                return 80;
+        }
+    }
+}";
+            var fixedCode = @"class Program
+{
+    static void Main() { }
+
+    static int GetValue(int input)
+    {
+        return input switch
+        {
+            1 => 42,
+            _ => 80,
+        };
+        [|switch|] (input)
+        {
+            case 1:
+                return 42;
+            case 2:
+#if PLATFORM_UNIX
+                return 50;
+#else
+                return 51;
+#endif
+            case 3:
+                return 79;
+            default:
+                return 80;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedState =
+                {
+                    Sources = { fixedCode },
+                    MarkupHandling = MarkupMode.Allow,
+                },
+            }.RunAsync();
         }
 
         [WorkItem(37950, "https://github.com/dotnet/roslyn/issues/37950")]
@@ -1916,8 +2022,8 @@ return i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }
@@ -1961,8 +2067,8 @@ j = i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }
@@ -2057,6 +2163,157 @@ class Program
         return (1 + 1) switch
         {
             _ => 0,
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        public async Task TestRuntimeTypeConversion_Assignment1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    void M(string s)
+    {
+        object result;
+
+        [|switch|] (s)
+        {
+        case ""a"":
+            result = 1234;
+            break;
+        case ""b"":
+            result = 3.14;
+            break;
+        default:
+            throw new System.Exception();
+        }
+    }
+}",
+@"class Program
+{
+    void M(string s)
+    {
+        object result = s switch
+        {
+            ""a"" => 1234,
+            ""b"" => (object)3.14,
+            _ => throw new System.Exception(),
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        public async Task TestRuntimeTypeConversion_Assignment2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    void M(string s)
+    {
+        object result;
+
+        [|switch|] (s)
+        {
+        case ""a"":
+            result = 1234;
+            break;
+        case ""b"":
+            result = 3.14;
+            break;
+        case ""c"":
+            result = true;
+            break;
+        default:
+            throw new System.Exception();
+        }
+    }
+}",
+@"class Program
+{
+    void M(string s)
+    {
+        object result = s switch
+        {
+            ""a"" => 1234,
+            ""b"" => 3.14,
+            ""c"" => true,
+            _ => throw new System.Exception(),
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        public async Task TestRuntimeTypeConversion_Return1()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    object M(string s)
+    {
+        [|switch|] (s)
+        {
+        case ""a"":
+            return 1234;
+        case ""b"":
+            return 3.14;
+        default:
+            throw new System.Exception();
+        }
+    }
+}",
+@"class Program
+{
+    object M(string s)
+    {
+        return s switch
+        {
+            ""a"" => 1234,
+            ""b"" => (object)3.14,
+            _ => throw new System.Exception(),
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        [WorkItem(58636, "https://github.com/dotnet/roslyn/issues/58636")]
+        public async Task TestRuntimeTypeConversion_Return2()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"class Program
+{
+    object M(string s)
+    {
+        [|switch|] (s)
+        {
+        case ""a"":
+            return 1234;
+        case ""b"":
+            return 3.14;
+        case ""c"":
+            return true;
+        default:
+            throw new System.Exception();
+        }
+    }
+}",
+@"class Program
+{
+    object M(string s)
+    {
+        return s switch
+        {
+            ""a"" => 1234,
+            ""b"" => 3.14,
+            ""c"" => true,
+            _ => throw new System.Exception(),
         };
     }
 }");

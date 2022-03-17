@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
@@ -56,6 +56,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal interface IDocumentHighlightsService : ILanguageService
     {
         Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
-            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken);
+            Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken);
     }
 }

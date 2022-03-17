@@ -1,0 +1,56 @@
+parameters:
+  - name: configuration
+    type: string
+    default: 'Debug'
+  - name: oop64bit
+    # This is actually a boolean but must be defined as string.
+    # Parameters are evaluated at compile time, but all variables are strings at compile time.
+    # So in order to pass a parameter that comes from a variable these must be typed as string.
+    type: string
+    default: true
+  - name: oopCoreClr
+    type: string
+    default: false
+  - name: lspEditor
+    type: string
+    default: false
+  - name: shallowCheckout
+    type: boolean
+    default: true
+
+steps:
+  - ${{ if eq(parameters.shallowCheckout, true) }}:
+    - template: checkout-windows-task.yml
+
+  - task: PowerShell@2
+    displayName: Build and Test
+    inputs:
+      filePath: eng/build.ps1
+      arguments: -ci -restore -build -pack -sign -publish -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -oopCoreClr:$${{ parameters.oopCoreClr }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
+
+  - task: PublishTestResults@2
+    displayName: Publish xUnit Test Results
+    inputs:
+      testRunner: XUnit
+      testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}\*.xml
+      mergeTestResults: true
+      testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }}'
+    condition: always()
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Logs
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
+      ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+      publishLocation: Container
+    continueOnError: true
+    condition: not(succeeded())
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Screenshots and Test Attachments
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
+      ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} OOPCoreClr_${{ parameters.oopCoreClr }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+      publishLocation: Container
+    continueOnError: true
+    condition: not(succeeded())

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -48,9 +46,9 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 for (var i = 0; i < _state.Parameters.Length; i++)
                     parameterToExistingFieldMap[_state.Parameters[i].Name] = _state.SelectedMembers[i];
 
-                var factory = _document.GetLanguageService<SyntaxGenerator>();
+                var factory = _document.GetRequiredLanguageService<SyntaxGenerator>();
 
-                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxTree = semanticModel.SyntaxTree;
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var preferThrowExpression = _service.PrefersThrowExpression(options);
@@ -60,6 +58,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _state.ContainingType.Name,
                     _state.ContainingType,
                     _state.Parameters,
+                    _state.Accessibility,
                     parameterToExistingFieldMap.ToImmutable(),
                     parameterToNewMemberMap: null,
                     addNullChecks: _addNullChecks,
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _document.Project.Solution,
                     _state.ContainingType,
                     members,
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),
                     cancellationToken).ConfigureAwait(false);

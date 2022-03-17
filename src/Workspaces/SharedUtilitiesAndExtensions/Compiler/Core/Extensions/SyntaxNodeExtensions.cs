@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>([NotNullWhen(returnValue: true)] this SyntaxNode? node, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            if (!(node?.Parent is T parentNode))
+            if (node?.Parent is not T parentNode)
             {
                 return false;
             }
@@ -326,44 +326,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return fullSpan;
         }
 
-        public static IEnumerable<TextSpan> GetContiguousSpans(
-            this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, SyntaxToken>? getLastToken = null)
-        {
-            (SyntaxNode node, TextSpan textSpan)? previous = null;
-
-            // Sort the nodes in source location order.
-            foreach (var node in nodes.OrderBy(n => n.SpanStart))
-            {
-                TextSpan textSpan;
-                if (previous == null)
-                {
-                    textSpan = node.Span;
-                }
-                else
-                {
-                    var lastToken = getLastToken?.Invoke(previous.Value.node) ?? previous.Value.node.GetLastToken();
-                    if (lastToken.GetNextToken(includeDirectives: true) == node.GetFirstToken())
-                    {
-                        // Expand the span
-                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, node.Span.End);
-                    }
-                    else
-                    {
-                        // Return the last span, and start a new one
-                        yield return previous.Value.textSpan;
-                        textSpan = node.Span;
-                    }
-                }
-
-                previous = (node, textSpan);
-            }
-
-            if (previous.HasValue)
-            {
-                yield return previous.Value.textSpan;
-            }
-        }
-
         public static bool OverlapsHiddenPosition(this SyntaxNode node, CancellationToken cancellationToken)
             => node.OverlapsHiddenPosition(node.Span, cancellationToken);
 
@@ -493,29 +455,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         if (nodesToReplace.TryGetValue(span, out var currentNode))
                         {
-                            var original = (SyntaxNode)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
+                            var original = (SyntaxNode?)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
                             var newNode = await computeReplacementNodeAsync!(original, currentNode, cancellationToken).ConfigureAwait(false);
                             nodeReplacements[currentNode] = newNode;
                         }
                         else if (tokensToReplace.TryGetValue(span, out var currentToken))
                         {
-                            var original = (SyntaxToken)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentToken;
-                            }
-
+                            var original = (SyntaxToken?)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault() ?? currentToken;
                             var newToken = await computeReplacementTokenAsync!(original, currentToken, cancellationToken).ConfigureAwait(false);
                             tokenReplacements[currentToken] = newToken;
                         }
                         else if (triviaToReplace.TryGetValue(span, out var currentTrivia))
                         {
-                            var original = (SyntaxTrivia)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentTrivia;
-                            }
-
+                            var original = (SyntaxTrivia?)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault() ?? currentTrivia;
                             var newTrivia = await computeReplacementTriviaAsync!(original, currentTrivia, cancellationToken).ConfigureAwait(false);
                             triviaReplacements[currentTrivia] = newTrivia;
                         }

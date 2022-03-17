@@ -4,7 +4,112 @@
     <body>
       <trans-unit id="ECMD_RUNFXCOPSEL|ButtonText">
         <source>Run Code &amp;Analysis on Selection</source>
-        <target state="translated">&amp;Spustit analýzu kódu na výběr</target>
+        <target state="translated">Spustit &amp;analýzu kódu při výběru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Průzkumník trasování zásobníku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
+        <source>ShowStackTraceExplorerCommandName</source>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
+        <source>ShowStackTraceExplorer</source>
+        <target state="translated">ShowStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
+        <source>&amp;Current Document</source>
+        <target state="translated">&amp;Aktuální dokument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
+        <source>AnalysisScopeCurrentDocument</source>
+        <target state="translated">AnalysisScopeCurrentDocument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
+        <source>Current Document</source>
+        <target state="translated">Aktuální dokument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="translated">&amp;Výchozí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
+        <source>AnalysisScopeDefault</source>
+        <target state="translated">AnalysisScopeDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="translated">Výchozí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
+        <source>&amp;Entire Solution</source>
+        <target state="translated">&amp;Celé řešení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
+        <source>AnalysisScopeEntireSolution</source>
+        <target state="translated">AnalysisScopeEntireSolution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
+        <source>Entire Solution</source>
+        <target state="translated">Celé řešení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|ButtonText">
+        <source>&amp;None</source>
+        <target state="new">&amp;None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|CommandName">
+        <source>AnalysisScopeNone</source>
+        <target state="new">AnalysisScopeNone</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeNone|LocCanonicalName">
+        <source>None</source>
+        <target state="new">None</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
+        <source>&amp;Open Documents</source>
+        <target state="translated">&amp;Otevřít dokumenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
+        <source>AnalysisScopeOpenDocuments</source>
+        <target state="translated">AnalysisScopeOpenDocuments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
+        <source>Open Documents</source>
+        <target state="translated">Otevřít dokumenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
+        <source>Set Analysis Scope</source>
+        <target state="translated">Nastavit obor analýzy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
+        <source>Set Analysis Scope</source>
+        <target state="translated">Nastavit obor analýzy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
+        <source>SetAnalysisScope</source>
+        <target state="translated">SetAnalysisScope</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
@@ -212,9 +317,24 @@
         <target state="translated">OpenActiveRuleSet</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
+        <source>Remove Unused References...</source>
+        <target state="translated">Odebrat nepoužívané odkazy...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|LocCanonicalName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
         <source>Run C&amp;ode Analysis</source>
-        <target state="translated">Spustit &amp;analýzu kódu</target>
+        <target state="translated">Spustit analýzu &amp;kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|CommandName">
@@ -405,6 +525,36 @@
       <trans-unit id="cmdidGoToImplementation|CommandName">
         <source>Go To Implementation</source>
         <target state="translated">Přejít na implementaci</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|ButtonText">
+        <source>Sync &amp;Namespaces</source>
+        <target state="translated">Synchronizovat obory &amp;názvů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|CommandName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|LocCanonicalName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|ButtonText">
+        <source>Track Value Source</source>
+        <target state="translated">Sledovat zdroj hodnoty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|CommandName">
+        <source>ShowValueTrackingCommandName</source>
+        <target state="translated">ShowValueTrackingCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
+        <source>ShowValueTracking</source>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

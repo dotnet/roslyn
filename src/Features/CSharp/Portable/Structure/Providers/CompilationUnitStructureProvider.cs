@@ -15,12 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class CompilationUnitStructureProvider : AbstractSyntaxNodeStructureProvider<CompilationUnitSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             CompilationUnitSyntax compilationUnit,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(compilationUnit, ref spans, options);
 
             // extern aliases and usings are outlined in a single region
             var externsAndUsings = new List<SyntaxNode>();

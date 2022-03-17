@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
     using static SimplifyBooleanExpressionConstants;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.SimplifyConditionalExpression), Shared]
     internal sealed class SimplifyConditionalCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {

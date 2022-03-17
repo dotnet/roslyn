@@ -4,13 +4,15 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
-    <TargetFrameworks>net5.0-windows7.0;netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows;net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+    <ProjectReference Include="..\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
@@ -37,6 +39,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />

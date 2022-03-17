@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         // anchor token to anchor data map.
         // unlike anchorTree that would return anchor data for given span in the tree, it will return
         // anchorData based on key which is anchor token.
-        private readonly Dictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap;
+        private readonly SegmentedDictionary<SyntaxToken, AnchorData> _anchorBaseTokenMap;
 
         // hashset to prevent duplicate entries in the trees.
         private readonly HashSet<TextSpan> _indentationMap;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             _suppressFormattingTree = new ContextIntervalTree<SuppressSpacingData, SuppressIntervalIntrospector>(new SuppressIntervalIntrospector());
             _anchorTree = new ContextIntervalTree<AnchorData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 
-            _anchorBaseTokenMap = new Dictionary<SyntaxToken, AnchorData>();
+            _anchorBaseTokenMap = new SegmentedDictionary<SyntaxToken, AnchorData>();
 
             _indentationMap = new HashSet<TextSpan>();
             _suppressWrappingMap = new HashSet<TextSpan>();
@@ -107,10 +108,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var initialOperation = indentationOperations[0];
                 var baseIndentationFinder = new BottomUpBaseIndentationFinder(
                                                 formattingRules,
-                                                this.Options.GetOption(FormattingOptions2.TabSize),
-                                                this.Options.GetOption(FormattingOptions2.IndentationSize),
+                                                Options.TabSize,
+                                                Options.IndentationSize,
                                                 _tokenStream,
-                                                _engine.SyntaxFacts);
+                                                _engine.HeaderFacts);
                 var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                     rootNode,
                     initialOperation,
@@ -203,8 +204,8 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
                 var relativeIndentationGetter = new Lazy<int>(() =>
                 {
-                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.SyntaxFacts, TreeData.Root, effectiveBaseToken);
-                    var indentationDelta = baseIndentationDelta * this.Options.GetOption(FormattingOptions2.IndentationSize);
+                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.HeaderFacts, TreeData.Root, effectiveBaseToken);
+                    var indentationDelta = baseIndentationDelta * Options.IndentationSize;
 
                     // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
                     var baseIndentation = _tokenStream.GetCurrentColumn(operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ?
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (indentationData == null)
             {
                 // no previous indentation
-                var indentation = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
+                var indentation = operation.IndentationDeltaOrPosition * Options.IndentationSize;
                 _indentationTree.AddIntervalInPlace(new SimpleIndentationData(intervalTreeSpan, indentation));
                 _indentationMap.Add(intervalTreeSpan);
                 return;
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get indentation based on its previous indentation
             var indentationGetter = new Lazy<int>(() =>
             {
-                var indentationDelta = operation.IndentationDeltaOrPosition * this.Options.GetOption(FormattingOptions2.IndentationSize);
+                var indentationDelta = operation.IndentationDeltaOrPosition * Options.IndentationSize;
 
                 return indentationData.Indentation + indentationDelta;
             }, isThreadSafe: true);
@@ -272,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             List<SuppressOperation> operations,
             CancellationToken cancellationToken)
         {
-            var valuePairs = new (SuppressOperation operation, bool shouldSuppress, bool onSameLine)[operations.Count];
+            var valuePairs = new SegmentedArray<(SuppressOperation operation, bool shouldSuppress, bool onSameLine)>(operations.Count);
 
             // TODO: think about a way to figure out whether it is already suppressed and skip the expensive check below.
             for (var i = 0; i < operations.Count; i++)
@@ -294,15 +295,15 @@ namespace Microsoft.CodeAnalysis.Formatting
                 valuePairs[i] = (operation, shouldSuppress: true, onSameLine);
             }
 
-            valuePairs.Do(v =>
+            foreach (var (operation, shouldSuppress, onSameLine) in valuePairs)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (v.shouldSuppress)
+                if (shouldSuppress)
                 {
-                    AddSuppressOperation(v.operation, v.onSameLine);
+                    AddSuppressOperation(operation, onSameLine);
                 }
-            });
+            }
         }
 
         private void AddSuppressOperation(SuppressOperation operation, bool onSameLine)
@@ -402,8 +403,21 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var originalSpace = _tokenStream.GetOriginalColumn(operation.StartToken);
-            var data = new AnchorData(operation, originalSpace);
+            // If the indentation changes on a line which other code is anchored to, adjust those other lines to reflect
+            // the same change in indentation. Note that we anchor to the first token on a line to account for common
+            // cases like the following code, where the `{` token is anchored to the `(` token of `()`:
+            //
+            //                ↓ this space can be removed, which moves `(` one character to the left
+            // var x = Method( () =>
+            // {
+            // ↑ this `{` anchors to `var` instead of `(`, which prevents it from moving when `(` is moved
+            // });
+            //
+            // The calculation of true anchor token (which is always the first token on a line) is delayed to account
+            // for cases where the original anchor token is moved to a new line during a formatting operation.
+            var anchorToken = _tokenStream.FirstTokenOfBaseTokenLine(operation.AnchorToken);
+            var originalSpace = _tokenStream.GetOriginalColumn(anchorToken);
+            var data = new AnchorData(operation, anchorToken, originalSpace);
 
             _anchorTree.AddIntervalInPlace(data);
 
@@ -665,7 +679,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return IsFormattingDisabled(spanBetweenTwoTokens);
         }
 
-        public AnalyzerConfigOptions Options => _engine.Options;
+        public SyntaxFormattingOptions Options => _engine.Options;
 
         public TreeData TreeData => _engine.TreeData;
 

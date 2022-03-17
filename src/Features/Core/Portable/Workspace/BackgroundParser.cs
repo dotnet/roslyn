@@ -42,13 +42,17 @@ namespace Microsoft.CodeAnalysis.Host
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
             _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+            _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             workspace.DocumentOpened += OnDocumentOpened;
             workspace.DocumentClosed += OnDocumentClosed;
         }
+
+        private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)
+            => Parse(_workspace.CurrentSolution.GetDocument(activeDocumentId));
 
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
             => Parse(args.Document);
@@ -163,17 +167,6 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     CancelParse(document.Id);
 
-                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile &&
-                        _documentTrackingService?.TryGetActiveDocument() != document.Id)
-                    {
-                        // Avoid performing any background parsing for non-active files
-                        // if the user has explicitly set the background analysis scope
-                        // to only analyze active files.
-                        // Note that we bail out after executing CancelParse to ensure
-                        // all the current background parsing tasks are cancelled.
-                        return;
-                    }
-
                     if (IsStarted)
                     {
                         _ = ParseDocumentAsync(document);
@@ -209,26 +202,30 @@ namespace Microsoft.CodeAnalysis.Host
             // By not cancelling, we can reuse the useful results of previous tasks when performing later steps in the chain.
             //
             // we still cancel whole task if the task didn't start yet. we just don't cancel if task is started but not finished yet.
-            var task = _taskQueue.ScheduleTask(
+            return _taskQueue.ScheduleTask(
                 "BackgroundParser.ParseDocumentAsync",
-                () => document.GetSyntaxTreeAsync(CancellationToken.None),
-                cancellationToken);
-
-            // Always ensure that we mark this work as done from the workmap.
-            return task.SafeContinueWith(
-                _ =>
+                async () =>
                 {
-                    using (_stateLock.DisposableWrite())
+                    try
                     {
-                        // Check that we are still the active parse in the workmap before we remove it.
-                        // Concievably if this continuation got delayed and another parse was put in, we might
-                        // end up removing the tracking for another in-flight task.
-                        if (_workMap.TryGetValue(document.Id, out var sourceInMap) && sourceInMap == cancellationTokenSource)
+                        await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        // Always ensure that we mark this work as done from the workmap.
+                        using (_stateLock.DisposableWrite())
                         {
-                            _workMap = _workMap.Remove(document.Id);
+                            // Check that we are still the active parse in the workmap before we remove it.
+                            // Concievably if this continuation got delayed and another parse was put in, we might
+                            // end up removing the tracking for another in-flight task.
+                            if (_workMap.TryGetValue(document.Id, out var sourceInMap) && sourceInMap == cancellationTokenSource)
+                            {
+                                _workMap = _workMap.Remove(document.Id);
+                            }
                         }
                     }
-                }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                },
+                cancellationToken);
         }
     }
 }

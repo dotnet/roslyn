@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SynthesizedClosureEnvironment? StaticLambdaFrame;
 
+        public DelegateCacheContainer? ConcreteDelegateCacheContainer;
+
         /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.
         /// Used to detect and report initializer cycles.
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method2">the chained-to ctor</param>
         /// <param name="syntax">where to report a cyclic error if needed</param>
         /// <param name="diagnostics">a diagnostic bag for receiving the diagnostic</param>
-        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, SyntaxNode syntax, DiagnosticBag diagnostics)
+        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             // precondition and postcondition: the graph _constructorInitializers is acyclic.
             // If adding the edge (method1, method2) would induce a cycle, we report an error

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
 
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseCompoundAssignment), [Shared]>
     Friend Class VisualBasicUseCompoundAssignmentCodeFixProvider
         Inherits AbstractUseCompoundAssignmentCodeFixProvider(Of SyntaxKind, AssignmentStatementSyntax, ExpressionSyntax)
 
@@ -30,12 +30,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
             Return SyntaxFactory.AssignmentStatement(assignmentOpKind, left, syntaxToken, right)
         End Function
 
-        Protected Overrides Function Increment(left As ExpressionSyntax) As ExpressionSyntax
+        Protected Overrides Function Increment(left As ExpressionSyntax, postfix As Boolean) As ExpressionSyntax
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function Decrement(left As ExpressionSyntax) As ExpressionSyntax
+        Protected Overrides Function Decrement(left As ExpressionSyntax, postfix As Boolean) As ExpressionSyntax
             Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Protected Overrides Function PrepareRightExpressionLeadingTrivia(initialTrivia As SyntaxTriviaList) As SyntaxTriviaList
+            Return initialTrivia.WithoutLeadingWhitespaceOrEndOfLine()
         End Function
     End Class
 End Namespace

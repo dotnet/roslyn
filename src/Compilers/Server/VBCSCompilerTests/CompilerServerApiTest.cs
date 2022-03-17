@@ -58,7 +58,7 @@ class Hello
         {
             var directory = Temp.CreateDirectory();
             var file = directory.CreateFile("temp.cs");
-            await file.WriteAllTextAsync(sourceText).ConfigureAwait(false);
+            await file.WriteAllTextAsync(sourceText);
 
             var builder = ImmutableArray.CreateBuilder<BuildRequest.Argument>();
             if (keepAlive.HasValue)
@@ -70,7 +70,6 @@ class Hello
             builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, argumentIndex: 0, value: file.Path));
 
             return new BuildRequest(
-                BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
                 BuildProtocolConstants.GetCommitHash(),
                 builder.ToImmutable());
@@ -83,10 +82,10 @@ class Hello
         {
             using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
             {
-                var buildRequest = await CreateBuildRequest(sourceText, keepAlive).ConfigureAwait(false);
+                var buildRequest = await CreateBuildRequest(sourceText, keepAlive);
                 namedPipe.Connect(Timeout.Infinite);
-                await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
-                return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
+                await buildRequest.WriteAsync(namedPipe, default(CancellationToken));
+                return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken));
             }
         }
 
@@ -104,7 +103,7 @@ class Hello
             var mutexName = BuildServerConnection.GetServerMutexName(pipeName);
 
             bool holdsMutex;
-            using (var mutex = new Mutex(initiallyOwned: true,
+            using (var mutex = BuildServerConnection.OpenOrCreateMutex(
                                          name: mutexName,
                                          createdNew: out holdsMutex))
             {
@@ -120,7 +119,7 @@ class Hello
                 }
                 finally
                 {
-                    mutex.ReleaseMutex();
+                    mutex.Dispose();
                 }
             }
         }
@@ -176,25 +175,17 @@ class Hello
         public async Task RejectEmptyTempPath()
         {
             using var temp = new TempRoot();
-            using var serverData = await ServerUtil.CreateServer(Logger).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServer(Logger);
             var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
-            var response = await serverData.SendAsync(request).ConfigureAwait(false);
+            var response = await serverData.SendAsync(request);
             Assert.Equal(ResponseType.Rejected, response.Type);
-        }
-
-        [Fact]
-        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
-        {
-            using var serverData = await ServerUtil.CreateServer(Logger).ConfigureAwait(false);
-            var buildResponse = await serverData.SendAsync(new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { })).ConfigureAwait(false);
-            Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
         }
 
         [Fact]
         public async Task IncorrectServerHashReturnsIncorrectHashResponse()
         {
-            using var serverData = await ServerUtil.CreateServer(Logger).ConfigureAwait(false);
-            var buildResponse = await serverData.SendAsync(new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { })).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServer(Logger);
+            var buildResponse = await serverData.SendAsync(new BuildRequest(RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
             Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
         }
 

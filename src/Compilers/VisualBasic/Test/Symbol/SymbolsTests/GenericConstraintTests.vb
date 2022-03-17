@@ -5839,6 +5839,43 @@ BC32044: Type argument 'String' does not inherit from or implement the constrain
 </expected>)
         End Sub
 
+        <Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")>
+        Public Sub RecursiveConstraintsFromUnifiedAssemblies()
+            Dim metadataComp = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class A(Of T1 As A(Of T1, T2), T2 As A(Of T1, T2).B(Of T1, T2))
+    Public Class B(Of T3 As A(Of T3, T4), T4 As A(Of T3, T4).B(Of T3, T4))
+    End Class
+End Class
+Public Class C
+    Inherits A(Of C, C.D)
+
+    Public Class D
+        Inherits A(Of C, C.D).B(Of C, C.D)
+    End Class
+End Class]]>
+    </file>
+</compilation>, assemblyName:="assembly1")
+
+            metadataComp.AssertTheseDiagnostics()
+
+            Dim finalComp = CreateCompilationWithMscorlib45(
+<compilation>
+    <file name="b.vb"><![CDATA[
+Class D
+    Shared Sub Main()
+        System.Console.WriteLine(GetType(C.D).FullName)
+    End Sub
+End Class]]>
+    </file>
+
+</compilation>, {metadataComp.EmitToImageReference()})
+            finalComp.AssertTheseDiagnostics()
+
+            Assert.Null(finalComp.GetTypeByMetadataName("C").GetUseSiteErrorInfo())
+        End Sub
+
     End Class
 
 End Namespace

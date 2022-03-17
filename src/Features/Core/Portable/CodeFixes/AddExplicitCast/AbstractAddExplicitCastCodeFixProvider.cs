@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var spanNodes = diagnostics.SelectAsArray(
                 d => root.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true)
-                         .GetAncestorsOrThis<TExpressionSyntax>().FirstOrDefault());
+                         .GetAncestorsOrThis<TExpressionSyntax>().First());
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, spanNodes,

@@ -17,6 +17,11 @@
         <target state="translated">La declaración de importaciones no es necesaria.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">Las creaciones de objetos se pueden simplificar</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_ByVal">
         <source>'ByVal' keyword is unnecessary and can be removed.</source>
         <target state="translated">La palabra clave "ByVal" no es necesaria y se puede quitar.</target>

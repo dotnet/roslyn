@@ -191,7 +191,7 @@ public partial class {userClass.Identifier}
     {{
         // generated code
     }}
-}", Encoding.UTF8);
+}}", Encoding.UTF8);
         context.AddSource("UserClass.Generated.cs", sourceText);
     }
 
@@ -624,7 +624,86 @@ public class MyGenerator : ISourceGenerator
 
 **User scenario**: As a generator author, I want to be able to unit test my generators to make development easier and ensure correctness.
 
-**Solution**: A user can host the `GeneratorDriver` directly within a unit test, making the generator portion of the code relatively simple to unit test. A user will need to provide a compilation for the generator to operate on, and can then probe either the resulting compilation, or the `GeneratorDriverRunResult` of the driver to see the individual items added by the generator.
+**Solution A**:
+
+The recommended approach is to use [Microsoft.CodeAnalysis.Testing](https://github.com/dotnet/roslyn-sdk/tree/main/src/Microsoft.CodeAnalysis.Testing#microsoftcodeanalysistesting) packages:
+
+- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest`
+- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest`
+- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit`
+- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit`
+- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit`
+- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit`
+
+This works in the same way as analyzers and codefix testing. You add a class like the following:
+
+```csharp
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
+
+public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
+    where TSourceGenerator : ISourceGenerator, new()
+{
+    public class Test : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+    {
+        public Test()
+        {
+        }
+
+        protected override CompilationOptions CreateCompilationOptions()
+        {
+           var compilationOptions = base.CreateCompilationOptions();
+           return compilationOptions.WithSpecificDiagnosticOptions(
+                compilationOptions.SpecificDiagnosticOptions.SetItems(GetNullableWarningsFromCompiler()));
+        }
+
+        public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
+
+        private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
+        {
+            string[] args = { "/warnaserror:nullable" };
+            var commandLineArguments = CSharpCommandLineParser.Default.Parse(args, baseDirectory: Environment.CurrentDirectory, sdkDirectory: Environment.CurrentDirectory);
+            var nullableWarnings = commandLineArguments.CompilationOptions.SpecificDiagnosticOptions;
+
+            return nullableWarnings;
+        }
+
+        protected override ParseOptions CreateParseOptions()
+        {
+            return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
+        }
+    }
+}
+```
+
+Then, in your test file:
+
+```csharp
+using VerifyCS = CSharpSourceGeneratorVerifier<YourGenerator>;
+```
+
+And use the following in your test method:
+
+```csharp
+var code = "initial code"
+var generated = "expected generated code";
+await new VerifyCS.Test
+{
+    TestState = 
+    {
+        Sources = { code },
+        GeneratedSources =
+        {
+            (typeof(YourGenerator), "GeneratedFileName", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+        },
+    },
+}.RunAsync();
+```
+
+**Solution B:**
+
+Another approach without using the testing library is that a user can host the `GeneratorDriver` directly within a unit test, making the generator portion of the code relatively simple to unit test. A user will need to provide a compilation for the generator to operate on, and can then probe either the resulting compilation, or the `GeneratorDriverRunResult` of the driver to see the individual items added by the generator.
 
 Starting with a basic generator that adds a single source file:
 
@@ -918,7 +997,6 @@ private static string Generate(ClassDeclarationSyntax c)
                 sb.Append("\\\"");
             }
             sb.AppendLine(",\");");
-            break;
         }
     }
 

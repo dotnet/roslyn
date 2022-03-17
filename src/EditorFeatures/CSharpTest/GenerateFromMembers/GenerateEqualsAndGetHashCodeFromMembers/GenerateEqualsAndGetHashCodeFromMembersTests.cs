@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
             public ImmutableArray<string> MemberNames;
             public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
 
-            public override AdhocWorkspace CreateWorkspace()
+            protected override Workspace CreateWorkspaceImpl()
             {
                 // If we're a dialog test, then mixin our mock and initialize its values to the ones the test asked for.
                 var workspace = new AdhocWorkspace(s_composition.GetHostServices());
@@ -93,20 +93,51 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
 
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsSingleField_CSharp7()
+        {
+            var code =
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int a;|]
+}";
+            var fixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program program &&
+               a == program.a;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp7,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
@@ -130,20 +161,18 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferExplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferExplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -174,20 +203,18 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -229,15 +256,13 @@ class Program
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -268,20 +293,18 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a.Equals(program.a);
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -304,20 +327,18 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null &&
+        return !ReferenceEquals(name, null) &&
                a == name.a;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -340,20 +361,18 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null &&
+        return !ReferenceEquals(@long, null) &&
                a == @long.a;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -380,21 +399,19 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null &&
+        return !ReferenceEquals(name, null) &&
                a == name.a &&
                B == name.B;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -421,20 +438,18 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -477,23 +492,21 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                base.Equals(obj) &&
                i == program.i &&
                S == program.S;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 0,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -544,22 +557,20 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                base.Equals(obj) &&
                i == program.i &&
                S == program.S;
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -789,21 +800,19 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 }
 ";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = expected,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -850,7 +859,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 
@@ -860,16 +869,14 @@ class Program
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -892,7 +899,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                j == program.j;
     }
 
@@ -902,16 +909,14 @@ class Program
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -942,7 +947,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                j == program.j;
     }
 
@@ -955,16 +960,14 @@ class Program : Base
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -996,7 +999,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null;
+        return !ReferenceEquals(program, null);
     }
 
     public override int GetHashCode()
@@ -1005,17 +1008,15 @@ class Program : Base
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 MemberNames = ImmutableArray<string>.Empty,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1038,7 +1039,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 
@@ -1078,7 +1079,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<T>.Default.Equals(i, program.i);
     }
 
@@ -1088,16 +1089,14 @@ class Program<T>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1120,7 +1119,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<Program<T>>.Default.Equals(i, program.i);
     }
 
@@ -1130,16 +1129,14 @@ class Program<T>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1166,7 +1163,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i &&
                S == program.S;
     }
@@ -1180,16 +1177,14 @@ class Program
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1369,21 +1364,19 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 0,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1406,20 +1399,18 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1442,20 +1433,18 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1478,7 +1467,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i.Equals(program.i);
     }
 
@@ -1488,16 +1477,14 @@ class Program
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1520,7 +1507,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i.Equals(program.i);
     }
 
@@ -1530,16 +1517,14 @@ class Program
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1566,7 +1551,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1580,16 +1565,14 @@ struct Bar
 {
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1617,7 +1600,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1632,16 +1615,14 @@ struct Bar
     public override int GetHashCode() => 0;
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1668,7 +1649,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar?>.Default.Equals(bar, foo.bar);
     }
 
@@ -1682,16 +1663,14 @@ struct Bar
 {
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1714,7 +1693,7 @@ class Foo<TBar> where TBar : struct
     public override bool Equals(object obj)
     {
         var foo = obj as Foo<TBar>;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<TBar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1724,16 +1703,14 @@ class Foo<TBar> where TBar : struct
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1756,7 +1733,7 @@ class Foo<TBar> where TBar : struct
     public override bool Equals(object obj)
     {
         var foo = obj as Foo<TBar>;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<TBar?>.Default.Equals(bar, foo.bar);
     }
 
@@ -1766,16 +1743,14 @@ class Foo<TBar> where TBar : struct
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1802,7 +1777,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                bar == foo.bar;
     }
 
@@ -1816,16 +1791,14 @@ enum Bar
 {
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1848,7 +1821,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                bar == foo.bar;
     }
 
@@ -1858,16 +1831,14 @@ class Foo
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1893,22 +1864,20 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a &&
                b == program.b;
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = ImmutableArray.Create("a", "b"),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1936,22 +1905,20 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                c == program.c &&
                b == program.b;
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = ImmutableArray.Create("c", "b"),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -1979,20 +1946,18 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null;
+        return !ReferenceEquals(program, null);
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = ImmutableArray<string>.Empty,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")]
@@ -2015,20 +1980,18 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                F == program.F;
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")]
@@ -2173,7 +2136,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2188,17 +2151,15 @@ class Program
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = default,
                 OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2224,7 +2185,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2271,24 +2232,22 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
     public static bool operator {|CS0216:==|}(Program left, Program right) => true;
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = default,
                 OptionsCallback = options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId)),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2333,17 +2292,15 @@ struct Program
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = default,
                 OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2380,7 +2337,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                BooleanValue == foo.BooleanValue &&
                DecimalValue == foo.DecimalValue &&
                EnumValue == foo.EnumValue &&
@@ -2392,16 +2349,14 @@ enum Bar
 {
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 0,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2445,7 +2400,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                Value.Equals(foo.Value) &&
                EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
     }
@@ -2466,16 +2421,14 @@ struct Bar : IEquatable<Bar>
     public static bool operator !=(Bar left, Bar right) => !(left == right);
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 0,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2510,17 +2463,15 @@ struct Program : IEquatable<Program>
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = default,
                 OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2679,7 +2630,7 @@ struct Foo : IEquatable<Foo>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEquatableOnClass()
+        public async Task TestImplementIEquatableOnClass_CSharp6()
         {
             var code =
 @"
@@ -2706,22 +2657,152 @@ class Program : IEquatable<Program>
 
     public bool Equals(Program other)
     {
-        return other != null &&
+        return !ReferenceEquals(other, null) &&
                s == other.s;
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = default,
                 OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
 
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp7()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return !(other is null) &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp7,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp8()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return !(other is null) &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp8,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp9()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return other is not null &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2751,7 +2832,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return other != null &&
+        return !(other is null) &&
                Bar == other.Bar;
     }
 }";
@@ -2800,7 +2881,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return other != null &&
+        return !(other is null) &&
                Bar == other.Bar;
     }
 }
@@ -2839,22 +2920,20 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = default,
                 OptionsCallback = options => Assert.Null(options.FirstOrDefault(i => i.Id == GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId)),
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -2899,7 +2978,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     public override System.Boolean Equals(System.Object obj)
     {
         Class1 @class = obj as Class1;
-        return @class != null &&
+        return !ReferenceEquals(@class, null) &&
                i == @class.i;
     }
 
@@ -2933,8 +3012,10 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS0518").WithSpan(7, 9, 7, 15).WithArguments("System.Object"),
     // /0/Test0.cs(7,32): error CS0518: Predefined type 'System.Object' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(7, 32, 7, 38).WithArguments("System.Object"),
-    // /0/Test0.cs(8,16): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 16, 8, 30).WithArguments("System.Object"),
+    // /0/Test0.cs(8,17): error CS0103: The name 'ReferenceEquals' does not exist in the current context
+    DiagnosticResult.CompilerError("CS0103").WithSpan(8, 17, 8, 32).WithArguments("ReferenceEquals"),
+    // /0/Test0.cs(8,17): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 17, 8, 32).WithArguments("System.Object"),
     // /0/Test0.cs(9,16): error CS0518: Predefined type 'System.Boolean' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(9, 16, 9, 29).WithArguments("System.Boolean"),
     // /0/Test0.cs(12,12): error CS0518: Predefined type 'System.Void' is not defined or imported
@@ -2985,7 +3066,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i &&
                S == program.S;
     }
@@ -3063,16 +3144,14 @@ struct S : IEquatable<S>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -3121,7 +3200,7 @@ struct S : IEquatable<S>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedState =
@@ -3135,10 +3214,8 @@ struct S : IEquatable<S>
                 },
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
@@ -3186,7 +3263,7 @@ struct S : IEquatable<S>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -3211,10 +3288,8 @@ struct S : IEquatable<S>
                 },
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(37297, "https://github.com/dotnet/roslyn/issues/37297")]
@@ -3262,7 +3337,7 @@ struct S : IEquatable<S>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestState =
                 {
@@ -3279,10 +3354,8 @@ struct S : IEquatable<S>
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -3338,7 +3411,7 @@ struct S : IEquatable<S>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedState =
@@ -3352,10 +3425,8 @@ struct S : IEquatable<S>
                 },
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -3422,16 +3493,14 @@ struct S : IEquatable<S>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
@@ -3499,16 +3568,14 @@ struct S : IEquatable<S>
     }
 }";
 
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
                 LanguageVersion = LanguageVersion.CSharp6,
-            };
-
-            test.Options.AddRange(PreferExplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferExplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
@@ -3693,7 +3760,7 @@ namespace N
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedState =
@@ -3710,10 +3777,8 @@ namespace N
                 MemberNames = default,
                 OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId),
                 LanguageVersion = LanguageVersion.Default,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(40053, "https://github.com/dotnet/roslyn/issues/40053")]
@@ -3761,17 +3826,15 @@ namespace N
     }
 }";
 
-            var test = new TestWithDialog
+            await new TestWithDialog
             {
                 TestCode = code,
                 FixedCode = fixedCode,
                 MemberNames = default,
                 OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId),
                 LanguageVersion = LanguageVersion.Default,
-            };
-
-            test.Options.AddRange(PreferImplicitTypeWithInfo());
-            await test.RunAsync();
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
         }
 
         [WorkItem(42574, "https://github.com/dotnet/roslyn/issues/42574")]

@@ -59,22 +59,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics { get; }
 
-        internal ImmutableArray<TypeWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithAnnotations> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
             foreach (var typeArgument in result)
             {
-                typeArgument.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                typeArgument.Type.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             }
 
             return result;
         }
 
-        internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal TypeWithAnnotations TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var result = TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[index];
-            result.Type.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+            result.Type.OriginalDefinition.AddUseSiteInfo(ref useSiteInfo);
             return result;
         }
 
@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetGuidStringDefaultImplementation(out guidString);
         }
 
+#nullable enable
         /// <summary>
         /// For delegate types, gets the delegate's invoke method.  Returns null on
         /// all other kinds of types.  Note that it is possible to have an ill-formed
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
         /// </summary>
-        public MethodSymbol DelegateInvokeMethod
+        public MethodSymbol? DelegateInvokeMethod
         {
             get
             {
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return method;
             }
         }
+#nullable disable
 
         /// <summary>
         /// Get the operators for this type by their metadata name
@@ -396,12 +398,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // CONSIDER: we could cache this, but it's only expensive for non-special struct types
             // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
             // nicely into the flags variable.
-            return BaseTypeAnalysis.GetManagedKind(this, ref useSiteDiagnostics);
+            return BaseTypeAnalysis.GetManagedKind(this, ref useSiteInfo);
         }
 
         /// <summary>
@@ -1009,6 +1011,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
+        /// <summary>
+        /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.
+        /// </summary>
+        internal abstract bool IsInterpolatedStringHandlerType { get; }
+
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsNullFunction = type => !type.HasType;
 
         internal static readonly Func<TypeWithAnnotations, bool> TypeWithAnnotationsIsErrorType = type => type.HasType && type.Type.IsErrorType();
@@ -1112,36 +1119,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Given C<int>.D<string, double>, yields { int, string, double }
-        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
+                outer.GetAllTypeArguments(builder, ref useSiteInfo);
             }
 
-            foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            foreach (var argument in TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 builder.Add(argument.Type);
             }
         }
 
-        internal ImmutableArray<TypeWithAnnotations> GetAllTypeArguments(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal ImmutableArray<TypeWithAnnotations> GetAllTypeArguments(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             ArrayBuilder<TypeWithAnnotations> builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            GetAllTypeArguments(builder, ref useSiteDiagnostics);
+            GetAllTypeArguments(builder, ref useSiteInfo);
             return builder.ToImmutableAndFree();
         }
 
-        internal void GetAllTypeArguments(ArrayBuilder<TypeWithAnnotations> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal void GetAllTypeArguments(ArrayBuilder<TypeWithAnnotations> builder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
-                outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
+                outer.GetAllTypeArguments(builder, ref useSiteInfo);
             }
 
-            builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+            builder.AddRange(TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo));
         }
 
         internal void GetAllTypeArgumentsNoUseSiteDiagnostics(ArrayBuilder<TypeWithAnnotations> builder)
@@ -1208,26 +1215,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
+            UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
+
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return result;
             }
 
-            DiagnosticInfo result = null;
-
             // Check definition, type arguments 
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.OriginalDefinition) ||
-                DeriveUseSiteDiagnosticFromTypeArguments(ref result))
+            if (!DeriveUseSiteInfoFromType(ref result, this.OriginalDefinition))
             {
-                return result;
+                DeriveUseSiteDiagnosticFromTypeArguments(ref result);
             }
 
             return result;
         }
 
-        private bool DeriveUseSiteDiagnosticFromTypeArguments(ref DiagnosticInfo result)
+        private bool DeriveUseSiteDiagnosticFromTypeArguments(ref UseSiteInfo<AssemblySymbol> result)
         {
             NamedTypeSymbol currentType = this;
 
@@ -1235,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (TypeWithAnnotations arg in currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
                 {
-                    if (DeriveUseSiteDiagnosticFromType(ref result, arg, AllowedRequiredModifierType.None))
+                    if (DeriveUseSiteInfoFromType(ref result, arg, AllowedRequiredModifierType.None))
                     {
                         return true;
                     }
@@ -1280,7 +1286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (@base.IsErrorType() && @base is NoPiaIllegalGenericInstantiationSymbol)
                 {
-                    return @base.GetUseSiteDiagnostic();
+                    return @base.GetUseSiteInfo().DiagnosticInfo;
                 }
 
                 @base = @base.BaseTypeNoUseSiteDiagnostics;

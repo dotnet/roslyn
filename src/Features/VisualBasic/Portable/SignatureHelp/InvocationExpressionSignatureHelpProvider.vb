@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return ch = ")"c
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Shared Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim expression As InvocationExpressionSyntax = Nothing
             If TryGetInvocationExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, expression) AndAlso
                 currentSpan.Start = GetSignatureHelpSpan(expression.ArgumentList).Start Then
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 token <> node.ArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim invocationExpression As InvocationExpressionSyntax = Nothing
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             ' get the regular signature help items
             Dim memberGroup = semanticModel.GetMemberGroup(targetExpression, cancellationToken).
-                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                            FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
 
             ' try to bind to the actual method
             Dim symbolInfo = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken)
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 memberGroup = memberGroup.SelectAsArray(Function(m) If(Equals(matchedMethodSymbol.OriginalDefinition, m), matchedMethodSymbol, m))
             End If
 
-            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position)
+            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken)
             If enclosingSymbol.IsConstructor() Then
                 memberGroup = memberGroup.WhereAsArray(Function(m) Not m.Equals(enclosingSymbol))
             End If
@@ -109,10 +109,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                                  OfType(Of IPropertySymbol).
                                  ToImmutableArrayOrEmpty().
                                  WhereAsArray(Function(p) p.IsIndexer).
-                                 FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
+                                 FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(options.HideAdvancedMembers, semanticModel.Compilation).
                                  Sort(semanticModel, invocationExpression.SpanStart))
 
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
             Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
 
             Dim items = New List(Of SignatureHelpItem)
@@ -123,11 +123,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             End If
 
             If expressionType.IsDelegateType() Then
-                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
+                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
             End If
 
             If defaultProperties.Count > 0 Then
-                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
+                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, structuralTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
             End If
 
             Dim textSpan = GetSignatureHelpSpan(invocationExpression.ArgumentList)

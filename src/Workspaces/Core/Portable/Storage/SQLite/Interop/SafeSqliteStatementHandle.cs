@@ -13,13 +13,24 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     {
         private readonly sqlite3_stmt? _wrapper;
         private readonly SafeHandleLease _lease;
+        private readonly SafeHandleLease _sqliteLease;
 
         public SafeSqliteStatementHandle(SafeSqliteHandle sqliteHandle, sqlite3_stmt? wrapper)
             : base(invalidHandleValue: IntPtr.Zero, ownsHandle: true)
         {
             _wrapper = wrapper;
-            SetHandle(wrapper?.ptr ?? IntPtr.Zero);
-            _lease = sqliteHandle.Lease();
+            if (wrapper is not null)
+            {
+                _lease = wrapper.Lease();
+                SetHandle(wrapper.DangerousGetHandle());
+            }
+            else
+            {
+                _lease = default;
+                SetHandle(IntPtr.Zero);
+            }
+
+            _sqliteLease = sqliteHandle.Lease();
         }
 
         public override bool IsInvalid => handle == IntPtr.Zero;
@@ -31,13 +42,15 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             try
             {
-                var result = (Result)raw.sqlite3_finalize(_wrapper);
+                using var _ = _wrapper;
+
+                _lease.Dispose();
                 SetHandle(IntPtr.Zero);
-                return result == Result.OK;
+                return true;
             }
             finally
             {
-                _lease.Dispose();
+                _sqliteLease.Dispose();
             }
         }
     }

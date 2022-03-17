@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 succeeded = true;
             }
 
-            var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
-            if (canOffer)
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false, out _, out _))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

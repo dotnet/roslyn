@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 {
     internal interface ISyntaxContextService : ILanguageService
     {
-        Task<SyntaxContext> CreateContextAsync(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        SyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
     }
 }

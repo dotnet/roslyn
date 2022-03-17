@@ -17,6 +17,11 @@
         <target state="translated">Rimuovi Import non necessari</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_object_creation">
+        <source>Simplify object creation</source>
+        <target state="translated">Semplificare la creazione di oggetti</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

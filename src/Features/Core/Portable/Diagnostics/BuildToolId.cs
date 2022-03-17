@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object? obj)
             {
-                if (!(obj is Base<T> other))
+                if (obj is not Base<T> other)
                 {
                     return false;
                 }
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override bool Equals(object? obj)
             {
-                if (!(obj is Base<T1, T2> other))
+                if (obj is not Base<T1, T2> other)
                 {
                     return false;
                 }

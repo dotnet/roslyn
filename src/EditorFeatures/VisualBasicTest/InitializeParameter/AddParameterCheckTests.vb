@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -68,10 +69,12 @@ class C
     end sub
 end class",
 "
+Imports System
+
 class C
     public sub new(byref s as string)
         If s Is Nothing Then
-            Throw New System.ArgumentNullException(NameOf(s))
+            Throw New ArgumentNullException(NameOf(s))
         End If
     end sub
 end class")
@@ -88,11 +91,12 @@ class C
     end sub
 end class",
 "
+Imports System
 Imports System.Runtime.InteropServices
 class C
     public sub new(<Out> byref s as string)
         If s Is Nothing Then
-            Throw New System.ArgumentNullException(NameOf(s))
+            Throw New ArgumentNullException(NameOf(s))
         End If
     end sub
 end class")
@@ -480,7 +484,7 @@ Imports System
 class C
     public sub new(s as string)
         If String.IsNullOrEmpty(s) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}")}"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}").Replace("""", """""")}"", NameOf(s))
         End If
     end sub
 end class", index:=1)
@@ -502,10 +506,41 @@ Imports System
 class C
     public sub new(s as string)
         If String.IsNullOrWhiteSpace(s) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{NameOf(s)}")}"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{NameOf(s)}").Replace("""", """""")}"", NameOf(s))
         End If
     end sub
 end class", index:=2)
+        End Function
+
+        <WorkItem(51338, "https://github.com/dotnet/roslyn/issues/51338")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestSpecialStringCheck3() As Task
+            Dim culture = CultureInfo.CurrentUICulture
+
+            Try
+                CultureInfo.CurrentUICulture = New CultureInfo("de-DE", useUserOverride:=False)
+
+                Await TestInRegularAndScript1Async(
+    "
+Imports System
+
+class C
+    public sub new([||]s as string)
+    end sub
+end class",
+    $"
+Imports System
+
+class C
+    public sub new(s as string)
+        If String.IsNullOrEmpty(s) Then
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}").Replace("""", """""")}"", NameOf(s))
+        End If
+    end sub
+end class", index:=1)
+            Finally
+                CultureInfo.CurrentUICulture = culture
+            End Try
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
@@ -524,15 +559,15 @@ Imports System
 class C
     public sub new(a as string, b as string, c as string)
         If String.IsNullOrEmpty(a) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(a)}")}"", NameOf(a))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(a)}").Replace("""", """""")}"", NameOf(a))
         End If
 
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}").Replace("""", """""")}"", NameOf(b))
         End If
 
         If String.IsNullOrEmpty(c) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(c)}")}"", NameOf(c))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(c)}").Replace("""", """""")}"", NameOf(c))
         End If
     end sub
 end class", index:=3)
@@ -554,7 +589,7 @@ Imports System
 class C
     public sub new(a as boolean, b as string, c as object)
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}").Replace("""", """""")}"", NameOf(b))
         End If
 
         If c Is Nothing Then
@@ -595,6 +630,28 @@ end class")
 Class C
     Sub M(a As Action(Of Integer, Integer))
         M(Sub(x[||]
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(52383, "https://github.com/dotnet/roslyn/issues/52383")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestImportSystem() As Task
+            Await TestInRegularAndScript1Async(
+"
+Class C
+    Sub M([||]s As String)
+
+    End Sub
+End Class",
+"
+Imports System
+
+Class C
+    Sub M(s As String)
+        If s Is Nothing Then
+            Throw New ArgumentNullException(NameOf(s))
+        End If
     End Sub
 End Class")
         End Function

@@ -67,6 +67,10 @@ $$");
             => await VerifyAbsenceAsync(@"using Goo = $$");
 
         [Fact]
+        public async Task TestNotInGlobalUsingAlias()
+            => await VerifyAbsenceAsync(@"global using Goo = $$");
+
+        [Fact]
         public async Task TestNotInEmptyStatement()
             => await VerifyAbsenceAsync(AddInsideMethod(@"$$"));
 

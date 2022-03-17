@@ -5,28 +5,23 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Xaml;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions
 {
     internal static class SymbolExtensions
     {
-        private static readonly SymbolDisplayFormat s_descriptionStyle =
-            new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance | SymbolDisplayGenericsOptions.IncludeTypeConstraints,
-                parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeName | SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
-                kindOptions: SymbolDisplayKindOptions.IncludeNamespaceKeyword | SymbolDisplayKindOptions.IncludeTypeKeyword);
-
-        public static async Task<IEnumerable<TaggedText>> GetDescriptionAsync(this ISymbol symbol, TextDocument document, int offset, CancellationToken cancellationToken)
+        public static async Task<IEnumerable<TaggedText>> GetDescriptionAsync(this ISymbol symbol, TextDocument document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             if (symbol == null)
             {
@@ -40,7 +35,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            // TODO: Should we get this from the code-behind document instead?
+            var symbolDisplayService = codeProject.LanguageServices.GetService<ISymbolDisplayService>();
+            if (symbolDisplayService == null)
+            {
+                return Enumerable.Empty<TaggedText>();
+            }
+
+            // Any code document will do
             var codeDocument = codeProject.Documents.FirstOrDefault();
             if (codeDocument == null)
             {
@@ -53,16 +54,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var textContentBuilder = new List<TaggedText>();
-            textContentBuilder.AddRange(symbol.ToDisplayParts(s_descriptionStyle).ToTaggedText());
-
-            var documentation = symbol.GetDocumentationParts(semanticModel, offset, formatter, cancellationToken);
-            if (documentation.Any())
+            var services = codeProject.Solution.Workspace.Services;
+            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
+            var builder = new List<TaggedText>();
+            foreach (var section in quickInfo.Sections)
             {
-                textContentBuilder.AddLineBreak();
-                textContentBuilder.AddRange(documentation);
+                if (builder.Any())
+                {
+                    builder.AddLineBreak();
+                }
+
+                builder.AddRange(section.TaggedParts);
             }
-            return textContentBuilder;
+
+            return builder.ToImmutableArray();
         }
     }
 }

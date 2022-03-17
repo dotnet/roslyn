@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -18,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.AddRequiredParentheses), Shared]
     internal class AddRequiredParenthesesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string equivalenceKey, CancellationToken cancellationToken)
+        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
             => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
                diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == equivalenceKey;
 
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             context.RegisterCodeFix(
                 new MyCodeAction(
                     c => FixAsync(context.Document, firstDiagnostic, c),
-                    firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]),
+                    firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]!),
                 context.Diagnostics);
             return Task.CompletedTask;
         }

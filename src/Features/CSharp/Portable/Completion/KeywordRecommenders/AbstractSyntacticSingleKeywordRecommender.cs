@@ -2,25 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal abstract partial class AbstractSyntacticSingleKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
     {
+        public readonly SyntaxKind KeywordKind;
         private readonly bool _isValidInPreprocessorContext;
 
-        protected internal SyntaxKind KeywordKind { get; }
+        private readonly ImmutableArray<RecommendedKeyword> _keywordPriorityRecommendedKeywords;
+        private readonly ImmutableArray<RecommendedKeyword> _defaultPriorityRecommendedKeywords;
 
-        internal bool ShouldFormatOnCommit { get; }
+        /// <summary>
+        /// Matching priority for the provided item when <see cref="ShouldPreselect"/> returns <see langword="false"/>.
+        /// </summary>
+        protected virtual int DefaultMatchPriority => MatchPriority.Default;
 
         protected AbstractSyntacticSingleKeywordRecommender(
             SyntaxKind keywordKind,
@@ -29,34 +30,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             KeywordKind = keywordKind;
             _isValidInPreprocessorContext = isValidInPreprocessorContext;
-            ShouldFormatOnCommit = shouldFormatOnCommit;
+
+            _keywordPriorityRecommendedKeywords = ImmutableArray.Create(
+                new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
+                shouldFormatOnCommit: shouldFormatOnCommit,
+                matchPriority: SymbolMatchPriority.Keyword));
+            _defaultPriorityRecommendedKeywords = ImmutableArray.Create(
+                new RecommendedKeyword(SyntaxFacts.GetText(keywordKind),
+                shouldFormatOnCommit: shouldFormatOnCommit,
+                matchPriority: DefaultMatchPriority));
         }
 
-        protected virtual Task<bool> IsValidContextAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => Task.FromResult(IsValidContext(position, context, cancellationToken));
+        protected abstract bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken);
 
-        protected virtual bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
-
-        public async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
+        public ImmutableArray<RecommendedKeyword> RecommendKeywords(
             int position,
             CSharpSyntaxContext context,
             CancellationToken cancellationToken)
         {
-            var syntaxKind = await RecommendKeywordAsync(position, context, cancellationToken).ConfigureAwait(false);
-            if (syntaxKind.HasValue)
-            {
-                return SpecializedCollections.SingletonEnumerable(
-                    new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value),
-                        shouldFormatOnCommit: ShouldFormatOnCommit,
-                        matchPriority: ShouldPreselect(context, cancellationToken) ? SymbolMatchPriority.Keyword : MatchPriority.Default));
-            }
+            var syntaxKind = RecommendKeyword(position, context, cancellationToken);
+            if (!syntaxKind.HasValue)
+                return ImmutableArray<RecommendedKeyword>.Empty;
 
-            return null;
+            return ShouldPreselect(context, cancellationToken)
+                ? _keywordPriorityRecommendedKeywords
+                : _defaultPriorityRecommendedKeywords;
         }
 
         protected virtual bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken) => false;
 
-        private async Task<SyntaxKind?> RecommendKeywordAsync(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private SyntaxKind? RecommendKeyword(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // NOTE: The collector ensures that we're not in "NonUserCode" like comments, strings, inactive code
             // for perf reasons.
@@ -66,16 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return null;
             }
 
-            if (!await IsValidContextAsync(position, context, cancellationToken).ConfigureAwait(false))
-            {
-                return null;
-            }
-
-            return KeywordKind;
+            return IsValidContext(position, context, cancellationToken) ? KeywordKind : null;
         }
 
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+        internal TestAccessor GetTestAccessor() => new(this);
 
         internal readonly struct TestAccessor
         {
@@ -84,18 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             public TestAccessor(AbstractSyntacticSingleKeywordRecommender recommender)
                 => _recommender = recommender;
 
-            internal async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(int position, CSharpSyntaxContext context)
-            {
-                var syntaxKind = await _recommender.RecommendKeywordAsync(position, context, CancellationToken.None).ConfigureAwait(false);
-                if (syntaxKind.HasValue)
-                {
-                    var matchPriority = _recommender.ShouldPreselect(context, CancellationToken.None) ? SymbolMatchPriority.Keyword : MatchPriority.Default;
-                    return SpecializedCollections.SingletonEnumerable(
-                        new RecommendedKeyword(SyntaxFacts.GetText(syntaxKind.Value), matchPriority: matchPriority));
-                }
-
-                return null;
-            }
+            public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context)
+                => _recommender.RecommendKeywords(position, context, CancellationToken.None);
         }
     }
 }

@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -14,22 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class ObjectCreationExpressionSignatureHelpProvider
     {
-        private static (IList<SignatureHelpItem> items, int? selectedItem) GetDelegateTypeConstructors(
+        private static ImmutableArray<SignatureHelpItem> ConvertDelegateTypeConstructor(
             BaseObjectCreationExpressionSyntax objectCreationExpression,
+            IMethodSymbol invokeMethod,
             SemanticModel semanticModel,
-            IAnonymousTypeDisplayService anonymousTypeDisplayService,
-            INamedTypeSymbol delegateType)
+            IStructuralTypeDisplayService structuralTypeDisplayService,
+            int position)
         {
-            var invokeMethod = delegateType.DelegateInvokeMethod;
-            if (invokeMethod == null)
-            {
-                return (null, null);
-            }
-
-            var position = objectCreationExpression.SpanStart;
             var item = CreateItem(
-                invokeMethod, semanticModel, position,
-                anonymousTypeDisplayService,
+                invokeMethod, semanticModel,
+                objectCreationExpression.SpanStart,
+                structuralTypeDisplayService,
                 isVariadic: false,
                 documentationFactory: null,
                 prefixParts: GetDelegateTypePreambleParts(invokeMethod, semanticModel, position),
@@ -37,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 suffixParts: GetDelegateTypePostambleParts(),
                 parameters: GetDelegateTypeParameters(invokeMethod, semanticModel, position));
 
-            return (SpecializedCollections.SingletonList(item), 0);
+            return ImmutableArray.Create<SignatureHelpItem>(item);
         }
 
         private static IList<SymbolDisplayPart> GetDelegateTypePreambleParts(IMethodSymbol invokeMethod, SemanticModel semanticModel, int position)

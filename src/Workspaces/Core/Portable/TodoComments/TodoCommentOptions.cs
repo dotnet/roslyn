@@ -2,30 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
+using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
+namespace Microsoft.CodeAnalysis.TodoComments
 {
-    internal static class TodoCommentOptions
+    [DataContract]
+    internal readonly record struct TodoCommentOptions(
+        [property: DataMember(Order = 0)] string TokenList = "")
     {
-        public static readonly Option<string> TokenList = new(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "HACK:1|TODO:1|UNDONE:1|UnresolvedMergeConflict:0");
-    }
-
-    [ExportOptionProvider, Shared]
-    internal class TodoCommentOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TodoCommentOptionsProvider()
+        public TodoCommentOptions()
+            : this(TokenList: "")
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            TodoCommentOptions.TokenList);
+        public static readonly TodoCommentOptions Default = new();
     }
 }

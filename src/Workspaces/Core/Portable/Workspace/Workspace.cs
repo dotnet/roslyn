@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -87,9 +88,8 @@ namespace Microsoft.CodeAnalysis
             // initialize with empty solution
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create());
 
-            var emptyOptions = new SerializableOptionSet(languages: ImmutableHashSet<string>.Empty, _optionService,
-                serializableOptions: ImmutableHashSet<IOption>.Empty, values: ImmutableDictionary<OptionKey, object?>.Empty,
-                changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
+            var emptyOptions = new SerializableOptionSet(
+                _optionService, ImmutableDictionary<OptionKey, object?>.Empty, changedOptionKeysSerializable: ImmutableHashSet<OptionKey>.Empty);
 
             _latestSolution = CreateSolution(info, emptyOptions, analyzerReferences: SpecializedCollections.EmptyReadOnlyList<AnalyzerReference>());
 
@@ -1184,6 +1184,7 @@ namespace Microsoft.CodeAnalysis
                 // If solution did not originate from this workspace then fail
                 if (newSolution.Workspace != this)
                 {
+                    Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: workspaces do not match");
                     return false;
                 }
 
@@ -1192,6 +1193,18 @@ namespace Microsoft.CodeAnalysis
                 // If the workspace has already accepted an update, then fail
                 if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
                 {
+                    Logger.Log(
+                        FunctionId.Workspace_ApplyChanges,
+                        static (oldSolution, newSolution) =>
+                        {
+                            // 'oldSolution' is the current workspace solution; if we reach this point we know
+                            // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
+                            var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
+                            var newWorkspaceVersion = newSolution.WorkspaceVersion;
+                            return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                        },
+                        oldSolution,
+                        newSolution);
                     return false;
                 }
 
@@ -1349,7 +1362,9 @@ namespace Microsoft.CodeAnalysis
             // Checking for unchangeable documents will only be done if we were asked not to ignore them.
             foreach (var documentId in changedDocumentIds)
             {
-                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId)!;
+                var document = projectChanges.OldProject.State.DocumentStates.GetState(documentId) ??
+                               projectChanges.NewProject.State.DocumentStates.GetState(documentId)!;
+
                 if (!document.CanApplyChange())
                 {
                     throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));

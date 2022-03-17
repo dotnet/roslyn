@@ -1884,5 +1884,33 @@ class C
     public int J { get; }
 }", index: 3);
         }
+
+        [WorkItem(53467, "https://github.com/dotnet/roslyn/issues/53467")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingWhenTypeNotInCompilation()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"">
+        <Document>
+public class Foo
+{
+    public Foo(int prop1)
+    {
+        Prop1 = prop1;
+    }
+
+    public int Prop1 { get; }
+}
+
+public class Bar : Foo
+{
+    public Bar(int prop1, int [||]prop2) : base(prop1) { }
+}
+        </Document>
+    </Project>
+</Workspace>");
+        }
     }
 }

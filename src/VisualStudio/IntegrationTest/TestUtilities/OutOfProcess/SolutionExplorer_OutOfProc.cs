@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -12,10 +9,8 @@ using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.Pro
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
-    public partial class SolutionExplorer_OutOfProc : OutOfProcComponent
+    public class SolutionExplorer_OutOfProc : OutOfProcComponent
     {
-        public Verifier Verify { get; }
-
         private readonly SolutionExplorer_InProc _inProc;
         private readonly VisualStudioInstance _instance;
 
@@ -24,16 +19,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<SolutionExplorer_InProc>(visualStudioInstance);
-            Verify = new Verifier(this);
         }
 
         public void CloseSolution(bool saveFirst = false)
             => _inProc.CloseSolution(saveFirst);
-
-        /// <summary>
-        /// The full file path to the solution file.
-        /// </summary>
-        public string SolutionFileFullPath => _inProc.SolutionFileFullPath;
 
         /// <summary>
         /// Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.
@@ -44,18 +33,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CreateSolution(string solutionName, XElement solutionElement)
             => _inProc.CreateSolution(solutionName, solutionElement.ToString());
 
-        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
-            => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
-
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
         {
             _inProc.AddProject(projectName.Name, projectTemplate, languageName);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
-        public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
-        {
-            _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
@@ -89,36 +69,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void RemoveAnalyzerReference(string filePath, ProjectUtils.Project projectName)
-        {
-            _inProc.RemoveAnalyzerReference(filePath, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
-        public void SetLanguageVersion(ProjectUtils.Project projectName, string languageVersion)
-        {
-            _inProc.SetLanguageVersion(projectName.Name, languageVersion);
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-        }
-
-        /// <summary>
-        /// Add a PackageReference to the specified project. Generally this should be followed up by
-        /// a call to <see cref="RestoreNuGetPackages"/>.
-        /// </summary>
-        public void AddPackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
-            => _inProc.AddPackageReference(project.Name, package.Name, package.Version);
-
-        /// <summary>
-        /// Remove a PackageReference from the specified project. Generally this should be followed up by
-        /// a call to <see cref="RestoreNuGetPackages"/>.
-        /// </summary>
-        public void RemovePackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
-            => _inProc.RemovePackageReference(project.Name, package.Name);
-
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
-        public void AddFile(ProjectUtils.Project project, string fileName, string contents = null, bool open = false)
+        public void AddFile(ProjectUtils.Project project, string fileName, string? contents = null, bool open = false)
             => _inProc.AddFile(project.Name, fileName, contents, open);
 
         public void SetFileContents(ProjectUtils.Project project, string fileName, string contents)
@@ -139,9 +93,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc.OpenFile(project.Name, fileName);
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
-
-        public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
-            => _inProc.UpdateFile(projectName, fileName, contents, open);
 
         public void RenameFile(ProjectUtils.Project project, string oldFileName, string newFileName)
         {
@@ -166,26 +117,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SaveFile(ProjectUtils.Project project, string fileName)
             => _inProc.SaveFile(project.Name, fileName);
 
-        public void ReloadProject(ProjectUtils.Project project)
-            => _inProc.ReloadProject(project.RelativePath);
-
         public void RestoreNuGetPackages(ProjectUtils.Project project)
             => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
             => _inProc.SaveAll();
-
-        public void ShowOutputWindow()
-            => _inProc.ShowOutputWindow();
-
-        public void UnloadProject(ProjectUtils.Project project)
-            => _inProc.UnloadProject(project.Name);
-
-        public string[] GetProjectReferences(ProjectUtils.Project project)
-            => _inProc.GetProjectReferences(project.Name);
-
-        public string[] GetAssemblyReferences(ProjectUtils.Project project)
-            => _inProc.GetAssemblyReferences(project.Name);
 
         /// <summary>
         /// Selects an item named by the <paramref name="itemName"/> parameter.
@@ -201,27 +137,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// </summary>
         public void SelectItemAtPath(params string[] path)
             => _inProc.SelectItemAtPath(path);
-
-        /// <summary>
-        /// Returns the names of the immediate children of the given item.
-        /// Note that this uses the first item of the given name found. In situations where there
-        /// may be more than one item of a given name, use <see cref="GetChildrenOfItemAtPath(string[])"/>
-        /// instead.
-        /// </summary>
-        public string[] GetChildrenOfItem(string itemName)
-            => _inProc.GetChildrenOfItem(itemName);
-
-        /// <summary>
-        /// Returns the names of the immediate children of the item at the given "path".
-        /// </summary>
-        public string[] GetChildrenOfItemAtPath(params string[] path)
-            => _inProc.GetChildrenOfItemAtPath(path);
-
-        public void ClearBuildOutputWindowPane()
-            => _inProc.ClearBuildOutputWindowPane();
-
-        public void WaitForBuildToFinish()
-            => _inProc.WaitForBuildToFinish();
 
         public void EditProjectFile(ProjectUtils.Project project)
             => _inProc.EditProjectFile(project.Name);

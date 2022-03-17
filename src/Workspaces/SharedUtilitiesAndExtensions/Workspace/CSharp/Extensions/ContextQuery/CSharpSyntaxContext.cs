@@ -14,14 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
-        public readonly TypeDeclarationSyntax ContainingTypeDeclaration;
-        public readonly BaseTypeDeclarationSyntax ContainingTypeOrEnumDeclaration;
+        public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
+        public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
 
         public readonly bool IsInNonUserCode;
 
         public readonly bool IsPreProcessorKeywordContext;
-
-        public readonly bool IsGlobalStatementContext;
 
         public readonly bool IsNonAttributeExpressionContext;
         public readonly bool IsConstantExpressionContext;
@@ -51,15 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsDestructorTypeContext;
         public readonly bool IsLeftSideOfImportAliasDirective;
         public readonly bool IsFunctionPointerTypeArgumentContext;
+        public readonly bool IsLocalFunctionDeclarationContext;
 
         private CSharpSyntaxContext(
-            Workspace? workspace,
+            Document document,
             SemanticModel semanticModel,
             int position,
             SyntaxToken leftToken,
             SyntaxToken targetToken,
-            TypeDeclarationSyntax containingTypeDeclaration,
-            BaseTypeDeclarationSyntax containingTypeOrEnumDeclaration,
+            TypeDeclarationSyntax? containingTypeDeclaration,
+            BaseTypeDeclarationSyntax? containingTypeOrEnumDeclaration,
             bool isInNonUserCode,
             bool isPreProcessorDirectiveContext,
             bool isPreProcessorKeywordContext,
@@ -107,13 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isRightSideOfNumericType,
             bool isInArgumentList,
             bool isFunctionPointerTypeArgumentContext,
+            bool isLocalFunctionDeclarationContext,
             CancellationToken cancellationToken)
-            : base(workspace, semanticModel, position, leftToken, targetToken,
+            : base(document, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext, isPreProcessorExpressionContext,
-                   isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
-                   isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
+                   isRightOfDotOrArrowOrColonColon, isStatementContext, isGlobalStatementContext,
+                   isAnyExpressionContext, isAttributeNameContext, isEnumTypeMemberAccessContext,
+                   isNameOfContext, isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
                    isStartPatternContext, isAfterPatternContext, isRightSideOfNumericType, isInArgumentList,
                    cancellationToken)
         {
@@ -121,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
             this.IsInNonUserCode = isInNonUserCode;
             this.IsPreProcessorKeywordContext = isPreProcessorKeywordContext;
-            this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
             this.IsConstantExpressionContext = isConstantExpressionContext;
             this.IsLabelContext = isLabelContext;
@@ -148,12 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.IsDestructorTypeContext = isDestructorTypeContext;
             this.IsLeftSideOfImportAliasDirective = isLeftSideOfImportAliasDirective;
             this.IsFunctionPointerTypeArgumentContext = isFunctionPointerTypeArgumentContext;
+            this.IsLocalFunctionDeclarationContext = isLocalFunctionDeclarationContext;
         }
 
-        public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => CreateContextWorker(workspace, semanticModel, position, cancellationToken);
+        public static CSharpSyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => CreateContextWorker(document, semanticModel, position, cancellationToken);
 
-        private static CSharpSyntaxContext CreateContextWorker(Workspace? workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        private static CSharpSyntaxContext CreateContextWorker(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isDestructorTypeContext = targetToken.IsKind(SyntaxKind.TildeToken) &&
                                             targetToken.Parent.IsKind(SyntaxKind.DestructorDeclaration) &&
-                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordDeclaration);
+                                            targetToken.Parent.Parent.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration);
 
             // Typing a dot after a numeric expression (numericExpression.) 
             // - maybe a start of MemberAccessExpression like numericExpression.Member.
@@ -212,8 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             var isArgumentListToken = targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList, SyntaxKind.ArrayRankSpecifier);
 
+            var isLocalFunctionDeclarationContext = syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
+
             return new CSharpSyntaxContext(
-                workspace: workspace,
+                document: document,
                 semanticModel: semanticModel,
                 position: position,
                 leftToken: leftToken,
@@ -256,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isPrimaryFunctionExpressionContext: syntaxTree.IsPrimaryFunctionExpressionContext(position, leftToken),
                 isDelegateReturnTypeContext: syntaxTree.IsDelegateReturnTypeContext(position, leftToken),
                 isTypeOfExpressionContext: syntaxTree.IsTypeOfExpressionContext(position, leftToken),
-                precedingModifiers: syntaxTree.GetPrecedingModifiers(position, leftToken),
+                precedingModifiers: syntaxTree.GetPrecedingModifiers(position, cancellationToken),
                 isInstanceContext: syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken),
                 isCrefContext: syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 isCatchFilterContext: syntaxTree.IsCatchFilterContext(position, leftToken),
@@ -267,14 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 isRightSideOfNumericType: isRightSideOfNumericType,
                 isInArgumentList: isArgumentListToken,
                 isFunctionPointerTypeArgumentContext: syntaxTree.IsFunctionPointerTypeArgumentContext(position, leftToken, cancellationToken),
+                isLocalFunctionDeclarationContext: isLocalFunctionDeclarationContext,
                 cancellationToken: cancellationToken);
-        }
-
-        public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-        {
-            var inferenceService = new CSharpTypeInferenceService();
-            _ = inferenceService.InferTypes(semanticModel, position, cancellationToken);
-            return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
         }
 
         private static new bool IsWithinAsyncMethod()
@@ -321,11 +317,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = this.TargetToken;
 
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
-                token.Parent.IsKind(SyntaxKind.AttributeList) &&
-                this.SyntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                token.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                return true;
+                if (token.Parent.Parent is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } })
+                {
+                    return true;
+                }
+
+                if (SyntaxTree.IsMemberDeclarationContext(
+                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -372,9 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
-        internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
-            => new CSharpTypeInferenceService();
-
         /// <summary>
         /// Is this a possible position for an await statement (`await using` or `await foreach`)?
         /// </summary>
@@ -398,6 +398,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             {
                 // The 'await' keyword is parsed as an identifier in C# script
                 return SyntaxTree.IsGlobalStatementContext(targetToken.SpanStart, cancellationToken);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether await should be suggested in a given position.
+        /// </summary>
+        internal override bool IsAwaitKeywordContext()
+        {
+            if (IsGlobalStatementContext)
+            {
+                return true;
+            }
+
+            if (IsAnyExpressionContext || IsStatementContext)
+            {
+                foreach (var node in LeftToken.GetAncestors<SyntaxNode>())
+                {
+                    if (node.IsAnyLambdaOrAnonymousMethod())
+                    {
+                        return true;
+                    }
+
+                    if (node.IsKind(SyntaxKind.QueryExpression))
+                    {
+                        // There are some cases where "await" is allowed in a query context. See error CS1995 for details:
+                        // error CS1995: The 'await' operator may only be used in a query expression within the first collection expression of the initial 'from' clause or within the collection expression of a 'join' clause
+                        if (TargetToken.IsKind(SyntaxKind.InKeyword))
+                        {
+                            return TargetToken.Parent switch
+                            {
+                                FromClauseSyntax { Parent: QueryExpressionSyntax queryExpression } fromClause => queryExpression.FromClause == fromClause,
+                                JoinClauseSyntax => true,
+                                _ => false,
+                            };
+                        }
+
+                        return false;
+                    }
+
+                    if (node.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax? lockStatement))
+                    {
+                        if (lockStatement.Statement != null &&
+                            !lockStatement.Statement.IsMissing &&
+                            lockStatement.Statement.Span.Contains(Position))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
             }
 
             return false;

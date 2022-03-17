@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly SymbolMatcher _symbolMap;
 
         // syntax:
-        private readonly Func<SyntaxNode, SyntaxNode>? _syntaxMap;
+        private readonly Func<SyntaxNode, SyntaxNode?>? _syntaxMap;
         private readonly IMethodSymbolInternal _previousTopLevelMethod;
         private readonly DebugId _methodId;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
-            Func<SyntaxNode, SyntaxNode>? syntaxMap,
+            Func<SyntaxNode, SyntaxNode?>? syntaxMap,
             IMethodSymbolInternal previousTopLevelMethod,
             DebugId methodId,
             ImmutableArray<EncLocalInfo> previousLocals,
@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap,
             LambdaSyntaxFacts lambdaSyntaxFacts)
         {
-            RoslynDebug.AssertNotNull(symbolMap);
-            RoslynDebug.AssertNotNull(previousTopLevelMethod);
             Debug.Assert(!previousLocals.IsDefault);
 
             _symbolMap = symbolMap;
@@ -105,7 +103,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
-            builder.AddRange(_previousLocals.Select((info, index) => new SignatureOnlyLocalDefinition(info.Signature, index)));
+            builder.AddRange(_previousLocals.Select((info, index) =>
+            {
+                RoslynDebug.AssertNotNull(info.Signature);
+                return new SignatureOnlyLocalDefinition(info.Signature, index);
+            }));
         }
 
         private bool TryGetPreviousLocalId(SyntaxNode currentDeclarator, LocalDebugId currentId, out LocalDebugId previousId)
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            SyntaxNode previousDeclarator = _syntaxMap(currentDeclarator);
+            SyntaxNode? previousDeclarator = _syntaxMap(currentDeclarator);
             if (previousDeclarator == null)
             {
                 previousId = default;
@@ -230,7 +232,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            return _awaiterMap.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex);
+            var typeRef = _symbolMap.MapReference(currentType);
+            RoslynDebug.AssertNotNull(typeRef);
+
+            return _awaiterMap.TryGetValue(typeRef, out slotIndex);
         }
 
         private bool TryGetPreviousSyntaxOffset(SyntaxNode currentSyntax, out int previousSyntaxOffset)
@@ -269,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 return false;
             }
 
-            SyntaxNode previousSyntax;
+            SyntaxNode? previousSyntax;
             if (isLambdaBody)
             {
                 previousSyntax = _lambdaSyntaxFacts.TryGetCorrespondingLambdaBody(previousLambdaSyntax, lambdaOrLambdaBodySyntax);

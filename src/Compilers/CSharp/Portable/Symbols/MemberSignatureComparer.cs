@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// consistent.
     /// </para>
     /// </summary>
-    internal class MemberSignatureComparer : IEqualityComparer<Symbol>
+    internal sealed class MemberSignatureComparer : IEqualityComparer<Symbol>
     {
         /// <summary>
         /// This instance is used when trying to determine if one member explicitly implements another,
@@ -129,6 +129,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         /// <summary>
+        /// This instance is used to determine if a partial method implementation matches the definition,
+        /// including differences ignored by the runtime.
+        /// </summary>
+        public static readonly MemberSignatureComparer PartialMethodsStrictComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            typeComparison: TypeCompareKind.ObliviousNullableModifierMatchesAny);
+
+        /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
         /// </summary>
         public static readonly MemberSignatureComparer CSharpOverrideComparer = new MemberSignatureComparer(
@@ -222,6 +235,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
 
         /// <summary>
+        /// Same as <see cref="RuntimeSignatureComparer"/>, but in addition ignores name.
+        /// </summary>
+        public static readonly MemberSignatureComparer RuntimeExplicitImplementationSignatureComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerCallingConvention: true,
+            considerRefKindDifferences: false,
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreNativeIntegers);
+
+        /// <summary>
         /// Same as <see cref="RuntimeSignatureComparer"/>, but distinguishes between <c>ref</c> and <c>out</c>. During override resolution,
         /// if we find two methods that match except for <c>ref</c>/<c>out</c>, we want to prefer the one that matches, even
         /// if the runtime doesn't.
@@ -286,6 +311,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCallingConvention: false, //ignore static-ness
             considerRefKindDifferences: true,
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames);
+
+        /// <summary>
+        /// Compare signatures of methods from a method group.
+        /// </summary>
+        internal static readonly MemberSignatureComparer MethodGroupSignatureComparer = new MemberSignatureComparer(
+            considerName: false,
+            considerExplicitlyImplementedInterfaces: false,
+            considerReturnType: true,
+            considerTypeConstraints: false,
+            considerRefKindDifferences: true,
+            considerCallingConvention: false,
+            typeComparison: TypeCompareKind.AllIgnoreOptions);
 
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;

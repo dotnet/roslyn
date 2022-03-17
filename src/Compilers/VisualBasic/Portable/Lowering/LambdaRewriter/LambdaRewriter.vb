@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         delegateRelaxationIdDispenser As Integer,
                         slotAllocatorOpt As VariableSlotAllocator,
                         compilationState As TypeCompilationState,
-                        diagnostics As DiagnosticBag)
+                        diagnostics As BindingDiagnosticBag)
             MyBase.New(slotAllocatorOpt, compilationState, diagnostics, method.PreserveOriginalLocals)
 
             Me._topLevelMethod = method
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        slotAllocatorOpt As VariableSlotAllocator,
                                        CompilationState As TypeCompilationState,
                                        symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
-                                       diagnostics As DiagnosticBag,
+                                       diagnostics As BindingDiagnosticBag,
                                        rewrittenNodes As HashSet(Of BoundNode)) As BoundBlock
 
             Dim analysis = LambdaRewriter.Analysis.AnalyzeMethodBody(node, method, symbolsCapturedWithoutCopyCtor, diagnostics)
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return frame
         End Function
 
-        Private Function GetStaticFrame(lambda As BoundNode, diagnostics As DiagnosticBag) As LambdaFrame
+        Private Function GetStaticFrame(lambda As BoundNode, diagnostics As BindingDiagnosticBag) As LambdaFrame
             If Me._lazyStaticLambdaFrame Is Nothing Then
                 Dim isNonGeneric = Not TopLevelMethod.IsGenericMethod
                 If isNonGeneric Then
@@ -403,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         constructedProxyField.Type)
         End Function
 
-        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As DiagnosticBag) As BoundBlock
+        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As BindingDiagnosticBag) As BoundBlock
             Dim constructor = frame.Constructor
             Dim syntaxNode As SyntaxNode = constructor.Syntax
 
@@ -429,15 +429,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parameterExpr = New BoundParameter(syntaxNode, arg, frame)
 
                 Dim bool = frame.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean)
-                Dim useSiteError = bool.GetUseSiteErrorInfo()
-                If useSiteError IsNot Nothing Then
-                    diagnostics.Add(useSiteError, syntaxNode.GetLocation())
-                End If
+                Dim useSiteError = bool.GetUseSiteInfo()
+                diagnostics.Add(useSiteError, syntaxNode.GetLocation())
 
                 Dim obj = frame.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
                 ' WARN: We assume that if System_Object was not found we would never reach 
                 '       this point because the error should have been/processed generated earlier
-                Debug.Assert(obj.GetUseSiteErrorInfo() Is Nothing)
+                Debug.Assert(obj.GetUseSiteInfo().DiagnosticInfo Is Nothing)
 
                 Dim condition = New BoundBinaryOperator(syntaxNode, BinaryOperatorKind.Is,
                                                         New BoundDirectCast(syntaxNode, parameterExpr.MakeRValue(), ConversionKind.WideningReference, obj, Nothing),
@@ -903,7 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
             Const methodOrdinal As Integer = -1
 
-            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics)
+            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics.DiagnosticBag)
             Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
         End Function
 
@@ -1415,14 +1413,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function OptimizeMethodCallForDelegateInvoke(node As BoundCall) As BoundCall
             Dim method = node.Method
             Dim receiver = node.ReceiverOpt
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(Diagnostics, CompilationState.Compilation.Assembly)
 
             If method.MethodKind = MethodKind.DelegateInvoke AndAlso
                     method.ContainingType.IsAnonymousType AndAlso
                     receiver.Kind = BoundKind.DelegateCreationExpression AndAlso
                     Conversions.ClassifyMethodConversionForLambdaOrAnonymousDelegate(
-                        method, DirectCast(receiver, BoundDelegateCreationExpression).Method, useSiteDiagnostics) = MethodConversionKind.Identity Then
-                Diagnostics.Add(node, useSiteDiagnostics)
+                        method, DirectCast(receiver, BoundDelegateCreationExpression).Method, useSiteInfo) = MethodConversionKind.Identity Then
+                Diagnostics.Add(node, useSiteInfo)
 
                 Dim delegateCreation = DirectCast(receiver, BoundDelegateCreationExpression)
                 Debug.Assert(delegateCreation.RelaxationLambdaOpt Is Nothing AndAlso delegateCreation.RelaxationReceiverPlaceholderOpt Is Nothing)

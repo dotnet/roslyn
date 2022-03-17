@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly PEMethodSymbol _setMethod;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private Tuple<CultureInfo, string> _lazyDocComment;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (propEx != null || isBad)
             {
-                result._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result);
+                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result));
             }
 
             return result;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (getEx != null || setEx != null || mrEx != null || isBad)
             {
-                _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this));
             }
 
             var returnInfo = propertyParams[0];
@@ -286,6 +287,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _name;
             }
         }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
+        }
+
         internal PropertyDefinitionHandle Handle
         {
             get
@@ -724,16 +731,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return PEDocumentationCommentUtils.GetDocumentationComment(this, _containingType.ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            AssemblySymbol primaryDependency = PrimaryDependency;
+
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo result = null;
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData

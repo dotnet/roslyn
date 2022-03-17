@@ -1855,34 +1855,6 @@ unsafe class C
         }
 
         [Fact]
-        public void MixedDeconstructionCannotBeParsed()
-        {
-            string source = @"
-class C
-{
-    public static void Main()
-    {
-        int x;
-        (x, int y) = new C();
-    }
-
-    public void Deconstruct(out int a, out int b)
-    {
-        a = 1;
-        b = 2;
-    }
-}
-";
-
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (x, int y) = new C();
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(x, int y)").WithLocation(7, 9)
-                );
-        }
-
-        [Fact]
         public void DeconstructionWithTupleNamesCannotBeParsed()
         {
             string source = @"
@@ -2464,7 +2436,7 @@ static class D
         [Fact]
         public void DeconstructRefExtensionMethod()
         {
-            // https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-01-24.md
+            // https://github.com/dotnet/csharplang/blob/main/meetings/2018/LDM-2018-01-24.md
             string source = @"
 struct C
 {
@@ -3670,7 +3642,7 @@ class C
         System.Console.WriteLine(x1 + "" "" + x2);
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -3763,7 +3735,7 @@ class C
         public void DeclarationWithAliasedVarType()
         {
             string source = @"
-using var = D;
+using @var = D;
 class C
 {
     static void Main()
@@ -3912,7 +3884,7 @@ class C
         }
     }
 }
-class var
+class @var
 {
     public override string ToString() { return ""var""; }
 }
@@ -5002,7 +4974,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string x, alias y) = (""hello"", 42);
 System.Console.Write($""{x} {y}"");
 ";
@@ -5706,7 +5678,7 @@ var (y1, y2) = (x1, x2);
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -5745,7 +5717,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return null; }
 }
@@ -5787,7 +5759,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-using var = System.Byte;
+using @var = System.Byte;
 (var x1, (var x2, var x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
@@ -5833,7 +5805,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
         {
             var source =
 @"
-class var
+class @var
 {
     public static implicit operator var(int i) { return new var(); }
     public override string ToString() { return ""var""; }
@@ -6167,14 +6139,41 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (6,10): error CS0103: The name '_' does not exist in the current context
                 //         (@_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(6, 10),
-                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(6, 10)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            Assert.Empty(GetDiscardIdentifiers(tree));
+        }
+
+        [Fact]
+        public void EscapedUnderscoreInDeclarationCSharp9()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (@_, var x) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         (@_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(@_, var x)").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(@_, var x) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(6, 9),
+                // (6,10): error CS0103: The name '_' does not exist in the current context
+                //         (@_, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(6, 10)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -6199,12 +6198,25 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (_, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(_, var x)").WithLocation(7, 9)
-                );
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1")
+                .VerifyIL("C.Main", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  .locals init (int V_0, //_
+                int V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.2
+  IL_0004:  stloc.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  IL_000c:  ret
+}");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -6235,29 +6247,6 @@ class C
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "3");
-        }
-
-        [Fact]
-        public void MixedDeconstructionIsBlocked()
-        {
-            var source =
-@"
-class C
-{
-    static void Main()
-    {
-        int i;
-        (i, var x) = (1, 2);
-    }
-}
-";
-
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (i, var x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(i, var x)").WithLocation(7, 9)
-                );
         }
 
         [Fact]
@@ -6725,22 +6714,30 @@ class C
     }
 }
 ";
+            var compCSharp9 = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            compCSharp9.VerifyDiagnostics(
+                // (6,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (var x, x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(var x, x) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(6, 9),
+                // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
+                //         (var x, x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 17),
+                // (7,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (y, var y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(y, var y) = (1, 2)").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(7, 9),
+                // (7,10): error CS0841: Cannot use local variable 'y' before it is declared
+                //         (y, var y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 10)
+                );
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            // mixing declaration and expressions isn't supported yet
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0841: Cannot use local variable 'x' before it is declared
                 //         (var x, x) = (1, 2);
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(6, 17),
-                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (var x, x) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(var x, x)").WithLocation(6, 9),
                 // (7,10): error CS0841: Cannot use local variable 'y' before it is declared
                 //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 10),
-                // (7,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (y, var y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(y, var y)").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(7, 10)
                 );
         }
 
@@ -6820,7 +6817,7 @@ class C
         {
             var source =
 @"
-using alias = System.Int32;
+using @alias = System.Int32;
 (string _, alias _) = (""hello"", 42);
 ";
 
@@ -7119,12 +7116,32 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(
-                // (8,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
-                //         (int x1, z) = t;
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, z)").WithLocation(8, 9)
-            );
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "1")
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1, //z
+                int V_2) //x1
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0011:  stloc.2
+  IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""void System.Console.WriteLine(int)""
+  IL_001e:  nop
+  IL_001f:  ret
+}");
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7146,16 +7163,78 @@ class Program
         for ((int x1, z) = t; ; )
         {
             System.Console.WriteLine(x1);
+            break;
         }
     }
 }";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "1")
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0, //t
+                int V_1, //z
+                int V_2) //x1
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0011:  stloc.2
+  IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_0024
+  IL_001a:  nop
+  IL_001b:  ldloc.2
+  IL_001c:  call       ""void System.Console.WriteLine(int)""
+  IL_0021:  nop
+  IL_0022:  br.s       IL_0026
+  IL_0024:  br.s       IL_001a
+  IL_0026:  ret
+}");
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
 
-            var compilation = CreateCompilation(source);
+            var x1 = GetDeconstructionVariable(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+            var symbolInfo = model.GetSymbolInfo(x1Ref);
+            Assert.Equal(symbolInfo.Symbol, model.GetDeclaredSymbol(x1));
+            Assert.Equal(SpecialType.System_Int32, symbolInfo.Symbol.GetTypeOrReturnType().SpecialType);
+
+            var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            Assert.Equal(@"(int x1, z)", lhs.ToString());
+            Assert.Equal("(System.Int32 x1, System.Int32 z)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 x1, System.Int32 z)", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void MixedDeconstruction_03CSharp9()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, 2);
+        int z;
+        for ((int x1, z) = t; ; )
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
-                // (8,14): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                // (8,14): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         for ((int x1, z) = t; ; )
-                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, z)").WithLocation(8, 14)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x1, z) = t").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(8, 14));
+
             var tree = compilation.SyntaxTrees.First();
             var model = compilation.GetSemanticModel(tree);
 
@@ -7333,6 +7412,90 @@ class Program
         }
 
         [Fact]
+        public void MixedDeconstruction_07()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var t = (1, ("""", true));
+        string y;
+        for ((int x, (y, var z)) = t; ; )
+        {
+            System.Console.Write(x);
+            System.Console.Write(z);
+            break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation, expectedOutput: "1True")
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  4
+  .locals init (System.ValueTuple<int, System.ValueTuple<string, bool>> V_0, //t
+                string V_1, //y
+                int V_2, //x
+                bool V_3, //z
+                System.ValueTuple<string, bool> V_4)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldstr      """"
+  IL_0009:  ldc.i4.1
+  IL_000a:  newobj     ""System.ValueTuple<string, bool>..ctor(string, bool)""
+  IL_000f:  call       ""System.ValueTuple<int, System.ValueTuple<string, bool>>..ctor(int, System.ValueTuple<string, bool>)""
+  IL_0014:  ldloc.0
+  IL_0015:  dup
+  IL_0016:  ldfld      ""System.ValueTuple<string, bool> System.ValueTuple<int, System.ValueTuple<string, bool>>.Item2""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  ldfld      ""int System.ValueTuple<int, System.ValueTuple<string, bool>>.Item1""
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.s    V_4
+  IL_0025:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_002a:  stloc.1
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_0032:  stloc.3
+  IL_0033:  br.s       IL_0046
+  IL_0035:  nop
+  IL_0036:  ldloc.2
+  IL_0037:  call       ""void System.Console.Write(int)""
+  IL_003c:  nop
+  IL_003d:  ldloc.3
+  IL_003e:  call       ""void System.Console.Write(bool)""
+  IL_0043:  nop
+  IL_0044:  br.s       IL_0048
+  IL_0046:  br.s       IL_0035
+  IL_0048:  ret
+}");
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x = GetDeconstructionVariable(tree, "x");
+            var xRef = GetReference(tree, "x");
+            VerifyModelForDeconstructionLocal(model, x, xRef);
+            var xSymbolInfo = model.GetSymbolInfo(xRef);
+            Assert.Equal(xSymbolInfo.Symbol, model.GetDeclaredSymbol(x));
+            Assert.Equal(SpecialType.System_Int32, xSymbolInfo.Symbol.GetTypeOrReturnType().SpecialType);
+
+            var z = GetDeconstructionVariable(tree, "z");
+            var zRef = GetReference(tree, "z");
+            VerifyModelForDeconstructionLocal(model, z, zRef);
+            var zSymbolInfo = model.GetSymbolInfo(zRef);
+            Assert.Equal(zSymbolInfo.Symbol, model.GetDeclaredSymbol(z));
+            Assert.Equal(SpecialType.System_Boolean, zSymbolInfo.Symbol.GetTypeOrReturnType().SpecialType);
+
+            var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
+            Assert.Equal(@"(int x, (y, var z))", lhs.ToString());
+            Assert.Equal("(System.Int32 x, (System.String y, System.Boolean z))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 x, (System.String y, System.Boolean z))", model.GetTypeInfo(lhs).ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void IncompleteDeclarationIsSeenAsTupleLiteral()
         {
             string source = @"
@@ -7451,7 +7614,7 @@ class C
         }
 
         [Fact]
-        void InvokeVarForLvalueInParens()
+        public void InvokeVarForLvalueInParens()
         {
             var source = @"
 class Program
@@ -9228,6 +9391,720 @@ class C
                 //         (var t, _) += (1, 2);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 17)
                 );
+        }
+
+        [Fact, WorkItem(50654, "https://github.com/dotnet/roslyn/issues/50654")]
+        public void Repro50654()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int, (int, (int, int), (int, int)))[] vals = new[]
+        {
+            (1, (2, (3, 4), (5, 6))),
+            (11, (12, (13, 14), (15, 16)))
+        };
+
+        foreach (var (a, (b, (c, d), (e, f))) in vals)
+        {
+            System.Console.Write($""{a + b + c + d + e + f} "");
+        }
+
+        foreach ((int a, (int b, (int c, int d), (int e, int f))) in vals)
+        {
+            System.Console.Write($""{a + b + c + d + e + f} "");
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "21 81 21 81");
+        }
+
+        [Fact]
+        public void MixDeclarationAndAssignmentPermutationsOf2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1 = 0;
+        (x1, string y1) = new C();
+        System.Console.WriteLine(x1 + "" "" + y1);
+        int x2;
+        (x2, var y2) = new C();
+        System.Console.WriteLine(x2 + "" "" + y2);
+        string y3 = """";
+        (int x3, y3) = new C();
+        System.Console.WriteLine(x3 + "" "" + y3);
+        string y4;
+        (var x4, y4) = new C();
+        System.Console.WriteLine(x4 + "" "" + y4);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello
+1 hello
+1 hello
+1 hello");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      188 (0xbc)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //y1
+                int V_2, //x2
+                string V_3, //y2
+                string V_4, //y3
+                int V_5, //x3
+                string V_6, //y4
+                int V_7, //x4
+                int V_8,
+                string V_9)
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""C..ctor()""
+  IL_0007:  ldloca.s   V_8
+  IL_0009:  ldloca.s   V_9
+  IL_000b:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_0010:  ldloc.s    V_8
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.s    V_9
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  ldstr      "" ""
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""string string.Concat(string, string, string)""
+  IL_0028:  call       ""void System.Console.WriteLine(string)""
+  IL_002d:  newobj     ""C..ctor()""
+  IL_0032:  ldloca.s   V_8
+  IL_0034:  ldloca.s   V_9
+  IL_0036:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_003b:  ldloc.s    V_8
+  IL_003d:  stloc.2
+  IL_003e:  ldloc.s    V_9
+  IL_0040:  stloc.3
+  IL_0041:  ldloca.s   V_2
+  IL_0043:  call       ""string int.ToString()""
+  IL_0048:  ldstr      "" ""
+  IL_004d:  ldloc.3
+  IL_004e:  call       ""string string.Concat(string, string, string)""
+  IL_0053:  call       ""void System.Console.WriteLine(string)""
+  IL_0058:  ldstr      """"
+  IL_005d:  stloc.s    V_4
+  IL_005f:  newobj     ""C..ctor()""
+  IL_0064:  ldloca.s   V_8
+  IL_0066:  ldloca.s   V_9
+  IL_0068:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_006d:  ldloc.s    V_8
+  IL_006f:  stloc.s    V_5
+  IL_0071:  ldloc.s    V_9
+  IL_0073:  stloc.s    V_4
+  IL_0075:  ldloca.s   V_5
+  IL_0077:  call       ""string int.ToString()""
+  IL_007c:  ldstr      "" ""
+  IL_0081:  ldloc.s    V_4
+  IL_0083:  call       ""string string.Concat(string, string, string)""
+  IL_0088:  call       ""void System.Console.WriteLine(string)""
+  IL_008d:  newobj     ""C..ctor()""
+  IL_0092:  ldloca.s   V_8
+  IL_0094:  ldloca.s   V_9
+  IL_0096:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_009b:  ldloc.s    V_8
+  IL_009d:  stloc.s    V_7
+  IL_009f:  ldloc.s    V_9
+  IL_00a1:  stloc.s    V_6
+  IL_00a3:  ldloca.s   V_7
+  IL_00a5:  call       ""string int.ToString()""
+  IL_00aa:  ldstr      "" ""
+  IL_00af:  ldloc.s    V_6
+  IL_00b1:  call       ""string string.Concat(string, string, string)""
+  IL_00b6:  call       ""void System.Console.WriteLine(string)""
+  IL_00bb:  ret
+}");
+        }
+
+        [Fact]
+        public void MixDeclarationAndAssignmentPermutationsOf3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        string y1;
+        (x1, y1, var z1) = new C();
+        System.Console.WriteLine(x1 + "" "" + y1 + "" "" + z1);
+
+        int x2;
+        bool z2;
+        (x2, var y2, z2) = new C();
+        System.Console.WriteLine(x2 + "" "" + y2 + "" "" + z2);
+
+        string y3;
+        bool z3;
+        (var x3, y3, z3) = new C();
+        System.Console.WriteLine(x3 + "" "" + y3 + "" "" + z3);
+
+        bool z4;
+        (var x4, var y4, z4) = new C();
+        System.Console.WriteLine(x4 + "" "" + y4 + "" "" + z4);
+
+        string y5;
+        (var x5, y5, var z5) = new C();
+        System.Console.WriteLine(x5 + "" "" + y5 + "" "" + z5);
+
+        int x6;
+        (x6, var y6, var z6) = new C();
+        System.Console.WriteLine(x6 + "" "" + y6 + "" "" + z6);
+    }
+
+    public void Deconstruct(out int a, out string b, out bool c)
+    {
+        a = 1;
+        b = ""hello"";
+        c = true;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DontAllowMixedDeclarationAndAssignmentInExpressionContext()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1 = 0;
+        var z1 = (x1, string y1) = new C();
+        string y2 = """";
+        var z2 = (int x2, y2) = new C();
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,23): error CS8185: A declaration is not allowed in this context.
+                //         var z1 = (x1, string y1) = new C();
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string y1").WithLocation(7, 23),
+                // (9,19): error CS8185: A declaration is not allowed in this context.
+                //         var z2 = (int x2, y2) = new C();
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int x2").WithLocation(9, 19));
+        }
+
+        [Fact]
+        public void DontAllowMixedDeclarationAndAssignmentInForeachDeclarationVariable()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        foreach((x1, string y1) in new C[0]);
+        string y2;
+        foreach((int x2, y2) in new C[0]);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                    // (6,13): warning CS0168: The variable 'x1' is declared but never used
+                    //         int x1;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "x1").WithArguments("x1").WithLocation(6, 13),
+                    // (7,17): error CS8186: A foreach loop must declare its iteration variables.
+                    //         foreach((x1, string y1) in new C[0]);
+                    Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(x1, string y1)").WithLocation(7, 17),
+                    // (8,16): warning CS0168: The variable 'y2' is declared but never used
+                    //         string y2;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "y2").WithArguments("y2").WithLocation(8, 16),
+                    // (9,17): error CS8186: A foreach loop must declare its iteration variables.
+                    //         foreach((int x2, y2) in new C[0]);
+                    Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(int x2, y2)").WithLocation(9, 17));
+        }
+
+        [Fact]
+        public void DuplicateDeclarationOfVariableDeclaredInMixedDeclarationAndAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        string y1;
+        (x1, string y1) = new C();
+        string y2;
+        (int x2, y2) = new C();
+        int x2;
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (7,16): warning CS0168: The variable 'y1' is declared but never used
+                //         string y1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y1").WithArguments("y1").WithLocation(7, 16),
+                // (8,21): error CS0128: A local variable or function named 'y1' is already defined in this scope
+                //         (x1, string y1) = new C();
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(8, 21),
+                // (11,13): error CS0128: A local variable or function named 'x2' is already defined in this scope
+                //         int x2;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(11, 13),
+                // (11,13): warning CS0168: The variable 'x2' is declared but never used
+                //         int x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(11, 13));
+        }
+
+        [Fact]
+        public void AssignmentToUndeclaredVariableInMixedDeclarationAndAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (x1, string y1) = new C();
+        (int x2, y2) = new C();
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (6,10): error CS0103: The name 'x1' does not exist in the current context
+                //         (x1, string y1) = new C();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 10),
+                // (7,18): error CS0103: The name 'y2' does not exist in the current context
+                //         (int x2, y2) = new C();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y2").WithArguments("y2").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentInForInitialization()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        for((x1, string y1) = new C(); x1 < 2; x1++)
+            System.Console.WriteLine(x1 + "" "" + y1);
+        string y2;
+        for((int x2, y2) = new C(); x2 < 2; x2++)
+            System.Console.WriteLine(x2 + "" "" + y2);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello
+1 hello");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      109 (0x6d)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //y2
+                string V_2, //y1
+                int V_3,
+                string V_4,
+                int V_5) //x2
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_3
+  IL_0007:  ldloca.s   V_4
+  IL_0009:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ldloc.3
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  stloc.2
+  IL_0013:  br.s       IL_0030
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""string int.ToString()""
+  IL_001c:  ldstr      "" ""
+  IL_0021:  ldloc.2
+  IL_0022:  call       ""string string.Concat(string, string, string)""
+  IL_0027:  call       ""void System.Console.WriteLine(string)""
+  IL_002c:  ldloc.0
+  IL_002d:  ldc.i4.1
+  IL_002e:  add
+  IL_002f:  stloc.0
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.2
+  IL_0032:  blt.s      IL_0015
+  IL_0034:  newobj     ""C..ctor()""
+  IL_0039:  ldloca.s   V_3
+  IL_003b:  ldloca.s   V_4
+  IL_003d:  callvirt   ""void C.Deconstruct(out int, out string)""
+  IL_0042:  ldloc.3
+  IL_0043:  stloc.s    V_5
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  stloc.1
+  IL_0048:  br.s       IL_0067
+  IL_004a:  ldloca.s   V_5
+  IL_004c:  call       ""string int.ToString()""
+  IL_0051:  ldstr      "" ""
+  IL_0056:  ldloc.1
+  IL_0057:  call       ""string string.Concat(string, string, string)""
+  IL_005c:  call       ""void System.Console.WriteLine(string)""
+  IL_0061:  ldloc.s    V_5
+  IL_0063:  ldc.i4.1
+  IL_0064:  add
+  IL_0065:  stloc.s    V_5
+  IL_0067:  ldloc.s    V_5
+  IL_0069:  ldc.i4.2
+  IL_006a:  blt.s      IL_004a
+  IL_006c:  ret
+}");
+        }
+
+        [Fact]
+        public void MixDeclarationAndAssignmentInTupleDeconstructPermutationsOf2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1 = 0;
+        (x1, string y1) = (1, ""hello"");
+        System.Console.WriteLine(x1 + "" "" + y1);
+        int x2;
+        (x2, var y2) = (1, ""hello"");
+        System.Console.WriteLine(x2 + "" "" + y2);
+        string y3 = """";
+        (int x3, y3) = (1, ""hello"");
+        System.Console.WriteLine(x3 + "" "" + y3);
+        string y4;
+        (var x4, y4) = (1, ""hello"");
+        System.Console.WriteLine(x4 + "" "" + y4);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello
+1 hello
+1 hello
+1 hello");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      140 (0x8c)
+  .maxstack  3
+  .locals init (int V_0, //x1
+                string V_1, //y1
+                int V_2, //x2
+                string V_3, //y2
+                string V_4, //y3
+                int V_5, //x3
+                string V_6, //y4
+                int V_7) //x4
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stloc.0
+  IL_0004:  ldstr      ""hello""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""string int.ToString()""
+  IL_0011:  ldstr      "" ""
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""string string.Concat(string, string, string)""
+  IL_001c:  call       ""void System.Console.WriteLine(string)""
+  IL_0021:  ldc.i4.1
+  IL_0022:  stloc.2
+  IL_0023:  ldstr      ""hello""
+  IL_0028:  stloc.3
+  IL_0029:  ldloca.s   V_2
+  IL_002b:  call       ""string int.ToString()""
+  IL_0030:  ldstr      "" ""
+  IL_0035:  ldloc.3
+  IL_0036:  call       ""string string.Concat(string, string, string)""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ldstr      """"
+  IL_0045:  stloc.s    V_4
+  IL_0047:  ldc.i4.1
+  IL_0048:  stloc.s    V_5
+  IL_004a:  ldstr      ""hello""
+  IL_004f:  stloc.s    V_4
+  IL_0051:  ldloca.s   V_5
+  IL_0053:  call       ""string int.ToString()""
+  IL_0058:  ldstr      "" ""
+  IL_005d:  ldloc.s    V_4
+  IL_005f:  call       ""string string.Concat(string, string, string)""
+  IL_0064:  call       ""void System.Console.WriteLine(string)""
+  IL_0069:  ldc.i4.1
+  IL_006a:  stloc.s    V_7
+  IL_006c:  ldstr      ""hello""
+  IL_0071:  stloc.s    V_6
+  IL_0073:  ldloca.s   V_7
+  IL_0075:  call       ""string int.ToString()""
+  IL_007a:  ldstr      "" ""
+  IL_007f:  ldloc.s    V_6
+  IL_0081:  call       ""string string.Concat(string, string, string)""
+  IL_0086:  call       ""void System.Console.WriteLine(string)""
+  IL_008b:  ret
+}");
+        }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentCSharpNine()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        int x1;
+        (x1, string y1) = new A();
+        string y2;
+        (int x2, y2) = new A();
+        bool z3;
+        (int x3, (string y3, z3)) = new B();
+        int x4;
+        (x4, var (y4, z4)) = new B();
+    }
+}
+
+class A
+{
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+
+class B
+{
+    public void Deconstruct(out int a, out (string b, bool c) tuple)
+    {
+        a = 1;
+        tuple = (""hello"", true);
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (7,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (x1, string y1) = new A();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x1, string y1) = new A()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(7, 9),
+                // (9,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (int x2, y2) = new A();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x2, y2) = new A()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(9, 9),
+                // (11,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (int x3, (string y3, z3)) = new B();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(int x3, (string y3, z3)) = new B()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(11, 9),
+                // (13,9): error CS8773: Feature 'Mixed declarations and expressions in deconstruction' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //         (x4, var (y4, z4)) = new B();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "(x4, var (y4, z4)) = new B()").WithArguments("Mixed declarations and expressions in deconstruction", "10.0").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void NestedMixedDeclarationAndAssignmentPermutations()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1;
+        string y1;
+        (x1, (y1, var z1)) = new C();
+        System.Console.WriteLine(x1 + "" "" + y1 + "" "" + z1);
+
+        int x2;
+        bool z2;
+        (x2, (var y2, z2)) = new C();
+        System.Console.WriteLine(x2 + "" "" + y2 + "" "" + z2);
+
+        string y3;
+        bool z3;
+        (var x3, (y3, z3)) = new C();
+        System.Console.WriteLine(x3 + "" "" + y3 + "" "" + z3);
+
+        bool z4;
+        (var x4, (var y4, z4)) = new C();
+        System.Console.WriteLine(x4 + "" "" + y4 + "" "" + z4);
+
+        string y5;
+        (var x5, (y5, var z5)) = new C();
+        System.Console.WriteLine(x5 + "" "" + y5 + "" "" + z5);
+
+        int x6;
+        (x6, (var y6, var z6)) = new C();
+        System.Console.WriteLine(x6 + "" "" + y6 + "" "" + z6);
+
+        int x7;
+        (x7, var (y7, z7)) = new C();
+        System.Console.WriteLine(x7 + "" "" + y7 + "" "" + z7);
+    }
+
+    public void Deconstruct(out int a, out (string a, bool b) b)
+    {
+        a = 1;
+        b = (""hello"", true);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: @"1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True
+1 hello True");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentUseBeforeDeclaration()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        (x1, string y1) = new A();
+        int x1;
+        (int x2, y2) = new A();
+        string y2;
+        (int x3, (string y3, z3)) = new B();
+        bool z3;
+        (x4, var (y4, z4)) = new B();
+        int x4;
+    }
+}
+
+class A
+{
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+
+class B
+{
+    public void Deconstruct(out int a, out (string b, bool c) tuple)
+    {
+        a = 1;
+        tuple = (""hello"", true);
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (6,10): error CS0841: Cannot use local variable 'x1' before it is declared
+                    //         (x1, string y1) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1", isSuppressed: false).WithArguments("x1").WithLocation(6, 10),
+                    // (8,18): error CS0841: Cannot use local variable 'y2' before it is declared
+                    //         (int x2, y2) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y2", isSuppressed: false).WithArguments("y2").WithLocation(8, 18),
+                    // (10,30): error CS0841: Cannot use local variable 'z3' before it is declared
+                    //         (int x3, (string y3, z3)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "z3", isSuppressed: false).WithArguments("z3").WithLocation(10, 30),
+                    // (12,10): error CS0841: Cannot use local variable 'x4' before it is declared
+                    //         (x4, var (y4, z4)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4", isSuppressed: false).WithArguments("x4").WithLocation(12, 10));
+        }
+
+        [Fact]
+        public void MixedDeclarationAndAssignmentUseDeclaredVariableInAssignment()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        (var x1, x1) = new A();
+        (x2, var x2) = new A();
+        (var x3, (var y3, x3)) = new B();
+        (x4, (var y4, var x4)) = new B();
+    }
+}
+
+class A
+{
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+
+class B
+{
+    public void Deconstruct(out int a, out (string b, bool c) tuple)
+    {
+        a = 1;
+        tuple = (""hello"", true);
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (6,18): error CS0841: Cannot use local variable 'x1' before it is declared
+                    //         (var x1, x1) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 18),
+                    // (7,10): error CS0841: Cannot use local variable 'x2' before it is declared
+                    //         (x2, var x2) = new A();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(7, 10),
+                    // (8,27): error CS0841: Cannot use local variable 'x3' before it is declared
+                    //         (var x3, (var y3, x3)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x3").WithArguments("x3").WithLocation(8, 27),
+                    // (9,10): error CS0841: Cannot use local variable 'x4' before it is declared
+                    //         (x4, (var y4, var x4)) = new B();
+                    Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(9, 10));
         }
     }
 }

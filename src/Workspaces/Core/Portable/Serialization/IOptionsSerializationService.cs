@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     internal interface IOptionsSerializationService : ILanguageService
     {
         void WriteTo(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
-        void WriteTo(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
+        void WriteTo(ParseOptions options, ObjectWriter writer);
 
         CompilationOptions ReadCompilationOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);
         ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken);

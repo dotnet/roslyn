@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             {
                 Contract.ThrowIfNull(variable);
                 Contract.ThrowIfFalse(variable.CanBeUsedAsReturnValue);
-                Contract.ThrowIfFalse(variable.ParameterModifier == ParameterBehavior.Out || variable.ParameterModifier == ParameterBehavior.Ref);
+                Contract.ThrowIfFalse(variable.ParameterModifier is ParameterBehavior.Out or ParameterBehavior.Ref);
 
                 return new VariableInfo(variable._variableSymbol, variable._variableStyle, useAsReturnValue: true);
             }
@@ -109,6 +109,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             public string Name => _variableSymbol.Name;
+
+            /// <summary>
+            /// Returns true, if the variable could be either passed as a parameter
+            /// to the new local function or the local function can capture the variable.
+            /// </summary>
+            public bool CanBeCapturedByLocalFunction
+                => _variableSymbol.CanBeCapturedByLocalFunction;
 
             public bool OriginalTypeHadAnonymousTypeOrDelegate => _variableSymbol.OriginalTypeHadAnonymousTypeOrDelegate;
 

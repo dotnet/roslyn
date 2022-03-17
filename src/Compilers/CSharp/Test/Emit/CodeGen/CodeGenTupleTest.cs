@@ -13,6 +13,7 @@ using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,8 +21,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static TestResources.NetFX.ValueTuple;
 using static Roslyn.Test.Utilities.TestMetadata;
+using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -3261,7 +3262,8 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39976
+        [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -3630,10 +3632,17 @@ class C
 
                 var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
+                var type = (INamedTypeSymbol)model.GetTypeInfo(node).Type;
                 Assert.Equal("(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, "
                      + "System.String h, System.Int32 i, System.Int32 j, System.Int32 k, System.Int32 l, System.Int32 m, System.Int32 n, "
                      + "System.String o, System.Int32 p, System.Int32 q)",
-                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+                     type.ToTestDisplayString());
+
+                foreach (var item in type.TupleElements)
+                {
+                    Assert.True(item.IsExplicitlyNamedTupleElement);
+                    Assert.False(item.CorrespondingTupleField.IsExplicitlyNamedTupleElement);
+                }
             };
 
             var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", sourceSymbolValidator: validator);
@@ -3673,8 +3682,21 @@ class C
                 var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
                 var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                var yType = (INamedTypeSymbol)model.GetTypeInfo(yTuple).Type;
                 Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
-                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+                    yType.ToTestDisplayString());
+
+                Assert.Equal("a", yType.TupleElements[0].Name);
+                Assert.True(yType.TupleElements[0].IsExplicitlyNamedTupleElement);
+                Assert.False(yType.TupleElements[0].CorrespondingTupleField.IsExplicitlyNamedTupleElement);
+
+                Assert.Equal("Item2", yType.TupleElements[1].Name);
+                Assert.False(yType.TupleElements[1].IsExplicitlyNamedTupleElement);
+                Assert.Same(yType.TupleElements[1], yType.TupleElements[1].CorrespondingTupleField);
+
+                Assert.Equal("b", yType.TupleElements[2].Name);
+                Assert.True(yType.TupleElements[2].IsExplicitlyNamedTupleElement);
+                Assert.False(yType.TupleElements[2].CorrespondingTupleField.IsExplicitlyNamedTupleElement);
 
                 var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
                 Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
@@ -4607,23 +4629,24 @@ namespace System
             Assert.True(mItem1.IsImplicitlyDeclared);
             Assert.Null(mItem1.TypeLayoutOffset);
 
+            // Note: fields come first
             AssertTestDisplayString(mTuple.GetMembers(),
+                "System.String (System.String, System.String).Item1",
+                "System.String (System.String, System.String).Item2",
                 "System.Int32 (System.String, System.String).Item2",
                 "(System.String, System.String)..ctor(System.String item1, System.String item2)",
-                "(System.String, System.String)..ctor()",
-                "System.String (System.String, System.String).Item1",
-                "System.String (System.String, System.String).Item2");
+                "(System.String, System.String)..ctor()");
 
             var m2Tuple = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M2").Parameters[0].Type;
             AssertTupleTypeEquality(m2Tuple);
             AssertTestDisplayString(m2Tuple.GetMembers(),
-                "System.Int32 (System.Int32 a, System.Int32 b).Item2",
-                "(System.Int32 a, System.Int32 b)..ctor(System.Int32 item1, System.Int32 item2)",
-                "(System.Int32 a, System.Int32 b)..ctor()",
                 "System.Int32 (System.Int32 a, System.Int32 b).Item1",
                 "System.Int32 (System.Int32 a, System.Int32 b).a",
                 "System.Int32 (System.Int32 a, System.Int32 b).Item2",
-                "System.Int32 (System.Int32 a, System.Int32 b).b"
+                "System.Int32 (System.Int32 a, System.Int32 b).b",
+                "System.Int32 (System.Int32 a, System.Int32 b).Item2",
+                "(System.Int32 a, System.Int32 b)..ctor(System.Int32 item1, System.Int32 item2)",
+                "(System.Int32 a, System.Int32 b)..ctor()"
                 );
         }
 
@@ -5942,8 +5965,7 @@ namespace System
             var tupleComp = CreateCompilation(trivial2uple_withoutFields);
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.EmitToImageReference() });
             var vt2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
-            AssertEx.SetEqual(vt2.MemberNames.ToArray(), new[] { ".ctor", "ToString", "Item1", "Item2" });
-            // Note: we emitted the missing fields
+            AssertEx.SetEqual(vt2.MemberNames.ToArray(), new[] { ".ctor", "ToString" });
         }
 
         [Fact]
@@ -8064,6 +8086,227 @@ class C
                 // (6,29): error CS8135: Tuple with 3 elements cannot be converted to type '(long c, long d)'.
                 //         (int a, int b) x4 = ((long c, long d))(1, null, 2);
                 Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "((long c, long d))(1, null, 2)").WithArguments("3", "(long c, long d)").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion03()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c))x;
+_ = ((int i, bool c))(1, new C());
+    
+(int i, bool c) z;
+
+z = x;
+z = (1, new C());
+z.i++;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,26): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 26),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion04()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,27): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 27),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion05()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (6,27): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 27),
+                // (10,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(10, 5),
+                // (11,9): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = (1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion06()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (9,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion07()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (9,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion08()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+   
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion09()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(3, 5)
                 );
         }
 
@@ -11033,6 +11276,7 @@ class C
             AssertNonvirtualTupleElementField(m2Item1);
             AssertVirtualTupleElementField(m2a2);
 
+            Assert.IsType<TupleElementFieldSymbol>(m1Item1);
             Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.ToTestDisplayString());
             Assert.Equal("T1 (T1, T2).Item1", m1Item1.OriginalDefinition.ToTestDisplayString());
@@ -11051,6 +11295,7 @@ class C
             Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
+            Assert.IsType<TupleElementFieldSymbol>(m2Item1);
             Assert.False(m2Item1.IsDefinition);
             Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.ToTestDisplayString());
@@ -11074,6 +11319,7 @@ class C
             Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
+            Assert.IsType<TupleVirtualElementFieldSymbol>(m2a2);
             Assert.True(m2a2.IsDefinition);
             Assert.True(m2a2.Equals(m2a2));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).a2", m2a2.ToTestDisplayString());
@@ -11149,6 +11395,8 @@ class C
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7",
+                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
+                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
                 "(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
@@ -11164,9 +11412,7 @@ class C
                 "System.String (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).ToString()",
                 "System.String (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.ToStringEnd()",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size.get",
-                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size { get; }",
-                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
-                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9");
+                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size { get; }");
 
             AssertTestDisplayString(m2Tuple.GetMembers(),
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item1",
@@ -11183,6 +11429,10 @@ class C
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).f2",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item7",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).g2",
+                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item8",
+                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).h2",
+                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item9",
+                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).i2",
                 "(System.Int32, System.Int32) (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Rest",
                 "(System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2)..ctor()",
                 "(System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
@@ -11198,11 +11448,7 @@ class C
                 "System.String (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).ToString()",
                 "System.String (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).System.ITupleInternal.ToStringEnd()",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).System.ITupleInternal.Size.get",
-                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).System.ITupleInternal.Size { get; }",
-                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item8",
-                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).h2",
-                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item9",
-                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).i2");
+                "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).System.ITupleInternal.Size { get; }");
 
             Assert.Equal("ValueTuple", m1Tuple.Name);
             Assert.Equal(SymbolKind.NamedType, m1Tuple.Kind);
@@ -11226,6 +11472,8 @@ class C
                 "Item5",
                 "Item6",
                 "Item7",
+                "Item8",
+                "Item9" ,
                 "Rest",
                 ".ctor",
                 "Equals",
@@ -11239,9 +11487,8 @@ class C
                 "ToString",
                 "System.ITupleInternal.ToStringEnd",
                 "System.ITupleInternal.get_Size",
-                "System.ITupleInternal.Size",
-                "Item8",
-                "Item9" },
+                "System.ITupleInternal.Size"
+                },
                 m1Tuple.MemberNames.ToArray());
 
             AssertEx.Equal(new[] {
@@ -11259,6 +11506,10 @@ class C
                 "f2",
                 "Item7",
                 "g2",
+                "Item8",
+                "h2",
+                "Item9",
+                "i2",
                 "Rest",
                 ".ctor",
                 "Equals",
@@ -11272,11 +11523,8 @@ class C
                 "ToString",
                 "System.ITupleInternal.ToStringEnd",
                 "System.ITupleInternal.get_Size",
-                "System.ITupleInternal.Size",
-                "Item8",
-                "h2",
-                "Item9",
-                "i2" },
+                "System.ITupleInternal.Size"
+                },
                 m2Tuple.MemberNames.ToArray());
 
             Assert.Equal(8, m1Tuple.Arity);
@@ -11537,6 +11785,8 @@ class C
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7",
+                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
+                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
                 "(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
@@ -11552,9 +11802,7 @@ class C
                 "System.String (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).ToString()",
                 "System.String (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.ToStringEnd()",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size.get",
-                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size { get; }",
-                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
-                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9");
+                "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size { get; }");
 
             var m3Item8 = (FieldSymbol)m3Tuple.GetMembers("Item8").Single();
 
@@ -11706,6 +11954,14 @@ class C
                     ".Item7",
                 "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
                     ".g4",
+                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
+                    ".Item8",
+                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
+                    ".h4",
+                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
+                    ".Item9",
+                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
+                    ".i4",
                 "(System.Int32, System.Int32) (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
                     ".Rest",
                 "(System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
@@ -11738,15 +11994,7 @@ class C
                 "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
                     ".System.ITupleInternal.Size.get",
                 "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
-                    ".System.ITupleInternal.Size { get; }",
-                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
-                    ".Item8",
-                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
-                    ".h4",
-                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
-                    ".Item9",
-                "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
-                    ".i4"
+                    ".System.ITupleInternal.Size { get; }"
                 );
 
             var m4Item8 = (FieldSymbol)m4Tuple.GetMembers("Item8").Single();
@@ -11969,6 +12217,15 @@ class C
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item5",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item6",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item7",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item8",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item9",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item10",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item11",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item12",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item13",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item14",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item15",
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item16",
 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32) (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Rest",
 "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16)..ctor()",
 "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32) rest)",
@@ -11984,16 +12241,8 @@ class C
 "System.String (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).ToString()",
 "System.String (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).System.ITupleInternal.ToStringEnd()",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).System.ITupleInternal.Size.get",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).System.ITupleInternal.Size { get; }",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item8",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item9",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item10",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item11",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item12",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item13",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item14",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item15",
-"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item16");
+"System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).System.ITupleInternal.Size { get; }"
+);
 
             var m5Item8 = (FieldSymbol)m5Tuple.GetMembers("Item8").Single();
 
@@ -12027,6 +12276,8 @@ class C
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5",
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6",
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7",
+"System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
+"System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
 "(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
@@ -12042,9 +12293,7 @@ class C
 "System.String (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).ToString()",
 "System.String (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.ToStringEnd()",
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size.get",
-"System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size { get; }",
-"System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
-"System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9");
+"System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).System.ITupleInternal.Size { get; }");
 
             foreach (var m in m5TupleRestTuple.GetMembers().OfType<FieldSymbol>())
             {
@@ -12279,6 +12528,14 @@ class C
                     ".Item7",
                 "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
                     ".Item6",
+                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
+                    ".Item8",
+                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
+                    ".Item7",
+                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
+                    ".Item9",
+                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
+                    ".Item8",
                 "(System.Int32, System.Int32) (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
                     ".Rest",
                 "(System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
@@ -12287,15 +12544,7 @@ class C
                 "System.String (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
                     ".ToString()",
                 "(System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
-                    "..ctor()",
-                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
-                    ".Item8",
-                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
-                    ".Item7",
-                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
-                    ".Item9",
-                "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
-                    ".Item8"
+                    "..ctor()"
                 );
         }
 
@@ -12344,6 +12593,8 @@ class C
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).a6",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item7",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).a7",
+                "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item8",
+                "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item1",
                 "System.ValueTuple<System.Int32> (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Rest",
                 "(System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1)..ctor()",
                 "(System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, System.ValueTuple<System.Int32> rest)",
@@ -12359,9 +12610,7 @@ class C
                 "System.String (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).ToString()",
                 "System.String (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).System.ITupleInternal.ToStringEnd()",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).System.ITupleInternal.Size.get",
-                "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).System.ITupleInternal.Size { get; }",
-                "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item8",
-                "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item1");
+                "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).System.ITupleInternal.Size { get; }");
 
             var m8Item8 = (FieldSymbol)m8Tuple.GetMembers("Item8").Single();
 
@@ -12578,8 +12827,11 @@ class C
             AssertNonvirtualTupleElementField(m2Item1);
             AssertVirtualTupleElementField(m2a2);
 
+            Assert.Equal("TupleElementFieldSymbol", m1Item1.GetType().Name);
             Assert.NotSame(m1Item1, m1Item1.OriginalDefinition);
             Assert.True(m1Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m1Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("T1 (T1, T2).Item1", m1Item1.OriginalDefinition.ToTestDisplayString());
+            Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(m1Item1.OriginalDefinition);
             Assert.True(m1Item1.Equals(m1Item1));
             Assert.Equal("System.Int32 (System.Int32, System.Int32).Item1", m1Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m1Item1.AssociatedSymbol);
@@ -12594,8 +12846,11 @@ class C
             Assert.True(m1Item1.IsImplicitlyDeclared);
             Assert.Null(m1Item1.TypeLayoutOffset);
 
+            Assert.Equal("TupleElementFieldSymbol", m2Item1.GetType().Name);
             Assert.NotSame(m2Item1, m2Item1.OriginalDefinition);
             Assert.True(m2Item1.ContainingType.OriginalDefinition.TupleElements[0].Equals(m2Item1.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+            Assert.Equal("T1 (T1, T2).Item1", m2Item1.OriginalDefinition.ToTestDisplayString());
+            Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(m2Item1.OriginalDefinition);
             Assert.True(m2Item1.Equals(m2Item1));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2Item1.TupleUnderlyingField.ToTestDisplayString());
             Assert.Null(m2Item1.AssociatedSymbol);
@@ -12613,6 +12868,7 @@ class C
             Assert.True(m2Item1.IsImplicitlyDeclared);
             Assert.Null(m2Item1.TypeLayoutOffset);
 
+            Assert.Equal("TupleVirtualElementFieldSymbol", m2a2.GetType().Name);
             Assert.Same(m2a2, m2a2.OriginalDefinition);
             Assert.True(m2a2.Equals(m2a2));
             Assert.Equal("System.Int32 (System.Int32 a2, System.Int32 b2).Item1", m2a2.TupleUnderlyingField.ToTestDisplayString());
@@ -12682,6 +12938,7 @@ namespace System
 
         public ValueTuple(T1 item1, T2 item2)
         {
+            _ = new C9();
             this.Item1 = item1;
             this.Item2 = item2;
         }
@@ -12703,7 +12960,10 @@ namespace System
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 18),
                 // (10,23): error CS1525: Invalid expression term 'int'
                 //         var y = (int, int).C9;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 23),
+                // (10,28): error CS0572: 'C9': cannot reference a type through an expression; try '(int, int).C9' instead
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "C9").WithArguments("C9", "(int, int).C9").WithLocation(10, 28)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -12716,6 +12976,7 @@ namespace System
                 "System.Int32 (System.Int32, System.Int32).Item2",
                 "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
                 "System.String (System.Int32, System.Int32).ToString()",
+                "(System.Int32, System.Int32).C9",
                 "(System.Int32, System.Int32)..ctor()");
 
             Assert.True(m9Tuple.Equals(m9Tuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything));
@@ -12724,6 +12985,79 @@ namespace System
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembers("C9").Single().ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembers("C9", 0).Single().ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembersUnordered().Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void CustomValueTupleWithStrangeThings_01_PE()
+        {
+            var lib_cs = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public class C9 { }
+    }
+}
+" + tupleattributes_cs;
+
+            var source = @"
+class C
+{
+    static void M()
+    {
+        var y = (int, int).C9;
+
+        System.ValueTuple<int, int>.C9 z = null;
+        System.Console.WriteLine(z);
+    }
+
+    static (int, int) M9()
+    {
+        return (901, 902);
+    }
+}
+";
+
+            var libComp = CreateCompilationWithMscorlib40(lib_cs);
+            libComp.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'int'
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 18),
+                // (6,23): error CS1525: Invalid expression term 'int'
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
+                // (6,28): error CS0572: 'C9': cannot reference a type through an expression; try '(int, int).C9' instead
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "C9").WithArguments("C9", "(int, int).C9").WithLocation(6, 28)
+                );
+
+            var c = comp.GetTypeByMetadataName("C");
+            var m9Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M9").ReturnType;
+
+            AssertTestDisplayString(m9Tuple.GetMembers(),
+                "System.Int32 (System.Int32, System.Int32).Item1",
+                "System.Int32 (System.Int32, System.Int32).Item2",
+                "(System.Int32, System.Int32)..ctor()",
+                "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
+                "System.String (System.Int32, System.Int32).ToString()",
+                "(System.Int32, System.Int32).C9");
         }
 
         [Fact]
@@ -12990,6 +13324,116 @@ partial class C
 
             var m10E2 = m10Tuple.GetMember<EventSymbol>("E2");
             Assert.Equal("System.ObsoleteAttribute", m10E2.GetAttributes().Single().ToString());
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_RecordStruct()
+        {
+            var source = @"
+namespace System
+{
+    public record struct ValueTuple<T1, T2>(T1 Item1, T2 Item2)
+    {
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics();
+
+            var valuetuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+
+            AssertTestDisplayString(valuetuple.GetMembers(),
+                "(T1, T2)..ctor(T1 Item1, T2 Item2)",
+                "T1 (T1, T2).<Item1>k__BackingField",
+                "readonly T1 (T1, T2).Item1.get",
+                "void (T1, T2).Item1.set",
+                "T1 (T1, T2).Item1 { get; set; }",
+                "T2 (T1, T2).<Item2>k__BackingField",
+                "readonly T2 (T1, T2).Item2.get",
+                "void (T1, T2).Item2.set",
+                "T2 (T1, T2).Item2 { get; set; }",
+                "readonly System.String (T1, T2).ToString()",
+                "readonly System.Boolean (T1, T2).PrintMembers(System.Text.StringBuilder builder)",
+                "System.Boolean (T1, T2).op_Inequality((T1, T2) left, (T1, T2) right)",
+                "System.Boolean (T1, T2).op_Equality((T1, T2) left, (T1, T2) right)",
+                "readonly System.Int32 (T1, T2).GetHashCode()",
+                "readonly System.Boolean (T1, T2).Equals(System.Object obj)",
+                "readonly System.Boolean (T1, T2).Equals((T1, T2) other)",
+                "readonly void (T1, T2).Deconstruct(out T1 Item1, out T2 Item2)",
+                "(T1, T2)..ctor()",
+                "T1 (T1, T2).Item1",
+                "T2 (T1, T2).Item2"
+                );
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_Properties()
+        {
+            var source = @"
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1 { get; set; }
+        public T2 Item2 { get; set; }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_RecordStructWithConstructor()
+        {
+            var source = @"
+
+namespace System
+{
+    public record struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(string s) { }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
+                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                );
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_StructWithConstructor()
+        {
+            var source = @"
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(string s) { }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
+                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                );
         }
 
         private void AssertTupleNonElementField(FieldSymbol sym)
@@ -13265,6 +13709,8 @@ namespace System
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item5",
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item6",
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item7",
+                    "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item8",
+                    "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item9",
                     "(System.Int32 a, System.Int32 b) System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Rest",
                     "System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>..ctor()",
                     "System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>..ctor" +
@@ -13293,9 +13739,7 @@ namespace System
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>" +
                         ".System.ITupleInternal.Size.get",
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>" +
-                        ".System.ITupleInternal.Size { get; }",
-                    "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item8",
-                    "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item9"
+                        ".System.ITupleInternal.Size { get; }"
                     );
 
                 var t12 = NamedTypeSymbol.CreateTuple(m2Tuple.OriginalDefinition.Construct(
@@ -13327,6 +13771,8 @@ namespace System
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item5",
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item6",
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item7",
+                    "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item8",
+                    "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item9",
                     "(System.Int32 Item1, System.Int32 Item2) (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Rest",
                     "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)..ctor()",
                     "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)" +
@@ -13354,9 +13800,7 @@ namespace System
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)" +
                         ".System.ITupleInternal.Size.get",
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)" +
-                        ".System.ITupleInternal.Size { get; }",
-                    "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item8",
-                    "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item9"
+                        ".System.ITupleInternal.Size { get; }"
                     );
 
                 var t13 = NamedTypeSymbol.CreateTuple(m2Tuple.OriginalDefinition.Construct(
@@ -15349,8 +15793,8 @@ namespace System
                 "(System.Int32, System.Int32)..ctor()");
 
             AssertTupleTypeEquality(m1Tuple);
-            Assert.Equal(new string[] { "Item1", "Item2", ".ctor", "ToString",
-                                        "<P1>k__BackingField", "P1", "get_P1", "set_P1",
+            Assert.Equal(new string[] { "Item1", "Item2",
+                                        ".ctor", "ToString", "<P1>k__BackingField", "P1", "get_P1", "set_P1",
                                         "this[]", "get_Item"},
                          m1Tuple.MemberNames.ToArray());
             Assert.Equal("System.Int32 (System.Int32, System.Int32).P1 { readonly get; set; }", m1Tuple.GetEarlyAttributeDecodingMembers("P1").Single().ToTestDisplayString());
@@ -18782,7 +19226,7 @@ public class C
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/60046
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
         public void NullCoalescingOperatorWithTupleNames()
         {
@@ -20510,12 +20954,21 @@ public partial class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
-                //     partial void M1((int a, int b) x);
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(4, 18),
-                // (5,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
-                //     partial void M2((int a, int b) x);
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(5, 18)
+                // (10,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                //     partial void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
+                // (10,18): warning CS8826: Partial method declarations 'void C.M1((int a, int b) x)' and 'void C.M1((int notA, int notB) y)' have signature differences.
+                //     partial void M1((int notA, int notB) y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void C.M1((int a, int b) x)", "void C.M1((int notA, int notB) y)").WithLocation(10, 18),
+                // (11,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                //     partial void M2((int, int) y) { }
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
+                // (11,18): warning CS8826: Partial method declarations 'void C.M2((int a, int b) x)' and 'void C.M2((int, int) y)' have signature differences.
+                //     partial void M2((int, int) y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("void C.M2((int a, int b) x)", "void C.M2((int, int) y)").WithLocation(11, 18),
+                // (12,18): warning CS8826: Partial method declarations 'void C.M3((int a, int b) x)' and 'void C.M3((int a, int b) y)' have signature differences.
+                //     partial void M3((int a, int b) y) { }
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M3").WithArguments("void C.M3((int a, int b) x)", "void C.M3((int a, int b) y)").WithLocation(12, 18)
                 );
         }
 
@@ -21804,10 +22257,58 @@ public class B
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
+            Assert.IsType<RetargetingMethodSymbol>(methodM);
 
             Assert.Equal("(System.Int32, System.Int32)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
+            Assert.IsType<ConstructedErrorTypeSymbol>(methodM.ReturnType);
+            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(methodM.ReturnType.OriginalDefinition);
             Assert.True(methodM.ReturnType.IsTupleType);
             Assert.True(methodM.ReturnType.IsErrorType());
+            foreach (var item in methodM.ReturnType.TupleElements)
+            {
+                Assert.IsType<TupleErrorFieldSymbol>(item);
+                Assert.False(item.IsExplicitlyNamedTupleElement);
+            }
+        }
+
+        [Fact]
+        public void RetargetTupleErrorType_WithNames()
+        {
+            var lib_cs = @"
+public class A
+{
+    public static (int Item1, int Bob) M() { return (1, 2); }
+}
+";
+            var source = @"
+public class B
+{
+    void M2() { return A.M(); }
+}
+";
+            var lib = CreateCompilationWithMscorlib40(lib_cs, references: s_valueTupleRefs);
+            lib.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                //     void M2() { return A.M(); }
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                );
+
+            var methodM = comp.GetMember<MethodSymbol>("A.M");
+            Assert.IsType<RetargetingMethodSymbol>(methodM);
+
+            Assert.Equal("(System.Int32 Item1, System.Int32 Bob)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
+            Assert.IsType<ConstructedErrorTypeSymbol>(methodM.ReturnType);
+            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(methodM.ReturnType.OriginalDefinition);
+            Assert.True(methodM.ReturnType.IsTupleType);
+            Assert.True(methodM.ReturnType.IsErrorType());
+            foreach (var item in methodM.ReturnType.TupleElements)
+            {
+                Assert.IsType<TupleErrorFieldSymbol>(item);
+                Assert.True(item.IsExplicitlyNamedTupleElement);
+            }
         }
 
         [Fact, WorkItem(13088, "https://github.com/dotnet/roslyn/issues/13088")]
@@ -24810,7 +25311,9 @@ namespace System
             var libWithVTRef = libWithVT.EmitToImageReference();
 
             var comp = CSharpCompilation.Create("test", references: new[] { libWithVTRef, corlibWithVTRef });
-            Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType());
+            var found = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
+            Assert.False(found.IsErrorType());
+            Assert.Equal("corlib", found.ContainingAssembly.Name);
 
             var comp2 = comp.WithOptions(comp.Options.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
             var tuple2 = comp2.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
@@ -24822,6 +25325,11 @@ namespace System
             var tuple3 = comp3.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
+
+            var libWithVTRef2 = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }).EmitToImageReference();
+            var comp4 = CreateEmptyCompilation("", references: new[] { libWithVTRef, libWithVTRef2, corlibWithoutVTRef });
+            var tuple4 = comp4.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
+            Assert.True(tuple4.IsErrorType());
         }
 
         [Fact]
@@ -26531,16 +27039,15 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "123");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "123");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "123");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
@@ -26616,16 +27123,15 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "123");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "123");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "123");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Where(f => f.Name == "F1").Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
@@ -26691,16 +27197,15 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "9");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "9");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "9");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
@@ -26770,23 +27275,22 @@ class Program
             CompileAndVerify(comp6, expectedOutput: "9");
             verifyField(comp6);
 
-            // Uncomment after https://github.com/dotnet/roslyn/issues/43549 is fixed.
-            //var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
-            //CompileAndVerify(comp7, expectedOutput: "9");
-            //verifyField(comp7);
+            var comp7 = CreateCompilation(source2, targetFramework: TargetFramework.Mscorlib46, options: TestOptions.DebugExe, references: comp1Ref);
+            CompileAndVerify(comp7, expectedOutput: "9");
+            verifyField(comp7);
 
-            void verifyField(CSharpCompilation comp)
+            static void verifyField(CSharpCompilation comp)
             {
                 var field = comp.GetMember<FieldSymbol>("System.ValueTuple.F1");
                 Assert.NotNull(field.TupleUnderlyingField);
-                Assert.NotSame(field, field.TupleUnderlyingField);
+                Assert.Same(field, field.TupleUnderlyingField);
                 var toEmit = field.ContainingType.GetFieldsToEmit().Single();
                 Assert.Same(toEmit, toEmit.TupleUnderlyingField);
                 Assert.Same(field.TupleUnderlyingField, toEmit);
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/43621")]
+        [Fact]
         [WorkItem(43621, "https://github.com/dotnet/roslyn/issues/43621")]
         public void CustomFields_05()
         {
@@ -26815,7 +27319,47 @@ namespace System
 ";
 
             var comp1 = CreateCompilation(source0, options: TestOptions.DebugExe.WithAllowUnsafe(true));
-            CompileAndVerify(comp1, expectedOutput: "12");
+            var verifier = CompileAndVerify(comp1, verify: Verification.Skipped); // unsafe code
+
+            // There is a problem with caller, so execution currently yields the wrong result
+            // Tracked by https://github.com/dotnet/roslyn/issues/43621
+            //var verifier = CompileAndVerify(comp1, expectedOutput: 12, verify: Verification.Skipped); // unsafe code
+
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                verifier.VerifyTypeIL("ValueTuple", @"
+.class public sequential ansi sealed beforefieldinit System.ValueTuple
+    extends [netstandard]System.ValueType
+{
+    // Nested Types
+    .class nested public sequential ansi sealed beforefieldinit '<MessageType>e__FixedBuffer'
+        extends [netstandard]System.ValueType
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void [netstandard]System.Runtime.CompilerServices.UnsafeValueTypeAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .pack 0
+        .size 200
+        // Fields
+        .field public int32 FixedElementField
+    } // end of class <MessageType>e__FixedBuffer
+    // Fields
+    .field public valuetype System.ValueTuple/'<MessageType>e__FixedBuffer' MessageType
+    .custom instance void [netstandard]System.Runtime.CompilerServices.FixedBufferAttribute::.ctor(class [netstandard]System.Type, int32) = (
+        01 00 5c 53 79 73 74 65 6d 2e 49 6e 74 33 32 2c
+        20 6e 65 74 73 74 61 6e 64 61 72 64 2c 20 56 65
+        72 73 69 6f 6e 3d 32 2e 30 2e 30 2e 30 2c 20 43
+        75 6c 74 75 72 65 3d 6e 65 75 74 72 61 6c 2c 20
+        50 75 62 6c 69 63 4b 65 79 54 6f 6b 65 6e 3d 63
+        63 37 62 31 33 66 66 63 64 32 64 64 64 35 31 32
+        00 00 00 00 00
+    )
+} // end of class System.ValueTuple
+");
+            }
         }
 
         [Fact]
@@ -27361,7 +27905,7 @@ class C
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
             var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
-            var field = (TupleFieldSymbol)type.GetMember("Item1");
+            var field = (SourceMemberFieldSymbolFromDeclarator)type.GetMember("Item1");
             var underlyingField = field.TupleUnderlyingField;
 
             Assert.True(field.RequiresCompletion);
@@ -27375,6 +27919,1017 @@ class C
             Assert.True(underlyingField.RequiresCompletion);
             Assert.True(field.HasComplete(CompletionPart.All));
             Assert.True(underlyingField.HasComplete(CompletionPart.All));
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void EmptyValueTuple()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple");
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+            verifier.VerifyTypeIL("ValueTuple`2", @"
+.class public sequential ansi sealed beforefieldinit System.ValueTuple`2<T1, T2>
+extends [mscorlib]System.ValueType
+{
+    .pack 0
+    .size 1
+} // end of class System.ValueTuple`2
+");
+
+            var client = @"
+class C
+{
+    int M((int, int) t)
+    {
+        return t.Item1;
+    }
+}
+";
+            var comp2 = CreateCompilation(client, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib40);
+            comp2.VerifyDiagnostics(
+                // (6,18): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         return t.Item1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "(T1, T2)", "emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18)
+                );
+
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingValueTupleType = (NamedTypeSymbol)comp3.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingValueTupleType);
+            Assert.Empty(retargetingValueTupleType.GetFieldsToEmit());
+            verify(retargetingValueTupleType.GetMember<FieldSymbol>("Item1"), retargeting: true, index: 0);
+            verify(retargetingValueTupleType.GetMember<FieldSymbol>("Item2"), retargeting: true, index: 1);
+
+            AssertEx.SetEqual(new string[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "(T1, T2)..ctor()" },
+                retargetingValueTupleType.GetMembers().ToTestDisplayStrings());
+            AssertEx.SetEqual(new string[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "(T1, T2)..ctor()" },
+                retargetingValueTupleType.GetMembersUnordered().OrderBy(m => m.Name).ToTestDisplayStrings());
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                Assert.Empty(type.GetFieldsToEmit());
+
+                var item1 = type.GetMember<FieldSymbol>("Item1");
+                verify(item1, retargeting: false, index: 0);
+
+                var item2 = type.GetMember<FieldSymbol>("Item2");
+                verify(item2, retargeting: false, index: 1);
+            }
+
+            static void verify(FieldSymbol field, bool retargeting, int index)
+            {
+                Assert.True(field.IsDefinition);
+                Assert.True(field.HasUseSiteError);
+                Assert.True(field.IsTupleElement());
+                Assert.True(field.IsDefaultTupleElement);
+                Assert.Equal(index, field.TupleElementIndex);
+                Assert.Null(field.TupleUnderlyingField);
+                Assert.Same(field, field.CorrespondingTupleField);
+                Assert.False(field.IsExplicitlyNamedTupleElement);
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void EmptyValueTuple_WithCtor()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        ValueTuple(T1 item1, T2 item2) => throw null;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "emptyValueTuple");
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+            verifier.VerifyTypeIL("ValueTuple`2", @"
+ .class public sequential ansi sealed beforefieldinit System.ValueTuple`2<T1, T2>
+    extends [mscorlib]System.ValueType
+{
+    .pack 0
+    .size 1
+    // Methods
+    .method private hidebysig specialname rtspecialname
+    instance void .ctor (
+        !T1 item1,
+        !T2 item2
+        ) cil managed
+    {
+        // Method begins at RVA 0x2050
+        // Code size 2 (0x2)
+        .maxstack 8
+        IL_0000: ldnull
+        IL_0001: throw
+    } // end of method ValueTuple`2::.ctor
+} // end of class System.ValueTuple`2
+");
+
+            var client = @"
+class C
+{
+    int M((int, int) t)
+    {
+        return t.Item1;
+    }
+}
+";
+            var comp2 = CreateCompilation(client, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib40);
+            comp2.VerifyDiagnostics(
+                // (6,18): error CS8128: Member 'Item1' was not found on type '(T1, T2)' from assembly 'emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         return t.Item1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "Item1").WithArguments("Item1", "(T1, T2)", "emptyValueTuple, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 18)
+                );
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                Assert.Equal("(T1, T2)", type.ToTestDisplayString());
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2" }, fields.ToTestDisplayStrings());
+                Assert.All(fields, f => Assert.True(f.HasUseSiteError));
+
+                Assert.Equal(module is SourceModuleSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", type.GetType().Name);
+                Assert.Empty(type.GetFieldsToEmit());
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void EmptyValueTuple_WithTupleSyntaxInside()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public (T1, T2) M() => throw null;
+        public (T1 Item1, T2 Item2) M2() => throw null;
+        public (T1, T2 Item2) M3() => throw null;
+    }
+}";
+            var comp = CreateCompilation(source + tupleattributes_cs, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var isSourceSymbol = module is SourceModuleSymbol;
+
+                var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M").ReturnType;
+                if (isSourceSymbol)
+                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(tuple1));
+                else
+                    Assert.Equal("PENamedTypeSymbolGeneric: (T1, T2)", print(tuple1));
+
+                var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M2").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1 Item1, T2 Item2)", print(tuple2));
+
+                if (isSourceSymbol)
+                {
+                    AssertTestDisplayString(tuple2.GetMembers(),
+                        "T1 (T1 Item1, T2 Item2).Item1",
+                        "T2 (T1 Item1, T2 Item2).Item2",
+                        "(T1, T2) (T1 Item1, T2 Item2).M()",
+                        "(T1 Item1, T2 Item2) (T1 Item1, T2 Item2).M2()",
+                        "(T1, T2 Item2) (T1 Item1, T2 Item2).M3()",
+                        "(T1 Item1, T2 Item2)..ctor()");
+                }
+                else
+                {
+                    AssertTestDisplayString(tuple2.GetMembers(),
+                        "T1 (T1 Item1, T2 Item2).Item1",
+                        "T2 (T1 Item1, T2 Item2).Item2",
+                        "(T1 Item1, T2 Item2)..ctor()",
+                        "(T1, T2) (T1 Item1, T2 Item2).M()",
+                        "(T1 Item1, T2 Item2) (T1 Item1, T2 Item2).M2()",
+                        "(T1, T2 Item2) (T1 Item1, T2 Item2).M3()");
+                }
+
+                var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M3").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1, T2 Item2)", print(tuple3));
+            }
+
+            static string print(NamedTypeSymbol s)
+            {
+                return s.GetType().Name + ": " + s.ToTestDisplayString();
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void ValueTuple_WithTupleSyntaxInside()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public (T1, T2) M() => throw null;
+        public (T1 Item1, T2 Item2) M2() => throw null;
+        public (T1, T2 Item2) M3() => throw null;
+    }
+}";
+            var comp = CreateCompilation(source + tupleattributes_cs, targetFramework: TargetFramework.Mscorlib40);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var isSourceSymbol = module is SourceModuleSymbol;
+
+                var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M").ReturnType;
+                if (isSourceSymbol)
+                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(tuple1));
+                else
+                    Assert.Equal("PENamedTypeSymbolGeneric: (T1, T2)", print(tuple1));
+
+                var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M2").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1 Item1, T2 Item2)", print(tuple2));
+
+                var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M3").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (T1, T2 Item2)", print(tuple3));
+            }
+
+            static string print(NamedTypeSymbol s)
+            {
+                return s.GetType().Name + ": " + s.ToTestDisplayString();
+            }
+        }
+
+        [Fact, WorkItem(43597, "https://github.com/dotnet/roslyn/issues/43597")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void TestValueTuplesDefinition()
+        {
+            var comp = CreateCompilation(trivial2uple + trivial3uple + trivialRemainingTuples, targetFramework: TargetFramework.Mscorlib40);
+            CompileAndVerify(comp, sourceSymbolValidator: verifyModule, symbolValidator: verifyModule);
+
+            var comp2 = CreateCompilation("", targetFramework: TargetFramework.Mscorlib46, references: new[] { comp.ToMetadataReference() });
+            var retargetingValueTupleTypes = comp2.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple");
+            verifyTupleTypes(retargetingValueTupleTypes, retargeting: true);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var valueTupleTypes = module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple");
+                verifyTupleTypes(valueTupleTypes, retargeting: false);
+            }
+
+            static void verifyTupleTypes(ImmutableArray<Symbol> valueTupleTypes, bool retargeting)
+            {
+                AssertEx.SetEqual(new[] {
+                    "(T1, T2)", "(T1, T2, T3)", "System.ValueTuple<T1>",
+                    "(T1, T2, T3, T4)", "(T1, T2, T3, T4, T5)", "(T1, T2, T3, T4, T5, T6)",
+                    "(T1, T2, T3, T4, T5, T6, T7)", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>" },
+                    valueTupleTypes.ToTestDisplayStrings());
+
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2" },
+                    ((NamedTypeSymbol)valueTupleTypes[0]).GetFieldsToEmit().ToTestDisplayStrings());
+
+                verify(valueTupleTypes[0], name: "Item1", display: "T1 (T1, T2).Item1", index: 0);
+                verify(valueTupleTypes[0], "Item2", "T2 (T1, T2).Item2", 1);
+
+                verify(valueTupleTypes[1], "Item1", "T1 (T1, T2, T3).Item1", 0);
+                verify(valueTupleTypes[1], "Item2", "T2 (T1, T2, T3).Item2", 1);
+                verify(valueTupleTypes[1], "Item3", "T3 (T1, T2, T3).Item3", 2);
+
+                verify(valueTupleTypes[2], "Item1", "T1 System.ValueTuple<T1>.Item1", 0);
+
+                verify(valueTupleTypes[3], "Item1", "T1 (T1, T2, T3, T4).Item1", 0);
+                verify(valueTupleTypes[3], "Item2", "T2 (T1, T2, T3, T4).Item2", 1);
+                verify(valueTupleTypes[3], "Item3", "T3 (T1, T2, T3, T4).Item3", 2);
+                verify(valueTupleTypes[3], "Item4", "T4 (T1, T2, T3, T4).Item4", 3);
+
+                verify(valueTupleTypes[4], "Item1", "T1 (T1, T2, T3, T4, T5).Item1", 0);
+                verify(valueTupleTypes[4], "Item2", "T2 (T1, T2, T3, T4, T5).Item2", 1);
+                verify(valueTupleTypes[4], "Item3", "T3 (T1, T2, T3, T4, T5).Item3", 2);
+                verify(valueTupleTypes[4], "Item4", "T4 (T1, T2, T3, T4, T5).Item4", 3);
+                verify(valueTupleTypes[4], "Item5", "T5 (T1, T2, T3, T4, T5).Item5", 4);
+
+                verify(valueTupleTypes[5], "Item1", "T1 (T1, T2, T3, T4, T5, T6).Item1", 0);
+                verify(valueTupleTypes[5], "Item2", "T2 (T1, T2, T3, T4, T5, T6).Item2", 1);
+                verify(valueTupleTypes[5], "Item3", "T3 (T1, T2, T3, T4, T5, T6).Item3", 2);
+                verify(valueTupleTypes[5], "Item4", "T4 (T1, T2, T3, T4, T5, T6).Item4", 3);
+                verify(valueTupleTypes[5], "Item5", "T5 (T1, T2, T3, T4, T5, T6).Item5", 4);
+                verify(valueTupleTypes[5], "Item6", "T6 (T1, T2, T3, T4, T5, T6).Item6", 5);
+
+                verify(valueTupleTypes[6], "Item1", "T1 (T1, T2, T3, T4, T5, T6, T7).Item1", 0);
+                verify(valueTupleTypes[6], "Item2", "T2 (T1, T2, T3, T4, T5, T6, T7).Item2", 1);
+                verify(valueTupleTypes[6], "Item3", "T3 (T1, T2, T3, T4, T5, T6, T7).Item3", 2);
+                verify(valueTupleTypes[6], "Item4", "T4 (T1, T2, T3, T4, T5, T6, T7).Item4", 3);
+                verify(valueTupleTypes[6], "Item5", "T5 (T1, T2, T3, T4, T5, T6, T7).Item5", 4);
+                verify(valueTupleTypes[6], "Item6", "T6 (T1, T2, T3, T4, T5, T6, T7).Item6", 5);
+                verify(valueTupleTypes[6], "Item7", "T7 (T1, T2, T3, T4, T5, T6, T7).Item7", 6);
+
+                void verify(Symbol tuple, string name, string display, int index)
+                {
+                    var isSourceSymbol = tuple.ContainingModule is SourceModuleSymbol;
+
+                    var namedType = (NamedTypeSymbol)tuple;
+                    Assert.True(namedType.IsTupleType);
+                    Assert.Equal(isSourceSymbol ? "SourceNamedTypeSymbol" : (retargeting ? "RetargetingNamedTypeSymbol" : "PENamedTypeSymbolGeneric"),
+                        namedType.GetType().Name);
+
+                    var item = namedType.GetMember<FieldSymbol>(name);
+                    if (retargeting)
+                    {
+                        Assert.IsType<RetargetingFieldSymbol>(item);
+                    }
+                    else if (isSourceSymbol)
+                    {
+                        Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(item);
+                    }
+                    else
+                    {
+                        Assert.IsType<PEFieldSymbol>(item);
+                    }
+
+                    Assert.True(item.IsDefaultTupleElement);
+                    Assert.True(item.IsDefinition);
+
+                    Assert.False(item.IsImplicitlyDeclared);
+                    Assert.False(item.IsVirtualTupleField);
+
+                    Assert.Equal(display, item.ToTestDisplayString());
+                    Assert.Equal(index, item.TupleElementIndex);
+                    Assert.Equal(name, item.Name);
+                    Assert.Equal(1, item.Locations.Length);
+                    if (retargeting || isSourceSymbol)
+                    {
+                        Assert.Equal(name, item.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+                    }
+                    else
+                    {
+                        Assert.Empty(item.DeclaringSyntaxReferences);
+                    }
+
+                    Assert.Same(item, item.TupleUnderlyingField);
+                    Assert.Same(item, item.CorrespondingTupleField);
+                    Assert.False(item.IsExplicitlyNamedTupleElement);
+
+                    Assert.Null(item.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact, WorkItem(43597, "https://github.com/dotnet/roslyn/issues/43597")]
+        [WorkItem(43549, "https://github.com/dotnet/roslyn/issues/43549")]
+        public void TestValueTuple8Definition()
+        {
+            var comp = CreateCompilation(trivialRemainingTuples, targetFramework: TargetFramework.Mscorlib40);
+            CompileAndVerify(comp, sourceSymbolValidator: verifyModule, symbolValidator: verifyModule);
+
+            var comp2 = CreateCompilation("", targetFramework: TargetFramework.Mscorlib46, references: new[] { comp.ToMetadataReference() });
+            var retargetingValueTupleTypes = comp2.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple");
+            verifyTuple8Type(retargetingValueTupleTypes[5], retargeting: true);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var valueTupleTypes = module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").As<NamedTypeSymbol>();
+                AssertEx.SetEqual(new[] { "System.ValueTuple<T1>",
+                "(T1, T2, T3, T4)", "(T1, T2, T3, T4, T5)", "(T1, T2, T3, T4, T5, T6)",
+                "(T1, T2, T3, T4, T5, T6, T7)", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>" },
+                    valueTupleTypes.ToTestDisplayStrings());
+            }
+
+            static void verifyTuple8Type(Symbol tuple, bool retargeting)
+            {
+                verify("Item1", "T1 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item1");
+                verify("Item2", "T2 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item2");
+                verify("Item3", "T3 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item3");
+                verify("Item4", "T4 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item4");
+                verify("Item5", "T5 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item5");
+                verify("Item6", "T6 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item6");
+                verify("Item7", "T7 System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Item7");
+                verify("Rest", "TRest System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>.Rest");
+
+                void verify(string name, string display)
+                {
+                    var isSourceSymbol = tuple.ContainingModule is SourceModuleSymbol;
+
+                    var namedType = (NamedTypeSymbol)tuple;
+                    Assert.False(namedType.IsTupleType);
+                    var item = namedType.GetMember<FieldSymbol>(name);
+                    Assert.Equal(-1, item.TupleElementIndex);
+                    if (retargeting)
+                    {
+                        Assert.IsType<RetargetingFieldSymbol>(item);
+                    }
+                    else if (isSourceSymbol)
+                    {
+                        Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(item);
+                    }
+                    else
+                    {
+                        Assert.IsType<PEFieldSymbol>(item);
+                    }
+
+                    Assert.False(item.IsDefaultTupleElement);
+                    Assert.True(item.IsDefinition);
+
+                    Assert.False(item.IsImplicitlyDeclared);
+                    Assert.False(item.IsVirtualTupleField);
+
+                    Assert.Equal(display, item.ToTestDisplayString());
+                    Assert.Equal(-1, item.TupleElementIndex);
+                    Assert.Equal(name, item.Name);
+                    Assert.Equal(1, item.Locations.Length);
+                    if (retargeting || isSourceSymbol)
+                    {
+                        Assert.Equal(name, item.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+                    }
+                    else
+                    {
+                        Assert.Empty(item.DeclaringSyntaxReferences);
+                    }
+
+                    Assert.Null(item.TupleUnderlyingField);
+                    Assert.Null(item.CorrespondingTupleField);
+                    Assert.False(item.IsExplicitlyNamedTupleElement);
+                    Assert.Null(item.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact, WorkItem(43595, "https://github.com/dotnet/roslyn/issues/43595")]
+        public void TestValueTuple2Definition_WithExtraField()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public string field;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "customValueTuple");
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingValueTupleType = (NamedTypeSymbol)comp3.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+            Assert.IsType<RetargetingNamedTypeSymbol>(retargetingValueTupleType);
+            verifyTupleType(retargetingValueTupleType, retargeting: true);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                verifyTupleType(type, retargeting: false);
+            }
+
+            static void verifyTupleType(NamedTypeSymbol namedType, bool retargeting)
+            {
+                Assert.Equal("(T1, T2)", namedType.ToTestDisplayString());
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "System.String (T1, T2).field" }, namedType.GetFieldsToEmit().ToTestDisplayStrings());
+
+                var fields = namedType.GetMembers().OfType<FieldSymbol>();
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "System.String (T1, T2).field" }, fields.ToTestDisplayStrings());
+                Assert.All(fields, f => Assert.False(f.HasUseSiteError));
+
+                verify("Item1", "T1 (T1, T2).Item1", isTupleElement: true);
+                verify("Item2", "T2 (T1, T2).Item2", true);
+                verify("field", "System.String (T1, T2).field", false);
+
+                void verify(string name, string display, bool isTupleElement)
+                {
+                    var isSourceSymbol = namedType.ContainingModule is SourceModuleSymbol;
+
+                    Assert.True(namedType.IsTupleType);
+                    var item = namedType.GetMember<FieldSymbol>(name);
+                    if (retargeting)
+                    {
+                        Assert.IsType<RetargetingFieldSymbol>(item);
+                    }
+                    else if (isSourceSymbol)
+                    {
+                        Assert.IsType<SourceMemberFieldSymbolFromDeclarator>(item);
+                    }
+                    else
+                    {
+                        Assert.IsType<PEFieldSymbol>(item);
+                    }
+
+                    Assert.Equal(isTupleElement, item.IsDefaultTupleElement);
+                    Assert.True(item.IsDefinition);
+
+                    Assert.False(item.IsImplicitlyDeclared);
+                    Assert.False(item.IsVirtualTupleField);
+
+                    Assert.Equal(display, item.ToTestDisplayString());
+                    Assert.Equal(name, item.Name);
+                    Assert.Equal(1, item.Locations.Length);
+                    if (retargeting || isSourceSymbol)
+                    {
+                        Assert.Equal(name, item.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
+                    }
+                    else
+                    {
+                        Assert.Empty(item.DeclaringSyntaxReferences);
+                    }
+
+                    if (isTupleElement)
+                    {
+                        Assert.Same(item, item.CorrespondingTupleField);
+                    }
+                    else
+                    {
+                        Assert.Equal(-1, item.TupleElementIndex);
+                        Assert.Null(item.CorrespondingTupleField);
+                    }
+
+                    Assert.False(item.IsExplicitlyNamedTupleElement);
+                    Assert.Same(item, item.TupleUnderlyingField);
+                    Assert.Null(item.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestValueTuple2Definition_WithExtraAutoProperty()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public string Property { get; set; }
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "customValueTuple");
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var namedType = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                var isSourceSymbol = namedType.ContainingModule is SourceModuleSymbol;
+
+                Assert.Equal("(T1, T2)", namedType.ToTestDisplayString());
+                var fields = namedType.GetMembers().OfType<FieldSymbol>();
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "System.String (T1, T2).<Property>k__BackingField" }, fields.ToTestDisplayStrings());
+                var backingField = namedType.GetField("<Property>k__BackingField");
+                if (isSourceSymbol)
+                {
+                    Assert.IsType<SynthesizedBackingFieldSymbol>(backingField);
+                    Assert.Equal("System.String (T1, T2).Property { get; set; }", backingField.AssociatedSymbol.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.IsType<PEFieldSymbol>(backingField);
+                    Assert.Null(backingField.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact]
+        public void SwitchWithNamedTuple()
+        {
+            var source = @"
+class C
+{
+    static int M()
+    {
+        var isColInit = true;
+        var errorCode = (message: """", isColInit) switch
+        {
+            (message: null, isColInit: true) => 42,
+            (message: null, isColInit: false) => 43,
+            (message: { }, isColInit: true) => 44,
+            (message: { }, isColInit: false) => 45,
+        };
+
+        return errorCode;
+    }
+}
+" + trivial2uple + tupleattributes_cs;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(44000, "https://github.com/dotnet/roslyn/issues/44000")]
+        public void TupleField_Item2()
+        {
+            var source =
+@"namespace System
+{
+    public struct ValueTuple<T1>
+    {
+        public T1 Item2;
+        public T1 Item13;
+        public T1 Rest;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                var item2 = type.GetMember<FieldSymbol>("Item2");
+                verify(item2);
+
+                var item13 = type.GetMember<FieldSymbol>("Item13");
+                verify(item13);
+
+                var rest = type.GetMember<FieldSymbol>("Rest");
+                verify(rest);
+            }
+
+            static void verify(FieldSymbol field)
+            {
+                Assert.False(field.IsTupleElement());
+                Assert.False(field.IsDefaultTupleElement);
+                Assert.Equal(-1, field.TupleElementIndex);
+                Assert.Same(field, field.TupleUnderlyingField);
+                Assert.Null(field.CorrespondingTupleField);
+            }
+        }
+
+        [Fact]
+        public void TupleWithElementNamedWithDefaultName()
+        {
+            string source = @"
+class C
+{
+    (int Item1, int Item2) M() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            var m = (MethodSymbol)comp.GetMember("C.M");
+            var tuple = m.ReturnType;
+            Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
+            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal(0, item1.TupleElementIndex);
+
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
+            Assert.Equal(0, item1Underlying.TupleElementIndex);
+            Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
+
+            var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
+            Assert.Equal(1, item2.TupleElementIndex);
+            var item2Underlying = item2.TupleUnderlyingField;
+            Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
+            Assert.Equal(1, item2Underlying.TupleElementIndex);
+            Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+        }
+
+        [Fact]
+        public void IndexOfUnderlyingFieldsInTuple9()
+        {
+            string source = @"
+class C
+{
+    (int, int, int, int, int, int, int, int, int) M() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            var m = (MethodSymbol)comp.GetMember("C.M");
+            var tuple = m.ReturnType;
+            Assert.Equal("(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)",
+                tuple.ToTestDisplayString());
+            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+
+            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1.ToTestDisplayString());
+            Assert.Equal(0, item1.TupleElementIndex);
+
+            var item1Underlying = item1.TupleUnderlyingField;
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item1",
+                item1Underlying.ToTestDisplayString());
+            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+            Assert.Equal(-1, item1Underlying.TupleElementIndex); // should be zero, tracked by https://github.com/dotnet/roslyn/issues/58499
+
+            Assert.Same(tuple, item1Underlying.ContainingType);
+
+            var item8 = tuple.GetMember<TupleElementFieldSymbol>("Item8");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
+                item8.ToTestDisplayString());
+            Assert.Equal(7, item8.TupleElementIndex);
+
+            var item8Underlying = item8.TupleUnderlyingField;
+            Assert.Equal("Item1", item8Underlying.Name);
+            Assert.IsType<SubstitutedFieldSymbol>(item8Underlying);
+            Assert.Equal(0, item8Underlying.TupleElementIndex);
+            Assert.Same(item8Underlying, item8Underlying.TupleUnderlyingField);
+
+            var item9 = tuple.GetMember<TupleElementFieldSymbol>("Item9");
+            Assert.Equal("System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
+                item9.ToTestDisplayString());
+            Assert.Equal(8, item9.TupleElementIndex);
+
+            var item9Underlying = item9.TupleUnderlyingField;
+            Assert.Equal("Item2", item9Underlying.Name);
+            Assert.IsType<SubstitutedFieldSymbol>(item9Underlying);
+            Assert.Equal(1, item9Underlying.TupleElementIndex);
+            Assert.Same(item9Underlying, item9Underlying.TupleUnderlyingField);
+        }
+
+        [Fact]
+        public void RealFieldsAreNotWrapped()
+        {
+            string source = @"
+public class C
+{
+    public (int, int) M() => throw null;
+    public (int Item1, int Item2) M2() => throw null;
+    public (int a, int b) M3() => throw null;
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public int field;
+
+        public ValueTuple(T1 item1, T2 item2) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var isSourceSymbol = module is SourceModuleSymbol;
+
+                var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                assertValueTupleUnderlyingFields(type, isSourceSymbol);
+                if (isSourceSymbol)
+                {
+                    Assert.Equal("SourceNamedTypeSymbol: (T1, T2)", print(type));
+                    AssertEx.SetEqual(new[] {
+                        "SourceMemberFieldSymbolFromDeclarator: field",
+                        "SourceMemberFieldSymbolFromDeclarator: Item1",
+                        "SourceMemberFieldSymbolFromDeclarator: Item2" }, printFields(type));
+                }
+                else
+                {
+                    Assert.Equal("PENamedTypeSymbolGeneric: (T1, T2)", print(type));
+                    AssertEx.SetEqual(new[] {
+                        "PEFieldSymbol: field",
+                        "PEFieldSymbol: Item1",
+                        "PEFieldSymbol: Item2" }, printFields(type));
+                }
+
+                var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32)", print(tuple1));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: field",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2" }, printFields(tuple1));
+                assertTupleUnderlyingFields(tuple1);
+                var tuple1Item1 = tuple1.GetMember<FieldSymbol>("Item1");
+                Assert.False(tuple1Item1.IsDefinition);
+                Assert.Equal("T1 (T1, T2).Item1", tuple1Item1.OriginalDefinition.ToTestDisplayString());
+                Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", tuple1Item1.OriginalDefinition.GetType().Name);
+
+                var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2)", print(tuple2));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: field",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2" }, printFields(tuple2));
+                assertTupleUnderlyingFields(tuple2);
+                var tuple2Item1 = tuple2.GetMember<FieldSymbol>("Item1");
+                Assert.False(tuple2Item1.IsDefinition);
+                Assert.Equal("T1 (T1, T2).Item1", tuple2Item1.OriginalDefinition.ToTestDisplayString());
+                Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", tuple2Item1.OriginalDefinition.GetType().Name);
+
+                var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M3").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 a, System.Int32 b)", print(tuple3));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: field",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleVirtualElementFieldSymbol: a",
+                    "TupleElementFieldSymbol: Item2",
+                    "TupleVirtualElementFieldSymbol: b", }, printFields(tuple3));
+                assertTupleUnderlyingFields(tuple3);
+                var tuple3Item1 = tuple3.GetMember<FieldSymbol>("Item1");
+                Assert.False(tuple3Item1.IsDefinition);
+                Assert.Equal("T1 (T1, T2).Item1", tuple3Item1.OriginalDefinition.ToTestDisplayString());
+                Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", tuple3Item1.OriginalDefinition.GetType().Name);
+
+                Assert.True(tuple3.GetMember<FieldSymbol>("a").IsDefinition);
+
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32)", print(tuple3.TupleUnderlyingType));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: field",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2" }, printFields(tuple3.TupleUnderlyingType));
+            }
+
+            static void assertValueTupleUnderlyingFields(NamedTypeSymbol type, bool isSourceSymbol)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                foreach (var field in fields)
+                {
+                    var underlying = field.TupleUnderlyingField;
+                    Assert.Equal(isSourceSymbol ? "SourceMemberFieldSymbolFromDeclarator" : "PEFieldSymbol", underlying.GetType().Name);
+                    Assert.Equal(isSourceSymbol ? "SourceNamedTypeSymbol" : "PENamedTypeSymbolGeneric", underlying.ContainingType.GetType().Name);
+                }
+            }
+
+            static void assertTupleUnderlyingFields(NamedTypeSymbol type)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                foreach (var field in fields)
+                {
+                    var underlying = field.TupleUnderlyingField;
+                    Assert.Equal("SubstitutedFieldSymbol", underlying.GetType().Name);
+                    Assert.Equal("ConstructedNamedTypeSymbol", underlying.ContainingType.GetType().Name);
+                }
+            }
+
+            static IEnumerable<string> printFields(NamedTypeSymbol type)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                return fields.Select(s => s.GetType().Name + ": " + s.Name);
+            }
+
+            static string print(Symbol s)
+            {
+                return s.GetType().Name + ": " + s.ToTestDisplayString();
+            }
+        }
+
+        [Fact]
+        public void RealFieldsAreNotWrapped_LongTuples()
+        {
+            string source = @"
+public class C
+{
+    public (int, int, int, int, int, int, int, int) M() => throw null;
+    public (int Item1, int Item2, int Item3, int Item4, int Item5, int Item6, int Item7, int Item8) M2() => throw null;
+    public (int a, int b, int c, int d, int e, int f, int g, int h) M3() => throw null;
+    public System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>> M4() => throw null;
+}
+";
+            var comp = CreateCompilation(source + trivialRemainingTuples);
+            CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var tuple1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)", print(tuple1));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: Rest",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2",
+                    "TupleElementFieldSymbol: Item3",
+                    "TupleElementFieldSymbol: Item4",
+                    "TupleElementFieldSymbol: Item5",
+                    "TupleElementFieldSymbol: Item6",
+                    "TupleElementFieldSymbol: Item7",
+                    "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple1));
+                assertUnderlying(tuple1);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple1.GetMember<FieldSymbol>("Item8").IsDefinition);
+
+                var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M2").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)", print(tuple2));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: Rest",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2",
+                    "TupleElementFieldSymbol: Item3",
+                    "TupleElementFieldSymbol: Item4",
+                    "TupleElementFieldSymbol: Item5",
+                    "TupleElementFieldSymbol: Item6",
+                    "TupleElementFieldSymbol: Item7",
+                    "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple2));
+                assertUnderlying(tuple2);
+                Assert.True(tuple2.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple2.GetMember<FieldSymbol>("Item8").IsDefinition);
+
+                var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M3").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, System.Int32 h)", print(tuple3));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: Rest",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2",
+                    "TupleElementFieldSymbol: Item3",
+                    "TupleElementFieldSymbol: Item4",
+                    "TupleElementFieldSymbol: Item5",
+                    "TupleElementFieldSymbol: Item6",
+                    "TupleElementFieldSymbol: Item7",
+                    "TupleVirtualElementFieldSymbol: Item8",
+                    "TupleVirtualElementFieldSymbol: a",
+                    "TupleVirtualElementFieldSymbol: b",
+                    "TupleVirtualElementFieldSymbol: c",
+                    "TupleVirtualElementFieldSymbol: d",
+                    "TupleVirtualElementFieldSymbol: e",
+                    "TupleVirtualElementFieldSymbol: f",
+                    "TupleVirtualElementFieldSymbol: g",
+                    "TupleVirtualElementFieldSymbol: h", }, printFields(tuple3));
+                assertUnderlying(tuple3);
+                Assert.True(tuple3.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("Item8").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("a").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("b").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("c").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("d").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("e").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("f").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("g").IsDefinition);
+                Assert.True(tuple3.GetMember<FieldSymbol>("h").IsDefinition);
+
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)", print(tuple3.TupleUnderlyingType));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: Rest",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2",
+                    "TupleElementFieldSymbol: Item3",
+                    "TupleElementFieldSymbol: Item4",
+                    "TupleElementFieldSymbol: Item5",
+                    "TupleElementFieldSymbol: Item6",
+                    "TupleElementFieldSymbol: Item7",
+                    "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple3.TupleUnderlyingType));
+
+                var tuple4 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("C.M4").ReturnType;
+                Assert.Equal("ConstructedNamedTypeSymbol: (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)", print(tuple4));
+                AssertEx.SetEqual(new[] {
+                    "SubstitutedFieldSymbol: Rest",
+                    "TupleElementFieldSymbol: Item1",
+                    "TupleElementFieldSymbol: Item2",
+                    "TupleElementFieldSymbol: Item3",
+                    "TupleElementFieldSymbol: Item4",
+                    "TupleElementFieldSymbol: Item5",
+                    "TupleElementFieldSymbol: Item6",
+                    "TupleElementFieldSymbol: Item7",
+                    "TupleVirtualElementFieldSymbol: Item8" }, printFields(tuple4));
+                assertUnderlying(tuple4);
+                Assert.True(tuple4.TupleUnderlyingType.Equals(tuple1, TypeCompareKind.ConsiderEverything));
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item1").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item2").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item3").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item4").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item5").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item6").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item7").IsDefinition);
+                Assert.True(tuple4.GetMember<FieldSymbol>("Item8").IsDefinition);
+            }
+
+            static void assertUnderlying(NamedTypeSymbol type)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                foreach (var field in fields)
+                {
+                    var underlying = field.TupleUnderlyingField;
+                    Assert.Equal("SubstitutedFieldSymbol", underlying.GetType().Name);
+                    Assert.Equal("ConstructedNamedTypeSymbol", underlying.ContainingType.GetType().Name);
+                }
+            }
+
+            static IEnumerable<string> printFields(NamedTypeSymbol type)
+            {
+                var fields = type.GetMembers().OfType<FieldSymbol>();
+                return fields.Select(s => s.GetType().Name + ": " + s.Name);
+            }
+
+            static string print(NamedTypeSymbol s)
+            {
+                return s.GetType().Name + ": " + s.ToTestDisplayString();
+            }
         }
 
         [Theory, WorkItem(43857, "https://github.com/dotnet/roslyn/issues/43857")]

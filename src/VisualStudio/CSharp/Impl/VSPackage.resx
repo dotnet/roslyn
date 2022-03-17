@@ -142,7 +142,8 @@
     <comment>"C#" node help text in profile Import/Export.</comment>
   </data>
   <data name="306" xml:space="preserve">
-    <value>Display inline hints;
+    <value>Underline reassigned variables;
+Display inline hints;
 Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
@@ -188,8 +189,16 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</value>
+Editor Color Scheme;
+Inheritance Margin;</value>
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">
@@ -277,6 +286,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;

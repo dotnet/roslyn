@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
@@ -22,15 +21,35 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
     internal sealed class Generator
     {
+        // LSIF generator capabilities. See https://github.com/microsoft/lsif-node/blob/main/protocol/src/protocol.ts#L925 for details.
+        private const bool HoverProvider = true;
+        private const bool DeclarationProvider = false;
+        private const bool DefinitionProvider = true;
+        private const bool ReferencesProvider = true;
+        private const bool TypeDefinitionProvider = false;
+        private const bool DocumentSymbolProvider = false;
+        private const bool FoldingRangeProvider = true;
+        private const bool DiagnosticProvider = false;
+
         private readonly ILsifJsonWriter _lsifJsonWriter;
         private readonly IdFactory _idFactory = new IdFactory();
 
-        public Generator(ILsifJsonWriter lsifJsonWriter)
+        private Generator(ILsifJsonWriter lsifJsonWriter)
         {
             _lsifJsonWriter = lsifJsonWriter;
         }
 
-        public void GenerateForCompilation(Compilation compilation, string projectPath, HostLanguageServices languageServices, OptionSet options)
+        public static Generator CreateAndWriteCapabilitiesVertex(ILsifJsonWriter lsifJsonWriter)
+        {
+            var generator = new Generator(lsifJsonWriter);
+            var capabilitiesVertex = new Capabilities(generator._idFactory,
+                HoverProvider, DeclarationProvider, DefinitionProvider, ReferencesProvider,
+                TypeDefinitionProvider, DocumentSymbolProvider, FoldingRangeProvider, DiagnosticProvider);
+            generator._lsifJsonWriter.Write(capabilitiesVertex);
+            return generator;
+        }
+
+        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, HostLanguageServices languageServices, GeneratorOptions options)
         {
             var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
@@ -44,23 +63,42 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var topLevelSymbolsWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
             var topLevelSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(topLevelSymbolsWriter, compilation, _idFactory);
 
-            Parallel.ForEach(compilation.SyntaxTrees, syntaxTree =>
+            // Disable navigation hints in quick info as computing them both takes too long, and they're never
+            // even emitted in the final lsif hover information.
+            options = options with
             {
-                var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                SymbolDescriptionOptions = options.SymbolDescriptionOptions with
+                {
+                    QuickInfoOptions = options.SymbolDescriptionOptions.QuickInfoOptions with
+                    {
+                        IncludeNavigationHintsInQuickInfo = false
+                    }
+                }
+            };
 
-                // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
-                // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
-                // LSIF file. Becasue of the rule that vertices must be written before they're used by an edge, we'll flush any top-
-                // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
-                // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
-                // is preserved.
-                var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
-                var documentId = GenerateForDocument(semanticModel, languageServices, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
-                topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
-                documentWriter.FlushToUnderlyingAndEmpty();
+            var tasks = new List<Task>();
+            foreach (var syntaxTree in compilation.SyntaxTrees)
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                documentIds.Add(documentId);
-            });
+                    // We generate the document contents into an in-memory copy, and then write that out at once at the end. This
+                    // allows us to collect everything and avoid a lot of fine-grained contention on the write to the single
+                    // LSIF file. Because of the rule that vertices must be written before they're used by an edge, we'll flush any top-
+                    // level symbol result sets made first, since the document contents will point to that. Parallel calls to CopyAndEmpty
+                    // are allowed and might flush other unrelated stuff at the same time, but there's no harm -- the "causality" ordering
+                    // is preserved.
+                    var documentWriter = new BatchingLsifJsonWriter(_lsifJsonWriter);
+                    var documentId = await GenerateForDocumentAsync(semanticModel, languageServices, options, topLevelSymbolsResultSetTracker, documentWriter, _idFactory);
+                    topLevelSymbolsWriter.FlushToUnderlyingAndEmpty();
+                    documentWriter.FlushToUnderlyingAndEmpty();
+
+                    documentIds.Add(documentId);
+                }));
+            }
+
+            await Task.WhenAll(tasks);
 
             _lsifJsonWriter.Write(Edge.Create("contains", projectVertex.GetId(), documentIds.ToArray(), _idFactory));
 
@@ -78,10 +116,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         /// lets us link symbols across files, and will only talk about "top level" symbols that aren't things like locals that can't
         /// leak outside a file.
         /// </remarks>
-        private static Id<Graph.LsifDocument> GenerateForDocument(
+        private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
-            OptionSet options,
+            GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory)
@@ -101,7 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 var text = semanticModel.SyntaxTree.GetText();
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
-                // TODO: when we move to .NET Core, is there a way to reduce allocatios here?
+                // TODO: when we move to .NET Core, is there a way to reduce allocations here?
                 contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
             }
 
@@ -117,9 +155,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var documentLocalSymbolsResultSetTracker = new SymbolHoldingResultSetTracker(lsifJsonWriter, semanticModel.Compilation, idFactory);
             var symbolResultsTracker = new DelegatingResultSetTracker(symbol =>
             {
-                if (symbol.Kind == SymbolKind.Local ||
-                    symbol.Kind == SymbolKind.RangeVariable ||
-                    symbol.Kind == SymbolKind.Label)
+                if (symbol.Kind is SymbolKind.Local or
+                    SymbolKind.RangeVariable or
+                    SymbolKind.Label)
                 {
                     // These symbols can go in the document local one because they can't escape methods
                     return documentLocalSymbolsResultSetTracker;
@@ -195,13 +233,27 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                         var referenceResultsId = symbolResultsTracker.GetResultIdForSymbol(referencedSymbol.OriginalDefinition, Methods.TextDocumentReferencesName, () => new ReferenceResult(idFactory));
                         lsifJsonWriter.Write(new Item(referenceResultsId.As<ReferenceResult, Vertex>(), lazyRangeVertex.Value.GetId(), documentVertex.GetId(), idFactory, property: "references"));
                     }
+
+                    // Write hover information for the symbol, if edge has not already been added.
+                    // 'textDocument/hover' edge goes from the symbol ResultSet vertex to the hover result
+                    // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
+                    if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
+                    {
+                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, CancellationToken.None);
+                        if (hover != null)
+                        {
+                            var hoverResult = new HoverResult(hover, idFactory);
+                            lsifJsonWriter.Write(hoverResult);
+                            lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentHoverName, symbolForLinkedResultSetId, hoverResult.GetId(), idFactory));
+                        }
+                    }
                 }
             }
 
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
 
             // Write the folding ranges for the document.
-            var foldingRanges = FoldingRangesHandler.GetFoldingRanges(syntaxTree, languageServices, options, isMetadataAsSource: false, CancellationToken.None);
+            var foldingRanges = FoldingRangesHandler.GetFoldingRanges(syntaxTree, languageServices, options.BlockStructureOptions, CancellationToken.None);
             var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
             lsifJsonWriter.Write(foldingRangeResult);
             lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));
@@ -213,9 +265,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private static bool IncludeSymbolInReferences(ISymbol symbol)
         {
             // Skip some type of symbols that don't really make sense
-            if (symbol.Kind == SymbolKind.ArrayType ||
-                symbol.Kind == SymbolKind.Discard ||
-                symbol.Kind == SymbolKind.ErrorType)
+            if (symbol.Kind is SymbolKind.ArrayType or
+                SymbolKind.Discard or
+                SymbolKind.ErrorType)
             {
                 return false;
             }

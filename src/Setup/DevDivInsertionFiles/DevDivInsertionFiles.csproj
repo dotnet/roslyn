@@ -16,9 +16,9 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Library</OutputType>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\VisualStudio\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj"/>
     <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj"/>
@@ -31,7 +31,7 @@
     <_OptimizedDependenciesDir>$(ArtifactsTmpDir)OptimizedDependencies\</_OptimizedDependenciesDir>
   </PropertyGroup>
 
-  <!-- 
+  <!--
     List of dependencies that are expected to be inserted into VS by Roslyn Insertion Tool.
 
     Metadata:
@@ -41,7 +41,7 @@
         Note - optimizing Authenticode-signed 3rd party libraries invalidates their signature.
 
       - UnsignAssemblies
-        List of relative paths within the package of the implementation assemblies that need to be re-signed 
+        List of relative paths within the package of the implementation assemblies that need to be re-signed
         This target only unsigns them, SignTool signs them as with other unsigned files.
   -->
   <ItemGroup>
@@ -51,29 +51,18 @@
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
     <ExpectedDependency Include="System.Buffers" />
-    <ExpectedDependency Include="System.Collections.Immutable" OptimizeAssemblies="lib/netstandard2.0/System.Collections.Immutable.dll" UnsignAssemblies="lib/netstandard1.0/System.Collections.Immutable.dll" />
-    <ExpectedDependency Include="System.Reflection.Metadata" OptimizeAssemblies="lib/netstandard2.0/System.Reflection.Metadata.dll" UnsignAssemblies="lib/netstandard1.1/System.Reflection.Metadata.dll" />
     <ExpectedDependency Include="System.Memory"/>
-    <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" OptimizeAssemblies="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" />
     <!-- We do not have a training scenario that covers lib/netstandard2.0/System.Text.Encoding.CodePages.dll  -->
     <ExpectedDependency Include="System.Text.Encoding.CodePages" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
-    <!--
-      Do not overwrite optimization data for this binary for now.
-      This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
-      Arcade SignTool doesn't support signing directly at this point either.
-      https://github.com/dotnet/arcade/issues/1204
-      TODO: add OptimizeAssemblies="lib/netstandard2.0/System.Threading.Tasks.Extensions.dll"
-    -->
-    <ExpectedDependency Include="System.Threading.Tasks.Extensions" />
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences;GetAssemblyVersion">
     <ItemGroup>
       <!-- Take all resolved non-framework dependencies of this project that originate from a NuGet package -->
-      <_Dependency Include="@(ReferencePath->'%(NuGetPackageId)')" 
-                   Condition="'%(ReferencePath.FrameworkFile)' != 'true' and 
-                              '%(ReferencePath.NuGetPackageId)' != '' and 
+      <_Dependency Include="@(ReferencePath->'%(NuGetPackageId)')"
+                   Condition="'%(ReferencePath.FrameworkFile)' != 'true' and
+                              '%(ReferencePath.NuGetPackageId)' != '' and
                               '%(ReferencePath.ReferenceSourceTarget)' != 'ProjectReference'" />
 
       <!-- Take all additional files that get copied to the output directory and are not satellite assemblies -->
@@ -105,23 +94,13 @@
       These are separate from the _Dependency list as we do not need to always add the package dependency (e.g. private dependencies)
     -->
     <ItemGroup>
-      <_AssemblyVersionVariable Include="RoslynLanguageServerProtocol" Condition="'%(_Dependency.Identity)' == 'Microsoft.VisualStudio.LanguageServer.Protocol'">
-        <Version>%(_Dependency._AssemblyVersion)</Version>
-      </_AssemblyVersionVariable>
       <_AssemblyVersionVariable  Include="Roslyn" Version="$(AssemblyVersion)"/>
     </ItemGroup>
 
-    <!--     
+    <!--
       Exclude dependencies that are not inserted from Roslyn repo and are installed by other VS components.
-      
+
       Note: can't use globs due to https://github.com/Microsoft/msbuild/issues/3791.
-      
-      these dependency should be removed once StreamJsonRpc adds a build target for
-      net472 - https://github.com/dotnet/roslyn/issues/34558
-      
-      <_Dependency Remove="Nerdbank.Streams"/>
-      <_Dependency Remove="System.IO.Pipelines"/>
-      <_Dependency Remove="System.ValueTuple"/>
     -->
     <ItemGroup>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.'))"/>
@@ -139,19 +118,27 @@
       <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
+      <_Dependency Remove="Nerdbank.NetStandardBridge" />
       <_Dependency Remove="Nerdbank.Streams"/>
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="NuGet.VisualStudio"/>
       <_Dependency Remove="NuGet.VisualStudio.Contracts"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="System.Collections.Immutable"/>
+      <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.Reflection.Metadata"/>
       <_Dependency Remove="System.Reflection.TypeExtensions"/>
+      <_Dependency Remove="System.Runtime.CompilerServices.Unsafe"/>
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
+      <_Dependency Remove="System.Text.Encodings.Web" />
+      <_Dependency Remove="System.Text.Json" />
       <_Dependency Remove="System.Threading.AccessControl"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
+      <_Dependency Remove="System.Threading.Tasks.Extensions" />
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
@@ -178,14 +165,14 @@
     <!--
       For each relative path listed in OptimizeAssemblies and UnsignAssemblies metadata
       we need to calculate a full path of the corresponding optimized/unsigned assembly.
-      First we split the list in OptimizeAssemblies/UnsignedAssemblies, prepend the directory path to each relative path, 
+      First we split the list in OptimizeAssemblies/UnsignedAssemblies, prepend the directory path to each relative path,
       group the full paths and finally inner-join the items back to ExpectedDependency item group.
     -->
     <ItemGroup>
       <ExpectedDependency>
         <_EffectiveOptimizeAssemblies Condition="'$(EnableNgenOptimization)' == 'true' and '$(ApplyNgenOptimization)' != ''">%(ExpectedDependency.OptimizeAssemblies)</_EffectiveOptimizeAssemblies>
       </ExpectedDependency>
-      
+
       <_OptimizeAssembliesSplit Include="%(ExpectedDependency._EffectiveOptimizeAssemblies)" DependencyName="%(ExpectedDependency.Identity)" />
       <_UnsignAssembliesSplit Include="%(ExpectedDependency.UnsignAssemblies)" DependencyName="%(ExpectedDependency.Identity)"/>
 
@@ -229,10 +216,10 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
+  <!--
     Write a list of assembly names and versions that the insertion tool uses to update assembly versions in DevDiv.
   -->
-  <Target Name="_GenerateDependentAssemblyVersions" 
+  <Target Name="_GenerateDependentAssemblyVersions"
           BeforeTargets="AfterBuild"
           DependsOnTargets="_CalculateDependenciesToInsert"
           Inputs="$(MSBuildAllProjects)"
@@ -245,7 +232,7 @@
     </ItemGroup>
   </Target>
 
-  <!-- 
+  <!--
     Unpack dependent packages to a temp folder.
   -->
   <Target Name="_UnpackDependencies" Condition="'@(_PackageToRepack)' != ''">
@@ -263,19 +250,21 @@
     <PropertyGroup>
       <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' != 'true'">vs-ci</_OptimizedNuGetPackageVersionSuffix>
       <_OptimizedNuGetPackageVersionSuffix Condition="'$(OfficialBuild)' == 'true'">vs-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
+      <_OptimizedNuGetPackageVersionSuffix Condition="'$(PreReleaseVersionLabel)' == 'pr-validation'">pr-validation-$(VersionSuffixDateStamp)-$(VersionSuffixBuildOfTheDayPadded)</_OptimizedNuGetPackageVersionSuffix>
     </PropertyGroup>
-    
+
     <MakeDir Directories="$(VisualStudioBuildPackagesDir)"/>
 
     <!-- Unsign assemblies that need to be unsigned but not optimized. -->
-    <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" />
+    <Microsoft.DotNet.Arcade.Sdk.Unsign FilePath="%(_UnsignAssembly.Identity)" Condition="'@(_UnsignAssembly)' != ''"/>
 
     <!-- Repack optimized dependencies -->
     <Microsoft.DotNet.Tools.ReplacePackageParts SourcePackage="%(_PackageToRepack.Identity)"
                                                 DestinationFolder="$(VisualStudioBuildPackagesDir)"
                                                 NewVersionSuffix="$(_OptimizedNuGetPackageVersionSuffix)"
                                                 Parts="%(_PackageToRepack.Parts)"
-                                                ReplacementFiles="%(_PackageToRepack.ReplacementFiles)">
+                                                ReplacementFiles="%(_PackageToRepack.ReplacementFiles)"
+                                                Condition="'@(_PackageToRepack)' != ''">
       <Output TaskParameter="NewPackage" ItemName="FileWrites" />
     </Microsoft.DotNet.Tools.ReplacePackageParts>
 

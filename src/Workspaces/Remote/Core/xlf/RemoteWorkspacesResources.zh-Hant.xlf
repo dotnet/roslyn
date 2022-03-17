@@ -17,6 +17,11 @@
         <target state="translated">CodeLens 參考</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CompilationAvailable">
+        <source>Project semantics availability</source>
+        <target state="translated">專案語意學可用性</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ConvertTupleToStructCodeRefactoring">
         <source>Convert tuple to struct refactoring</source>
         <target state="translated">將元組轉換為結構重構</target>
@@ -38,8 +43,13 @@
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DocumentHighlights">
-        <source>Document higlights</source>
+        <source>Document highlights</source>
         <target state="translated">文件重點</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="translated">編輯並繼續</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
@@ -62,6 +72,11 @@
         <target state="translated">全域通知傳遞</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_InheritanceMargin">
+        <source>Inheritance margin</source>
+        <target state="translated">繼承邊界</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
         <source>Missing import discovery</source>
         <target state="translated">缺少匯入探索</target>
@@ -70,6 +85,16 @@
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">導覽至</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="translated">導覽列</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ProcessTelemetry">
+        <source>Process telemetry</source>
+        <target state="translated">流程遙測</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
@@ -87,14 +112,14 @@
         <target state="translated">語意分類</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_SemanticClassificationCache">
-        <source>Semantic classification cache</source>
-        <target state="translated">語意分類快取</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">資產提供者</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_StackTraceExplorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">堆疊追蹤總管</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">
@@ -110,6 +135,16 @@
       <trans-unit id="FeatureName_TodoCommentsDiscovery">
         <source>TODO comments discovery</source>
         <target state="translated">TODO 註解探索</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnusedReferenceAnalysis">
+        <source>Unused reference analysis</source>
+        <target state="translated">未使用的參考分析</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_ValueTracking">
+        <source>Value Tracking</source>
+        <target state="translated">值追蹤</target>
         <note />
       </trans-unit>
       <trans-unit id="Feature_0_is_currently_unavailable_due_to_an_intermittent_error">

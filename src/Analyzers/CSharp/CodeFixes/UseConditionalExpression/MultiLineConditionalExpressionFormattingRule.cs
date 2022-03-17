@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 
         private static bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.QuestionToken ||
-                token.Kind() == SyntaxKind.ColonToken)
+            if (token.Kind() is SyntaxKind.QuestionToken or
+                SyntaxKind.ColonToken)
             {
                 return token.Parent.HasAnnotation(SpecializedFormattingAnnotation);
             }

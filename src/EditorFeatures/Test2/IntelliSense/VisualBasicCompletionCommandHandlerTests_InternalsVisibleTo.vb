@@ -161,6 +161,7 @@ End Namespace
                         state.SendInvokeCompletionList()
                         Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
+
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
                 state.SendTypeChars("("c)
                 Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1")

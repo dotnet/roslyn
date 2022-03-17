@@ -154,6 +154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression, GetTooLongOrComplexExpressionErrorLocation(Node))
             End Sub
 
+            Public Sub AddAnError(diagnostics As BindingDiagnosticBag)
+                diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression, GetTooLongOrComplexExpressionErrorLocation(Node))
+            End Sub
+
             Public Shared Function GetTooLongOrComplexExpressionErrorLocation(node As BoundNode) As Location
                 Dim syntax As SyntaxNode = node.Syntax
 

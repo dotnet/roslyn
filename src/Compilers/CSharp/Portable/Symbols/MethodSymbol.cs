@@ -445,9 +445,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //
                 // See InternalsVisibleToAndStrongNameTests: IvtVirtualCall1, IvtVirtualCall2, IvtVirtual_ParamsAndDynamic.
                 MethodSymbol overridden = m.OverriddenMethod;
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 if ((object)overridden == null ||
-                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref useSiteDiagnostics)) ||
+                    (accessingTypeOpt is { } && !AccessCheck.IsSymbolAccessible(overridden, accessingTypeOpt, ref discardedUseSiteInfo)) ||
                     (requireSameReturnType && !this.ReturnType.Equals(overridden.ReturnType, TypeCompareKind.AllIgnoreOptions)))
                 {
                     break;
@@ -915,29 +915,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Use-Site Diagnostics
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (this.IsDefinition)
             {
-                return base.GetUseSiteDiagnostic();
+                return new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
             }
 
             // There is no reason to specially check type arguments because
             // constructed members are never imported.
-            return this.OriginalDefinition.GetUseSiteDiagnostic();
+            return this.OriginalDefinition.GetUseSiteInfo();
         }
 
-        internal bool CalculateUseSiteDiagnostic(ref DiagnosticInfo result)
+        internal bool CalculateUseSiteDiagnostic(ref UseSiteInfo<AssemblySymbol> result)
         {
             Debug.Assert(this.IsDefinition);
 
             // Check return type, custom modifiers, parameters
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.ReturnTypeWithAnnotations,
+            if (DeriveUseSiteInfoFromType(ref result, this.ReturnTypeWithAnnotations,
                                                 IsInitOnly ?
                                                     AllowedRequiredModifierType.System_Runtime_CompilerServices_IsExternalInit :
                                                     AllowedRequiredModifierType.None) ||
-                DeriveUseSiteDiagnosticFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
-                DeriveUseSiteDiagnosticFromParameters(ref result, this.Parameters))
+                DeriveUseSiteInfoFromCustomModifiers(ref result, this.RefCustomModifiers, AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute) ||
+                DeriveUseSiteInfoFromParameters(ref result, this.Parameters))
             {
                 return true;
             }
@@ -947,14 +947,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule?.HasUnifiedReferences == true)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
+                DiagnosticInfo diagnosticInfo = result.DiagnosticInfo;
 
-                if (this.ReturnTypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.Parameters, this, ref unificationCheckedTypes) ||
-                    GetUnificationUseSiteDiagnosticRecursive(ref result, this.TypeParameters, this, ref unificationCheckedTypes))
+                if (this.ReturnTypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this.RefCustomModifiers, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this.Parameters, this, ref unificationCheckedTypes) ||
+                    GetUnificationUseSiteDiagnosticRecursive(ref diagnosticInfo, this.TypeParameters, this, ref unificationCheckedTypes))
                 {
+                    result = result.AdjustDiagnosticInfo(diagnosticInfo);
                     return true;
                 }
+
+                result = result.AdjustDiagnosticInfo(diagnosticInfo);
             }
 
             return false;
@@ -966,7 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypedConstant value,
             bool isField,
             Location? location,
-            DiagnosticBag? diagnostics)
+            BindingDiagnosticBag? diagnostics)
         {
             ImmutableHashSet<INamedTypeSymbolInternal>? callingConventionTypes = null;
 
@@ -1008,20 +1012,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// bag if it is not null. <paramref name="location"/> and <paramref name="diagnostics"/> should both be null, or 
         /// neither should be null. If an error would be reported (whether or not diagnostics is null), true is returned.
         /// </summary>
-        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, DiagnosticBag? diagnostics)
+        internal bool CheckAndReportValidUnmanagedCallersOnlyTarget(Location? location, BindingDiagnosticBag? diagnostics)
         {
             Debug.Assert((location == null) == (diagnostics == null));
 
-            if (!IsStatic || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
+            if (!IsStatic || IsAbstract || MethodKind is not (MethodKind.Ordinary or MethodKind.LocalFunction))
             {
                 // `UnmanagedCallersOnly` can only be applied to ordinary static methods or local functions.
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyRequiresStatic, location!);
                 return true;
             }
 
             if (isGenericMethod(this) || ContainingType.IsGenericType)
             {
-                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location);
+                diagnostics?.Add(ErrorCode.ERR_UnmanagedCallersOnlyMethodOrTypeCannotBeGeneric, location!);
                 return true;
             }
 
@@ -1059,8 +1063,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                DiagnosticInfo info = GetUseSiteDiagnostic();
-                return (object)info != null && (info.Code == (int)ErrorCode.ERR_BindToBogus || info.Code == (int)ErrorCode.ERR_ByRefReturnUnsupported);
+                DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
+                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
             }
         }
 
@@ -1089,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a collection of method bodies of the current module. This method is supposed to only be
         /// called for method symbols which return SynthesizesLoweredBoundBody == true.
         /// </summary>
-        internal virtual void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal virtual void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -1140,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             var type = this.ReturnTypeWithAnnotations;
 
-            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
+            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None))
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
@@ -1150,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
             }
 
-            if (type.Type.ContainsTupleNames() && compilation.HasTupleNamesAttributes)
+            if (type.Type.ContainsTupleNames() && compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None))
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(type.Type));
             }

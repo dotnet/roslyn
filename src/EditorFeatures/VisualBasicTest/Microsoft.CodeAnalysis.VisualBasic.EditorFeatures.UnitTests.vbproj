@@ -16,7 +16,6 @@
     <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\EditorFeatures\CSharp.Wpf\Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
@@ -45,6 +44,7 @@
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
@@ -65,6 +65,7 @@
     <Import Include="Roslyn.Test.Utilities" />
     <Import Include="Roslyn.Utilities" />
     <Import Include="System.Threading.Tasks" />
+    <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>

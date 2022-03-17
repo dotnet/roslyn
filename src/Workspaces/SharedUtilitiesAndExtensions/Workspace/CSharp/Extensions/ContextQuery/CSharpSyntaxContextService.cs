@@ -4,7 +4,6 @@
 
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
         }
 
-        public Task<SyntaxContext> CreateContextAsync(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
-            => Task.FromResult<SyntaxContext>(CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken));
+        public SyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
     }
 }

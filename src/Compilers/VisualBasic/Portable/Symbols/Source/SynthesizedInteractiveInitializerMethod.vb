@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Sub New(
             syntaxReference As SyntaxReference,
             containingType As SourceMemberContainerTypeSymbol,
-            diagnostics As DiagnosticBag)
+            diagnostics As BindingDiagnosticBag)
             MyBase.New(containingType)
 
             _syntaxReference = syntaxReference
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+        Friend Overrides Function GetBoundMethodBody(compilationState As TypeCompilationState, diagnostics As BindingDiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
             Dim syntax As SyntaxNode = Me.Syntax
             Return New BoundBlock(
                 syntax,
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Shared Sub CalculateReturnType(
             compilation As VisualBasicCompilation,
-            diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             ByRef resultType As TypeSymbol,
             ByRef returnType As TypeSymbol)
 
@@ -157,10 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
-            Dim useSiteDiagnostic = taskT.GetUseSiteErrorInfo()
-            If useSiteDiagnostic IsNot Nothing Then
-                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
-            End If
+            diagnostics.Add(taskT.GetUseSiteInfo(), NoLocation.Singleton)
+
             ' If no explicit return type is set on ScriptCompilationInfo, default to
             ' System.Object from the target corlib. This allows cross compiling scripts
             ' to run on a target corlib that may differ from the host compiler's corlib.
@@ -168,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If submissionReturnType Is Nothing Then
                 resultType = compilation.GetSpecialType(SpecialType.System_Object)
             Else
-                resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics)
+                resultType = compilation.GetTypeByReflectionType(submissionReturnType)
             End If
             returnType = taskT.Construct(resultType)
         End Sub

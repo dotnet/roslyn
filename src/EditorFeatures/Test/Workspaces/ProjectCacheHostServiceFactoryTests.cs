@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Putting cacheService.CreateStrongReference in a using statement
             // creates a temporary local that isn't collected in Debug builds
             // Wrapping it in a lambda allows it to get collected.
-            var cacheService = new ProjectCacheService(null, int.MaxValue);
+            var cacheService = new ProjectCacheService(null, TimeSpan.MaxValue);
             var projectId = ProjectId.CreateNewId();
             var owner = new Owner();
             var instance = ObjectReference.CreateFromFactory(() => new object());
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestImplicitCacheKeepsObjectAlive1()
         {
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cacheService = new ProjectCacheService(workspace, int.MaxValue);
+            var cacheService = new ProjectCacheService(workspace, TimeSpan.MaxValue);
             var reference = ObjectReference.CreateFromFactory(() => new object());
             reference.UseReference(r => cacheService.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, r));
             reference.AssertHeld();
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void TestImplicitCacheMonitoring()
         {
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cacheService = new ProjectCacheService(workspace, 10);
+            var cacheService = new ProjectCacheService(workspace, TimeSpan.FromMilliseconds(10));
             var weak = PutObjectInImplicitCache(cacheService);
 
             weak.AssertReleased();
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var instanceTracker = ObjectReference.CreateFromFactory(() => new object());
 
-            var cacheService = new ProjectCacheService(workspace, int.MaxValue);
+            var cacheService = new ProjectCacheService(workspace, TimeSpan.MaxValue);
             using (var cache = cacheService.EnableCaching(project2.Id))
             {
                 instanceTracker.UseReference(r => cacheService.CacheObjectIfCachingEnabledForKey(project1.Id, (object)null, r));
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weakLast = ObjectReference.Create(compilations[compilations.Count - 1]);
 
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cache = new ProjectCacheService(workspace, int.MaxValue);
+            var cache = new ProjectCacheService(workspace, TimeSpan.MaxValue);
             for (var i = 0; i < ProjectCacheService.ImplicitCacheSize + 1; i++)
             {
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var weak1 = ObjectReference.Create(comp1);
 
             var workspace = new AdhocWorkspace(MockHostServices.Instance, workspaceKind: WorkspaceKind.Host);
-            var cache = new ProjectCacheService(workspace, int.MaxValue);
+            var cache = new ProjectCacheService(workspace, TimeSpan.MaxValue);
             var key = ProjectId.CreateNewId();
             var owner = new object();
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp1);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 _hostServices = hostServices;
                 _workspace = workspace;
 
-                var globalOptionService = new GlobalOptionService(ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersister>>.Empty);
+                var globalOptionService = new GlobalOptionService(workspaceThreadingService: null, ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>>.Empty, ImmutableArray<Lazy<IOptionPersisterProvider>>.Empty);
                 _optionService = new OptionServiceFactory.OptionService(globalOptionService, this);
             }
 

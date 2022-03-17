@@ -128,6 +128,7 @@ namespace Roslyn.Test.Utilities
 
             startInfo.CreateNoWindow = true;
             startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
             startInfo.UseShellExecute = false;
 
             if (startFolder != null)
@@ -141,8 +142,9 @@ namespace Roslyn.Test.Utilities
                 // redirected stream. Read the output stream first and then wait. Doing otherwise
                 // might cause a deadlock.
                 result = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
-                Assert.True(expectedRetCode == process.ExitCode, $"Unexpected exit code: {process.ExitCode} (expecting {expectedRetCode}). Process output: {result}");
+                Assert.True(expectedRetCode == process.ExitCode, $"Unexpected exit code: {process.ExitCode} (expecting {expectedRetCode}). Process output: {result}. Process error: {error}");
             }
 
             return result;

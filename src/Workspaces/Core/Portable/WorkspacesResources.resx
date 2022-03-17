@@ -222,8 +222,8 @@
   <data name="The_project_already_contains_the_specified_reference" xml:space="preserve">
     <value>The project already contains the specified reference.</value>
   </data>
-  <data name="The_project_already_transitively_references_the_target_project" xml:space="preserve">
-    <value>The project already transitively references the target project.</value>
+  <data name="A_project_may_not_reference_itself" xml:space="preserve">
+    <value>A project may not reference itself.</value>
   </data>
   <data name="The_solution_already_contains_the_specified_document" xml:space="preserve">
     <value>The solution already contains the specified document.</value>
@@ -572,5 +572,8 @@
   <data name="CodeAction_{0}_did_not_produce_a_changed_solution" xml:space="preserve">
     <value>CodeAction '{0}' did not produce a changed solution</value>
     <comment>"CodeAction" is a specific type, and {0} represents the title shown by the action.</comment>
+  </data>
+  <data name="Predefined_conversion_from_0_to_1" xml:space="preserve">
+    <value>Predefined conversion from {0} to {1}.</value>
   </data>
 </root>

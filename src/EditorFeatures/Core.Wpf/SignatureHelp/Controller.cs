@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         IChainedCommandHandler<TypeCharCommandArgs>,
         IChainedCommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        private static readonly object s_controllerPropertyKey = new();
         private readonly IAsyncCompletionBroker _completionBroker;
 
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
@@ -39,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         public string DisplayName => EditorFeaturesResources.Signature_Help;
 
         public Controller(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IDocumentProvider documentProvider,
             IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
             IAsyncCompletionBroker completionBroker)
-            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
+            : base(globalOptions, threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _completionBroker = completionBroker;
             _allProviders = allProviders;
@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         // For testing purposes.
         internal Controller(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             ITextView textView,
             ITextBuffer subjectBuffer,
@@ -63,29 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             IDocumentProvider documentProvider,
             IList<ISignatureHelpProvider> providers,
             IAsyncCompletionBroker completionBroker)
-            : base(threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
+            : base(globalOptions, threadingContext, textView, subjectBuffer, presenter, asyncListener, documentProvider, "SignatureHelp")
         {
             _providers = providers.ToImmutableArray();
             _completionBroker = completionBroker;
         }
 
-        internal static Controller GetInstance(
-            IThreadingContext threadingContext,
-            EditorCommandArgs args,
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> presenter,
-            IAsynchronousOperationListener asyncListener,
-            IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> allProviders,
-            IAsyncCompletionBroker completionBroker)
-        {
-            var textView = args.TextView;
-            var subjectBuffer = args.SubjectBuffer;
-            return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_controllerPropertyKey,
-                (v, b) => new Controller(threadingContext, v, b,
-                    presenter,
-                    asyncListener,
-                    new DocumentProvider(threadingContext),
-                    allProviders, completionBroker));
-        }
+        public event EventHandler<ModelUpdatedEventsArgs> ModelUpdated;
 
         private SnapshotPoint GetCaretPointInViewBuffer()
         {
@@ -93,28 +78,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return this.TextView.Caret.Position.BufferPosition;
         }
 
-        internal override void OnModelUpdated(Model modelOpt)
+        internal override void OnModelUpdated(Model modelOpt, bool updateController)
         {
             AssertIsForeground();
-            if (modelOpt == null)
+
+            if (updateController)
             {
-                this.StopModelComputation();
+                if (modelOpt == null)
+                {
+                    this.StopModelComputation();
+                }
+                else
+                {
+                    var triggerSpan = modelOpt.GetCurrentSpanInView(this.TextView.TextSnapshot);
+
+                    // We want the span to actually only go up to the caret.  So get the expected span
+                    // and then update its end point accordingly.
+                    var updatedSpan = new SnapshotSpan(triggerSpan.Snapshot, Span.FromBounds(
+                        triggerSpan.Start,
+                        Math.Max(Math.Min(triggerSpan.End, GetCaretPointInViewBuffer().Position), triggerSpan.Start)));
+
+                    var trackingSpan = updatedSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+
+                    this.sessionOpt.PresenterSession.PresentItems(
+                         trackingSpan, modelOpt.Items, modelOpt.SelectedItem, modelOpt.SelectedParameter);
+                }
             }
-            else
-            {
-                var triggerSpan = modelOpt.GetCurrentSpanInView(this.TextView.TextSnapshot);
 
-                // We want the span to actually only go up to the caret.  So get the expected span
-                // and then update its end point accordingly.
-                var updatedSpan = new SnapshotSpan(triggerSpan.Snapshot, Span.FromBounds(
-                    triggerSpan.Start,
-                    Math.Max(Math.Min(triggerSpan.End, GetCaretPointInViewBuffer().Position), triggerSpan.Start)));
-
-                var trackingSpan = updatedSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-
-                this.sessionOpt.PresenterSession.PresentItems(
-                     trackingSpan, modelOpt.Items, modelOpt.SelectedItem, modelOpt.SelectedParameter);
-            }
+            ModelUpdated?.Invoke(this, new ModelUpdatedEventsArgs(modelOpt));
         }
 
         private void StartSession(

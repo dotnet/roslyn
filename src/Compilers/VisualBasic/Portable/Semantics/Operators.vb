@@ -292,11 +292,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function ValidateOverloadedOperator(
             method As MethodSymbol,
+            opInfo As OperatorInfo
+        ) As Boolean
+            Return ValidateOverloadedOperator(method, opInfo, diagnosticsOpt:=Nothing, assemblyBeingBuiltOpt:=Nothing)
+        End Function
+
+        Friend Shared Function ValidateOverloadedOperator(
+            method As MethodSymbol,
             opInfo As OperatorInfo,
-            Optional diagnosticsOpt As DiagnosticBag = Nothing
+            diagnosticsOpt As BindingDiagnosticBag,
+            assemblyBeingBuiltOpt As AssemblySymbol
         ) As Boolean
             Debug.Assert(method.IsMethodKindBasedOnSyntax OrElse diagnosticsOpt Is Nothing)
             Debug.Assert(opInfo.ParamCount <> 0)
+            Debug.Assert(diagnosticsOpt Is Nothing OrElse assemblyBeingBuiltOpt IsNot Nothing)
 
             If method.ParameterCount <> opInfo.ParamCount Then
                 Return False
@@ -307,6 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim targetsContainingType As Boolean = False
             Dim targetMismatchError As ERRID
             Dim isConversion As Boolean = False
+            Dim useSiteInfo = If(diagnosticsOpt IsNot Nothing, New CompoundUseSiteInfo(Of AssemblySymbol)(diagnosticsOpt, assemblyBeingBuiltOpt), CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
             If opInfo.IsUnary Then
                 Select Case opInfo.UnaryOperatorKind
@@ -427,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 ElseIf (sourceType.Kind = SymbolKind.NamedType OrElse sourceType.Kind = SymbolKind.TypeParameter) AndAlso
                        (targetType.Kind = SymbolKind.NamedType OrElse targetType.Kind = SymbolKind.TypeParameter) Then
-                    If Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(targetType, sourceType, Nothing) Then
+                    If Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(targetType, sourceType, useSiteInfo) Then
                         If diagnosticsOpt IsNot Nothing Then
                             diagnosticsOpt.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
                                                                       ERRID.ERR_ConversionFromBaseType,
@@ -436,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Else
                             Return False
                         End If
-                    ElseIf Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(sourceType, targetType, Nothing) Then
+                    ElseIf Conversions.HasWideningDirectCastConversionButNotEnumTypeConversion(sourceType, targetType, useSiteInfo) Then
                         If diagnosticsOpt IsNot Nothing Then
                             diagnosticsOpt.Add(ErrorFactory.ErrorInfo(If(targetType Is method.ContainingSymbol,
                                                                       ERRID.ERR_ConversionFromDerivedType,
@@ -447,6 +457,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
                 End If
+            End If
+
+            If result AndAlso diagnosticsOpt IsNot Nothing Then
+                diagnosticsOpt.Add(method.Locations(0), useSiteInfo)
             End If
 
             Return result
@@ -486,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             binder As Binder,
             <Out()> ByRef intrinsicOperatorType As SpecialType,
             <Out()> ByRef userDefinedOperator As OverloadResolutionResult,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As UnaryOperatorKind
             Debug.Assert((opCode And UnaryOperatorKind.IntrinsicOpMask) = opCode AndAlso opCode <> UnaryOperatorKind.Error)
 
@@ -515,11 +529,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If sourceType.SpecialType <> SpecialType.System_Object AndAlso
                Not sourceType.IsIntrinsicType() Then
 
-                If operandType.CanContainUserDefinedOperators(useSiteDiagnostics) Then
-                    userDefinedOperator = ResolveUserDefinedUnaryOperator(operand, opCode, binder, includeEliminatedCandidates:=False, useSiteDiagnostics:=useSiteDiagnostics)
+                If operandType.CanContainUserDefinedOperators(useSiteInfo) Then
+                    userDefinedOperator = ResolveUserDefinedUnaryOperator(operand, opCode, binder, includeEliminatedCandidates:=False, useSiteInfo:=useSiteInfo)
 
                     If Not userDefinedOperator.BestResult.HasValue AndAlso userDefinedOperator.Candidates.Length = 0 Then
-                        userDefinedOperator = ResolveUserDefinedUnaryOperator(operand, opCode, binder, includeEliminatedCandidates:=True, useSiteDiagnostics:=useSiteDiagnostics)
+                        userDefinedOperator = ResolveUserDefinedUnaryOperator(operand, opCode, binder, includeEliminatedCandidates:=True, useSiteInfo:=useSiteInfo)
 
                         If userDefinedOperator.Candidates.Length = 0 Then
                             Return UnaryOperatorKind.Error
@@ -843,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             considerUserDefinedOrLateBound As Boolean,
             <Out()> ByRef intrinsicOperatorType As SpecialType,
             <Out()> ByRef userDefinedOperator As OverloadResolutionResult,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As BinaryOperatorKind
 
             Debug.Assert((opCode And BinaryOperatorKind.OpMask) = opCode AndAlso opCode <> BinaryOperatorKind.Error)
@@ -878,18 +892,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If UseUserDefinedBinaryOperators(opCode, leftType, rightType) Then
 
                 If considerUserDefinedOrLateBound Then
-                    If leftType.CanContainUserDefinedOperators(useSiteDiagnostics) OrElse rightType.CanContainUserDefinedOperators(useSiteDiagnostics) OrElse
+                    If leftType.CanContainUserDefinedOperators(useSiteInfo) OrElse rightType.CanContainUserDefinedOperators(useSiteInfo) OrElse
                        (opCode = BinaryOperatorKind.Subtract AndAlso
                         leftType.GetNullableUnderlyingTypeOrSelf().IsDateTimeType() AndAlso
                         rightType.GetNullableUnderlyingTypeOrSelf().IsDateTimeType()) Then ' Let (Date - Date) use operator overloading.
 
-                        userDefinedOperator = ResolveUserDefinedBinaryOperator(left, right, opCode, binder, includeEliminatedCandidates:=False, useSiteDiagnostics:=useSiteDiagnostics)
+                        userDefinedOperator = ResolveUserDefinedBinaryOperator(left, right, opCode, binder, includeEliminatedCandidates:=False, useSiteInfo:=useSiteInfo)
 
                         If userDefinedOperator.ResolutionIsLateBound Then
                             intrinsicOperatorType = SpecialType.System_Object
                             Return opCode
                         ElseIf Not userDefinedOperator.BestResult.HasValue AndAlso userDefinedOperator.Candidates.Length = 0 Then
-                            userDefinedOperator = ResolveUserDefinedBinaryOperator(left, right, opCode, binder, includeEliminatedCandidates:=True, useSiteDiagnostics:=Nothing)
+                            userDefinedOperator = ResolveUserDefinedBinaryOperator(left, right, opCode, binder, includeEliminatedCandidates:=True, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
 
                             If userDefinedOperator.Candidates.Length = 0 Then
                                 Return BinaryOperatorKind.Error
@@ -902,11 +916,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' is latebound if the Type Parameter has no class constraint.
                         Dim latebound As Boolean = False
                         If leftType.IsObjectType() Then
-                            If rightType.IsTypeParameter() AndAlso DirectCast(rightType, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteDiagnostics) Is Nothing Then
+                            If rightType.IsTypeParameter() AndAlso DirectCast(rightType, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteInfo) Is Nothing Then
                                 latebound = True
                             End If
                         ElseIf rightType.IsObjectType() Then
-                            If leftType.IsTypeParameter() AndAlso DirectCast(leftType, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteDiagnostics) Is Nothing Then
+                            If leftType.IsTypeParameter() AndAlso DirectCast(leftType, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteInfo) Is Nothing Then
                                 latebound = True
                             End If
                         End If
@@ -1912,7 +1926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function ResolveUserDefinedConversion(
             source As TypeSymbol,
             destination As TypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As KeyValuePair(Of ConversionKind, MethodSymbol)
             Debug.Assert(Not source.IsErrorType())
             Debug.Assert(Not destination.IsErrorType())
@@ -1937,7 +1951,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' !!!    operator that converts from the most specific source type to the most specific target type, then
             ' !!!    nullable lifting isn't considered.
 
-            CollectUserDefinedConversionOperators(source, destination, opSet, useSiteDiagnostics)
+            CollectUserDefinedConversionOperators(source, destination, opSet, useSiteInfo)
 
             If opSet.Count = 0 Then
                 opSet.Free()
@@ -1950,7 +1964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim applicable = BitVector.Create(opSet.Count)
             Dim bestMatch As MethodSymbol = Nothing
 
-            If DetermineMostSpecificWideningConversion(source, destination, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=False, useSiteDiagnostics:=useSiteDiagnostics) Then
+            If DetermineMostSpecificWideningConversion(source, destination, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=False, useSiteInfo:=useSiteInfo) Then
                 If bestMatch IsNot Nothing Then
                     result = New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.Widening Or ConversionKind.UserDefined, bestMatch)
                 End If
@@ -1960,7 +1974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 GoTo Done
             End If
 
-            If DetermineMostSpecificNarrowingConversion(source, destination, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=False, useSiteDiagnostics:=useSiteDiagnostics) Then
+            If DetermineMostSpecificNarrowingConversion(source, destination, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=False, useSiteInfo:=useSiteInfo) Then
                 If bestMatch IsNot Nothing Then
                     result = New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.Narrowing Or ConversionKind.UserDefined, bestMatch)
                 End If
@@ -1983,7 +1997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' All candidates applicable to the underlying types should be applicable to the original types, no reason to 
                     ' do viability checks for the second time.
 
-                    If DetermineMostSpecificWideningConversion(sourceUnderlying, destinationUnderlying, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=True, useSiteDiagnostics:=useSiteDiagnostics) Then
+                    If DetermineMostSpecificWideningConversion(sourceUnderlying, destinationUnderlying, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=True, useSiteInfo:=useSiteInfo) Then
                         If bestMatch IsNot Nothing Then
                             Debug.Assert(Not bestMatch.Parameters(0).Type.IsNullableType())
                             Debug.Assert(Not bestMatch.ReturnType.IsNullableType())
@@ -1991,7 +2005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                        ConversionKind.UserDefined Or
                                                                                        ConversionKind.Nullable, bestMatch)
                         End If
-                    ElseIf DetermineMostSpecificNarrowingConversion(sourceUnderlying, destinationUnderlying, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=True, useSiteDiagnostics:=useSiteDiagnostics) Then
+                    ElseIf DetermineMostSpecificNarrowingConversion(sourceUnderlying, destinationUnderlying, opSet, conversionKinds, applicable, bestMatch, suppressViabilityChecks:=True, useSiteInfo:=useSiteInfo) Then
                         If bestMatch IsNot Nothing Then
                             Debug.Assert(Not bestMatch.Parameters(0).Type.IsNullableType())
                             Debug.Assert(Not bestMatch.ReturnType.IsNullableType())
@@ -2022,7 +2036,7 @@ Done:
             <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
 #If DEBUG Then
             Debug.Assert(bestMatch Is Nothing)
@@ -2101,7 +2115,7 @@ Done:
                 Dim conversionIn As ConversionKind
                 Dim conversionOut As ConversionKind
 
-                If ClassifyConversionOperatorInOutConversions(source, destination, method, conversionIn, conversionOut, suppressViabilityChecks, useSiteDiagnostics) Then
+                If ClassifyConversionOperatorInOutConversions(source, destination, method, conversionIn, conversionOut, suppressViabilityChecks, useSiteInfo) Then
                     conversionKinds(currentIndex) = New KeyValuePair(Of ConversionKind, ConversionKind)(conversionIn, conversionOut)
                 Else
                     'opSet(currentIndex) = Nothing
@@ -2187,7 +2201,7 @@ Done:
 
                         Debug.Assert(typeSet.Count = applicableCount)
 
-                        mostSpecificSourceType = MostEncompassed(typeSet, useSiteDiagnostics)
+                        mostSpecificSourceType = MostEncompassed(typeSet, useSiteInfo)
                     End If
 
                     If mostSpecificTargetType Is Nothing AndAlso mostSpecificSourceType IsNot Nothing Then
@@ -2207,7 +2221,7 @@ Done:
 
                         Debug.Assert(typeSet.Count = applicableCount)
 
-                        mostSpecificTargetType = MostEncompassing(typeSet, useSiteDiagnostics)
+                        mostSpecificTargetType = MostEncompassing(typeSet, useSiteInfo)
                     End If
 
                     If typeSet IsNot Nothing Then
@@ -2288,43 +2302,44 @@ Done:
             <Out()> ByRef conversionIn As ConversionKind,
             <Out()> ByRef conversionOut As ConversionKind,
             suppressViabilityChecks As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             Dim inputType As TypeSymbol = method.Parameters(0).Type
             Dim outputType As TypeSymbol = method.ReturnType
 
 
             If Not suppressViabilityChecks Then
-                If Not IsConversionOperatorViableBasedOnTypesInvolved(method, inputType, outputType) Then
+                If Not IsConversionOperatorViableBasedOnTypesInvolved(method, inputType, outputType, useSiteInfo) Then
                     conversionIn = Nothing
                     conversionOut = Nothing
                     Return False
                 End If
             Else
-                Debug.Assert(IsConversionOperatorViableBasedOnTypesInvolved(method, inputType, outputType))
+                Debug.Assert(IsConversionOperatorViableBasedOnTypesInvolved(method, inputType, outputType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
             End If
 
             ' If source is an array literal then use ClassifyArrayLiteralConversion
             Dim arrayLiteralType = TryCast(source, ArrayLiteralTypeSymbol)
             If arrayLiteralType IsNot Nothing Then
                 Dim arrayLiteral = arrayLiteralType.ArrayLiteral
-                conversionIn = Conversions.ClassifyArrayLiteralConversion(arrayLiteral, inputType, arrayLiteral.Binder, useSiteDiagnostics)
+                conversionIn = Conversions.ClassifyArrayLiteralConversion(arrayLiteral, inputType, arrayLiteral.Binder, useSiteInfo)
                 If Conversions.IsWideningConversion(conversionIn) AndAlso
                     IsSameTypeIgnoringAll(arrayLiteralType, inputType) Then
                     conversionIn = ConversionKind.Identity
                 End If
             Else
-                conversionIn = Conversions.ClassifyPredefinedConversion(source, inputType, useSiteDiagnostics)
+                conversionIn = Conversions.ClassifyPredefinedConversion(source, inputType, useSiteInfo)
             End If
 
-            conversionOut = Conversions.ClassifyPredefinedConversion(outputType, destination, useSiteDiagnostics)
+            conversionOut = Conversions.ClassifyPredefinedConversion(outputType, destination, useSiteInfo)
             Return True
         End Function
 
         Private Shared Function IsConversionOperatorViableBasedOnTypesInvolved(
             method As MethodSymbol,
             inputType As TypeSymbol,
-            outputType As TypeSymbol
+            outputType As TypeSymbol,
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             If inputType.IsErrorType() OrElse outputType.IsErrorType() Then
                 Return False
@@ -2333,11 +2348,14 @@ Done:
             ' Ignore user defined conversions between types that already have intrinsic conversions.
             ' This could happen for generics after generic param substitution.
             If Not method.ContainingType.IsDefinition Then
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, useSiteDiagnostics)) OrElse
-                   Not useSiteDiagnostics.IsNullOrEmpty Then
+                Dim localUseSiteInfo = If(useSiteInfo.AccumulatesDependencies, New CompoundUseSiteInfo(Of AssemblySymbol)(useSiteInfo.AssemblyBeingBuilt), CompoundUseSiteInfo(Of AssemblySymbol).DiscardedDependencies)
+                If Conversions.ConversionExists(Conversions.ClassifyPredefinedConversion(inputType, outputType, localUseSiteInfo)) OrElse
+                   Not localUseSiteInfo.Diagnostics.IsNullOrEmpty Then
+                    useSiteInfo.MergeAndClear(localUseSiteInfo)
                     Return False
                 End If
+
+                useSiteInfo.MergeAndClear(localUseSiteInfo)
             End If
 
             Return True
@@ -2356,7 +2374,7 @@ Done:
             <[In]()> ByRef applicable As BitVector,
             <Out()> ByRef bestMatch As MethodSymbol,
             suppressViabilityChecks As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
 #If DEBUG Then
             Debug.Assert(bestMatch Is Nothing)
@@ -2454,7 +2472,7 @@ Done:
                     ' reached this place.
                     Debug.Assert(Not (Conversions.IsWideningConversion(conversionIn) AndAlso Conversions.IsWideningConversion(conversionOut)))
 
-                ElseIf ClassifyConversionOperatorInOutConversions(source, destination, method, conversionIn, conversionOut, suppressViabilityChecks, useSiteDiagnostics) Then
+                ElseIf ClassifyConversionOperatorInOutConversions(source, destination, method, conversionIn, conversionOut, suppressViabilityChecks, useSiteInfo) Then
                     conversionKinds(currentIndex) = New KeyValuePair(Of ConversionKind, ConversionKind)(conversionIn, conversionOut)
                 Else
                     'opSet(currentIndex) = Nothing
@@ -2586,9 +2604,9 @@ Done:
                         Debug.Assert(typeSet.Count = applicableCount OrElse (haveWideningInConversions <> 0 AndAlso typeSet.Count = haveWideningInConversions))
 
                         If haveWideningInConversions <> 0 Then
-                            mostSpecificSourceType = MostEncompassed(typeSet, useSiteDiagnostics)
+                            mostSpecificSourceType = MostEncompassed(typeSet, useSiteInfo)
                         Else
-                            mostSpecificSourceType = MostEncompassing(typeSet, useSiteDiagnostics)
+                            mostSpecificSourceType = MostEncompassing(typeSet, useSiteInfo)
                         End If
                     End If
 
@@ -2618,9 +2636,9 @@ Done:
                         Debug.Assert(typeSet.Count = applicableCount OrElse (haveWideningOutConversions <> 0 AndAlso typeSet.Count = haveWideningOutConversions))
 
                         If haveWideningOutConversions <> 0 Then
-                            mostSpecificTargetType = MostEncompassing(typeSet, useSiteDiagnostics)
+                            mostSpecificTargetType = MostEncompassing(typeSet, useSiteInfo)
                         Else
-                            mostSpecificTargetType = MostEncompassed(typeSet, useSiteDiagnostics)
+                            mostSpecificTargetType = MostEncompassed(typeSet, useSiteInfo)
                         End If
                     End If
 
@@ -2658,7 +2676,7 @@ Done:
         ''' type is the "smallest" type in the set—the one type that can be converted from each
         ''' of the other types through a narrowing conversion.
         ''' </summary>
-        Private Shared Function MostEncompassed(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
+        Private Shared Function MostEncompassed(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As TypeSymbol
             Dim best As TypeSymbol = Nothing
 
             For i As Integer = 0 To typeSet.Count - 1
@@ -2675,7 +2693,7 @@ Done:
                         Continue For
                     End If
 
-                    Dim conv As ConversionKind = Conversions.ClassifyPredefinedConversion(type, typeSet(j), useSiteDiagnostics)
+                    Dim conv As ConversionKind = Conversions.ClassifyPredefinedConversion(type, typeSet(j), useSiteInfo)
 
                     If Not Conversions.IsWideningConversion(conv) Then
                         ' type is not encompassed by the other type
@@ -2703,7 +2721,7 @@ Next_i:
         ''' type is the "largest" type in the set—the one type to which each of the other
         ''' types can be converted through a widening conversion.
         ''' </summary>
-        Private Shared Function MostEncompassing(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
+        Private Shared Function MostEncompassing(typeSet As ArrayBuilder(Of TypeSymbol), <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As TypeSymbol
             Dim best As TypeSymbol = Nothing
 
             For i As Integer = 0 To typeSet.Count - 1
@@ -2720,7 +2738,7 @@ Next_i:
                         Continue For
                     End If
 
-                    Dim conv As ConversionKind = Conversions.ClassifyPredefinedConversion(typeSet(j), type, useSiteDiagnostics)
+                    Dim conv As ConversionKind = Conversions.ClassifyPredefinedConversion(typeSet(j), type, useSiteInfo)
 
                     If Not Conversions.IsWideningConversion(conv) Then
                         ' type is not encompassing the other type
@@ -2814,12 +2832,12 @@ Next_i:
             source As TypeSymbol,
             destination As TypeSymbol,
             opSet As ArrayBuilder(Of MethodSymbol),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             CollectUserDefinedOperators(source, destination, MethodKind.Conversion,
                                         WellKnownMemberNames.ImplicitConversionName, New OperatorInfo(UnaryOperatorKind.Implicit),
                                         WellKnownMemberNames.ExplicitConversionName, New OperatorInfo(UnaryOperatorKind.Explicit),
-                                        opSet, useSiteDiagnostics)
+                                        opSet, useSiteInfo)
         End Sub
 
         ''' <summary>
@@ -2836,12 +2854,12 @@ Next_i:
             name2Opt As String,
             name2InfoOpt As OperatorInfo,
             opSet As ArrayBuilder(Of MethodSymbol),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
-            type1 = GetTypeToLookForOperatorsIn(type1, useSiteDiagnostics)
+            type1 = GetTypeToLookForOperatorsIn(type1, useSiteInfo)
 
             If type2 IsNot Nothing Then
-                type2 = GetTypeToLookForOperatorsIn(type2, useSiteDiagnostics)
+                type2 = GetTypeToLookForOperatorsIn(type2, useSiteInfo)
             End If
 
             Dim commonAncestor As NamedTypeSymbol = Nothing
@@ -2851,7 +2869,7 @@ Next_i:
 
                 Do
                     If type2 IsNot Nothing AndAlso commonAncestor Is Nothing AndAlso
-                       type2.IsOrDerivedFrom(current, useSiteDiagnostics) Then
+                       type2.IsOrDerivedFrom(current, useSiteInfo) Then
                         commonAncestor = current
                     End If
 
@@ -2861,7 +2879,7 @@ Next_i:
                         Exit Do
                     End If
 
-                    current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
                 Loop While current IsNot Nothing
             End If
 
@@ -2879,7 +2897,7 @@ Next_i:
                         Exit Do
                     End If
 
-                    current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                    current = current.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteInfo)
                 Loop While current IsNot Nothing
             End If
 
@@ -2922,40 +2940,40 @@ Next_i:
         ''' Given the type of operator's argument, return corresponding type to
         ''' look for operator in. Can return Nothing.
         ''' </summary>
-        Private Shared Function GetTypeToLookForOperatorsIn(type As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As TypeSymbol
+        Private Shared Function GetTypeToLookForOperatorsIn(type As TypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As TypeSymbol
             type = type.GetNullableUnderlyingTypeOrSelf()
 
             If type.Kind = SymbolKind.TypeParameter Then
-                type = DirectCast(type, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteDiagnostics)
+                type = DirectCast(type, TypeParameterSymbol).GetNonInterfaceConstraint(useSiteInfo)
             End If
 
             Return type
         End Function
 
-        Public Shared Function ResolveIsTrueOperator(argument As BoundExpression, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As OverloadResolutionResult
+        Public Shared Function ResolveIsTrueOperator(argument As BoundExpression, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As OverloadResolutionResult
             Dim opSet = ArrayBuilder(Of MethodSymbol).GetInstance()
 
             CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
                                         WellKnownMemberNames.TrueOperatorName, New OperatorInfo(UnaryOperatorKind.IsTrue),
                                         Nothing, Nothing,
-                                        opSet, useSiteDiagnostics)
+                                        opSet, useSiteInfo)
 
             Dim result = OperatorInvocationOverloadResolution(opSet, argument, Nothing, binder, lateBindingIsAllowed:=False, includeEliminatedCandidates:=False,
-                                                              useSiteDiagnostics:=useSiteDiagnostics)
+                                                              useSiteInfo:=useSiteInfo)
             opSet.Free()
             Return result
         End Function
 
-        Public Shared Function ResolveIsFalseOperator(argument As BoundExpression, binder As Binder, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As OverloadResolutionResult
+        Public Shared Function ResolveIsFalseOperator(argument As BoundExpression, binder As Binder, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As OverloadResolutionResult
             Dim opSet = ArrayBuilder(Of MethodSymbol).GetInstance()
 
             CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
                                         WellKnownMemberNames.FalseOperatorName, New OperatorInfo(UnaryOperatorKind.IsFalse),
                                         Nothing, Nothing,
-                                        opSet, useSiteDiagnostics)
+                                        opSet, useSiteInfo)
 
             Dim result = OperatorInvocationOverloadResolution(opSet, argument, Nothing, binder, lateBindingIsAllowed:=False, includeEliminatedCandidates:=False,
-                                                              useSiteDiagnostics:=useSiteDiagnostics)
+                                                              useSiteInfo:=useSiteInfo)
             opSet.Free()
             Return result
         End Function
@@ -2964,7 +2982,7 @@ Next_i:
             argument As BoundExpression,
             opKind As UnaryOperatorKind,
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional includeEliminatedCandidates As Boolean = False
         ) As OverloadResolutionResult
             Dim opSet = ArrayBuilder(Of MethodSymbol).GetInstance()
@@ -2975,23 +2993,23 @@ Next_i:
                     CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.OnesComplementOperatorName, opInfo,
                                                 WellKnownMemberNames.LogicalNotOperatorName, opInfo,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case UnaryOperatorKind.Minus
                     CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.UnaryNegationOperatorName, New OperatorInfo(UnaryOperatorKind.Minus),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case UnaryOperatorKind.Plus
                     CollectUserDefinedOperators(argument.Type, Nothing, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.UnaryPlusOperatorName, New OperatorInfo(UnaryOperatorKind.Minus),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select
 
             Dim result = OperatorInvocationOverloadResolution(opSet, argument, Nothing, binder, lateBindingIsAllowed:=False, includeEliminatedCandidates:=includeEliminatedCandidates,
-                                                              useSiteDiagnostics:=useSiteDiagnostics)
+                                                              useSiteInfo:=useSiteInfo)
             opSet.Free()
             Return result
         End Function
@@ -3001,7 +3019,7 @@ Next_i:
             right As BoundExpression,
             opKind As BinaryOperatorKind,
             binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
             Optional includeEliminatedCandidates As Boolean = False
         ) As OverloadResolutionResult
             Dim opSet = ArrayBuilder(Of MethodSymbol).GetInstance()
@@ -3011,113 +3029,113 @@ Next_i:
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.AdditionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Subtract
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.SubtractionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Multiply
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.MultiplyOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Divide
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.DivisionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.IntegerDivide
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.IntegerDivisionOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Modulo
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.ModulusOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Power
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.ExponentOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Equals
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.EqualityOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.NotEquals
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.InequalityOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.LessThan
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.LessThanOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.GreaterThan
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.GreaterThanOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.LessThanOrEqual
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.LessThanOrEqualOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.GreaterThanOrEqual
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.GreaterThanOrEqualOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Like
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.LikeOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Concatenate
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.ConcatenateOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.And, BinaryOperatorKind.AndAlso
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.BitwiseAndOperatorName, opInfo,
                                                 WellKnownMemberNames.LogicalAndOperatorName, opInfo,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
 
                 Case BinaryOperatorKind.Or, BinaryOperatorKind.OrElse
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.BitwiseOrOperatorName, opInfo,
                                                 WellKnownMemberNames.LogicalOrOperatorName, opInfo,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.Xor
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.ExclusiveOrOperatorName, New OperatorInfo(opKind),
                                                 Nothing, Nothing,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.LeftShift
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.LeftShiftOperatorName, opInfo,
                                                 WellKnownMemberNames.UnsignedLeftShiftOperatorName, opInfo,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case BinaryOperatorKind.RightShift
                     Dim opInfo As New OperatorInfo(opKind)
                     CollectUserDefinedOperators(left.Type, right.Type, MethodKind.UserDefinedOperator,
                                                 WellKnownMemberNames.RightShiftOperatorName, opInfo,
                                                 WellKnownMemberNames.UnsignedRightShiftOperatorName, opInfo,
-                                                opSet, useSiteDiagnostics)
+                                                opSet, useSiteInfo)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(opKind)
             End Select
 
             Dim result = OperatorInvocationOverloadResolution(opSet, left, right, binder, lateBindingIsAllowed:=True, includeEliminatedCandidates:=includeEliminatedCandidates,
-                                                              useSiteDiagnostics:=useSiteDiagnostics)
+                                                              useSiteInfo:=useSiteInfo)
             opSet.Free()
             Return result
         End Function
@@ -3129,7 +3147,7 @@ Next_i:
             binder As Binder,
             lateBindingIsAllowed As Boolean,
             includeEliminatedCandidates As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As OverloadResolutionResult
 
             If opSet.Count = 0 Then
@@ -3144,7 +3162,7 @@ Next_i:
             End If
 
             Dim nullableOfT As NamedTypeSymbol = opSet(0).ContainingAssembly.GetSpecialType(SpecialType.System_Nullable_T)
-            Dim liftOperators As Boolean = nullableOfT.GetUseSiteErrorInfo() Is Nothing
+            Dim liftOperators As Boolean = nullableOfT.GetUseSiteInfo().DiagnosticInfo Is Nothing
 
             Dim candidates = ArrayBuilder(Of CandidateAnalysisResult).GetInstance()
 
@@ -3161,15 +3179,10 @@ Next_i:
                     Continue For
                 End If
 
-                Dim useSiteErrorInfo As DiagnosticInfo = method.GetUseSiteErrorInfo()
+                Dim methodUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = method.GetUseSiteInfo()
+                useSiteInfo.Add(methodUseSiteInfo)
 
-                If useSiteErrorInfo IsNot Nothing Then
-                    If useSiteDiagnostics Is Nothing Then
-                        useSiteDiagnostics = New HashSet(Of DiagnosticInfo)()
-                    End If
-
-                    useSiteDiagnostics.Add(useSiteErrorInfo)
-
+                If methodUseSiteInfo.DiagnosticInfo IsNot Nothing Then
                     If includeEliminatedCandidates Then
                         candidates.Add(New CandidateAnalysisResult(New OperatorCandidate(method), CandidateAnalysisResultState.HasUseSiteError))
                     End If
@@ -3177,7 +3190,7 @@ Next_i:
                     Continue For
                 End If
 
-                CombineCandidates(candidates, New CandidateAnalysisResult(New OperatorCandidate(method)), method.ParameterCount, Nothing, useSiteDiagnostics)
+                CombineCandidates(candidates, New CandidateAnalysisResult(New OperatorCandidate(method)), method.ParameterCount, Nothing, useSiteInfo)
 
                 If liftOperators Then
                     Dim param1 As ParameterSymbol = method.Parameters(0)
@@ -3218,7 +3231,7 @@ Next_i:
                                                                                                   ImmutableArray.Create(param1),
                                                                                                   ImmutableArray.Create(Of ParameterSymbol)(param1, param2)),
                                                                                               returnType)),
-                                          method.ParameterCount, Nothing, useSiteDiagnostics)
+                                          method.ParameterCount, Nothing, useSiteInfo)
                     End If
                 End If
             Next
@@ -3233,7 +3246,7 @@ Next_i:
                                                                         Nothing, Nothing, lateBindingIsAllowed, binder:=binder,
                                                                         asyncLambdaSubToFunctionMismatch:=Nothing,
                                                                         callerInfoOpt:=Nothing, forceExpandedForm:=False,
-                                                                        useSiteDiagnostics:=useSiteDiagnostics)
+                                                                        useSiteInfo:=useSiteInfo)
             candidates.Free()
 
             Return result
@@ -3278,8 +3291,8 @@ Next_i:
                 End Get
             End Property
 
-            Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-                Return _parameterToLift.GetUseSiteErrorInfo()
+            Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+                Return _parameterToLift.GetUseSiteInfo()
             End Function
 
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
@@ -3388,6 +3401,12 @@ Next_i:
             Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
                 Get
                     Return _parameterToLift.IsCallerFilePath
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+                Get
+                    Throw ExceptionUtilities.Unreachable
                 End Get
             End Property
 

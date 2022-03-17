@@ -32,6 +32,13 @@ namespace Microsoft.CodeAnalysis.Collections
     internal sealed class SegmentedDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDictionary, IReadOnlyDictionary<TKey, TValue>
         where TKey : notnull
     {
+        private const bool SupportsComparerDevirtualization
+#if NETCOREAPP
+            = true;
+#else
+            = false;
+#endif
+
         private SegmentedArray<int> _buckets;
         private SegmentedArray<Entry> _entries;
         private ulong _fastModMultiplier;
@@ -39,7 +46,15 @@ namespace Microsoft.CodeAnalysis.Collections
         private int _freeList;
         private int _freeCount;
         private int _version;
+#if NETCOREAPP
         private readonly IEqualityComparer<TKey>? _comparer;
+#else
+        /// <summary>
+        /// <see cref="EqualityComparer{T}.Default"/> doesn't devirtualize on .NET Framework, so we always ensure
+        /// <see cref="_comparer"/> is initialized to a non-<see langword="null"/> value.
+        /// </summary>
+        private readonly IEqualityComparer<TKey> _comparer;
+#endif
         private KeyCollection? _keys;
         private ValueCollection? _values;
         private const int StartOfFreeList = -3;
@@ -75,6 +90,11 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 _comparer = comparer;
             }
+
+#if !NETCOREAPP
+            // .NET Framework doesn't support devirtualization, so we always initialize comparer to a non-null value
+            _comparer ??= EqualityComparer<TKey>.Default;
+#endif
         }
 
         public SegmentedDictionary(IDictionary<TKey, TValue> dictionary)
@@ -241,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
                 }
             }
-            else if (typeof(TValue).IsValueType)
+            else if (SupportsComparerDevirtualization && typeof(TValue).IsValueType)
             {
                 // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
                 for (var i = 0; i < _count; i++)
@@ -316,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 Debug.Assert(_entries.Length > 0, "expected entries to be non-empty");
                 var comparer = _comparer;
-                if (comparer == null)
+                if (SupportsComparerDevirtualization && comparer == null)
                 {
                     var hashCode = (uint)key.GetHashCode();
                     var i = GetBucket(hashCode);
@@ -422,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Collections
 ConcurrentOperation:
             ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
 ReturnFound:
-            ref var value = ref entry._value;
+            ref TValue value = ref entry._value;
 Return:
             return ref value;
 ReturnNotFound:
@@ -462,13 +482,13 @@ ReturnNotFound:
             Debug.Assert(entries.Length > 0, "expected entries to be non-empty");
 
             var comparer = _comparer;
-            var hashCode = (uint)((comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
+            var hashCode = (uint)((SupportsComparerDevirtualization && comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
 
             uint collisionCount = 0;
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket - 1; // Value in _buckets is 1-based
 
-            if (comparer == null)
+            if (SupportsComparerDevirtualization && comparer == null)
             {
                 if (typeof(TKey).IsValueType)
                 {

@@ -2,32 +2,26 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString.VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertToInterpolatedString
     Public Class ConvertConcatenationToInterpolatedStringTests
-        Inherits AbstractVisualBasicCodeActionTest
-
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider()
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestMissingOnSimpleString() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+            Dim code = "
 Public Class C
     Sub M()
         dim v = [||]""string""
     End Sub
-End Class")
+End Class"
+
+            Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithStringOnLeft() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -44,7 +38,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestRightSideOfString() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -61,7 +55,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithStringOnRight() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -78,7 +72,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithComplexExpressionOnLeft() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -95,7 +89,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithTrivia1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -112,7 +106,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithComplexExpressions() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -129,7 +123,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithEscapes1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -146,7 +140,7 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithEscapes2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -163,12 +157,14 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithOverloadedOperator() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 public class D
-    public shared operator&(D d, string s) as boolean
+    public shared operator &(d As D, s As String) as boolean
+        Return False
     end operator
-    public shared operator&(string s, D d) as boolean
+    public shared operator &(s As String, d As D) as boolean
+        Return False
     end operator
 end class
 
@@ -180,9 +176,11 @@ Public Class C
 End Class",
 "
 public class D
-    public shared operator&(D d, string s) as boolean
+    public shared operator &(d As D, s As String) as boolean
+        Return False
     end operator
-    public shared operator&(string s, D d) as boolean
+    public shared operator &(s As String, d As D) as boolean
+        Return False
     end operator
 end class
 
@@ -196,12 +194,14 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithOverloadedOperator2() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 public class D
-    public shared operator&(D d, string s) as boolean
+    public shared operator &(d As D, s As String) as boolean
+        Return False
     end operator
-    public shared operator&(string s, D d) as boolean
+    public shared operator &(s As String, d As D) as boolean
+        Return False
     end operator
 end class
 
@@ -210,13 +210,29 @@ Public Class C
         dim d as D = nothing
         dim v = d & [||]""string"" & 1
     End Sub
+End Class",
+"
+public class D
+    public shared operator &(d As D, s As String) as boolean
+        Return False
+    end operator
+    public shared operator &(s As String, d As D) as boolean
+        Return False
+    end operator
+end class
+
+Public Class C
+    Sub M()
+        dim d as D = nothing
+        dim v = $""{d & ""string""}{1}""
+    End Sub
 End Class")
         End Function
 
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringConcatinations() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -234,7 +250,7 @@ End Class")
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringConcatinations2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -252,7 +268,7 @@ End Class")
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringConcatinations3() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -270,7 +286,7 @@ End Class")
         <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithStringLiteralWithBraces() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -288,7 +304,7 @@ End Class")
         <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithStringLiteralWithDoubleBraces() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -306,7 +322,7 @@ End Class")
         <WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithMultipleStringLiteralsWithBraces() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -325,7 +341,7 @@ End Class")
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithSelectionOnEntireToBeInterpolatedString() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -343,20 +359,21 @@ End Class")
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestMissingWithSelectionOnPartOfToBeInterpolatedString() As Task
-            Await TestMissingInRegularAndScriptAsync(
-"
+            Dim code = "
 Public Class C
     Sub M()
         dim v = [|""string"" & 1|] & ""string""
     End Sub
-End Class")
+End Class"
+
+            Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
 
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithSelectionExceedingToBeInterpolatedString() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -374,7 +391,7 @@ End Class")
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithCaretBeforeNonStringToken() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -392,7 +409,7 @@ End Class")
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithCaretAfterNonStringToken() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -410,7 +427,7 @@ End Class")
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithCaretBeforeAmpersandToken() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -428,7 +445,7 @@ End Class")
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithCaretAfterAmpersandToken() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -446,7 +463,7 @@ End Class")
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithCaretBeforeLastAmpersandToken() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -464,7 +481,7 @@ End Class")
         <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithCaretAfterLastAmpersandToken() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Sub M()
@@ -482,7 +499,7 @@ End Class")
         <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestConcatenationWithChar() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Private Sub M()
@@ -504,7 +521,7 @@ End Class")
         <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestConcatenationWithCharAfterStringLiteral() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Private Sub M()
@@ -524,7 +541,7 @@ End Class")
         <WorkItem(37324, "https://github.com/dotnet/roslyn/issues/37324")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestConcatenationWithCharBeforeStringLiteral() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "
 Public Class C
     Private Sub M()
@@ -544,31 +561,36 @@ End Class")
         <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestConcatenationWithConstMember() As Task
-            Await TestMissingAsync("
+            Dim code = "
 Public Class C
     Private Const Hello As String = ""Hello""
     Private Const World As String = ""World""
     Private Const Message As String = Hello + "" "" + World[||]
-End Class")
+End Class"
+
+            Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
 
         <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestConcatenationWithConstDeclaration() As Task
-            Await TestMissingAsync("
+            Dim code = "
 Public Class C
     Private Sub M()
         Const Hello As String = ""Hello""
         Const World As String = ""World""
         Const Message As String = Hello + "" "" + World[||]
     End Sub
-End Class")
+End Class"
+
+            Await VerifyVB.VerifyRefactoringAsync(code, code)
         End Function
 
         <WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestConcatenationWithInlineString() As Task
-            Await TestInRegularAndScriptAsync("
+            Await VerifyVB.VerifyRefactoringAsync("
+Imports System
 Public Class C
     Private Sub M()
         Const Hello As String = ""Hello""
@@ -576,6 +598,7 @@ Public Class C
         Console.WriteLine(Hello + "" "" + World[||])
     End Sub
 End Class", "
+Imports System
 Public Class C
     Private Sub M()
         Const Hello As String = ""Hello""
@@ -606,7 +629,7 @@ Public Class C
         Dim s = {after}
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(initialMarkup, expected)
+            Await VerifyVB.VerifyRefactoringAsync(initialMarkup, expected)
         End Function
     End Class
 End Namespace

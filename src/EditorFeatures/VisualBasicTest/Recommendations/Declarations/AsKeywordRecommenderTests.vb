@@ -3,8 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
-    <[UseExportProvider]>
     Public Class AsKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AsInAggregateClause1Test()

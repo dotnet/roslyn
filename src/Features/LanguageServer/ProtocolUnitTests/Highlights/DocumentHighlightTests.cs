@@ -32,16 +32,43 @@ class A
         {|caret:|}{|write:classB|} = new B();
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
             var expected = new LSP.DocumentHighlight[]
             {
-                CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, locations["text"].Single()),
-                CreateDocumentHighlight(LSP.DocumentHighlightKind.Read, locations["read"].Single()),
-                CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, locations["write"].Single())
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Text, testLspServer.GetLocations("text").Single()),
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Read, testLspServer.GetLocations("read").Single()),
+                CreateDocumentHighlight(LSP.DocumentHighlightKind.Write, testLspServer.GetLocations("write").Single())
             };
 
-            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertJsonEquals(expected, results);
+        }
+
+        [Fact]
+        [WorkItem(59120, "https://github.com/dotnet/roslyn/issues/59120")]
+        public async Task TestGetDocumentHighlightAsync_Keywords()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+class A
+{
+    {|text:async|} Task MAsync()
+    {
+        {|text:await|} Task.Delay(100);
+        {|caret:|}{|text:await|} Task.Delay(100);
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var expectedLocations = testLspServer.GetLocations("text");
+
+            var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+            Assert.Equal(3, results.Length);
+            Assert.All(results, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
+            Assert.Equal(expectedLocations[0].Range, results[0].Range);
+            Assert.Equal(expectedLocations[1].Range, results[1].Range);
+            Assert.Equal(expectedLocations[2].Range, results[2].Range);
         }
 
         [Fact]
@@ -55,17 +82,16 @@ class A
         {|caret:|}
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunGetDocumentHighlightAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 
-        private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(Solution solution, LSP.Location caret)
+        private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
         {
-            var queue = CreateRequestQueue(solution);
-            var results = await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(queue, LSP.Methods.TextDocumentDocumentHighlightName,
-                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
+                CreateTextDocumentPositionParams(caret), CancellationToken.None);
             Array.Sort(results, (h1, h2) =>
             {
                 var compareKind = h1.Kind.CompareTo(h2.Kind);

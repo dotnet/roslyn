@@ -6,7 +6,7 @@ containing expression variables (out variable declarations and declaration patte
 initializers, property initializers, ctor-initializers, and query clauses.
 
 See https://github.com/dotnet/csharplang/issues/32 and 
-https://github.com/dotnet/csharplang/blob/master/proposals/expression-variables-in-initializers.md 
+https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.3/expression-variables-in-initializers.md 
 for more information.
 
 Current state of the feature:

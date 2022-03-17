@@ -223,6 +223,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return ConstantValue.Default(type.SpecialType);
         }
 
+        /// <summary>
+        /// Determine if enum arrays can be initialized using block initialization.
+        /// </summary>
+        /// <returns>True if it's safe to use block initialization for enum arrays.</returns>
+        /// <remarks>
+        /// In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
+        /// This is fixed in 4.5 thus enabling block array initialization for a very common case.
+        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
+        /// </remarks>
+        private bool EnableEnumArrayBlockInitialization
+        {
+            get
+            {
+                var sustainedLowLatency = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_GCLatencyMode__SustainedLowLatency);
+                return sustainedLowLatency != null && sustainedLowLatency.ContainingAssembly == _module.Compilation.Assembly.CorLibrary;
+            }
+        }
+
         private ArrayInitializerStyle ShouldEmitBlockInitializer(TypeSymbol elementType, ImmutableArray<BoundExpression> inits)
         {
             if (!_module.SupportsPrivateImplClass)
@@ -232,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (elementType.IsEnumType())
             {
-                if (!_module.Compilation.EnableEnumArrayBlockInitialization)
+                if (!EnableEnumArrayBlockInitialization)
                 {
                     return ArrayInitializerStyle.Element;
                 }

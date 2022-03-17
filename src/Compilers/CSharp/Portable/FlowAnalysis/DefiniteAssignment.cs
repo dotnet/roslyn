@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 #if DEBUG
 // We use a struct rather than a class to represent the state for efficiency
 // for data flow analysis, with 32 bits of data inline. Merely copying the state
@@ -19,6 +17,7 @@
 #define REFERENCE_STATE
 #endif
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -39,9 +38,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         DefiniteAssignmentPass.LocalFunctionState>
     {
         /// <summary>
+        /// A mapping from local variables to the index of their slot in a flow analysis local state.
+        /// </summary>
+        private readonly PooledDictionary<VariableIdentifier, int> _variableSlot = PooledDictionary<VariableIdentifier, int>.GetInstance();
+
+        /// <summary>
+        /// A mapping from the local variable slot to the symbol for the local variable itself.  This
+        /// is used in the implementation of region analysis (support for extract method) to compute
+        /// the set of variables "always assigned" in a region of code.
+        ///
+        /// The first slot, slot 0, is reserved for indicating reachability, so the first tracked variable will
+        /// be given slot 1. When referring to VariableIdentifier.ContainingSlot, slot 0 indicates
+        /// that the variable in VariableIdentifier.Symbol is a root, i.e. not nested within another
+        /// tracked variable. Slots less than 0 are illegal.
+        /// </summary>
+        protected readonly ArrayBuilder<VariableIdentifier> variableBySlot = ArrayBuilder<VariableIdentifier>.GetInstance(1, default);
+
+        /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
         /// </summary>
-        private readonly HashSet<Symbol> initiallyAssignedVariables;
+        private readonly HashSet<Symbol>? initiallyAssignedVariables;
 
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -49,12 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
-#nullable enable
         /// <summary>
         /// Parameters of record primary constructors that were read anywhere.
         /// </summary>
         private PooledHashSet<ParameterSymbol>? _readParameters;
-#nullable disable
 
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -87,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The current source assembly.
         /// </summary>
-        private readonly SourceAssemblySymbol _sourceAssembly;
+        private readonly SourceAssemblySymbol? _sourceAssembly;
 
         /// <summary>
         /// A set of address-of expressions for which the operand is not definitely assigned.
         /// </summary>
-        private readonly HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
+        private readonly HashSet<PrefixUnaryExpressionSyntax>? _unassignedVariableAddressOfSyntaxes;
 
         /// <summary>
         /// Tracks variables for which we have already reported a definite assignment error.  This
@@ -118,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The topmost method of this analysis.
         /// </summary>
-        protected MethodSymbol topLevelMethod;
+        protected MethodSymbol? topLevelMethod;
 
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
@@ -133,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             bool strictAnalysis,
             bool trackUnassignments = false,
-            HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
+            HashSet<PrefixUnaryExpressionSyntax>? unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false,
             bool trackStaticMembers = false)
@@ -142,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
-            _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
+            _sourceAssembly = GetSourceAssembly(compilation, member, node);
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
             _trackClassFields = trackClassFields;
@@ -157,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
-            HashSet<Symbol> initiallyAssignedVariables = null)
+            HashSet<Symbol>? initiallyAssignedVariables = null)
             : base(compilation, member, node, emptyStructs, trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
-            _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
+            _sourceAssembly = GetSourceAssembly(compilation, member, node);
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = null;
             _requireOutParamsAssigned = true;
@@ -190,8 +204,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
         }
 
+        private static SourceAssemblySymbol? GetSourceAssembly(
+            CSharpCompilation compilation,
+            Symbol member,
+            BoundNode node)
+        {
+            if (member is null)
+            {
+                return null;
+            }
+            if (node.Kind == BoundKind.Attribute)
+            {
+                // member is the attribute type, not the symbol where the attribute is applied.
+                Debug.Assert(member is TypeSymbol type &&
+                    (type.IsErrorType() || compilation.IsAttributeType(type)));
+                return null;
+            }
+            Debug.Assert((object)member.ContainingAssembly == compilation?.SourceAssembly);
+            return member.ContainingAssembly as SourceAssemblySymbol;
+        }
+
         protected override void Free()
         {
+            variableBySlot.Free();
+            _variableSlot.Free();
             _usedVariables.Free();
             _readParameters?.Free();
             _usedLocalFunctions.Free();
@@ -202,6 +238,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unsafeAddressTakenVariables.Free();
 
             base.Free();
+        }
+
+        protected override bool TryGetVariable(VariableIdentifier identifier, out int slot)
+        {
+            return _variableSlot.TryGetValue(identifier, out slot);
+        }
+
+        protected override int AddVariable(VariableIdentifier identifier)
+        {
+            int slot = variableBySlot.Count;
+            _variableSlot.Add(identifier, slot);
+            variableBySlot.Add(identifier);
+            return slot;
+        }
+
+#nullable disable
+        protected Symbol GetNonMemberSymbol(int slot)
+        {
+            VariableIdentifier variableId = variableBySlot[slot];
+            while (variableId.ContainingSlot > 0)
+            {
+                Debug.Assert(variableId.Symbol.Kind == SymbolKind.Field || variableId.Symbol.Kind == SymbolKind.Property || variableId.Symbol.Kind == SymbolKind.Event,
+                    "inconsistent property symbol owner");
+                variableId = variableBySlot[variableId.ContainingSlot];
+            }
+            return variableId.Symbol;
+        }
+
+        private int RootSlot(int slot)
+        {
+            while (true)
+            {
+                int containingSlot = variableBySlot[slot].ContainingSlot;
+                if (containingSlot == 0)
+                {
+                    return slot;
+                }
+                else
+                {
+                    slot = containingSlot;
+                }
+            }
         }
 
 #if DEBUG
@@ -528,12 +606,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         /// <summary>
         /// Check if the variable is captured and, if so, add it to this._capturedVariables.
         /// </summary>
         /// <param name="variable">The variable to be checked</param>
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
-        private void CheckCaptured(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
+        private void CheckCaptured(Symbol variable, ParameterSymbol? rangeVariableUnderlyingParameter = null)
         {
             if (CurrentSymbol is SourceMethodSymbol sourceMethod &&
                 Symbol.IsCaptured(rangeVariableUnderlyingParameter ?? variable, sourceMethod))
@@ -541,6 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NoteCaptured(variable);
             }
         }
+#nullable disable
 
         /// <summary>
         /// Add the variable to the captured set. For range variables we only add it if inside the region.
@@ -841,8 +921,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void Normalize(ref LocalState state)
         {
             int oldNext = state.Assigned.Capacity;
-            state.Assigned.EnsureCapacity(nextVariableSlot);
-            for (int i = oldNext; i < nextVariableSlot; i++)
+            int n = variableBySlot.Count;
+            state.Assigned.EnsureCapacity(n);
+            for (int i = oldNext; i < n; i++)
             {
                 var id = variableBySlot[i];
                 int slot = id.ContainingSlot;
@@ -1008,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (slot >= _alreadyReported.Capacity)
             {
-                _alreadyReported.EnsureCapacity(nextVariableSlot);
+                _alreadyReported.EnsureCapacity(variableBySlot.Count);
             }
 
             if (skipIfUseBeforeDeclaration &&
@@ -1224,25 +1305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (node.Kind)
             {
+                case BoundKind.ListPattern:
+                case BoundKind.RecursivePattern:
                 case BoundKind.DeclarationPattern:
                     {
-                        var pattern = (BoundDeclarationPattern)node;
-                        var symbol = pattern.Variable as LocalSymbol;
-                        if ((object)symbol != null)
-                        {
-                            // we do not track definite assignment for pattern variables when they are
-                            // promoted to fields for top-level code in scripts and interactive
-                            int slot = GetOrCreateSlot(symbol);
-                            SetSlotState(slot, assigned: written || !this.State.Reachable);
-                        }
-
-                        if (written) NoteWrite(pattern.VariableAccess, value, read);
-                        break;
-                    }
-
-                case BoundKind.RecursivePattern:
-                    {
-                        var pattern = (BoundRecursivePattern)node;
+                        var pattern = (BoundObjectPattern)node;
                         var symbol = pattern.Variable as LocalSymbol;
                         if ((object)symbol != null)
                         {
@@ -1458,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableBottomState()
         {
-            var result = new LocalState(BitVector.AllSet(nextVariableSlot));
+            var result = new LocalState(BitVector.AllSet(variableBySlot.Count));
             result.Assigned[0] = false; // make the state reachable
             return result;
         }
@@ -1518,87 +1585,117 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPattern(pattern);
             var whenFail = StateWhenFalse;
             SetState(StateWhenTrue);
-            AssignPatternVariables(pattern);
+            assignPatternVariablesAndMarkReadFields(pattern);
             SetConditionalState(this.State, whenFail);
-        }
 
-        /// <summary>
-        /// Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
-        /// That would be false under "not" and "or" patterns.
-        /// </summary>
-        private void AssignPatternVariables(BoundPattern pattern, bool definitely = true)
-        {
-            switch (pattern.Kind)
+            // Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
+            // That would be false under "not" and "or" patterns.
+            void assignPatternVariablesAndMarkReadFields(BoundPattern pattern, bool definitely = true)
             {
-                case BoundKind.DeclarationPattern:
-                    {
-                        var pat = (BoundDeclarationPattern)pattern;
-                        if (definitely)
-                            Assign(pat, value: null, isRef: false, read: false);
-                        break;
-                    }
-                case BoundKind.DiscardPattern:
-                    break;
-                case BoundKind.ConstantPattern:
-                    {
-                        var pat = (BoundConstantPattern)pattern;
-                        this.VisitRvalue(pat.Value);
-                        break;
-                    }
-                case BoundKind.RecursivePattern:
-                    {
-                        var pat = (BoundRecursivePattern)pattern;
-                        if (!pat.Deconstruction.IsDefaultOrEmpty)
+                switch (pattern.Kind)
+                {
+                    case BoundKind.DeclarationPattern:
                         {
-                            foreach (var subpat in pat.Deconstruction)
+                            var pat = (BoundDeclarationPattern)pattern;
+                            if (definitely)
+                                Assign(pat, value: null, isRef: false, read: false);
+                            break;
+                        }
+                    case BoundKind.DiscardPattern:
+                    case BoundKind.TypePattern:
+                        break;
+                    case BoundKind.SlicePattern:
+                        {
+                            var pat = (BoundSlicePattern)pattern;
+                            if (pat.Pattern != null)
                             {
-                                AssignPatternVariables(subpat.Pattern, definitely);
+                                assignPatternVariablesAndMarkReadFields(pat.Pattern, definitely);
                             }
+                            break;
                         }
-                        if (!pat.Properties.IsDefaultOrEmpty)
+                    case BoundKind.ConstantPattern:
                         {
-                            foreach (BoundSubpattern sub in pat.Properties)
+                            var pat = (BoundConstantPattern)pattern;
+                            this.VisitRvalue(pat.Value);
+                            break;
+                        }
+                    case BoundKind.RecursivePattern:
+                        {
+                            var pat = (BoundRecursivePattern)pattern;
+                            if (!pat.Deconstruction.IsDefaultOrEmpty)
                             {
-                                AssignPatternVariables(sub.Pattern, definitely);
+                                foreach (var subpat in pat.Deconstruction)
+                                {
+                                    assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
+                                }
                             }
+                            if (!pat.Properties.IsDefaultOrEmpty)
+                            {
+                                foreach (BoundPropertySubpattern sub in pat.Properties)
+                                {
+                                    if (_sourceAssembly is not null)
+                                    {
+                                        BoundPropertySubpatternMember member = sub.Member;
+                                        while (member is not null)
+                                        {
+                                            if (member.Symbol is FieldSymbol field)
+                                            {
+                                                _sourceAssembly.NoteFieldAccess(field, read: true, write: false);
+                                            }
+
+                                            member = member.Receiver;
+                                        }
+                                    }
+                                    assignPatternVariablesAndMarkReadFields(sub.Pattern, definitely);
+                                }
+                            }
+                            if (definitely)
+                                Assign(pat, null, false, false);
+                            break;
                         }
-                        if (definitely)
-                            Assign(pat, null, false, false);
-                        break;
-                    }
-                case BoundKind.ITuplePattern:
-                    {
-                        var pat = (BoundITuplePattern)pattern;
-                        foreach (var subpat in pat.Subpatterns)
+                    case BoundKind.ITuplePattern:
                         {
-                            AssignPatternVariables(subpat.Pattern, definitely);
+                            var pat = (BoundITuplePattern)pattern;
+                            foreach (var subpat in pat.Subpatterns)
+                            {
+                                assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
+                            }
+                            break;
                         }
-                        break;
-                    }
-                case BoundKind.TypePattern:
-                    break;
-                case BoundKind.RelationalPattern:
-                    {
-                        var pat = (BoundRelationalPattern)pattern;
-                        this.VisitRvalue(pat.Value);
-                        break;
-                    }
-                case BoundKind.NegatedPattern:
-                    {
-                        var pat = (BoundNegatedPattern)pattern;
-                        AssignPatternVariables(pat.Negated, definitely: false);
-                        break;
-                    }
-                case BoundKind.BinaryPattern:
-                    {
-                        var pat = (BoundBinaryPattern)pattern;
-                        bool def = definitely && !pat.Disjunction;
-                        AssignPatternVariables(pat.Left, def);
-                        AssignPatternVariables(pat.Right, def);
-                        break;
-                    }
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                    case BoundKind.ListPattern:
+                        {
+                            var pat = (BoundListPattern)pattern;
+                            foreach (BoundPattern p in pat.Subpatterns)
+                            {
+                                assignPatternVariablesAndMarkReadFields(p, definitely);
+                            }
+                            if (definitely)
+                                Assign(pat, null, false, false);
+                            break;
+                        }
+                    case BoundKind.RelationalPattern:
+                        {
+                            var pat = (BoundRelationalPattern)pattern;
+                            this.VisitRvalue(pat.Value);
+                            break;
+                        }
+                    case BoundKind.NegatedPattern:
+                        {
+                            var pat = (BoundNegatedPattern)pattern;
+                            assignPatternVariablesAndMarkReadFields(pat.Negated, definitely: false);
+                            break;
+                        }
+                    case BoundKind.BinaryPattern:
+                        {
+                            var pat = (BoundBinaryPattern)pattern;
+                            bool def = definitely && !pat.Disjunction;
+                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
+                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
+                            break;
+                        }
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
+                }
             }
         }
 
@@ -1829,6 +1926,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Diagnostics.Add(ErrorCode.ERR_FixedLocalInLambda, new SourceLocation(node.Syntax), localSymbol);
             }
+
+            SplitIfBooleanConstant(node);
             return null;
         }
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression sourceExpression,
             TypeSymbol source,
             TypeSymbol target,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   A user-defined implicit conversion from an expression E to type T is processed as follows:
 
             // SPEC: Find the set of types D from which user-defined conversion operators...
-            var d = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            ComputeUserDefinedImplicitConversionTypeSet(source, target, d, ref useSiteDiagnostics);
+            var d = ArrayBuilder<TypeSymbol>.GetInstance();
+            ComputeUserDefinedImplicitConversionTypeSet(source, target, d, ref useSiteInfo);
 
             // SPEC: Find the set of applicable user-defined and lifted conversion operators, U...
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
-            ComputeApplicableUserDefinedImplicitConversionSet(sourceExpression, source, target, d, ubuild, ref useSiteDiagnostics);
+            ComputeApplicableUserDefinedImplicitConversionSet(sourceExpression, source, target, d, ubuild, ref useSiteInfo);
             d.Free();
             ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
 
@@ -92,14 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: Find the most specific source type SX of the operators in U...
-            TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteDiagnostics);
+            TypeSymbol sx = MostSpecificSourceTypeForImplicitUserDefinedConversion(u, source, ref useSiteInfo);
             if ((object)sx == null)
             {
                 return UserDefinedConversionResult.NoBestSourceType(u);
             }
 
             // SPEC: Find the most specific target type TX of the operators in U...
-            TypeSymbol tx = MostSpecificTargetTypeForImplicitUserDefinedConversion(u, target, ref useSiteDiagnostics);
+            TypeSymbol tx = MostSpecificTargetTypeForImplicitUserDefinedConversion(u, target, ref useSiteInfo);
             if ((object)tx == null)
             {
                 return UserDefinedConversionResult.NoBestTargetType(u);
@@ -114,18 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UserDefinedConversionResult.Valid(u, best.Value);
         }
 
-        private static void ComputeUserDefinedImplicitConversionTypeSet(TypeSymbol s, TypeSymbol t, ArrayBuilder<NamedTypeSymbol> d, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static void ComputeUserDefinedImplicitConversionTypeSet(TypeSymbol s, TypeSymbol t, ArrayBuilder<TypeSymbol> d, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Spec 6.4.4: User-defined implicit conversions
             //   Find the set of types D from which user-defined conversion operators
             //   will be considered. This set consists of S0 (if S0 is a class or struct),
             //   the base classes of S0 (if S0 is a class), and T0 (if T0 is a class or struct).
 
-            TypeSymbol s0 = GetUnderlyingEffectiveType(s, ref useSiteDiagnostics);
-            TypeSymbol t0 = GetUnderlyingEffectiveType(t, ref useSiteDiagnostics);
-
-            AddTypesParticipatingInUserDefinedConversion(d, s0, includeBaseTypes: true, useSiteDiagnostics: ref useSiteDiagnostics);
-            AddTypesParticipatingInUserDefinedConversion(d, t0, includeBaseTypes: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            AddTypesParticipatingInUserDefinedConversion(d, s, includeBaseTypes: true, useSiteInfo: ref useSiteInfo);
+            AddTypesParticipatingInUserDefinedConversion(d, t, includeBaseTypes: false, useSiteInfo: ref useSiteInfo);
         }
 
         /// <summary>
@@ -145,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression sourceExpression,
             TypeSymbol source,
             TypeSymbol target,
-            ArrayBuilder<NamedTypeSymbol> d,
+            ArrayBuilder<TypeSymbol> d,
             ArrayBuilder<UserDefinedConversionAnalysis> u,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool allowAnyTarget = false)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
@@ -246,7 +243,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            foreach (NamedTypeSymbol declaringType in d)
+            HashSet<NamedTypeSymbol> lookedInInterfaces = null;
+
+            foreach (TypeSymbol declaringType in d)
+            {
+                if (declaringType is TypeParameterSymbol typeParameter)
+                {
+                    ImmutableArray<NamedTypeSymbol> interfaceTypes = typeParameter.AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
+
+                    if (!interfaceTypes.IsEmpty)
+                    {
+                        lookedInInterfaces ??= new HashSet<NamedTypeSymbol>(Symbols.SymbolEqualityComparer.AllIgnoreOptions); // Equivalent to has identity conversion check
+
+                        foreach (var interfaceType in interfaceTypes)
+                        {
+                            if (lookedInInterfaces.Add(interfaceType))
+                            {
+                                addCandidatesFromType(constrainedToTypeOpt: typeParameter, interfaceType, sourceExpression, source, target, u, ref useSiteInfo, allowAnyTarget);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    addCandidatesFromType(constrainedToTypeOpt: null, (NamedTypeSymbol)declaringType, sourceExpression, source, target, u, ref useSiteInfo, allowAnyTarget);
+                }
+            }
+
+            void addCandidatesFromType(
+                TypeParameterSymbol constrainedToTypeOpt,
+                NamedTypeSymbol declaringType,
+                BoundExpression sourceExpression,
+                TypeSymbol source,
+                TypeSymbol target,
+                ArrayBuilder<UserDefinedConversionAnalysis> u,
+                ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+                bool allowAnyTarget)
             {
                 foreach (MethodSymbol op in declaringType.GetOperators(WellKnownMemberNames.ImplicitConversionName))
                 {
@@ -258,9 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     TypeSymbol convertsFrom = op.GetParameterType(0);
                     TypeSymbol convertsTo = op.ReturnType;
-                    Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
+                    Conversion fromConversion = EncompassingImplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
                     Conversion toConversion = allowAnyTarget ? Conversion.Identity :
-                        EncompassingImplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
+                        EncompassingImplicitConversion(null, convertsTo, target, ref useSiteInfo);
 
                     if (fromConversion.Exists && toConversion.Exists)
                     {
@@ -272,18 +304,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // actually X-->Y? in source for the purposes of determining the best target
                         // type of an operator.
                         //
-                        // We perpetuate this fiction here.
+                        // We perpetuate this fiction here, except for cases when Y is not a valid type
+                        // argument for Nullable<T>. This scenario should only be possible when the corlib
+                        // defines a type such as int or long to be a ref struct (see
+                        // LiftedConversion_InvalidTypeArgument02).
 
-                        if ((object)target != null && target.IsNullableType() && convertsTo.IsNonNullableValueType())
+                        if ((object)target != null && target.IsNullableType() && convertsTo.IsValidNullableTypeArgument())
                         {
                             convertsTo = MakeNullableType(convertsTo);
                             toConversion = allowAnyTarget ? Conversion.Identity :
-                                EncompassingImplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
+                                EncompassingImplicitConversion(null, convertsTo, target, ref useSiteInfo);
                         }
 
-                        u.Add(UserDefinedConversionAnalysis.Normal(op, fromConversion, toConversion, convertsFrom, convertsTo));
+                        u.Add(UserDefinedConversionAnalysis.Normal(constrainedToTypeOpt, op, fromConversion, toConversion, convertsFrom, convertsTo));
                     }
-                    else if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType() &&
+                    else if ((object)source != null && source.IsNullableType() && convertsFrom.IsValidNullableTypeArgument() &&
                         (allowAnyTarget || target.CanBeAssignedNull()))
                     {
                         // As mentioned above, here we diverge from the specification, in two ways.
@@ -302,21 +337,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If the answer to all those questions is "yes" then we lift to nullable
                         // and see if the resulting operator is applicable.
                         TypeSymbol nullableFrom = MakeNullableType(convertsFrom);
-                        TypeSymbol nullableTo = convertsTo.IsNonNullableValueType() ? MakeNullableType(convertsTo) : convertsTo;
-                        Conversion liftedFromConversion = EncompassingImplicitConversion(sourceExpression, source, nullableFrom, ref useSiteDiagnostics);
+                        TypeSymbol nullableTo = convertsTo.IsValidNullableTypeArgument() ? MakeNullableType(convertsTo) : convertsTo;
+                        Conversion liftedFromConversion = EncompassingImplicitConversion(sourceExpression, source, nullableFrom, ref useSiteInfo);
                         Conversion liftedToConversion = !allowAnyTarget ?
-                            EncompassingImplicitConversion(null, nullableTo, target, ref useSiteDiagnostics) :
+                            EncompassingImplicitConversion(null, nullableTo, target, ref useSiteInfo) :
                             Conversion.Identity;
                         if (liftedFromConversion.Exists && liftedToConversion.Exists)
                         {
-                            u.Add(UserDefinedConversionAnalysis.Lifted(op, liftedFromConversion, liftedToConversion, nullableFrom, nullableTo));
+                            u.Add(UserDefinedConversionAnalysis.Lifted(constrainedToTypeOpt, op, liftedFromConversion, liftedToConversion, nullableFrom, nullableTo));
                         }
                     }
                 }
             }
         }
 
-        private TypeSymbol MostSpecificSourceTypeForImplicitUserDefinedConversion(ImmutableArray<UserDefinedConversionAnalysis> u, TypeSymbol source, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private TypeSymbol MostSpecificSourceTypeForImplicitUserDefinedConversion(ImmutableArray<UserDefinedConversionAnalysis> u, TypeSymbol source, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: If any of the operators in U convert from S then SX is S.
             if ((object)source != null)
@@ -329,10 +364,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: Otherwise, SX is the most encompassed type in the set of
             // SPEC: source types of the operators in U.
-            return MostEncompassedType(u, conv => conv.FromType, ref useSiteDiagnostics);
+            return MostEncompassedType(u, conv => conv.FromType, ref useSiteInfo);
         }
 
-        private TypeSymbol MostSpecificTargetTypeForImplicitUserDefinedConversion(ImmutableArray<UserDefinedConversionAnalysis> u, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private TypeSymbol MostSpecificTargetTypeForImplicitUserDefinedConversion(ImmutableArray<UserDefinedConversionAnalysis> u, TypeSymbol target, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: If any of the operators in U convert to T then TX is T.
             // SPEC: Otherwise, TX is the most encompassing type in the set of
@@ -360,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return target;
             }
 
-            return MostEncompassingType(u, conv => conv.ToType, ref useSiteDiagnostics);
+            return MostEncompassingType(u, conv => conv.ToType, ref useSiteInfo);
         }
 
         private static int LiftingCount(UserDefinedConversionAnalysis conv)
@@ -526,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Is A encompassed by B?
-        private bool IsEncompassedBy(BoundExpression aExpr, TypeSymbol a, TypeSymbol b, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool IsEncompassedBy(BoundExpression aExpr, TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)a != null);
             Debug.Assert((object)b != null);
@@ -535,10 +570,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: and if neither A nor B is an interface type then A is said to be
             // SPEC: encompassed by B, and B is said to encompass A.
 
-            return EncompassingImplicitConversion(aExpr, a, b, ref useSiteDiagnostics).Exists;
+            return EncompassingImplicitConversion(aExpr, a, b, ref useSiteInfo).Exists;
         }
 
-        private Conversion EncompassingImplicitConversion(BoundExpression aExpr, TypeSymbol a, TypeSymbol b, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion EncompassingImplicitConversion(BoundExpression aExpr, TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(aExpr != null || (object)a != null);
             Debug.Assert((object)b != null);
@@ -548,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the types is an interface type, but due to a desire to be compatible with a 
             // dev10 bug, we allow it. See the comment regarding bug 17021 above for more details.
 
-            var result = ClassifyStandardImplicitConversion(aExpr, a, b, ref useSiteDiagnostics);
+            var result = ClassifyStandardImplicitConversion(aExpr, a, b, ref useSiteInfo);
             return IsEncompassingImplicitConversionKind(result.Kind) ? result : Conversion.NoConversion;
         }
 
@@ -570,10 +605,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
+                case ConversionKind.InterpolatedStringHandler:
 
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
+                case ConversionKind.FunctionType:
 
                 // Not implicit.
                 case ConversionKind.ExplicitNumeric:
@@ -610,6 +647,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Added for C# 7.1
                 case ConversionKind.DefaultLiteral:
+
+                // Added for C# 9
+                case ConversionKind.ImplicitPointer:
                     return true;
 
                 default:
@@ -620,16 +660,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol MostEncompassedType<T>(
             ImmutableArray<T> items,
             Func<T, TypeSymbol> extract,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return MostEncompassedType<T>(items, x => true, extract, ref useSiteDiagnostics);
+            return MostEncompassedType<T>(items, x => true, extract, ref useSiteInfo);
         }
 
         private TypeSymbol MostEncompassedType<T>(
             ImmutableArray<T> items,
             Func<T, bool> valid,
             Func<T, TypeSymbol> extract,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: The most encompassed type is the one type in the set that 
             // SPEC: is encompassed by all the other types.
@@ -655,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // better than every other type. By "X is better than Y" we mean "X is encompassed 
             // by Y but Y is not encompassed by X".
 
-            HashSet<DiagnosticInfo> _useSiteDiagnostics = useSiteDiagnostics;
+            CompoundUseSiteInfo<AssemblySymbol> inLambdaUseSiteInfo = useSiteInfo;
             int? best = UniqueBestValidIndex(items, valid,
                 (left, right) =>
                 {
@@ -666,8 +706,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BetterResult.Equal;
                     }
 
-                    bool leftWins = IsEncompassedBy(null, leftType, rightType, ref _useSiteDiagnostics);
-                    bool rightWins = IsEncompassedBy(null, rightType, leftType, ref _useSiteDiagnostics);
+                    bool leftWins = IsEncompassedBy(null, leftType, rightType, ref inLambdaUseSiteInfo);
+                    bool rightWins = IsEncompassedBy(null, rightType, leftType, ref inLambdaUseSiteInfo);
                     if (leftWins == rightWins)
                     {
                         return BetterResult.Neither;
@@ -675,26 +715,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return leftWins ? BetterResult.Left : BetterResult.Right;
                 });
 
-            useSiteDiagnostics = _useSiteDiagnostics;
+            useSiteInfo = inLambdaUseSiteInfo;
             return best == null ? null : extract(items[best.Value]);
         }
 
         private TypeSymbol MostEncompassingType<T>(
             ImmutableArray<T> items,
             Func<T, TypeSymbol> extract,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return MostEncompassingType<T>(items, x => true, extract, ref useSiteDiagnostics);
+            return MostEncompassingType<T>(items, x => true, extract, ref useSiteInfo);
         }
 
         private TypeSymbol MostEncompassingType<T>(
             ImmutableArray<T> items,
             Func<T, bool> valid,
             Func<T, TypeSymbol> extract,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // See comments above.
-            HashSet<DiagnosticInfo> _useSiteDiagnostics = useSiteDiagnostics;
+            CompoundUseSiteInfo<AssemblySymbol> inLambdaUseSiteInfo = useSiteInfo;
             int? best = UniqueBestValidIndex(items, valid,
                 (left, right) =>
                 {
@@ -705,8 +745,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BetterResult.Equal;
                     }
 
-                    bool leftWins = IsEncompassedBy(null, rightType, leftType, ref _useSiteDiagnostics);
-                    bool rightWins = IsEncompassedBy(null, leftType, rightType, ref _useSiteDiagnostics);
+                    bool leftWins = IsEncompassedBy(null, rightType, leftType, ref inLambdaUseSiteInfo);
+                    bool rightWins = IsEncompassedBy(null, leftType, rightType, ref inLambdaUseSiteInfo);
                     if (leftWins == rightWins)
                     {
                         return BetterResult.Neither;
@@ -714,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return leftWins ? BetterResult.Left : BetterResult.Right;
                 });
 
-            useSiteDiagnostics = _useSiteDiagnostics;
+            useSiteInfo = inLambdaUseSiteInfo;
             return best == null ? null : extract(items[best.Value]);
         }
 
@@ -822,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// NOTE: Keep this method in sync with AnalyzeImplicitUserDefinedConversion.
         /// </remarks>
-        protected UserDefinedConversionResult AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol source, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected UserDefinedConversionResult AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType(TypeSymbol source, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,
@@ -889,14 +929,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC VIOLATION: We do the same to maintain compatibility with the native compiler.
 
             // (a) Compute the set of types D from which user-defined conversion operators should be considered by considering only the source type.
-            var d = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            ComputeUserDefinedImplicitConversionTypeSet(source, t: null, d: d, useSiteDiagnostics: ref useSiteDiagnostics);
+            var d = ArrayBuilder<TypeSymbol>.GetInstance();
+            ComputeUserDefinedImplicitConversionTypeSet(source, t: null, d: d, useSiteInfo: ref useSiteInfo);
 
             // (b) Instead of computing applicable user defined implicit conversions U from the source type to a specific target type,
             //     we compute these from the source type to ANY target type. We will filter out those that are valid switch governing
             //     types later.
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
-            ComputeApplicableUserDefinedImplicitConversionSet(null, source, target: null, d: d, u: ubuild, useSiteDiagnostics: ref useSiteDiagnostics, allowAnyTarget: true);
+            ComputeApplicableUserDefinedImplicitConversionSet(null, source, target: null, d: d, u: ubuild, useSiteInfo: ref useSiteInfo, allowAnyTarget: true);
             d.Free();
             ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
 
