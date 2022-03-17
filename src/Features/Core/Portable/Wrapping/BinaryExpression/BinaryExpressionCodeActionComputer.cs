@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 
                 _indentAndAlignTrivia = new SyntaxTriviaList(generator.Whitespace(
                     OriginalSourceText.GetOffset(binaryExpression.Span.Start)
-                                      .CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize)));
+                                      .CreateIndentationString(options.UseTabs, options.TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
                     GetSmartIndentationAfter(_exprsAndOperators[1])));

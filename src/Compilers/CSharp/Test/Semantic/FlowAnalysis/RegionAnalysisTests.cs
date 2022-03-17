@@ -9175,5 +9175,223 @@ class C {
 }");
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
         }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void TestDataFlowsOfIdentifierWithDelegateConversion()
+        {
+            var results = CompileAndAnalyzeDataFlowExpression(@"
+using System;
+
+internal static class NoExtensionMethods
+{
+    internal static Func<T> AsFunc<T>(this T value) where T : class
+    {
+        return new Func<T>(/*<bind>*/ value /*</bind>*/.Return);
+    }
+
+    private static T Return<T>(this T value)
+    {
+        return value;
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(((object)42).AsFunc()());
+    }
+}
+	");
+            Assert.True(results.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(results.Captured));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(results.CapturedOutside));
+            Assert.Null(GetSymbolNamesJoined(results.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(results.DataFlowsOut));
+            Assert.Equal("value", GetSymbolNamesJoined(results.DefinitelyAssignedOnEntry));
+            Assert.Equal("value", GetSymbolNamesJoined(results.DefinitelyAssignedOnExit));
+            Assert.Equal("value", GetSymbolNamesJoined(results.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(results.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(results.ReadOutside));
+            Assert.Equal("value", GetSymbolNamesJoined(results.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(results.UsedLocalFunctions));
+        }
+
+        [Fact]
+        public void TestDataFlowsOfIdentifierWithDelegateConversionCast()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+using System;
+
+internal static class NoExtensionMethods
+{
+    internal static Func<T> AsFunc<T>(this T value) where T : class
+    {
+        return (Func<T>)/*<bind>*/ value /*</bind>*/.Return;
+    }
+
+    private static T Return<T>(this T value)
+    {
+        return value;
+    }
+}
+");
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact]
+        public void TestDataFlowsOfIdentifierWithDelegateConversionTarget()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+using System;
+
+internal static class NoExtensionMethods
+{
+    internal static Func<T> AsFunc<T>(this T value) where T : class
+    {
+        Func<T> result =/*<bind>*/ value /*</bind>*/.Return;
+        return result;
+    }
+
+    private static T Return<T>(this T value)
+    {
+        return value;
+    }
+}
+");
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Null(GetSymbolNamesJoined(analysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.CapturedOutside));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnEntry));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.DefinitelyAssignedOnExit));
+            Assert.Equal("value", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("result", GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("value, result", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentInReceiverOfExtensionMethodInDelegateCreation()
+        {
+            var comp = CreateCompilation(@"
+using System;
+bool b = true;
+_ = new Func<string>((b ? M(out var i) : i.ToString()).ExtensionMethod);
+
+string M(out int i)
+{
+    throw null;
+}
+
+static class Extension
+{
+    public static string ExtensionMethod(this string s) => throw null;
+}
+	");
+            comp.VerifyDiagnostics(
+                // (4,42): error CS0165: Use of unassigned local variable 'i'
+                // _ = new Func<string>((b ? M(out var i) : i.ToString()).ExtensionMethod);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(4, 42)
+                );
+        }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentShouldSkipImplicitThisInStaticMethodConversion()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public struct C
+{
+    private object field;
+    public C(Action a)
+    {
+        // implicit `this` receiver should be ignored in definite assignment
+        a = new(M);
+        field = 1;
+    }
+
+    public C(Action a, int ignored)
+    {
+        // implicit `this` receiver should be ignored in definite assignment
+        a = new Action(M);
+        field = 1;
+    }
+
+    public void Method1(Action a)
+    {
+        // explicit `this` disallowed
+        a = new Action(this.M);
+    }
+
+    public void Method2(Action a, C c)
+    {
+        // instance receiver disallowed
+        a = new Action(c.M);
+    }
+
+    private static void M()
+    {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (23,24): error CS0176: Member 'C.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         a = new Action(this.M);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M").WithArguments("C.M()").WithLocation(23, 24),
+                // (29,24): error CS0176: Member 'C.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         a = new Action(c.M);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.M").WithArguments("C.M()").WithLocation(29, 24)
+                );
+        }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentWithExplicitThisInStaticMethodConversion()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public struct C
+{
+    private object field;
+    public void Method1(Action a)
+    {
+        a = new Action(this.M);
+        field = 1;
+    }
+
+    public void Method2(Action a, C c)
+    {
+        a = new Action(c.M);
+    }
+}
+public static class Extension
+{
+    public static void M(this C c)
+    {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS1113: Extension method 'Extension.M(C)' defined on value type 'C' cannot be used to create delegates
+                //         a = new Action(this.M);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "this.M").WithArguments("Extension.M(C)", "C").WithLocation(8, 24),
+                // (14,24): error CS1113: Extension method 'Extension.M(C)' defined on value type 'C' cannot be used to create delegates
+                //         a = new Action(c.M);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.M").WithArguments("Extension.M(C)", "C").WithLocation(14, 24)
+                );
+        }
     }
 }

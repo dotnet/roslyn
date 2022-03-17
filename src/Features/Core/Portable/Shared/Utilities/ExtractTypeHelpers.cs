@@ -87,11 +87,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 context,
                 cancellationToken).ConfigureAwait(false);
 
-            var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
-            if (formattingService is not null)
+            var formattingSerivce = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
+            if (formattingSerivce is not null)
             {
-                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(newTypeDocument, cancellationToken).ConfigureAwait(false);
-                newTypeDocument = await formattingService.FormatNewDocumentAsync(newTypeDocument, hintDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
+                newTypeDocument = await formattingSerivce.FormatNewDocumentAsync(newTypeDocument, hintDocument, cancellationToken).ConfigureAwait(false);
             }
 
             var syntaxRoot = await newTypeDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
