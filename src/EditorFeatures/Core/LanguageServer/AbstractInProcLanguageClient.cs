@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
+        // TODO: Remove this when https://github.com/dotnet/roslyn/issues/29602 is fixed. Default capabilities
+        // should not exist at this level
         protected readonly DefaultCapabilitiesProvider DefaultCapabilitiesProvider;
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -126,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // To help mitigate some of the issues with this hack we first initialize the default capabilities
             // provider so it can do MEF part loading before the UI thread switch. This doesn't help with the options
             // persisters, but at least doesn't make it worse.
+            // TODO: The concept of default capabilities should be removed from this class entirely when this HACK is removed.
             DefaultCapabilitiesProvider.Initialize();
 
             // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
