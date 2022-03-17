@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -173,6 +174,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument2, memberItemsInMarkup2, cancellationToken).ConfigureAwait(false);
         }
 
+        private static async Task VerifyWorkspaceAsync(
+            string workspaceFile,
+            Dictionary<(string assemblyName, string documentPath), TestInheritanceMemberItem[]> filePathToInheritanceMarginItemsMap)
+        {
+            var cancellationToken = CancellationToken.None;
+            using var testWorkspace = TestWorkspace.Create(workspaceFile, composition: EditorTestCompositions.EditorFeatures);
+            foreach (var ((assemblyName, documentPath), items) in filePathToInheritanceMarginItemsMap)
+            {
+                var testHostDocument = testWorkspace.Documents.Single(d => d.Project.AssemblyName == assemblyName && d.Name == documentPath);
+                await VerifyTestMemberInDocumentAsync(testWorkspace, testHostDocument, items, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         private class TestInheritanceMemberItem
         {
             public readonly int LineNumber;
@@ -197,8 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly InheritanceRelationship Relationship;
             public readonly bool InMetadata;
 
-            public TargetInfo(
-                string targetSymbolDisplayName,
+            public TargetInfo(string targetSymbolDisplayName,
                 string locationTag,
                 InheritanceRelationship relationship)
             {
@@ -240,8 +253,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public TestInheritanceTargetItem(
                 string targetSymbolName,
                 InheritanceRelationship relationshipToMember,
-                 ImmutableArray<DocumentSpan> documentSpans,
-                  bool isInMetadata)
+                ImmutableArray<DocumentSpan> documentSpans,
+                bool isInMetadata)
             {
                 TargetSymbolName = targetSymbolName;
                 RelationshipToMember = relationshipToMember;
@@ -268,17 +281,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                     Assert.True(targetInfo.LocationTags != null);
                     foreach (var testHostDocument in testWorkspace.Documents)
                     {
-                        if (targetInfo.LocationTags != null)
+                        var annotatedSpans = testHostDocument.AnnotatedSpans;
+                        foreach (var tag in targetInfo.LocationTags)
                         {
-                            var annotatedSpans = testHostDocument.AnnotatedSpans;
-
-                            foreach (var tag in targetInfo.LocationTags)
+                            if (annotatedSpans.TryGetValue(tag, out var spans))
                             {
-                                if (annotatedSpans.TryGetValue(tag, out var spans))
-                                {
-                                    var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
-                                    builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
-                                }
+                                var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
+                                builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
                             }
                         }
                     }
@@ -1966,6 +1975,58 @@ public partial class {|target3:Bar|}
                 (markup2, LanguageNames.CSharp),
                 new[] { itemForBar44, itemForFooInMarkup1 },
                 new[] { itemForIBar, itemForFooInMarkup2 });
+        }
+
+        [Fact]
+        public async Task TestLinkedFileReferenceBaseInterfaceAsync()
+        {
+            var code1 = @"
+public class Bar : BaseBar, IBar
+{
+}";
+            var code2 = @"
+public interface {|target1:IBar|}
+{
+}
+
+public class {|target2:BaseBar|}
+{
+}";
+            var workspaceFile =
+                $@"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""file1.cs"">
+            <![CDATA[
+                {code1}]]>
+        </Document>
+    </Project>
+    <Project Language=""{LanguageNames.CSharp}"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly3</ProjectReference>
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Assembly1"" LinkFilePath=""file1.cs"">
+        </Document>
+    </Project> 
+    <Project Language=""{LanguageNames.CSharp}"" AssemblyName=""Assembly3"" CommonReferences=""true"">
+        <Document FilePath=""file3.cs"">
+            <![CDATA[
+                {code2}]]>
+        </Document>
+    </Project>
+</Workspace>";
+            using var testWorkspace = TestWorkspace.Create(workspaceFile, composition: EditorTestCompositions.EditorFeatures);
+
+            var cancellationToken = CancellationToken.None;
+            var file1InAssembly1 = testWorkspace.Documents.Single(d => d.Project.AssemblyName == "Assembly1" && d.Name == "file1.cs");
+            await VerifyTestMemberInDocumentAsync(
+                testWorkspace,
+                file1InAssembly1,
+                new[]
+                {
+                    new TestInheritanceMemberItem(lineNumber: 2, "class Bar",
+                        ImmutableArray.Create(new TargetInfo("IBar", InheritanceRelationship.ImplementedInterface, "target1"),
+                            new TargetInfo("BaseBar", InheritanceRelationship.BaseType, "target2"))),
+                },
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }
