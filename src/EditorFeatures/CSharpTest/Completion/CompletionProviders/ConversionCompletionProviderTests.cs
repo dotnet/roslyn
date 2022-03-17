@@ -16,7 +16,7 @@ using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
-    public class CSharpCompletionCommandHandlerTests_Conversions : AbstractCSharpCompletionProviderTests
+    public class ConversionCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(UnnamedSymbolCompletionProvider);

@@ -149,7 +149,7 @@ class C
             End Using
         End Function
 
-        Private Shared Async Function VerifyCustomCommitProviderAsync(markupBeforeCommit As String, itemToCommit As String, expectedCodeAfterCommit As String, Optional commitChar As Char? = Nothing) As Task
+        Private Shared Async Function VerifyCustomCommitProviderAsync(markupBeforeCommit As String, itemToCommit As String, expectedCodeAfterCommit As String) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                     New XElement("Document", markupBeforeCommit.Replace(vbCrLf, vbLf)))
 
