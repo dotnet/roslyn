@@ -433,8 +433,18 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private bool CheckTargetExpression(IOperation operation)
             {
-                if (operation is IConversionOperation { IsImplicit: false } op)
+                if (operation is IConversionOperation op)
                 {
+                    // We can't have implicit conversions because switch arms don't do them.
+                    // Putting an explicit cast on the arm doesn't have the same semantics. For example:
+                    //    if (c == 123)
+                    // is the same as
+                    //    if ((int)c == 123)
+                    // but putting the cast on the switch arm would be equivalient to
+                    //    if (c == (char)123)
+                    if (op.IsImplicit)
+                        return false;
+
                     // Unwrap explicit casts because switch will emit those anyways
                     operation = op.Operand;
                 }
