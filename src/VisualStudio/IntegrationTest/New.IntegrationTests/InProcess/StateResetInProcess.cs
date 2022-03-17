@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -78,6 +80,27 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
             var latencyGuardOptionKey = new EditorOptionKey<bool>("EnableTypingLatencyGuard");
             options.SetOptionValue(latencyGuardOptionKey, false);
+
+            // Close any modal windows
+            var mainWindow = await TestServices.Shell.GetMainWindowAsync(cancellationToken);
+            var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
+            while (modalWindow != IntPtr.Zero)
+            {
+                if ("Default IME" == IntegrationHelper.GetTitleForWindow(modalWindow))
+                {
+                    // "Default IME" shows up as a modal window in some cases where there is no other window blocking
+                    // input to Visual Studio.
+                    break;
+                }
+
+                await TestServices.Input.SendWithoutActivateAsync(VirtualKey.Escape);
+                var nextModalWindow = IntegrationHelper.GetModalWindowFromParentWindow(mainWindow);
+                if (nextModalWindow == modalWindow)
+                {
+                    // Don't loop forever if windows aren't closing.
+                    break;
+                }
+            }
 
             // Close tool windows where desired (see s_windowsToClose)
             await foreach (var window in TestServices.Shell.EnumerateWindowsAsync(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool, cancellationToken).WithCancellation(cancellationToken))

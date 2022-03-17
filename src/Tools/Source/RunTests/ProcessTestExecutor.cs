@@ -110,7 +110,7 @@ namespace RunTests
             static bool HasBuiltInRetry(AssemblyInfo assemblyInfo)
             {
                 // vs-extension-testing handles test retry internally.
-                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests";
+                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll";
             }
         }
 

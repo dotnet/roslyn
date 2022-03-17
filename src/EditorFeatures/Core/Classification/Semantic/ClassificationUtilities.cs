@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Classification
             // as we do not have to wait on skeletons to be built.
 
             document = document.WithFrozenPartialSemantics(cancellationToken);
+            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 
             var classified = await TryClassifyContainingMemberSpanAsync(
                     context, document, spanToTag.SnapshotSpan, classificationService, typeMap, options, type, cancellationToken).ConfigureAwait(false);
