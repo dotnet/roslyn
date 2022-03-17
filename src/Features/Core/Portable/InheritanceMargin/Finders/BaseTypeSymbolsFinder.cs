@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
     internal class BaseTypeSymbolsFinder : InheritanceSymbolsFinder
     {
+        public static readonly BaseTypeSymbolsFinder Instance = new();
+
         protected override Task<ImmutableArray<ISymbol>> GetUpSymbolsAsync(
             ISymbol symbol,
             Solution solution,
@@ -38,10 +40,17 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             using var _2 = ArrayBuilder<SymbolGroup>.GetInstance(out var baseInterfacesBuilder);
             foreach (var (symbol, symbolGroup) in builder)
             {
+                // Filter out
+                // 1. System.Object. (otherwise margin would be shown for all classes)
+                // 2. System.ValueType. (otherwise margin would be shown for all structs)
+                // 3. System.Enum. (otherwise margin would be shown for all enum)
+                // 4. Error type.
+                // For example, if user has code like this,
+                // class Bar : ISomethingIsNotDone { }
+                // The interface has not been declared yet, so don't show this error type to user.
                 if (!symbol.IsErrorType()
                     && IsNavigableSymbol(symbol)
-                    && symbol is INamedTypeSymbol namedTypeSymbol
-                    && namedTypeSymbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum))
+                    && symbol is INamedTypeSymbol { SpecialType: not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum) })
                 {
                     if (symbol.IsInterfaceType())
                     {

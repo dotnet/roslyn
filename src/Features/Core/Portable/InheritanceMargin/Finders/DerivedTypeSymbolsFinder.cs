@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
     internal class DerivedTypeSymbolsFinder : InheritanceSymbolsFinder
     {
+        public static readonly DerivedTypeSymbolsFinder Instance = new();
+
         protected override async Task<ImmutableArray<ISymbol>> GetDownSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             var derivedSymbols = await GetDerivedTypesAndImplementationsAsync(solution, (INamedTypeSymbol)symbol, cancellationToken).ConfigureAwait(false);
@@ -29,16 +32,17 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             var builder = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
             await GetDownSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
 
-            using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var derivedTypeBulider);
+            using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var derivedTypeBuilder);
             foreach (var (symbol, symbolGroup) in builder)
             {
-                if (IsNavigableSymbol(symbol))
-                {
-                    derivedTypeBulider.Add(symbolGroup);
-                }
+                // Ensure the user won't be able to see symbol outside the solution for derived symbols.
+                // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
+                // the user all the derived types under System.Collections
+                if (symbol.Locations.Any(l => l.IsInSource) && IsNavigableSymbol(symbol))
+                    derivedTypeBuilder.Add(symbolGroup);
             }
 
-            return derivedTypeBulider.ToImmutable();
+            return derivedTypeBuilder.ToImmutable();
         }
     }
 }

@@ -4,16 +4,20 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
     internal class OverridingSymbolsFinder : InheritanceSymbolsFinder
     {
+        public static readonly OverridingSymbolsFinder Instance = new();
+
         protected override Task<ImmutableArray<ISymbol>> GetDownSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             => SymbolFinder.FindOverridesArrayAsync(symbol, solution, cancellationToken: cancellationToken);
 
@@ -28,10 +32,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var overridingSymbolGroupsBuilder);
             foreach (var (symbol, symbolGroup) in builder)
             {
-                if (InheritanceMarginServiceHelper.IsNavigableSymbol(symbol))
-                {
+                if (symbol.Locations.Any(l => l.IsInSource) && IsNavigableSymbol(symbol))
                     overridingSymbolGroupsBuilder.Add(symbolGroup);
-                }
             }
 
             return overridingSymbolGroupsBuilder.ToImmutable();

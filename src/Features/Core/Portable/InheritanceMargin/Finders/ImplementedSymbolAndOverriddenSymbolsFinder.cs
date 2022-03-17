@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
     internal class ImplementedSymbolAndOverriddenSymbolsFinder : InheritanceSymbolsFinder
     {
+        public static readonly ImplementedSymbolAndOverriddenSymbolsFinder Instance = new();
+
         protected override Task<ImmutableArray<ISymbol>> GetDownSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             => throw ExceptionUtilities.Unreachable;
 

@@ -43,9 +43,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                         var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
                         EnqueueAll(queue, linkedSymbols);
                         if (!builder.ContainsKey(symbol))
-                        {
-                            builder[symbol] = new SymbolGroup(linkedSymbols);
-                        }
+                            builder[symbol] = new SymbolGroup(linkedSymbols.SelectAsArray(s => s.OriginalDefinition));
                     }
                 }
             }

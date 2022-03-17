@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         None = 0,
 
         /// <summary>
-        /// Implented interfaces for class or struct. Shown as I↑
+        /// Implemented interfaces for class or struct. Shown as I↑
         /// </summary>
         ImplementedInterface = 1,
 
@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         OverriddenMember = 64,
 
         /// <summary>
-        /// Overrrding member for member in class or structure. Shown as O↓
+        /// Overriding member for member in class or structure. Shown as O↓
         /// </summary>
         OverridingMember = 128,
 
         /// <summary>
-        /// Implmenting member for member in interface. Shown as I↓
+        /// Implementing member for member in interface. Shown as I↓
         /// </summary>
         ImplementingMember = 256
     }

@@ -8,8 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.InheritanceMargin.Finders;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             foreach (var (symbolKey, lineNumber) in symbolKeyAndLineNumbers)
             {
                 var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
                     await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
@@ -94,58 +93,46 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
             Solution solution,
-            INamedTypeSymbol memberSymbol,
+            INamedTypeSymbol namedTypeSymbol,
             int lineNumber,
             ArrayBuilder<SerializableInheritanceMarginItem> builder,
             CancellationToken cancellationToken)
         {
-            // Get all base types.
-            var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
+            var (baseTypeSymbolGroups, baseInterfaceSymbolGroups) = await BaseTypeSymbolsFinder.Instance
+                .GetBaseTypeAndBaseInterfaceSymbolGroupsAsync(
+                    namedTypeSymbol, solution, cancellationToken).ConfigureAwait(false);
 
-            // Filter out
-            // 1. System.Object. (otherwise margin would be shown for all classes)
-            // 2. System.ValueType. (otherwise margin would be shown for all structs)
-            // 3. System.Enum. (otherwise margin would be shown for all enum)
-            // 4. Error type.
-            // For example, if user has code like this,
-            // class Bar : ISomethingIsNotDone { }
-            // The interface has not been declared yet, so don't show this error type to user.
-            var baseSymbols = allBaseSymbols
-                .WhereAsArray(symbol => !symbol.IsErrorType() && symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
-
-            // Get all derived types
-            var allDerivedSymbols = await GetDerivedTypesAndImplementationsAsync(
+            var derivedTypeSymbolGroups = await DerivedTypeSymbolsFinder.Instance.GetDerivedTypeSymbolGroupsAsync(
+                namedTypeSymbol,
                 solution,
-                memberSymbol,
                 cancellationToken).ConfigureAwait(false);
 
-            // Ensure the user won't be able to see symbol outside the solution for derived symbols.
-            // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
-            // the user all the derived types under System.Collections
-            var derivedSymbols = allDerivedSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
-
-            if (baseSymbols.Any() || derivedSymbols.Any())
+            if (namedTypeSymbol.TypeKind == TypeKind.Interface)
             {
-                if (memberSymbol.TypeKind == TypeKind.Interface)
+                if (baseInterfaceSymbolGroups.Any() || derivedTypeSymbolGroups.Any())
                 {
                     var item = await CreateInheritanceMemberItemForInterfaceAsync(
                         solution,
-                        memberSymbol,
+                        namedTypeSymbol,
                         lineNumber,
-                        baseSymbols: baseSymbols.CastArray<ISymbol>(),
-                        derivedTypesSymbols: derivedSymbols.CastArray<ISymbol>(),
+                        baseSymbolGroups: baseInterfaceSymbolGroups,
+                        derivedTypesSymbolGroups: derivedTypeSymbolGroups,
                         cancellationToken).ConfigureAwait(false);
                     builder.AddIfNotNull(item);
                 }
-                else
+            }
+            else
+            {
+                Debug.Assert(namedTypeSymbol.TypeKind is TypeKind.Class or TypeKind.Struct);
+                if (baseTypeSymbolGroups.Any() || baseInterfaceSymbolGroups.Any() || derivedTypeSymbolGroups.Any())
                 {
-                    Debug.Assert(memberSymbol.TypeKind is TypeKind.Class or TypeKind.Struct);
                     var item = await CreateInheritanceItemForClassAndStructureAsync(
                         solution,
-                        memberSymbol,
+                        namedTypeSymbol,
                         lineNumber,
-                        baseSymbols: baseSymbols.CastArray<ISymbol>(),
-                        derivedTypesSymbols: derivedSymbols.CastArray<ISymbol>(),
+                        baseTypeSymbolGroups: baseTypeSymbolGroups,
+                        implementedInterfacesSymbolGroups: baseInterfaceSymbolGroups,
+                        derivedTypesSymbolGroups: derivedTypeSymbolGroups,
                         cancellationToken).ConfigureAwait(false);
                     builder.AddIfNotNull(item);
                 }
@@ -162,19 +149,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (memberSymbol.ContainingSymbol.IsInterfaceType())
             {
                 // Go down the inheritance chain to find all the implementing targets.
-                var allImplementingSymbols = await GetImplementingSymbolsForTypeMemberAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
-
-                // For all implementing symbols, make sure it is in source.
-                // For example, if the user is viewing IEnumerable from metadata,
-                // then don't show the derived overriden & implemented types in System.Collections
-                var implementingSymbols = allImplementingSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
-
-                if (implementingSymbols.Any())
+                var implementingSymbolGroups = await ImplementingSymbolsFinder.Instance.GetImplementingSymbolsGroupAsync(memberSymbol, solution, cancellationToken).ConfigureAwait(false);
+                if (implementingSymbolGroups.Any())
                 {
                     var item = await CreateInheritanceMemberItemForInterfaceMemberAsync(solution,
                         memberSymbol,
                         lineNumber,
-                        implementingMembers: implementingSymbols,
+                        implementingMembers: implementingSymbolGroups,
                         cancellationToken).ConfigureAwait(false);
                     builder.AddIfNotNull(item);
                 }
@@ -182,27 +163,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             else
             {
                 // Go down the inheritance chain to find all the overriding targets.
-                var allOverridingSymbols = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var overridingSymbolGroups = await OverridingSymbolsFinder.Instance.GetOverridingSymbolsGroupAsync(memberSymbol, solution, cancellationToken).ConfigureAwait(false);
 
-                // Go up the inheritance chain to find all overridden targets
-                var overriddenSymbols = GetOverriddenSymbols(memberSymbol);
-
-                // Go up the inheritance chain to find all the implemented targets.
-                var implementedSymbols = GetImplementedSymbolsForTypeMember(memberSymbol, overriddenSymbols);
-
-                // For all overriding symbols, make sure it is in source.
-                // For example, if the user is viewing System.Threading.SynchronizationContext from metadata,
-                // then don't show the derived overriden & implemented method in the default implementation for System.Threading.SynchronizationContext in metadata
-                var overridingSymbols = allOverridingSymbols.WhereAsArray(symbol => symbol.Locations.Any(l => l.IsInSource));
-
-                if (overridingSymbols.Any() || overriddenSymbols.Any() || implementedSymbols.Any())
+                // Go up the inheritance chain to find all overridden targets & implemented targets.
+                var (implementedSymbolGroups, overriddenSymbolGroups) = await ImplementedSymbolAndOverriddenSymbolsFinder.Instance
+                    .GetImplementedSymbolAndOverrriddenSymbolGroupsAsync(memberSymbol, solution, cancellationToken).ConfigureAwait(false);
+                if (overridingSymbolGroups.Any() || overriddenSymbolGroups.Any() || implementedSymbolGroups.Any())
                 {
                     var item = await CreateInheritanceMemberItemForClassOrStructMemberAsync(solution,
                         memberSymbol,
                         lineNumber,
-                        implementedMembers: implementedSymbols,
-                        overridingMembers: overridingSymbols,
-                        overriddenMembers: overriddenSymbols,
+                        implementedMemberSymbolGroups: implementedSymbolGroups,
+                        overridingMemberSymbolGroups: overridingSymbolGroups,
+                        overriddenMemberSymbolGroups: overriddenSymbolGroups,
                         cancellationToken).ConfigureAwait(false);
                     builder.AddIfNotNull(item);
                 }
@@ -213,27 +186,23 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Solution solution,
             INamedTypeSymbol interfaceSymbol,
             int lineNumber,
-            ImmutableArray<ISymbol> baseSymbols,
-            ImmutableArray<ISymbol> derivedTypesSymbols,
+            ImmutableArray<SymbolGroup> baseSymbolGroups,
+            ImmutableArray<SymbolGroup> derivedTypesSymbolGroups,
             CancellationToken cancellationToken)
         {
-            var baseSymbolItems = await baseSymbols
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
+            var baseSymbolItems = await baseSymbolGroups
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
                     solution,
-                    symbol,
+                    symbolGroup,
                     InheritanceRelationship.InheritedInterface,
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
 
-            var derivedTypeItems = await derivedTypesSymbols
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
+            var derivedTypeItems = await derivedTypesSymbolGroups
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
-                    symbol,
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(solution,
+                    symbolGroup,
                     InheritanceRelationship.ImplementingType,
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
@@ -249,16 +218,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
-            ImmutableArray<ISymbol> implementingMembers,
+            ImmutableArray<SymbolGroup> implementingMembers,
             CancellationToken cancellationToken)
         {
             var implementedMemberItems = await implementingMembers
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
                     solution,
-                    symbol,
+                    symbolGroup,
                     InheritanceRelationship.ImplementingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
@@ -273,28 +240,33 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
-            ImmutableArray<ISymbol> baseSymbols,
-            ImmutableArray<ISymbol> derivedTypesSymbols,
+            ImmutableArray<SymbolGroup> baseTypeSymbolGroups,
+            ImmutableArray<SymbolGroup> implementedInterfacesSymbolGroups,
+            ImmutableArray<SymbolGroup> derivedTypesSymbolGroups,
             CancellationToken cancellationToken)
         {
             // If the target is an interface, it would be shown as 'Inherited interface',
-            // and if it is an class/struct, it whould be shown as 'Base Type'
-            var baseSymbolItems = await baseSymbols
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
+            // and if it is an class/struct, it would be shown as 'Base Type'
+            var baseTypeItems = await baseTypeSymbolGroups
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
                     solution,
-                    symbol,
-                    symbol.IsInterfaceType() ? InheritanceRelationship.ImplementedInterface : InheritanceRelationship.BaseType,
+                    symbolGroup,
+                    InheritanceRelationship.BaseType,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            var derivedTypeItems = await derivedTypesSymbols
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
+            var implementedInterfaces = await implementedInterfacesSymbolGroups
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
-                    symbol,
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
+                    solution,
+                    symbolGroup,
+                    InheritanceRelationship.ImplementedInterface,
+                    cancellationToken), cancellationToken).ConfigureAwait(false);
+
+            var derivedTypeItems = await derivedTypesSymbolGroups
+                .Distinct()
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(solution,
+                    symbolGroup,
                     InheritanceRelationship.DerivedType,
                     cancellationToken), cancellationToken)
                 .ConfigureAwait(false);
@@ -303,45 +275,39 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 lineNumber,
                 FindUsagesHelpers.GetDisplayParts(memberSymbol),
                 memberSymbol.GetGlyph(),
-                baseSymbolItems.Concat(derivedTypeItems));
+                baseTypeItems.Concat(implementedInterfaces).Concat(derivedTypeItems));
         }
 
         private static async ValueTask<SerializableInheritanceMarginItem> CreateInheritanceMemberItemForClassOrStructMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
-            ImmutableArray<ISymbol> implementedMembers,
-            ImmutableArray<ISymbol> overridingMembers,
-            ImmutableArray<ISymbol> overriddenMembers,
+            ImmutableArray<SymbolGroup> implementedMemberSymbolGroups,
+            ImmutableArray<SymbolGroup> overridingMemberSymbolGroups,
+            ImmutableArray<SymbolGroup> overriddenMemberSymbolGroups,
             CancellationToken cancellationToken)
         {
-            var implementedMemberItems = await implementedMembers
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
+            var implementedMemberItems = await implementedMemberSymbolGroups
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
                     solution,
-                    symbol,
+                    symbolGroup,
                     InheritanceRelationship.ImplementedMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            var overridenMemberItems = await overriddenMembers
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
+            var overridenMemberItems = await overriddenMemberSymbolGroups
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
                     solution,
-                    symbol,
+                    symbolGroup,
                     InheritanceRelationship.OverriddenMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
-            var overridingMemberItems = await overridingMembers
-                .SelectAsArray(symbol => symbol.OriginalDefinition)
-                .WhereAsArray(IsNavigableSymbol)
+            var overridingMemberItems = await overridingMemberSymbolGroups
                 .Distinct()
-                .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
+                .SelectAsArrayAsync((symbolGroup, _) => CreateInheritanceItemAsync(
                     solution,
-                    symbol,
+                    symbolGroup,
                     InheritanceRelationship.OverridingMember,
                     cancellationToken), cancellationToken).ConfigureAwait(false);
 
@@ -354,10 +320,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         private static async ValueTask<SerializableInheritanceTargetItem> CreateInheritanceItemAsync(
             Solution solution,
-            ISymbol targetSymbol,
+            SymbolGroup symbolGroup,
             InheritanceRelationship inheritanceRelationship,
             CancellationToken cancellationToken)
         {
+            var targetSymbol = symbolGroup.Symbols.First();
             var symbolInSource = await SymbolFinder.FindSourceDefinitionAsync(targetSymbol, solution, cancellationToken).ConfigureAwait(false);
             targetSymbol = symbolInSource ?? targetSymbol;
 
