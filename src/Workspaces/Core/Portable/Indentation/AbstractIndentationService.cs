@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Indentation
         }
 
         public IndentationResult GetIndentation(
-            Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
+            Document document, int lineNumber,
+            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
-            var indenter = GetIndenter(document, lineNumber, options, cancellationToken);
-            var indentStyle = options.AutoFormattingOptions.IndentStyle;
+            var indenter = GetIndenter(document, lineNumber, indentStyle, cancellationToken);
 
             if (indentStyle == FormattingOptions.IndentStyle.None)
             {
@@ -51,14 +51,15 @@ namespace Microsoft.CodeAnalysis.Indentation
             return indenter.GetDesiredIndentation(indentStyle) ?? default;
         }
 
-        private Indenter GetIndenter(Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken)
+        private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
+            var options = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var syntacticDoc = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
 
             var sourceText = syntacticDoc.Root.SyntaxTree.GetText(cancellationToken);
             var lineToBeIndented = sourceText.Lines[lineNumber];
 
-            var formattingRules = GetFormattingRules(document, lineToBeIndented.Start, options.AutoFormattingOptions.IndentStyle);
+            var formattingRules = GetFormattingRules(document, lineToBeIndented.Start, indentStyle);
 
             return new Indenter(this, syntacticDoc, formattingRules, options, lineToBeIndented, cancellationToken);
         }
