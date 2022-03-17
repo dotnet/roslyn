@@ -148,5 +148,53 @@ class C
                 Assert.Equal(".", state.GetCaretPoint().BufferPosition.GetChar())
             End Using
         End Function
+
+        Private Shared Async Function VerifyCustomCommitProviderAsync(markupBeforeCommit As String, itemToCommit As String, expectedCodeAfterCommit As String, Optional commitChar As Char? = Nothing) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                    New XElement("Document", markupBeforeCommit.Replace(vbCrLf, vbLf)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                state.SendSelectCompletionItem(itemToCommit)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                Dim expected As String = Nothing
+                Dim cursorPosition As Integer = 0
+                MarkupTestFile.GetPosition(expectedCodeAfterCommit, expected, cursorPosition)
+
+                Assert.Equal(expected, state.SubjectBuffer.CurrentSnapshot.GetText())
+                Assert.Equal(cursorPosition, state.TextView.Caret.Position.BufferPosition.Position)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitBuiltInEnumConversionsAreLifted() As Task
+            ' built-in enum conversions:
+            ' https//docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
+            Await VerifyCustomCommitProviderAsync("
+public enum E { One }
+public class Program
+{
+    public static void Main()
+    {
+        E? e = null;
+        e.$$
+    }
+}
+", "(int?)", "
+public enum E { One }
+public class Program
+{
+    public static void Main()
+    {
+        E? e = null;
+        ((int?)e)$$
+    }
+}
+")
+
+        End Function
     End Class
 End Namespace

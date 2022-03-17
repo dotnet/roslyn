@@ -1199,35 +1199,6 @@ public class Program
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitBuiltInEnumConversionsAreLifted()
-        {
-            // built-in enum conversions:
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
-            await VerifyCustomCommitProviderAsync(@"
-public enum E { One }
-public class Program
-{
-    public static void Main()
-    {
-        E? e = null;
-        e.$$
-    }
-}
-", "int?", @"
-public enum E { One }
-public class Program
-{
-    public static void Main()
-    {
-        E? e = null;
-        ((int?)e)$$
-    }
-}
-");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task ExplicitBuiltInEnumConversionsAreSortedAndComplete()
         {
             // built-in enum conversions:
