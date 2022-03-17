@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var possibleNodes = token.GetAncestor(node => syntaxFacts.IsExpressionStatement(node));
-            
-            var ifStatement = generator.IfStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>(), Array.Empty<SyntaxNode>());
+            var ifStatement = generator.IfStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
             return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
         }
 
         protected override int? GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget)
         {
-            return 0;
+            syntaxFacts.GetPartsOfIfStatement(caretTarget, out var openParen, out _, out _, out _);
+            return openParen.Span.End;
         }
 
         protected override async Task<SyntaxNode> AnnotateNodesToReformatAsync(Document document,
@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.Snippets
         private static SyntaxNode? GetIfExpressionStatement(ISyntaxFactsService syntaxFacts, SyntaxNode root, int position)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
-            var nearestExpressionStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsExpressionStatement);
-            if (nearestExpressionStatement is null)
+            var nearestStatement = closestNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+            if (nearestStatement is null)
             {
                 return null;
             }
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Snippets
             // Checking to see if that expression statement that we found is
             // starting at the same position as the position we inserted
             // the Console WriteLine expression statement.
-            if (nearestExpressionStatement.SpanStart != position)
+            if (nearestStatement.SpanStart != position)
             {
                 return null;
             }
 
-            return nearestExpressionStatement;
+            return nearestStatement;
         }
     }
 }

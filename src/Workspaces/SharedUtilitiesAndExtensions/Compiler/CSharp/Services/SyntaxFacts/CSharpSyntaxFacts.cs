@@ -1680,6 +1680,15 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             whenFalse = conditionalExpression.WhenFalse;
         }
 
+        public void GetPartsOfIfStatement(SyntaxNode node, out SyntaxToken openParen, out SyntaxNode condition, out SyntaxToken closeParen, out SyntaxNode statement)
+        {
+            var ifStatement = (IfStatementSyntax)node;
+            openParen = ifStatement.OpenParenToken;
+            condition = ifStatement.Condition;
+            closeParen = ifStatement.CloseParenToken;
+            statement = ifStatement.Statement;
+        }
+
         public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode? argumentList)
         {
             var invocation = (InvocationExpressionSyntax)node;

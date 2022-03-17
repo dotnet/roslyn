@@ -1895,6 +1895,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             whenFalse = conditionalExpression.WhenFalse
         End Sub
 
+        Public Sub GetPartsOfIfStatement(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef condition As SyntaxNode, ByRef closeParen As SyntaxToken, ByRef statement As SyntaxNode) Implements ISyntaxFacts.GetPartsOfIfStatement
+            Throw ExceptionUtilities.Unreachable
+        End Sub
+
         Public Sub GetPartsOfInvocationExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef argumentList As SyntaxNode) Implements ISyntaxFacts.GetPartsOfInvocationExpression
             Dim invocation = DirectCast(node, InvocationExpressionSyntax)
             expression = invocation.Expression
@@ -1978,7 +1982,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
             Return initializer.Initializer.Initializers
         End Function
-
 #End Region
     End Class
 End Namespace

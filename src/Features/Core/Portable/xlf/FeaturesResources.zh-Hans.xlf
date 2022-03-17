@@ -960,6 +960,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">内联并保留“{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="Insert_an_if_statement">
+        <source>Insert an if statement</source>
+        <target state="new">Insert an if statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Insufficient_hexadecimal_digits">
         <source>Insufficient hexadecimal digits</source>
         <target state="translated">无效的十六进制数字</target>
