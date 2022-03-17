@@ -25,5 +25,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         public WorkspaceConfigurationOptions Options
             => _lazyOptions ??= _globalOptions.GetWorkspaceConfigurationOptions();
+
+        internal void Clear()
+            => _lazyOptions = null;
     }
 }
