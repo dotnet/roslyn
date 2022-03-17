@@ -30,13 +30,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IGlobalOptionService _globalOptions;
 
         protected AbstractDocumentationCommentCommandHandler(
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             Contract.ThrowIfNull(uiThreadOperationExecutor);
             Contract.ThrowIfNull(undoHistoryRegistry);
@@ -45,7 +43,6 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _globalOptions = globalOptions;
         }
 
         protected abstract string ExteriorTriviaText { get; }
@@ -73,7 +70,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + snippet.CaretOffset));
         }
 
-        private bool CompleteComment(
+        private static bool CompleteComment(
             ITextBuffer subjectBuffer,
             ITextView textView,
             Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
@@ -95,7 +92,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var options = _globalOptions.GetDocumentationCommentOptions(documentOptions);
+            var options = DocumentationCommentOptions.From(documentOptions);
 
             // Apply snippet in reverse order so that the first applied snippet doesn't affect span of next snippets.
             var snapshots = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer).OrderByDescending(s => s.Span.Start);
@@ -338,7 +335,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-            var options = _globalOptions.GetDocumentationCommentOptions(documentOptions);
+            var options = DocumentationCommentOptions.From(documentOptions);
 
             var snippet = service.GetDocumentationCommentSnippetFromPreviousLine(options, currentLine, previousLine);
             if (snippet != null)

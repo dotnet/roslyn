@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(options.FormattingOptions.NewLine));
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(options.NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
@@ -89,26 +88,19 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
             {
-                var newLine = Options.FormattingOptions.NewLine;
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), Options.NewLine));
                 newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + Options.NewLine.Length, newSourceText.Length), ""));
                 var newDocument = OriginalDocument.WithText(newSourceText);
-
-                // The only auto-formatting option that's relevant is indent style. Others only control behavior on typing.
-                var indentationOptions = new IndentationOptions(
-                    Options.FormattingOptions,
-                    new AutoFormattingOptions(
-                        IndentStyle: indentStyle));
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
                 var desiredIndentation = indentationService.GetIndentation(
                     newDocument, originalLineNumber + 1,
-                    indentationOptions,
+                    indentStyle,
                     CancellationToken);
 
-                return desiredIndentation.GetIndentationString(newSourceText, Options.FormattingOptions.UseTabs, Options.FormattingOptions.TabSize);
+                return desiredIndentation.GetIndentationString(newSourceText, Options.UseTabs, Options.TabSize);
             }
 
             /// <summary>

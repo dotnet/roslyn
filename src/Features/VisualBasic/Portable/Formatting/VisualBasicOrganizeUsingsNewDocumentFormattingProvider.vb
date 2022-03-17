@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Function FormatNewDocumentAsync(document As Document, hintDocument As Document, options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements INewDocumentFormattingProvider.FormatNewDocumentAsync
+        Public Function FormatNewDocumentAsync(document As Document, hintDocument As Document, cancellationToken As CancellationToken) As Task(Of Document) Implements INewDocumentFormattingProvider.FormatNewDocumentAsync
             Return Formatter.OrganizeImportsAsync(document, cancellationToken)
         End Function
     End Class

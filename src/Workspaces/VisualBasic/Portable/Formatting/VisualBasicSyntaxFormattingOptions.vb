@@ -2,13 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Runtime.Serialization
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <DataContract>
     Friend NotInheritable Class VisualBasicSyntaxFormattingOptions
         Inherits SyntaxFormattingOptions
 
@@ -39,15 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 indentationSize:=options.GetOption(FormattingOptions2.IndentationSize),
                 newLine:=options.GetOption(FormattingOptions2.NewLine),
                 separateImportDirectiveGroups:=options.GetOption(GenerationOptions.SeparateImportDirectiveGroups))
-        End Function
-
-        Public Overrides Function [With](useTabs As Boolean, tabSize As Integer, indentationSize As Integer) As SyntaxFormattingOptions
-            Return New VisualBasicSyntaxFormattingOptions(
-                useTabs:=useTabs,
-                tabSize:=tabSize,
-                indentationSize:=indentationSize,
-                newLine:=NewLine,
-                separateImportDirectiveGroups:=SeparateImportDirectiveGroups)
         End Function
     End Class
 End Namespace

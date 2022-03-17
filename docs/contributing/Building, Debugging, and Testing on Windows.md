@@ -175,6 +175,10 @@ under `AppData`, not from `Program File`).
     - add `<RestoreAdditionalProjectSources><PATH-TO-YOUR-ROSLYN-ENLISTMENT>\artifacts\packages\Debug\Shipping\</RestoreAdditionalProjectSources>` using the local path to your `roslyn` repo to `Directory.Build.props`
     - add `<UsingToolMicrosoftNetCompilers>true</UsingToolMicrosoftNetCompilers>` and `<MicrosoftNetCompilersToolsetVersion>4.1.0-dev</MicrosoftNetCompilersToolsetVersion>` with the package version you just packed (look in above artifacts folder) to `eng/Versions.props`
 
+### Testing a VS insertion
+
+See internal documentation for that process [here](https://microsoft.sharepoint.com/teams/managedlanguages/_layouts/OneNote.aspx?id=%2Fteams%2Fmanagedlanguages%2Ffiles%2FTeam%20Notebook%2FRoslyn%20Team%20Notebook%20-%20New&wd=target%28Infrastructure.one%7C0E3C75FE-0827-41BF-9696-F5CD7105BC9A%2FRun%20RPS%20against%20Roslyn%20PR%7C7A74A1E4-1507-41BC-84F1-F9159C853177%2F%29).
+
 ### Testing with extra IOperation validation
 
 Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environment variable to `true` and runs the tests.
