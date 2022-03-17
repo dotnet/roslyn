@@ -157,16 +157,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     {
                         if (_cache[i].tagSpan is not { } hintTagSpan)
                         {
-                            var hint = _cache[i].mappingTagSpan.Tag.Hint;
-
-                            ITrackingSpan? trackingSpan = null;
-                            if (hint.ReplacementTextChange is not null)
-                            {
-                                trackingSpan = tagSpan.Snapshot.CreateTrackingSpan(hint.ReplacementTextChange.Value.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            }
-
                             var hintUITag = InlineHintsTag.Create(
-                                    hint, Format, _textView, tagSpan, trackingSpan, _taggerProvider, _formatMap, classify);
+                                    _cache[i].mappingTagSpan.Tag.Hint, Format, _textView, tagSpan, _taggerProvider, _formatMap, classify);
 
                             hintTagSpan = new TagSpan<IntraTextAdornmentTag>(tagSpan, hintUITag);
                             _cache[i] = (_cache[i].mappingTagSpan, hintTagSpan);

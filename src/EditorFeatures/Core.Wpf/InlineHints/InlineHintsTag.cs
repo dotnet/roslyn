@@ -39,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
 
         private readonly ITextView _textView;
         private readonly SnapshotSpan _span;
-        private readonly ITrackingSpan? _trackingSpan;
         private readonly InlineHint _hint;
         private readonly InlineHintsTaggerProvider _taggerProvider;
 
@@ -47,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             FrameworkElement adornment,
             ITextView textView,
             SnapshotSpan span,
-            ITrackingSpan? trackingSpan,
             InlineHint hint,
             InlineHintsTaggerProvider taggerProvider)
             : base(adornment,
@@ -56,7 +54,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         {
             _textView = textView;
             _span = span;
-            _trackingSpan = trackingSpan;
             _hint = hint;
             _taggerProvider = taggerProvider;
 
@@ -66,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             adornment.ToolTip = "Quick info";
             adornment.ToolTipOpening += Border_ToolTipOpening;
 
-            if (_hint.ReplacementTextChange is not null && _trackingSpan is not null)
+            if (_hint.ReplacementTextChange is not null)
             {
                 adornment.MouseLeftButtonDown += Adornment_MouseLeftButtonDown;
             }
@@ -83,14 +80,13 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             TextFormattingRunProperties format,
             IWpfTextView textView,
             SnapshotSpan span,
-            ITrackingSpan? trackingSpan,
             InlineHintsTaggerProvider taggerProvider,
             IClassificationFormatMap formatMap,
             bool classify)
         {
             return new InlineHintsTag(
                 CreateElement(hint.DisplayParts, textView, format, formatMap, taggerProvider.TypeMap, classify),
-                textView, span, trackingSpan, hint, taggerProvider);
+                textView, span, hint, taggerProvider);
         }
 
         public async Task<IReadOnlyCollection<object>> CreateDescriptionAsync(CancellationToken cancellationToken)
@@ -273,16 +269,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var replacementValue = _hint.ReplacementTextChange!.Value;
                 var subjectBuffer = _span.Snapshot.TextBuffer;
 
-                var updatedSpan = _trackingSpan!.GetSpan(subjectBuffer.CurrentSnapshot);
-                if (subjectBuffer.CurrentSnapshot.Length > updatedSpan.Span.End)
-                {
-                    subjectBuffer.Replace(updatedSpan.Span, replacementValue.NewText);
-                }
-                else
-                {
-                    Logger.Log(FunctionId.Inline_Hints_DoubleClick,
-                        $"replacement span end:{replacementValue.Span.End} is greater than or equal to current snapshot length:{subjectBuffer.CurrentSnapshot.Length}");
-                }
+                var currentSnapshotSpan = _span.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+                subjectBuffer.Replace(currentSnapshotSpan.Span, replacementValue.NewText);
             }
         }
     }
