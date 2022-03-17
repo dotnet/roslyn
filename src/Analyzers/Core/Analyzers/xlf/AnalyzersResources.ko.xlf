@@ -33,7 +33,7 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
+        <source>Add 'this' or 'Me' qualification</source>
         <target state="translated">this' 또는 'Me' 한정자를 추가합니다.</target>
         <note />
       </trans-unit>

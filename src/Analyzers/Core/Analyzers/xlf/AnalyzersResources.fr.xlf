@@ -33,7 +33,7 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_this_or_Me_qualification">
-        <source>Add 'this' or 'Me' qualification.</source>
+        <source>Add 'this' or 'Me' qualification</source>
         <target state="translated">Ajoutez la qualification 'this' ou 'Me'.</target>
         <note />
       </trans-unit>
