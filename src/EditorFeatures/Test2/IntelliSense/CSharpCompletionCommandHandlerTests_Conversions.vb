@@ -638,5 +638,76 @@ namespace N
 }}
 ")
         End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <InlineData("white.$$", "Black", "((Black)white)$$")>
+        <InlineData("white.$$;", "Black", "((Black)white)$$;")>
+        <InlineData("white.Bl$$", "Black", "((Black)white)$$")>
+        <InlineData("white.Bl$$;", "Black", "((Black)white)$$;")>
+        <InlineData("white?.Bl$$;", "Black", "((Black)white)?$$;")>
+        <InlineData("white.$$Bl;", "Black", "((Black)white)$$Bl;")>
+        <InlineData("var f = white.$$;", "Black", "var f = ((Black)white)$$;")>
+        <InlineData("white?.$$", "Black", "((Black)white)?$$")>
+        <InlineData("white?.$$b", "Black", "((Black)white)?$$b")>
+        <InlineData("white?.$$b.c()", "Black", "((Black)white)?$$b.c()")>
+        <InlineData("white?.$$b()", "Black", "((Black)white)?$$b()")>
+        <InlineData("white.Black?.$$", "White", "((White)white.Black)?$$")>
+        <InlineData("white.Black.$$", "White", "((White)white.Black)$$")>
+        <InlineData("white?.Black?.$$", "White", "((White)white?.Black)?$$")>
+        <InlineData("white?.Black?.fl$$", "White", "((White)white?.Black)?$$")>
+        <InlineData("white?.Black.fl$$", "White", "((White)white?.Black)$$")>
+        <InlineData("white?.Black.White.Bl$$ack?.White", "Black", "((Black)white?.Black.White)$$?.White")>
+        <InlineData("((White)white).$$", "Black", "((Black)((White)white))$$")>
+        <InlineData("(true ? white : white).$$", "Black", "((Black)(true ? white : white))$$")>
+        Public Async Function ExplicitUserDefinedConversionIsAppliedForDifferentExpressions(expression As String, conversionOffering As String, fixedCode As String) As Task
+            Await VerifyCustomCommitProviderAsync($"
+namespace N
+{{
+    public class Black
+    {{
+        public White White {{ get; }}
+        public static explicit operator White(Black _) => new White();
+    }}
+    public class White
+    {{
+        public Black Black {{ get; }}
+        public static explicit operator Black(White _) => new Black();
+    }}
+    
+    public class Program
+    {{
+        public static void Main()
+        {{
+            var white = new White();
+            {expression}
+        }}
+    }}
+}}
+", $"({conversionOffering})", $"
+namespace N
+{{
+    public class Black
+    {{
+        public White White {{ get; }}
+        public static explicit operator White(Black _) => new White();
+    }}
+    public class White
+    {{
+        public Black Black {{ get; }}
+        public static explicit operator Black(White _) => new Black();
+    }}
+    
+    public class Program
+    {{
+        public static void Main()
+        {{
+            var white = new White();
+            {fixedCode}
+        }}
+    }}
+}}
+")
+        End Function
     End Class
 End Namespace
