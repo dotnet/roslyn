@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,6 +15,12 @@ namespace Microsoft.CodeAnalysis.Snippets
     internal readonly struct SnippetChange
     {
         /// <summary>
+        /// The primary text change.
+        /// This will be the change that has associated renaming and tab stops.
+        /// </summary>
+        public readonly TextChange? MainTextChange;
+
+        /// <summary>
         /// The TextChange's associated with introducing a snippet into a document
         /// </summary>
         public readonly ImmutableArray<TextChange> TextChanges;
@@ -23,15 +30,20 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public readonly int? CursorPosition;
 
+        public readonly Dictionary<string, List<TextSpan>> RenameAndLocationsMap;
+
         public SnippetChange(
+            TextChange? mainTextChange,
             ImmutableArray<TextChange> textChanges,
-            int? cursorPosition)
+            int? cursorPosition
+            Dictionary<string, List<TextSpan>>)
         {
-            if (textChanges.IsEmpty)
+            if (textChanges.IsEmpty || mainTextChange is null)
             {
                 throw new ArgumentException($"{ textChanges.Length } must not be empty");
             }
 
+            MainTextChange = mainTextChange;
             TextChanges = textChanges;
             CursorPosition = cursorPosition;
         }

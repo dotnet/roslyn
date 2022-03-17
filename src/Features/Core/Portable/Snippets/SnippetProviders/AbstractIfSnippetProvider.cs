@@ -33,20 +33,15 @@ namespace Microsoft.CodeAnalysis.Snippets
             return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
         }
 
-        protected override async Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<TextChange>> GenerateSnippetTextChangesAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var snippetTextChange = await GenerateSnippetTextChangeAsync(document, position, cancellationToken).ConfigureAwait(false);
-            return ImmutableArray.Create(snippetTextChange);
+            var snippetTextChange = GenerateSnippetTextChange(document, position);
+            return Task.FromResult(ImmutableArray.Create(snippetTextChange));
         }
 
-        private static async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
+        private static TextChange GenerateSnippetTextChange(Document document, int position)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var possibleNodes = token.GetAncestor(node => syntaxFacts.IsExpressionStatement(node));
             var ifStatement = generator.IfStatement(generator.TrueLiteralExpression(), Array.Empty<SyntaxNode>());
             return new TextChange(TextSpan.FromBounds(position, position), ifStatement.ToFullString());
         }
@@ -72,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
+        protected override async 
+
         private static SyntaxNode? GetIfExpressionStatement(ISyntaxFactsService syntaxFacts, SyntaxNode root, int position)
         {
             var closestNode = root.FindNode(TextSpan.FromBounds(position, position));
@@ -83,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             // Checking to see if that expression statement that we found is
             // starting at the same position as the position we inserted
-            // the Console WriteLine expression statement.
+            // the if statement.
             if (nearestStatement.SpanStart != position)
             {
                 return null;

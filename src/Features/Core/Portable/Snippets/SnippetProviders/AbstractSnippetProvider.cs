@@ -81,9 +81,12 @@ namespace Microsoft.CodeAnalysis.Snippets
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var mainChange = changes.Where(x => x.Span.Start == position).FirstOrDefault();
             return new SnippetChange(
+                mainTextChange: mainChange,
                 textChanges: changes.ToImmutableArray(),
-                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget));
+                cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
+                );
         }
 
         private async Task<Document> CleanupDocumentAsync(
