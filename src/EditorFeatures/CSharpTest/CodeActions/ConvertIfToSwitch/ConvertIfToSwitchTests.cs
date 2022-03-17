@@ -2671,6 +2671,29 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingExpressionOnImplicitCastInRelationalPattern()
+        {
+            var source =
+@"class C
+{
+    int M(char c)
+    {
+        $$if (c >= 128 || c == 'a')
+            return 1;
+        else
+            return 2;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         public async Task TestMissingOnImplicitCastInRangePattern()
         {
             var source =
