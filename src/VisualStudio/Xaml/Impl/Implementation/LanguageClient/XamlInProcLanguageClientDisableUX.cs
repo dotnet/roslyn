@@ -40,8 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            IThreadingContext threadingContext,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
+            : base(xamlDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, defaultCapabilitiesProvider, diagnosticsClientName: null)
         {
         }
 

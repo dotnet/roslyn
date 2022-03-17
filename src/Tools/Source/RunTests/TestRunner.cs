@@ -170,8 +170,10 @@ namespace RunTests
                 var knownEnvironmentVariables = new[] { "ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_USEDASSEMBLIES" };
                 foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
                 {
-                    if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string iop)
-                        command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}={iop}");
+                    if (string.Equals(Environment.GetEnvironmentVariable(knownEnvironmentVariable), "true", StringComparison.OrdinalIgnoreCase))
+                    {
+                        command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=true");
+                    }
                 }
 
                 command.AppendLine($"dotnet {commandLineArguments}");
