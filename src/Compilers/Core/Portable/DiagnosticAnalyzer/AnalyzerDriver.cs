@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSourceOrByAnalyzers(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
             diagnostics = FilterDiagnosticsSuppressedInSource(diagnostics, compilation, CurrentCompilationData.SuppressMessageAttributeState);
-            return ApplyProgrammaticSuppressions(diagnostics, compilation);
+            return ApplyProgrammaticSuppressionsAndFilterDiagnostics(diagnostics, compilation);
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSource(
@@ -1100,6 +1100,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+        }
+
+        internal ImmutableArray<Diagnostic> ApplyProgrammaticSuppressionsAndFilterDiagnostics(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation)
+        {
+            if (reportedDiagnostics.IsEmpty)
+            {
+                return reportedDiagnostics;
+            }
+
+            var diagnostics = ApplyProgrammaticSuppressions(reportedDiagnostics, compilation);
+            if (compilation.Options.ReportSuppressedDiagnostics || diagnostics.All(d => !d.IsSuppressed))
+            {
+                return diagnostics;
+            }
+
+            return diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
         private bool IsInGeneratedCode(Location location, Compilation compilation, CancellationToken cancellationToken)
@@ -2697,12 +2713,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return GetOperationsToAnalyze(operationBlocksToAnalyze);
                 }
-#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
-                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportIfNonFatalAndCatchUnlessCanceled(ex, cancellationToken))
-#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
+                catch (Exception ex) when (ex is InsufficientExecutionStackException)
                 {
-                    // the exception filter will short-circuit if `ex` is `InsufficientExecutionStackException` (from OperationWalker)
-                    // and no non-fatal-watson will be logged as a result.
                     var diagnostic = AnalyzerExecutor.CreateDriverExceptionDiagnostic(ex);
                     var analyzer = this.Analyzers[0];
 
@@ -2867,12 +2879,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Func<SyntaxNode, bool>? additionalFilter = semanticModel.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-
             bool shouldAddNode(SyntaxNode node) => (descendantDeclsToSkip == null || !descendantDeclsToSkip.Contains(node)) && (additionalFilter is null || additionalFilter(node));
             var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
                 if (shouldAddNode(node) &&
+                    !semanticModel.ShouldSkipSyntaxNodeAnalysis(node, declaredSymbol) &&
                     (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
                 {
                     nodeBuilder.Add(node);

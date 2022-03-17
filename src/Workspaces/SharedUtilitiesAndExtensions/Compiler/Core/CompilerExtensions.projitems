@@ -14,6 +14,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="InternalUtilities\Debug.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumerableExtensions.cs" Link="InternalUtilities\EnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="InternalUtilities\ExceptionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\IReadOnlySet.cs" Link="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\KeyValuePairUtil.cs" Link="InternalUtilities\KeyValuePairUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="InternalUtilities\NonCopyableAttribute.cs" />
@@ -251,7 +253,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LinkedListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LocationExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParenthesizedExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\CustomDataFlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\DataFlowAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\FlowCaptureKind.cs" />
@@ -335,7 +336,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\AbstractUnnecessaryImportsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\EmptyLogBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\FunctionId.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Log\FunctionIdOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\Logger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Log\LogLevel.cs" />
@@ -376,6 +376,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\RoamingProfileStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\AbstractSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ForEachSymbols.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\ISemanticFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\AbstractDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\AbstractFileBannerFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\AbstractHeaderFacts.cs" />
@@ -445,6 +446,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ComparerWithState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />

@@ -1,3 +1,15 @@
+trigger:
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/dev16.*-vs-deps
+    - release/dev17.*
+    exclude:
+    - release/dev17.0
+    - release/dev17.1
+pr: none
+
 resources:
 - repo: self
   clean: true
@@ -71,11 +83,11 @@ stages:
     demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
   jobs:
-  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.1-vs-deps') }}:
+  - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.2') }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         MirrorRepo: roslyn
-        MirrorBranch: release/dev17.1-vs-deps
+        MirrorBranch: release/dev17.2
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -122,7 +134,7 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -180,6 +192,8 @@ stages:
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
       condition: succeeded()
+      
+    - template: eng\common\templates\steps\generate-sbom.yml
 
     - task: PowerShell@2
       displayName: Publish Assets
@@ -296,7 +310,8 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        vmImage: windows-2019
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
 - stage: insert
   dependsOn:
@@ -307,7 +322,8 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
     - powershell: |
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)

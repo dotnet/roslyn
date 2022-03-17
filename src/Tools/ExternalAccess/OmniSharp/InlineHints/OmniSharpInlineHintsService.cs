@@ -10,41 +10,40 @@ using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints;
+
+internal static class OmniSharpInlineHintsService
 {
-    internal static class OmniSharpInlineHintsService
+    public static async Task<ImmutableArray<OmniSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, OmniSharpInlineHintsOptions options, CancellationToken cancellationToken)
     {
-        public static async Task<ImmutableArray<OmniSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            var service = document.GetRequiredLanguageService<IInlineHintsService>();
-            var options = InlineHintsOptions.From(document.Project);
+        var service = document.GetRequiredLanguageService<IInlineHintsService>();
+        var roslynOptions = options.ToInlineHintsOptions();
 
-            var hints = await service.GetInlineHintsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-            return hints.SelectAsArray(static h => new OmniSharpInlineHint(
-                h.Span,
-                h.DisplayParts,
-                (document, cancellationToken) => h.GetDescriptionAsync(document, cancellationToken)));
-        }
+        var hints = await service.GetInlineHintsAsync(document, textSpan, roslynOptions, cancellationToken).ConfigureAwait(false);
+        return hints.SelectAsArray(static h => new OmniSharpInlineHint(
+            h.Span,
+            h.DisplayParts,
+            (document, cancellationToken) => h.GetDescriptionAsync(document, cancellationToken)));
+    }
+}
+
+internal readonly struct OmniSharpInlineHint
+{
+    private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>> _getDescriptionAsync;
+
+    public OmniSharpInlineHint(
+        TextSpan span,
+        ImmutableArray<TaggedText> displayParts,
+        Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>> getDescriptionAsync)
+    {
+        Span = span;
+        DisplayParts = displayParts;
+        _getDescriptionAsync = getDescriptionAsync;
     }
 
-    internal readonly struct OmniSharpInlineHint
-    {
-        private readonly Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>> _getDescriptionAsync;
+    public readonly TextSpan Span { get; }
+    public readonly ImmutableArray<TaggedText> DisplayParts { get; }
 
-        public OmniSharpInlineHint(
-            TextSpan span,
-            ImmutableArray<TaggedText> displayParts,
-            Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>> getDescriptionAsync)
-        {
-            Span = span;
-            DisplayParts = displayParts;
-            _getDescriptionAsync = getDescriptionAsync;
-        }
-
-        public readonly TextSpan Span { get; }
-        public readonly ImmutableArray<TaggedText> DisplayParts { get; }
-
-        public Task<ImmutableArray<TaggedText>> GetDescrptionAsync(Document document, CancellationToken cancellationToken)
-            => _getDescriptionAsync.Invoke(document, cancellationToken);
-    }
+    public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
+        => _getDescriptionAsync.Invoke(document, cancellationToken);
 }

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             if (_openedDocumentIds.TryGetValue(fileInfo, out var openDocumentId))
             {
                 // Awesome, it's already open. Let's try to grab a document for it
-                var document = workspace.CurrentSolution.GetDocument(openDocumentId);
+                var document = workspace.CurrentSolution.GetRequiredDocument(openDocumentId);
 
                 return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // Annoying case: the file is still on disk. Only real option here is to spin up a fake project to go and bind in.
             var temporaryProjectInfoAndDocumentId = fileInfo.GetProjectInfoAndDocumentId(workspace, loadFileFromDisk: true);
             var temporaryDocument = workspace.CurrentSolution.AddProject(temporaryProjectInfoAndDocumentId.Item1)
-                                                             .GetDocument(temporaryProjectInfoAndDocumentId.Item2);
+                                                             .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
 
             return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
         }

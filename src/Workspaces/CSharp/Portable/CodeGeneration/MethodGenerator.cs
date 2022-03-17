@@ -157,10 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (methodDeclaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-
                 if (methodDeclaration.Body?.TryConvertToArrowExpressionBody(
-                    methodDeclaration.Kind(), options.Preferences.LanguageVersion, expressionBodyPreference,
+                    methodDeclaration.Kind(), options.Preferences.LanguageVersion, options.Preferences.PreferExpressionBodiedMethods,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return methodDeclaration.WithBody(null)
@@ -177,10 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (localFunctionDeclaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions).Value;
-
                 if (localFunctionDeclaration.Body?.TryConvertToArrowExpressionBody(
-                    localFunctionDeclaration.Kind(), options.Preferences.LanguageVersion, expressionBodyPreference,
+                    localFunctionDeclaration.Kind(), options.Preferences.LanguageVersion, options.Preferences.PreferExpressionBodiedLocalFunctions,
                     out var expressionBody, out var semicolonToken) == true)
                 {
                     return localFunctionDeclaration.WithBody(null)
@@ -315,6 +311,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (CodeGenerationMethodInfo.GetIsPartial(method) && !method.IsAsync)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+                    }
+                }
+                else if (destination is CodeGenerationDestination.CompilationUnit)
+                {
+                    if (method.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }
                 }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 #if DEBUG
 // We use a struct rather than a class to represent the state for efficiency
 // for data flow analysis, with 32 bits of data inline. Merely copying the state
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Some variables that should be considered initially assigned.  Used for region analysis.
         /// </summary>
-        private readonly HashSet<Symbol> initiallyAssignedVariables;
+        private readonly HashSet<Symbol>? initiallyAssignedVariables;
 
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -67,12 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<LocalSymbol> _usedVariables = PooledHashSet<LocalSymbol>.GetInstance();
 
-#nullable enable
         /// <summary>
         /// Parameters of record primary constructors that were read anywhere.
         /// </summary>
         private PooledHashSet<ParameterSymbol>? _readParameters;
-#nullable disable
 
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -105,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The current source assembly.
         /// </summary>
-        private readonly SourceAssemblySymbol _sourceAssembly;
+        private readonly SourceAssemblySymbol? _sourceAssembly;
 
         /// <summary>
         /// A set of address-of expressions for which the operand is not definitely assigned.
         /// </summary>
-        private readonly HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
+        private readonly HashSet<PrefixUnaryExpressionSyntax>? _unassignedVariableAddressOfSyntaxes;
 
         /// <summary>
         /// Tracks variables for which we have already reported a definite assignment error.  This
@@ -136,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The topmost method of this analysis.
         /// </summary>
-        protected MethodSymbol topLevelMethod;
+        protected MethodSymbol? topLevelMethod;
 
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
@@ -151,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             bool strictAnalysis,
             bool trackUnassignments = false,
-            HashSet<PrefixUnaryExpressionSyntax> unassignedVariableAddressOfSyntaxes = null,
+            HashSet<PrefixUnaryExpressionSyntax>? unassignedVariableAddressOfSyntaxes = null,
             bool requireOutParamsAssigned = true,
             bool trackClassFields = false,
             bool trackStaticMembers = false)
@@ -160,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    trackUnassignments)
         {
             this.initiallyAssignedVariables = null;
-            _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
+            _sourceAssembly = GetSourceAssembly(compilation, member, node);
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _requireOutParamsAssigned = requireOutParamsAssigned;
             _trackClassFields = trackClassFields;
@@ -175,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
             bool trackUnassignments = false,
-            HashSet<Symbol> initiallyAssignedVariables = null)
+            HashSet<Symbol>? initiallyAssignedVariables = null)
             : base(compilation, member, node, emptyStructs, trackUnassignments)
         {
             this.initiallyAssignedVariables = initiallyAssignedVariables;
-            _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
+            _sourceAssembly = GetSourceAssembly(compilation, member, node);
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = null;
             _requireOutParamsAssigned = true;
@@ -206,6 +202,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+        }
+
+        private static SourceAssemblySymbol? GetSourceAssembly(
+            CSharpCompilation compilation,
+            Symbol member,
+            BoundNode node)
+        {
+            if (member is null)
+            {
+                return null;
+            }
+            if (node.Kind == BoundKind.Attribute)
+            {
+                // member is the attribute type, not the symbol where the attribute is applied.
+                Debug.Assert(member is TypeSymbol type &&
+                    (type.IsErrorType() || compilation.IsAttributeType(type)));
+                return null;
+            }
+            Debug.Assert((object)member.ContainingAssembly == compilation?.SourceAssembly);
+            return member.ContainingAssembly as SourceAssemblySymbol;
         }
 
         protected override void Free()
@@ -237,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return slot;
         }
 
+#nullable disable
         protected Symbol GetNonMemberSymbol(int slot)
         {
             VariableIdentifier variableId = variableBySlot[slot];

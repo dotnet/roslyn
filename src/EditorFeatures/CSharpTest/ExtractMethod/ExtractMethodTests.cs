@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
-using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -8823,7 +8822,7 @@ struct Goo
             var code = @"int i; [|i = 2|]; i = 3;";
             var expected = @"int i; i = NewMethod();
 
-int NewMethod()
+static int NewMethod()
 {
     return 2;
 }
@@ -9200,7 +9199,7 @@ public static void GetNonVirtualMethod<TDelegate>( Type type, string name)
     var invoke = GetDelegateType(delegateType).GetMethod(""Invoke"");
 }
 
-Type GetDelegateType(Type delegateType)
+static Type GetDelegateType(Type delegateType)
 {
     return delegateType;
 }";
@@ -9554,7 +9553,7 @@ class Program
 }|]";
             var expected = @"NewMethod();
 
-void NewMethod()
+static void NewMethod()
 {
     if (true)
     {
@@ -11249,7 +11248,7 @@ local = [|true|];
             var expected = @"
 bool local;
 
-bool NewMethod()
+static bool NewMethod()
 {
     return true;
 }
@@ -11272,7 +11271,7 @@ System.Console.WriteLine([|""string""|]);
             var expected = @"
 System.Console.WriteLine((string)NewMethod());
 
-string NewMethod()
+static string NewMethod()
 {
     return ""string"";
 }";
@@ -11334,6 +11333,154 @@ class Program {{
     }}
 }}
 ";
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteral_SingleLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = [|""""""Hello world""""""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS();
+    }
+
+    private static string GetS()
+    {
+        return """"""Hello world"""""";
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteralInterpolation_SingleLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = [|$""""""{y}""""""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS(y);
+    }
+
+    private static string GetS(int y)
+    {
+        return $""""""{y}"""""";
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteralInterpolationHole_SingleLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $""""""{[|y|]}"""""";
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $""""""{GetY(y)}"""""";
+    }
+
+    private static int GetY(int y)
+    {
+        return y;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteral_MultiLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = [|""""""
+            Hello world
+            """"""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS();
+    }
+
+    private static string GetS()
+    {
+        return """"""
+            Hello world
+            """""";
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task ExtractRawStringLiteralInterpolation_MultiLine()
+        {
+            var code = @"
+class C
+{
+    void M(int y)
+    {
+        var s = $[|""""""
+            {y}
+            """"""|];
+    }
+}";
+            var expected = @"
+class C
+{
+    void M(int y)
+    {
+        var s = GetS(y);
+    }
+
+    private static string GetS(int y)
+    {
+        return $""""""
+            {y}
+            """""";
+    }
+}";
+
             await TestExtractMethodAsync(code, expected);
         }
     }

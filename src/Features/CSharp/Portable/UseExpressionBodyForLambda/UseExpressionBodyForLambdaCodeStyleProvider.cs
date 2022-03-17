@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 return false;
             }
 
-            var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
+            var languageVersion = declaration.SyntaxTree.Options.LanguageVersion();
             if (expressionBodyOpt.IsKind(SyntaxKind.ThrowExpression) &&
                 languageVersion < LanguageVersion.CSharp7)
             {

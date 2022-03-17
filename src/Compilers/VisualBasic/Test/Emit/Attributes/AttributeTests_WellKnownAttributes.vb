@@ -1585,35 +1585,35 @@ End Class
                 New With {.n = 3, .attr = MakeDllImport(cc:=CallingConvention.StdCall), .expected = MethodImportAttributes.CallingConventionStdCall},
                 New With {.n = 4, .attr = MakeDllImport(cc:=CallingConvention.ThisCall), .expected = MethodImportAttributes.CallingConventionThisCall},
                 New With {.n = 5, .attr = MakeDllImport(cc:=CallingConvention.Winapi), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                                   _
                 New With {.n = 6, .attr = MakeDllImport(), .expected = MethodImportAttributes.CallingConventionWinApi},
                 New With {.n = 7, .attr = MakeDllImport(charSet:=CharSet.None), .expected = MethodImportAttributes.CallingConventionWinApi},
                 New With {.n = 8, .attr = MakeDllImport(charSet:=CharSet.Ansi), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAnsi},
                 New With {.n = 9, .attr = MakeDllImport(charSet:=CharSet.Unicode), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetUnicode},
                 New With {.n = 10, .attr = MakeDllImport(charSet:=CharSet.Auto), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAuto},
- _
+                                                                                                                                                                                   _
                 New With {.n = 11, .attr = MakeDllImport(exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling},
                 New With {.n = 12, .attr = MakeDllImport(exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                            _
                 New With {.n = 13, .attr = MakeDllImport(charSet:=CharSet.Ansi, exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling Or MethodImportAttributes.CharSetAnsi},
                 New With {.n = 14, .attr = MakeDllImport(charSet:=CharSet.Ansi, exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAnsi},
                 New With {.n = 15, .attr = MakeDllImport(charSet:=CharSet.Unicode, exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling Or MethodImportAttributes.CharSetUnicode},
                 New With {.n = 16, .attr = MakeDllImport(charSet:=CharSet.Unicode, exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetUnicode},
                 New With {.n = 17, .attr = MakeDllImport(charSet:=CharSet.Auto, exactSpelling:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ExactSpelling Or MethodImportAttributes.CharSetAuto},
                 New With {.n = 18, .attr = MakeDllImport(charSet:=CharSet.Auto, exactSpelling:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.CharSetAuto},
- _
+                                                                                                                                                                                                         _
                 New With {.n = 19, .attr = MakeDllImport(preserveSig:=True), .expected = MethodImportAttributes.CallingConventionWinApi},
                 New With {.n = 20, .attr = MakeDllImport(preserveSig:=False), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                          _
                 New With {.n = 21, .attr = MakeDllImport(setLastError:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError},
                 New With {.n = 22, .attr = MakeDllImport(setLastError:=False), .expected = MethodImportAttributes.CallingConventionWinApi},
- _
+                                                                                                                                           _
                 New With {.n = 23, .attr = MakeDllImport(bestFitMapping:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.BestFitMappingEnable},
                 New With {.n = 24, .attr = MakeDllImport(bestFitMapping:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.BestFitMappingDisable},
- _
+                                                                                                                                                                                             _
                 New With {.n = 25, .attr = MakeDllImport(throwOnUnmappableChar:=True), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ThrowOnUnmappableCharEnable},
                 New With {.n = 26, .attr = MakeDllImport(throwOnUnmappableChar:=False), .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.ThrowOnUnmappableCharDisable},
- _
+                                                                                                                                                                                                           _
                 New With {.n = 27, .attr = "<DllImport(""bar"", CharSet:=CType(15, CharSet), SetLastError:=True)>", .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError},
                 New With {.n = 28, .attr = "<DllImport(""bar"", CallingConvention:=CType(15, CallingConvention), SetLastError:=True)>", .expected = MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError}
             }
@@ -6592,6 +6592,89 @@ second",
                         Assert.Equal([module].ContainingAssembly, attribute.AttributeClass.ContainingAssembly)
                         Assert.Equal("transformNames", attribute.AttributeConstructor.Parameters.Single().Name)
                     End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_01()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_02()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        Public Sub ErrorInPropertyValue_03()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<StructLayout(CharSet:=0)>
+public structure S1
+end structure
+
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+public structure S2
+end structure
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
+<StructLayout(CharSet:=0)>
+ ~~~~~~~~~~~~
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+                                     ~~~~~~~~~~
+]]></expected>
+            )
         End Sub
     End Class
 End Namespace

@@ -6,10 +6,11 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
-using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -26,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IAsynchronousOperationListener _listener;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -38,11 +40,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             IContentTypeRegistryService contentTypeRegistry,
             IInteractiveWindowCommandsFactory commandsFactory,
             [ImportMany] IInteractiveWindowCommand[] commands,
+            IGlobalOptionService globalOptions,
             VisualStudioWorkspace workspace)
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
             _threadingContext = threadingContext;
             _listener = listenerProvider.GetListener(FeatureAttribute.InteractiveEvaluator);
+            _globalOptions = globalOptions;
         }
 
         protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
@@ -61,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
             VisualStudioWorkspace workspace)
         {
             return new CSharpInteractiveEvaluator(
+                _globalOptions,
                 _threadingContext,
                 _listener,
                 contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType),

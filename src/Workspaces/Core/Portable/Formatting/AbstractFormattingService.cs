@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal abstract class AbstractFormattingService : IFormattingService
     {
         public Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet options, CancellationToken cancellationToken)
-            => Formatter.FormatAsync(document, spans, options, rules: null, cancellationToken: cancellationToken);
+        {
+            var formattingOptions = SyntaxFormattingOptions.Create(options, document.Project.Solution.Workspace.Services, document.Project.Language);
+            return Formatter.FormatAsync(document, spans, formattingOptions, rules: null, cancellationToken);
+        }
     }
 }

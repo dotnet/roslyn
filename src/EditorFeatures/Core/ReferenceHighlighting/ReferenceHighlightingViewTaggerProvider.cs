@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -127,12 +126,12 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             var existingTags = context.GetExistingContainingTags(caretPosition);
             if (!existingTags.IsEmpty())
             {
-                context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
+                context.SetSpansTagged(ImmutableArray<SnapshotSpan>.Empty);
                 return Task.CompletedTask;
             }
 
             // Otherwise, we need to go produce all tags.
-            var options = DocumentHighlightingOptions.From(document.Project);
+            var options = _globalOptions.GetHighlightingOptions(document.Project.Language);
             return ProduceTagsAsync(context, caretPosition, document, options, cancellationToken);
         }
 
@@ -140,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
             Document document,
-            DocumentHighlightingOptions options,
+            HighlightingOptions options,
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;

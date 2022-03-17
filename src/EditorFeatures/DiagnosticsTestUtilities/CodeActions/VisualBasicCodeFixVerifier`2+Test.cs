@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution);
+                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.IdeAnalyzerOptions);
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)

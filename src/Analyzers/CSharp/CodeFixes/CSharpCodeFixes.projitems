@@ -36,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\CSharpRemoveUnnecessaryDiscardDesignationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveConfusingSuppression\CSharpRemoveConfusingSuppressionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryLambdaExpression\CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnreachableCode\CSharpRemoveUnreachableCodeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryParentheses\CSharpRemoveUnnecessaryParenthesesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedMembers\CSharpRemoveUnusedMembersCodeFixProvider.cs" />
@@ -43,6 +44,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\CSharpSimplifyInterpolationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\CSharpSimplifyPropertyPatternCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransposeRecordKeyword\CSharpTransposeRecordKeywordCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundAssignmentCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCompoundAssignment\CSharpUseCompoundCoalesceAssignmentCodeFixProvider.cs" />
@@ -51,6 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\CSharpUseConditionalExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseParameterNullChecking\CSharpUseParameterNullCheckingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
@@ -76,8 +79,5 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)ConvertNamespace\" />
   </ItemGroup>
 </Project>

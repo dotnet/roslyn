@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        public ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
         public bool SupportsImplicitInterfaceImplementation => true;
 
         public bool ExposesAnonymousFunctionParameterNames => false;
@@ -236,6 +238,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntaxRefs.Any(n => ((BaseTypeDeclarationSyntax)n.GetSyntax(cancellationToken)).Modifiers.Any(SyntaxKind.PartialKeyword));
         }
 
+        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
+        {
+            foreach (var syntaxReference in parameterSymbol.DeclaringSyntaxReferences)
+            {
+                if (syntaxReference.GetSyntax(cancellationToken) is ParameterSyntax parameterSyntax
+                    && parameterSyntax.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public IEnumerable<ISymbol> GetDeclaredSymbols(
             SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
         {
@@ -255,8 +271,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
+
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken)
+            => ((AttributeArgumentSyntax)argument).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
 
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
@@ -355,5 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return builder.ToImmutable();
         }
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
     }
 }

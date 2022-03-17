@@ -95,19 +95,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             vsProject.AnalyzerReferences.Add(filePath);
         }
 
-        public void RemoveAnalyzerReference(string filePath, string projectName)
-        {
-            var project = GetProject(projectName);
-            ((VSProject3)project.Object).AnalyzerReferences.Remove(filePath);
-        }
-
-        public void SetLanguageVersion(string projectName, string languageVersion)
-        {
-            var project = GetProject(projectName);
-            var projectConfiguration = (CSharpProjectConfigurationProperties3)project.ConfigurationManager.ActiveConfiguration.Object;
-            projectConfiguration.LanguageVersion = languageVersion;
-        }
-
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
         public string SolutionFileFullPath
@@ -153,15 +140,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             _fileName = Path.Combine(solutionPath, solutionFileName);
         }
 
-        public string[] GetAssemblyReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>()
-                .Where(x => x.SourceProject == null)
-                .Select(x => x.Name + "," + x.Version + "," + x.PublicKeyToken).ToArray();
-            return references;
-        }
-
         public void RenameFile(string projectName, string oldFileName, string newFileName)
         {
             var project = GetProject(projectName);
@@ -195,13 +173,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             project.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             ExecuteCommand("Project.EditProjectFile");
-        }
-
-        public string[] GetProjectReferences(string projectName)
-        {
-            var project = GetProject(projectName);
-            var references = ((VSProject)project.Object).References.Cast<Reference>().Where(x => x.SourceProject != null).Select(x => x.Name).ToArray();
-            return references;
         }
 
         public void CreateSolution(string solutionName, string solutionElementString)
@@ -319,21 +290,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             reference.Remove();
         }
 
-        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
-        {
-            var dte = GetDTE();
-
-            if (dte.Solution.IsOpen)
-            {
-                CloseSolution(saveExistingSolutionIfExists);
-            }
-
-            dte.Solution.Open(path);
-
-            _solution = (EnvDTE80.Solution2)dte.Solution;
-            _fileName = path;
-        }
-
         private static string ConvertLanguageName(string languageName)
         {
             const string CSharp = nameof(CSharp);
@@ -358,18 +314,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             Contract.ThrowIfNull(_solution);
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
-        }
-
-        public void AddCustomProject(string projectName, string projectFileExtension, string projectFileContent)
-        {
-            var projectPath = Path.Combine(DirectoryName, projectName);
-            Directory.CreateDirectory(projectPath);
-
-            var projectFilePath = Path.Combine(projectPath, projectName + projectFileExtension);
-            File.WriteAllText(projectFilePath, projectFileContent);
-
-            Contract.ThrowIfNull(_solution);
-            _solution.AddFromFile(projectFilePath);
         }
 
         // TODO: Adjust language name based on whether we are using a web template
@@ -506,7 +450,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
             }
 
-            var waitingService = GetComponentModel().DefaultExportProvider.GetExportedValue<TestingOnly_WaitingService>();
+            var waitingService = new TestWaitingService(GetComponentModel().DefaultExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>());
             waitingService.WaitForAsyncOperations(FeatureAttribute.Workspace, waitForWorkspaceFirst: true);
         }
 
@@ -696,7 +640,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             switch (extension)
             {
                 case ".cs":
-                    itemTemplate = @"General\Visual C# Class";
+                    itemTemplate = @"General\C# Class";
                     break;
                 case ".csx":
                     itemTemplate = @"Script\Visual C# Script";
@@ -740,13 +684,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             WaitForBuildToFinish();
         }
 
-        public void ClearBuildOutputWindowPane()
-        {
-            var buildOutputWindowPane = GetBuildOutputWindowPane();
-            buildOutputWindowPane.Clear();
-        }
-
-        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
+        private static EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
         {
             var dte = (DTE2)GetDTE();
             var outputWindow = dte.ToolWindows.OutputWindow;
@@ -1034,14 +972,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectRelativePath)
-        {
-            Contract.ThrowIfNull(_solution);
-            var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectRelativePath);
-            _solution.AddFromFile(projectPath);
-        }
-
         public bool RestoreNuGetPackages(string projectName)
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
@@ -1054,29 +984,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SaveAll()
             => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
-
-        public void ShowErrorList()
-            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
-
-        public void ShowOutputWindow()
-            => ExecuteCommand(WellKnownCommandNames.View_Output);
-
-        public void UnloadProject(string projectName)
-        {
-            Contract.ThrowIfNull(_solution);
-            var projects = _solution.Projects;
-            EnvDTE.Project? project = null;
-            for (var i = 1; i <= projects.Count; i++)
-            {
-                project = projects.Item(i);
-                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
-                {
-                    break;
-                }
-            }
-
-            _solution.Remove(project);
-        }
 
         public void SelectItem(string itemName)
         {
@@ -1100,34 +1007,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
-        }
-
-        public string[] GetChildrenOfItem(string itemName)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
-            Contract.ThrowIfNull(item);
-
-            return item.UIHierarchyItems
-                .Cast<EnvDTE.UIHierarchyItem>()
-                .Select(i => i.Name)
-                .ToArray();
-        }
-
-        public string[] GetChildrenOfItemAtPath(params string[] path)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
-            Contract.ThrowIfNull(item);
-
-            return item.UIHierarchyItems
-                .Cast<EnvDTE.UIHierarchyItem>()
-                .Select(i => i.Name)
-                .ToArray();
         }
 
         private static EnvDTE.UIHierarchyItem? FindItemAtPath(

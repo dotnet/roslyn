@@ -357,6 +357,11 @@
         <target state="translated">'Değil' ya da 'veya' deseninde değişken bildirilemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DiscardCannotBeNullChecked">
+        <source>Discard parameter cannot be null-checked.</source>
+        <target state="new">Discard parameter cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Bir switch deyiminde case etiketi olarak atma desenine izin verilmez. Atma deseni için 'case var _:' veya '_' adlı bir sabit için 'case @_:' seçeneğini kullanın.</target>
@@ -597,6 +602,11 @@
         <target state="translated">Bu parametreye karşılık gelen konumsal üye '{0}' gizli.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">Gizleme işlecine bu bağlamda izin verilmez</target>
@@ -630,11 +640,6 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IncorrectNullCheckSyntax">
-        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="translated">Yanlış parametre null denetimi söz dizimi. “!!” olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -782,6 +787,16 @@
         <target state="translated">Öznitelikleri olan bir lambda ifadesi bir ifade ağacına dönüştürülemez</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineContainsDifferentWhitespace">
+        <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
+        <target state="new">Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
+        <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
+        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
         <target state="translated">#line yönergesi bitiş konumu başlangıç konumundan büyük veya buna eşit olmalıdır</target>
@@ -792,9 +807,19 @@
         <target state="translated">#line yönerge değeri eksik veya aralık dışı</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ListPatternRequiresLength">
+        <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
+        <target state="new">List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">'{0}' için aşırı yüklemelerin hiçbiri '{1}' işlev işaretçisiyle eşleşmiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedRecord">
+        <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
+        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -892,6 +917,16 @@
         <target state="translated">'{0}' temel türünde erişilebilir kopya oluşturucu bulunamadı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoEnumConstraint">
+        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
+        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
         <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
         <target state="translated">'{1}' ve '{2}' arasında ortak bir tür bulunamadığından, koşullu ifade {0} dil sürümünde geçerli değil. Hedef türündeki dönüştürmeyi kullanmak için dil sürümü {3} veya daha üstüne yükseltin.</target>
@@ -927,6 +962,16 @@
         <target state="translated">Parametresiz yapı oluşturucusu 'public' olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
+        <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
+        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotEnoughQuotesForRawString">
+        <source>Not enough quotes for raw string literal.</source>
+        <target state="new">Not enough quotes for raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
         <target state="translated">'{0}' bir örnek metodu değil; alıcı, düz metin arasına kod eklenmiş dize işleyici bağımsız değişkeni olamaz.</target>
@@ -937,9 +982,9 @@
         <target state="translated">'{0}', kapsayan kayıt mühürlü olmadığından geçersiz kılmaya izin vermelidir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">Başvuru parametresine göre “{0}” için null denetimi yapılamaz.</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1055,6 +1100,26 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Bir özellik alt deseni, özellik veya alan başvurusunun eşleşmesini gerektiriyor, ör. '{{ Name: {0} }}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
+        <source>Raw string literal delimiter must be on its own line.</source>
+        <target state="new">Raw string literal delimiter must be on its own line.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringMustContainContent">
+        <source>Multi-line raw string literals must contain at least one line of content.</source>
+        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringNotInDirectives">
+        <source>Raw string literals are not allowed in preprocessor directives.</source>
+        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -1197,6 +1262,11 @@
         <target state="translated">'-' stdin bağımsız değişkeni belirtildi ancak giriş, standart giriş akışından yeniden yönlendirilmedi.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="new">String must start with quote character: "</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
         <target state="translated">Alan başlatıcılarına sahip bir 'struct' açıkça bildirilen bir oluşturucu içermelidir.</target>
@@ -1220,6 +1290,21 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">Switch yönetim ifadesinin parantez içine alınması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyCloseBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyOpenBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyQuotesForRawString">
+        <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
+        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1277,6 +1362,11 @@
         <target state="translated">Dilim desenleri, '{0}' türünde bir değer için kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnterminatedRawString">
+        <source>Unterminated raw string literal.</source>
+        <target state="new">Unterminated raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Genel bir görev benzeri dönüş türü bekleniyordu, ancak ' AsyncMethodBuilder ' özniteliğinde bulunan '{0}' türü uygun değildi. İlişkisiz bir genel tür olması ve içeren türü (varsa) genel olmayan olması gerekir.</target>
@@ -1305,6 +1395,11 @@
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">atılabilir değişkenler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDisposalPattern">
+        <source>pattern-based disposal</source>
+        <target state="new">pattern-based disposal</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
@@ -1375,6 +1470,11 @@
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">kayıtlardaki konumsal alanlar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRawStringLiterals">
+        <source>raw string literals</source>
+        <target state="new">raw string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">

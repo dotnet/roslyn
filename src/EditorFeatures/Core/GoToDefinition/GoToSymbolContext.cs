@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     internal class GoToSymbolContext
     {

@@ -357,6 +357,11 @@
         <target state="translated">不得在 'not' 或 'or' 模式中宣告變數。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DiscardCannotBeNullChecked">
+        <source>Discard parameter cannot be null-checked.</source>
+        <target state="new">Discard parameter cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">捨棄模式不可為 switch 陳述式中的 case 標籤。針對捨棄模式，請使用 'case var _:'，針對名為 '_' 的常數，則請使用 'case @_:'。</target>
@@ -597,6 +602,11 @@
         <target state="translated">找到之與此參數對應的「{0}」位置成員已隱藏。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">此內容不允許隱藏項目運算子</target>
@@ -630,11 +640,6 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">具有 'in' 修飾元的引數不可用於動態分派的運算式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IncorrectNullCheckSyntax">
-        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="translated">檢查參數是否為 Null 的語法不正確。應為 '!!'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -782,6 +787,16 @@
         <target state="translated">具有屬性的 Lambda 運算式，不可轉換成運算式樹狀架構</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LineContainsDifferentWhitespace">
+        <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
+        <target state="new">Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
+        <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
+        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
         <source>The #line directive end position must be greater than or equal to the start position</source>
         <target state="translated">#Line 指示詞結束位置必須大於或等於開始位置</target>
@@ -792,9 +807,19 @@
         <target state="translated">#Line 指示詞值遺漏或超出範圍</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ListPatternRequiresLength">
+        <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
+        <target state="new">List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">'{0}' 沒有任何多載符合函式指標 '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedRecord">
+        <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
+        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -892,6 +917,16 @@
         <target state="translated">在基底類型 '{0}' 中找不到可存取的複製建構函式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoEnumConstraint">
+        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
+        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
         <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
         <target state="translated">因為在 '{1}' 和 '{2}' 之間找不到通用類型，所以在語言版本 {0} 中條件運算式無效。若要使用以目標為類型的轉換，請升級至語言版本 {3} 或更高版本。</target>
@@ -927,6 +962,16 @@
         <target state="translated">無參數結構建構函式必須是 'public'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
+        <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
+        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotEnoughQuotesForRawString">
+        <source>Not enough quotes for raw string literal.</source>
+        <target state="new">Not enough quotes for raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
         <target state="translated">'{0}' 不是執行個體方法，接收器不可為差補字串處理常式引數。</target>
@@ -937,9 +982,9 @@
         <target state="translated">'{0}' 必須允許覆寫，因為包含的記錄並未密封。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">參考類參數 '{0}' 不能檢查是否為 Null。</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1055,6 +1100,26 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">屬性子模式需要對屬性或欄位的參考才能比對，例如 '{{ Name: {0} }}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
+        <source>Raw string literal delimiter must be on its own line.</source>
+        <target state="new">Raw string literal delimiter must be on its own line.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringMustContainContent">
+        <source>Multi-line raw string literals must contain at least one line of content.</source>
+        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringNotInDirectives">
+        <source>Raw string literals are not allowed in preprocessor directives.</source>
+        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -1197,6 +1262,11 @@
         <target state="translated">已指定 stdin 引數 '-'，但尚未從標準輸入資料流重新導向輸入。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="new">String must start with quote character: "</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
         <target state="translated">具有欄位初始設定式的 'struct' 必須包含明確宣告的建構函式。</target>
@@ -1220,6 +1290,21 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">switch 主導的運算式前後必須有括弧。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyCloseBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyOpenBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyQuotesForRawString">
+        <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
+        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1277,6 +1362,11 @@
         <target state="translated">類型 '{0}' 的值不可使用切片模式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnterminatedRawString">
+        <source>Unterminated raw string literal.</source>
+        <target state="new">Unterminated raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">應存在類似泛型工作的傳回型別，但在 'AsyncMethodBuilder' 屬性中找到的類型 '{0}' 不適用。它必須是 arity one 的未綁定泛型型別，並且其包含類型 (如果有) 必須是非泛型。</target>
@@ -1305,6 +1395,11 @@
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">Discard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDisposalPattern">
+        <source>pattern-based disposal</source>
+        <target state="new">pattern-based disposal</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
@@ -1375,6 +1470,11 @@
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">記錄中的位置欄位</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRawStringLiterals">
+        <source>raw string literals</source>
+        <target state="new">raw string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">

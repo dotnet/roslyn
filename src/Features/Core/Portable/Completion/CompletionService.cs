@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The potential triggering action.</param>
         /// <param name="options">Options.</param>
+        /// <param name="passThroughOptions">Options originating either from external caller of the <see cref="CompletionService"/> or set externally to <see cref="Solution.Options"/>.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <remarks>
         /// We pass the project here to retrieve information about the <see cref="Project.AnalyzerReferences"/>,
@@ -91,10 +92,11 @@ namespace Microsoft.CodeAnalysis.Completion
             int caretPosition,
             CompletionTrigger trigger,
             CompletionOptions options,
+            OptionSet passThroughOptions,
             ImmutableHashSet<string>? roles = null)
         {
             Debug.Fail("Backward compat only, should not be called");
-            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options.ToSet(languageServices.Language));
+            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, passThroughOptions);
         }
 
         /// <summary>
@@ -131,23 +133,25 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets the completions available at the caret position, with additional info indicates 
-        /// whether expander items are available.
+        /// Gets the completions available at the caret position.
         /// </summary>
-        /// <remarks>
-        /// expandItemsAvailable is true when expanded items are returned or can be provided upon request.
-        /// </remarks>
-        internal virtual async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
+        /// <param name="options">The CompletionOptions that override the default options.</param>
+        /// <param name="trigger">The triggering action.</param>
+        /// <param name="roles">Optional set of roles associated with the editor state.</param>
+        /// <param name="cancellationToken"></param>
+        internal virtual async Task<CompletionList> GetCompletionsAsync(
              Document document,
              int caretPosition,
              CompletionOptions options,
+             OptionSet passThroughOptions,
              CompletionTrigger trigger = default,
              ImmutableHashSet<string>? roles = null,
              CancellationToken cancellationToken = default)
         {
 #pragma warning disable RS0030 // Do not use banned APIs
-            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false);
-            return (completionList, false);
+            return await GetCompletionsAsync(document, caretPosition, trigger, roles, passThroughOptions, cancellationToken).ConfigureAwait(false) ?? CompletionList.Empty;
 #pragma warning restore
         }
 
@@ -162,7 +166,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
-            => GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), SymbolDescriptionOptions.From(document.Project), cancellationToken);
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+
+            // Publicly available options do not affect this API.
+            return GetDescriptionAsync(document, item, CompletionOptions.Default, SymbolDescriptionOptions.Default, cancellationToken);
+        }
 
         /// <summary>
         /// Gets the description of the item.

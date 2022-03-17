@@ -141,18 +141,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
 
             foreach (var statement in block.Statements)
             {
-                var parameter = TryGetParameterNullCheckedByStatement(statement);
-                if (ParameterCanUseNullChecking(parameter)
+                if (TryGetParameterNullCheckedByStatement(statement) is var (parameter, diagnosticLocation)
+                    && ParameterCanUseNullChecking(parameter)
                     && parameter.DeclaringSyntaxReferences.FirstOrDefault() is SyntaxReference reference
                     && reference.SyntaxTree.Equals(statement.SyntaxTree)
                     && reference.GetSyntax() is ParameterSyntax parameterSyntax)
                 {
                     context.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
-                        statement.GetLocation(),
+                        diagnosticLocation,
                         option.Notification.Severity,
                         additionalLocations: new[] { parameterSyntax.GetLocation() },
                         properties: null));
+                }
+                else
+                {
+                    var descendants = statement.DescendantNodesAndSelf(descendIntoChildren: static c => c is StatementSyntax);
+                    foreach (var descendant in descendants)
+                    {
+                        // Mostly, we are fine with simplifying null checks in a way that
+                        // causes us to *throw a different exception than before* for some inputs.
+                        // However, we don't want to change semantics such that we
+                        // *throw an exception instead of returning* or vice-versa.
+                        // Therefore we ignore any null checks which are syntactically preceded by conditional or unconditional returns.
+                        if (descendant is ReturnStatementSyntax)
+                        {
+                            return;
+                        }
+                    }
                 }
             }
 
@@ -163,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 if (parameter is null)
                     return false;
 
-                if (parameter.RefKind != RefKind.None)
+                if (parameter.RefKind == RefKind.Out)
                     return false;
 
                 if (parameter.Type.IsValueType)
@@ -175,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 return true;
             }
 
-            IParameterSymbol? TryGetParameterNullCheckedByStatement(StatementSyntax statement)
+            (IParameterSymbol parameter, Location diagnosticLocation)? TryGetParameterNullCheckedByStatement(StatementSyntax statement)
             {
                 switch (statement)
                 {
@@ -186,10 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         ExpressionSyntax left, right;
                         switch (ifStatement)
                         {
-                            case { Condition: BinaryExpressionSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken } binary }
-                                // Only suggest the fix on built-in `==` operators where we know we won't change behavior
-                                when semanticModel.GetSymbolInfo(binary).Symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator }:
-
+                            case { Condition: BinaryExpressionSyntax { OperatorToken.RawKind: (int)SyntaxKind.EqualsEqualsToken } binary }:
                                 left = binary.Left;
                                 right = binary.Right;
                                 break;
@@ -229,18 +242,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             return null;
                         }
 
-                        return parameterInBinary;
+                        // The if statement could be associated with an arbitrarily complex else clause. We only want to highlight the "if" part which is removed by the fix.
+                        var location = Location.Create(ifStatement.SyntaxTree, Text.TextSpan.FromBounds(ifStatement.SpanStart, ifStatement.Statement.Span.End));
+                        return (parameterInBinary, location);
 
                     // this.field = param ?? throw new ArgumentNullException(nameof(param));
                     case ExpressionStatementSyntax
                     {
                         Expression: AssignmentExpressionSyntax
                         {
+                            Left: var leftOfAssignment,
                             Right: BinaryExpressionSyntax
                             {
                                 OperatorToken.RawKind: (int)SyntaxKind.QuestionQuestionToken,
                                 Left: ExpressionSyntax maybeParameter,
-                                Right: ThrowExpressionSyntax { Expression: ObjectCreationExpressionSyntax thrownInNullCoalescing }
+                                Right: ThrowExpressionSyntax { Expression: ObjectCreationExpressionSyntax thrownInNullCoalescing } throwExpression
                             }
                         }
                     }:
@@ -250,7 +266,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             return null;
                         }
 
-                        return coalescedParameter;
+                        // ensure we delete the entire statement in the below scenario:
+                        //     void M(string s) { s = s ?? throw new ArgumentNullException(); }
+                        // otherwise, we just replace the '??' expression with its left operand
+                        var diagnosticLocation = coalescedParameter.Equals(semanticModel.GetSymbolInfo(leftOfAssignment, cancellationToken).Symbol)
+                            ? statement.GetLocation()
+                            : throwExpression.GetLocation();
+
+                        return (coalescedParameter, diagnosticLocation);
 
                     default:
                         return null;

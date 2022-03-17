@@ -20,9 +20,11 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using NuGet.SolutionRestoreManager;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Reference = VSLangProj.Reference;
 using VSProject = VSLangProj.VSProject;
+using VSProject3 = VSLangProj140.VSProject3;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
@@ -31,6 +33,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         public async Task CreateSolutionAsync(string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            Contract.ThrowIfTrue(await IsSolutionOpenAsync(cancellationToken));
 
             var solutionPath = CreateTemporaryPath();
             await CreateSolutionAsync(solutionPath, solutionName, cancellationToken);
@@ -101,6 +105,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ((VSProject)project.Object).References.AddProject(projectToReference);
         }
 
+        public async Task AddAnalyzerReferenceAsync(string projectName, string filePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            ((VSProject3)project.Object).AnalyzerReferences.Add(filePath);
+        }
+
         private async Task CreateSolutionAsync(string solutionPath, string solutionName, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -151,6 +163,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, null, null, projectPath, projectName, null, out _));
         }
 
+        public async Task AddCustomProjectAsync(string projectName, string projectFileExtension, string projectFileContent, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
+            Directory.CreateDirectory(projectPath);
+
+            var projectFilePath = Path.Combine(projectPath, projectName + projectFileExtension);
+            File.WriteAllText(projectFilePath, projectFileContent);
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(solution.AddExistingProject(projectFilePath, pParent: null, out _));
+        }
+
         public async Task RestoreNuGetPackagesAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -184,9 +210,25 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
             await Helper.RetryAsync(
-                cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
+                async cancellationToken =>
+                {
+                    try
+                    {
+                        return await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken);
+                    }
+                    catch (NullReferenceException)
+                    {
+                        // 🤮 Workaround for NuGet package restore throwing exceptions
+                        return false;
+                    }
+                },
                 TimeSpan.FromMilliseconds(50),
                 cancellationToken);
+        }
+
+        public async Task SaveAllAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
@@ -318,6 +360,110 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             }
         }
 
+        public async Task SetFileContentsAsync(string projectName, string relativeFilePath, string content, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            File.WriteAllText(filePath, content);
+        }
+
+        public async Task<string> GetFileContentsAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var project = await GetProjectAsync(projectName, cancellationToken);
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var filePath = Path.Combine(projectPath, relativeFilePath);
+
+            return File.ReadAllText(filePath);
+        }
+
+        public async Task<(string solutionDirectory, string solutionFileFullPath, string userOptionsFile)> GetSolutionInfoAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (!await IsSolutionOpenAsync(cancellationToken))
+                throw new InvalidOperationException("No solution is open.");
+
+            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out var solutionDirectory, out var solutionFileFullPath, out var userOptionsFile));
+
+            return (solutionDirectory, solutionFileFullPath, userOptionsFile);
+        }
+
+        /// <returns>
+        /// If <paramref name="waitForBuildToFinish"/> is <see langword="true"/>, returns the build status line, which generally looks something like this:
+        ///
+        /// <code>
+        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+        /// </code>
+        ///
+        /// Otherwise, this method does not wait for the build to complete and returns <see langword="null"/>.
+        /// </returns>
+        public async Task<string?> BuildSolutionAsync(bool waitForBuildToFinish, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            buildOutputWindowPane.Clear();
+
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
+            if (waitForBuildToFinish)
+            {
+                return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc cref="WaitForBuildToFinishAsync(IVsOutputWindowPane, CancellationToken)"/>
+        public async Task<string> WaitForBuildToFinishAsync(CancellationToken cancellationToken)
+        {
+            var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+            return await WaitForBuildToFinishAsync(buildOutputWindowPane, cancellationToken);
+        }
+
+        /// <returns>
+        /// The summary line for the build, which generally looks something like this:
+        ///
+        /// <code>
+        /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+        /// </code>
+        /// </returns>
+        private async Task<string> WaitForBuildToFinishAsync(IVsOutputWindowPane buildOutputWindowPane, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await KnownUIContexts.SolutionExistsAndNotBuildingAndNotDebuggingContext;
+
+            // Force the error list to update
+            ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
+
+            var textView = (IVsTextView)buildOutputWindowPane;
+            var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
+            var lines = wpfTextViewHost.TextView.TextViewLines;
+            if (lines.Count < 1)
+            {
+                return string.Empty;
+            }
+
+            // The build summary line should be second to last in the output window
+            return lines[^2].Extent.GetText();
+        }
+
+        public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var outputWindow = await GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(outputWindow.GetPane(VSConstants.OutputWindowPaneGuid.BuildOutputPane_guid, out var pane));
+            return pane;
+        }
+
         private static string ConvertLanguageName(string languageName)
         {
             return languageName switch
@@ -343,16 +489,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         private async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(solution.GetSolutionInfo(out _, out var solutionFileFullPath, out _));
+            var (solutionDirectory, solutionFileFullPath, _) = await GetSolutionInfoAsync(cancellationToken);
             if (string.IsNullOrEmpty(solutionFileFullPath))
             {
                 throw new InvalidOperationException();
             }
 
-            return Path.GetDirectoryName(solutionFileFullPath);
+            return solutionDirectory;
         }
 
         private async Task<string> GetProjectTemplatePathAsync(string projectTemplate, string languageName, CancellationToken cancellationToken)

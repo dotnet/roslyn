@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return (formattedDocument, typeAnnotation);
         }
 
-        public static string GetTypeParameterSuffix(Document document, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers)
+        public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions options, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
         {
             var typeParameters = GetRequiredTypeParametersForMembers(type, extractableMembers);
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var typeParameterNames = typeParameters.SelectAsArray(p => p.Name);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace).ToString();
+            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, options, cancellationToken).ToString();
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)

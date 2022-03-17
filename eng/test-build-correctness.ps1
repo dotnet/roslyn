@@ -42,25 +42,6 @@ try {
     New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
   }
 
-  # Verify no PROTOTYPE marker left in main
-  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
-    Write-Host "Checking no PROTOTYPE markers in source"
-    $prototypes = Get-ChildItem -Path src, eng, scripts -Exclude *.dll,*.exe,*.pdb,*.xlf,test-build-correctness.ps1 -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
-    if ($prototypes) {
-      Write-Host "Found PROTOTYPE markers in source:"
-      Write-Host $prototypes
-      throw "PROTOTYPE markers disallowed in compiler source"
-    }
-  }
-
-  # Verify no TODO2 marker left
-  $prototypes = Get-ChildItem -Path src, eng, scripts -Exclude *.dll,*.exe,*.pdb,*.xlf,test-build-correctness.ps1 -Recurse | Select-String -Pattern 'TODO2' -CaseSensitive -SimpleMatch
-  if ($prototypes) {
-    Write-Host "Found TODO2 markers in source:"
-    Write-Host $prototypes
-    throw "TODO2 markers disallowed in compiler source"
-  }
-
   Write-Host "Building Roslyn"
   Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
 
@@ -75,7 +56,7 @@ try {
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
-  Exec-Console dotnet "tool run dotnet-format . --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --check -f"
+  Exec-Console dotnet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 
   exit 0

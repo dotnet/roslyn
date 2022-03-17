@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim analyzers = environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Single().GetAnalyzers(LanguageNames.CSharp)
                 Assert.Empty(analyzers)
 
-                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = AnalyzerHelper.WRN_UnableToLoadAnalyzerIdCS)
+                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = DocumentAnalysisExecutor.WRN_UnableToLoadAnalyzerIdCS)
 
                 Using If(removeInBatch, project.CreateBatchScope(), Nothing)
                     project.RemoveAnalyzerReference(analyzerPath)
@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Force there to be errors trying to load the missing DLL
                 Dim analyzers = environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Single().GetAnalyzers(LanguageNames.CSharp)
                 Assert.Empty(analyzers)
-                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = AnalyzerHelper.WRN_UnableToLoadAnalyzerIdCS)
+                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = DocumentAnalysisExecutor.WRN_UnableToLoadAnalyzerIdCS)
 
                 Using If(removeInBatch, project.CreateBatchScope(), Nothing)
                     project.RemoveFromWorkspace()
@@ -94,7 +94,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' Force there to be errors trying to load the missing DLL
                 Dim analyzers = environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Single().GetAnalyzers(LanguageNames.CSharp)
                 Assert.Empty(analyzers)
-                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = AnalyzerHelper.WRN_UnableToLoadAnalyzerIdCS)
+                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = DocumentAnalysisExecutor.WRN_UnableToLoadAnalyzerIdCS)
 
                 Using project.CreateBatchScope()
                     project.RemoveAnalyzerReference(analyzerPath)
@@ -104,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 ' We should still have a diagnostic; the real point of this assertion isn't that
                 ' we keep it around immediately, but we don't accidentally screw up the batching and 
                 ' lose the diagnostic permanently.
-                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = AnalyzerHelper.WRN_UnableToLoadAnalyzerIdCS)
+                Assert.Single(Await GetDiagnostics(environment), Function(d) d.Id = DocumentAnalysisExecutor.WRN_UnableToLoadAnalyzerIdCS)
             End Using
         End Function
 
@@ -120,7 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 document:=Nothing,
                 includeSuppressedDiagnostics:=True,
                 forPullDiagnostics:=False,
-                InternalDiagnosticsOptions.NormalDiagnosticMode,
+                DiagnosticMode.Default,
                 CancellationToken.None)
             Return diagnostics
         End Function

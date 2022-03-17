@@ -2020,12 +2020,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
-        ERR_IncorrectNullCheckSyntax = 8990,
+        ERR_ListPatternRequiresLength = 8985,
+        ERR_DiscardCannotBeNullChecked = 8990,
         ERR_MustNullCheckInImplementation = 8991,
         ERR_NonNullableValueTypeIsNullChecked = 8992,
         WRN_NullCheckedHasDefaultNull = 8993,
-        ERR_NullCheckingOnByRefParameter = 8994,
+        ERR_NullCheckingOnOutParameter = 8994,
         WRN_NullCheckingOnNullableType = 8995,
+
+        ERR_RawStringNotInDirectives = 8996,
+        ERR_UnterminatedRawString = 8997,
+        ERR_TooManyQuotesForRawString = 8998,
+        ERR_LineDoesNotStartWithSameWhitespace = 8999,
+        ERR_RawStringDelimiterOnOwnLine = 9000,
+        ERR_RawStringInVerbatimInterpolatedStrings = 9001,
+        ERR_RawStringMustContainContent = 9002,
+        ERR_LineContainsDifferentWhitespace = 9003,
+
+        // raw interpolated string literals
+        ERR_NotEnoughQuotesForRawString = 9004,
+        ERR_NotEnoughCloseBracesForRawString = 9005,
+        ERR_TooManyOpenBracesForRawString = 9006,
+        ERR_TooManyCloseBracesForRawString = 9007,
+
+        ERR_IllegalAtSequence = 9008,
+        ERR_StringMustStartWithQuoteCharacter = 9009,
+
+        ERR_NoEnumConstraint = 9010,
+        ERR_NoDelegateConstraint = 9011,
+        ERR_MisplacedRecord = 9012,
 
         #endregion
 

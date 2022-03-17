@@ -1411,7 +1411,7 @@ class C
         }
 
         // The following test is failing in the Linux Debug test leg of CI.
-        // This issus is being tracked by https://github.com/dotnet/roslyn/issues/58077
+        // This issue is being tracked by https://github.com/dotnet/roslyn/issues/58077
         [ConditionalFact(typeof(WindowsOrMacOSOnly))]
         public void ArgumentParsing()
         {
@@ -10016,7 +10016,7 @@ class C
             void RunWithTwoGenerators() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator(), generator2.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
-        [Fact]
+        [Fact(Skip = "Additional file comparison is disabled due to https://github.com/dotnet/roslyn/issues/59209")]
         public void Compiler_Updates_Cached_Driver_AdditionalTexts()
         {
             var dir = Temp.CreateDirectory();
@@ -11722,7 +11722,13 @@ System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
------", outputWithoutPaths);
+-----
+Analyzer 'TestAnalyzer' threw the following exception:
+'System.NotImplementedException: 28
+   at TestAnalyzer.get_SupportedDiagnostics()
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.CreateDisablingMessage(DiagnosticAnalyzer analyzer, String analyzerName)
+-----
+'.", outputWithoutPaths);
 
             Assert.Equal(0, result.ExitCode);
         }
@@ -13694,6 +13700,28 @@ key7 = value7");
 
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:" + version.ToDisplayString() }, generators: new[] { generator }, expectedWarningCount: 1, expectedErrorCount: 1, expectedExitCode: 0);
             Assert.Contains("CS8785: Generator 'CallbackGenerator' failed to generate source.", output);
+        }
+
+        [Fact]
+        [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
+        public void SourceGenerators_Binary_Additional_File()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+
+            var additionalFile = dir.CreateFile("temp.bin").WriteAllBytes(TestResources.NetFX.Minimal.mincorlib);
+
+            var generatedSource = "public class D { }";
+            var generator = new SingleFileTestGenerator(generatedSource, "generatedSource.cs");
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/additionalfile:" + additionalFile.Path, "/langversion:preview", "/out:embed.exe" }, generators: new[] { generator }, analyzers: null);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
