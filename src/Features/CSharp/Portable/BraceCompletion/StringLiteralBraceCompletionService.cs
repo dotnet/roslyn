@@ -53,6 +53,22 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return SpecializedTasks.False;
             }
 
+            // If the single token that the user typed is a string literal that is more than just
+            // the one double quote character they typed, and doesn't have errors, then it means
+            // it is completing an existing token, from the start. For example given:
+            //
+            // var s = "te$$st";
+            //
+            // When the user types `" + "` to split the string into two literals, the first
+            // quote won't be completed (because its in a string literal), and with this check
+            // the second quote won't either.
+            if (token.IsKind(SyntaxKind.StringLiteralToken) &&
+                token.Span.Length > 1 &&
+                !token.ContainsDiagnostics)
+            {
+                return SpecializedTasks.False;
+            }
+
             if (token.SpanStart == position)
             {
                 return SpecializedTasks.True;

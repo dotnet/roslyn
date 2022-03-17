@@ -429,6 +429,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_CompleteLiteral()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = ""this"" + $$that"";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_CompleteVerbatim()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = ""this"" + @$$that
+            and this"";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session, expectValidSession: false);
+        }
+
         internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
