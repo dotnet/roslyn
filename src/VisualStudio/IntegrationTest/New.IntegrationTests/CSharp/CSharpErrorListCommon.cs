@@ -133,9 +133,11 @@ class Program2
                 string.Join(Environment.NewLine, actualContents));
         }
 
-        [IdeFact]
-        public virtual async Task ErrorsAfterClosingFile()
+        [IdeTheory(MaxAttempts = 1)]
+        [CombinatorialData]
+        public virtual async Task ErrorsAfterClosingFile([CombinatorialRange(0, 20)] int iteration)
         {
+            _ = iteration;
             await TestServices.Editor.SetTextAsync(@"
 class Program2
 {
