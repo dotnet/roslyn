@@ -1217,7 +1217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int slot = VariableSlot(field, thisSlot);
                     if (slot == -1 || !State.IsAssigned(slot))
                     {
-                        Debug.Assert(CurrentSymbol.EnclosingThisSymbol().Type.GetMembers(field.Name).Contains(field, ReferenceEqualityComparer.Instance));
                         AddImplicitlyInitializedField(field);
                     }
                 }

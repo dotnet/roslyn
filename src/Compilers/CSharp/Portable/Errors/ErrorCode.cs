@@ -2056,6 +2056,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnassignedStructThisAutoProperty = 9016,
         WRN_UnassignedStructThis = 9017,
 
+        // PROTOTYPE(sda): introduce specific definite assignment errors which are resolved by updating language version
+        // ERR_UseDefViolationPropertyStructThis = 9013,
+        // ERR_UseDefViolationFieldStructThis = 9014,
+        // ERR_UseDefViolationStructThis = 9015,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

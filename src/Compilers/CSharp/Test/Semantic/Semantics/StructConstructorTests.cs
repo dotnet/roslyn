@@ -889,7 +889,7 @@ class Program
                 //     public S2(object y) { Y = y; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("auto default struct fields").WithLocation(20, 12));
 
-            var verifier = CompileAndVerify(source, expectedOutput:
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput:
 @"(, )
 (, 1)
 (, )");
@@ -1443,7 +1443,7 @@ struct S4
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("auto default struct fields").WithLocation(17, 12));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
@@ -1537,7 +1537,7 @@ struct S4
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("auto default struct fields").WithLocation(17, 12));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S1
@@ -1593,7 +1593,7 @@ record struct S4
                 //     public S3() { Y = 3; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("auto default struct fields").WithLocation(17, 12));
 
-            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // record struct S1
@@ -1655,7 +1655,7 @@ class Program
                 // record struct S3()
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S3").WithArguments("auto default struct fields").WithLocation(15, 15));
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
 @"
 S1 { X = 1, Y =  }
 S2 { X = 2, Y =  }
@@ -1769,7 +1769,7 @@ class Program
                 // record struct S3(object Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
 @"S1 { X = 1, Y =  }
 S2 { X = 2, Y =  }
 S3 { X = , Y = 3 }
@@ -1849,7 +1849,7 @@ class Program
                 // record struct S3(object Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(15, 25));
 
-            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput:
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext, expectedOutput:
 @"S1 { X = , Y = 1 }
 S2 { X = , Y = 2 }
 S3 { X = 3, Y =  }", verify: Verification.Skipped);
@@ -2205,7 +2205,7 @@ struct S3
                 //     public S3() { F3 = GetValue(); }
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "GetValue()").WithLocation(21, 24));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (10,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
                 //     public S1() { }
@@ -2329,7 +2329,7 @@ unsafe struct S5
                 //     int X;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S5.X").WithLocation(29, 9));
 
-            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (22,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // unsafe struct S4
@@ -2615,7 +2615,7 @@ struct S
                 //     public S() { }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 12));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings))
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext)
                 .VerifyDiagnostics(
                     // (4,16): warning CS0649: Field 'S.x' is never assigned to, and will always have its default value 0
                     //     public int x;
@@ -2624,7 +2624,7 @@ struct S
                     //     public S() { }
                     Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.x").WithLocation(5, 12));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_UnassignedStructThis), ReportDiagnostic.Error))
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(GetIdForErrorCode(ErrorCode.WRN_UnassignedStructThis), ReportDiagnostic.Error), parseOptions: TestOptions.RegularNext)
                 .VerifyDiagnostics(
                 // (4,16): warning CS0649: Field 'S.x' is never assigned to, and will always have its default value 0
                 //     public int x;
@@ -2633,7 +2633,7 @@ struct S
                 //     public S() { }
                 Diagnostic(ErrorCode.WRN_UnassignedStructThis, "S").WithArguments("S.x").WithLocation(5, 12).WithWarningAsError(true));
 
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics(
                     // (4,16): warning CS0649: Field 'S.x' is never assigned to, and will always have its default value 0
                     //     public int x;
@@ -2682,7 +2682,7 @@ public struct S
                     //         other2.ToString(); // 3
                     Diagnostic(ErrorCode.ERR_UseDefViolation, "other2").WithArguments("other2").WithLocation(11, 9));
 
-            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings))
+            CreateCompilation(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext)
                 .VerifyDiagnostics(
                     // (5,12): warning CS9017: Field 'S.x' must be fully assigned before control is returned to the caller
                     //     public S() // 1
@@ -2716,7 +2716,7 @@ public struct S
                 //         return;
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "return;").WithArguments("S.x").WithLocation(7, 9));
 
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics(
                 // (7,9): warning CS9017: Field 'S.x' must be fully assigned before control is returned to the caller
                 //         return;
@@ -2762,7 +2762,7 @@ public struct S
                 //         E?.Invoke();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "E").WithArguments("E").WithLocation(9, 9));
 
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings));
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings), parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics(
                 // (7,12): warning CS9017: Field 'S.E' must be fully assigned before control is returned to the caller
                 //     public S()
@@ -2788,6 +2788,117 @@ public struct S
   IL_0014:  callvirt   ""void System.Action.Invoke()""
   IL_0019:  nop
   IL_001a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonNullableReferenceTypeField()
+        {
+            var source =
+@"public struct S
+{
+    public string Item;
+    public S(bool unused)
+    {
+    }
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12),
+                // (4,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(4, 12),
+                // (4,12): error CS0171: Field 'S.Item' must be fully assigned before control is returned to the caller
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.Item").WithLocation(4, 12)
+                );
+
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.RegularNext);
+            verifier.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12));
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S.Item""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Struct_ExplicitThisConstructorInitializer_01(LanguageVersion languageVersion)
+        {
+            var source =
+@"public struct S
+{
+    public string Item;
+    public S(bool unused) : this()
+    {
+    }
+}";
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            verifier.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable field 'Item' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S(bool unused)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "Item").WithLocation(4, 12)
+                );
+
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Struct_ExplicitThisConstructorInitializer_02(LanguageVersion languageVersion)
+        {
+            var source =
+@"public struct S
+{
+    public string Item;
+    public S(bool unused) : this()
+    {
+    }
+    public S() { Item = ""a""; }
+}";
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S..ctor(bool)", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S..ctor()""
+  IL_0006:  ret
+}
+");
+
+            verifier.VerifyIL("S..ctor()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""a""
+  IL_0006:  stfld      ""string S.Item""
+  IL_000b:  ret
 }
 ");
         }

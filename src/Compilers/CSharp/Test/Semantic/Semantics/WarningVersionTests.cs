@@ -186,6 +186,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
@@ -196,6 +197,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9017: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller.
@@ -272,6 +274,7 @@ public struct Struct
                 references: moduleReference,
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
@@ -282,6 +285,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
@@ -372,6 +376,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (7,9): warning CS8887: Use of unassigned local variable 's'
@@ -385,6 +390,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
@@ -507,6 +513,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
@@ -517,6 +524,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,21): warning CS9014: Use of possibly unassigned auto-implemented property 'Property'
@@ -598,6 +606,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
+                // PROTOTYPE(auto-default): give a LangVersion *warning* here.
+                // Use same emit in all language versions
+
                 // (6,21): warning CS8884: Use of possibly unassigned field 'Field'
                 //         Struct v2 = Field;
                 Diagnostic(ErrorCode.WRN_UseDefViolationField, "Field").WithArguments("Field").WithLocation(6, 21));
@@ -608,6 +619,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
@@ -618,6 +630,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,21): warning CS9014: Use of possibly unassigned field 'Field'
@@ -709,6 +722,7 @@ public struct Struct
                 source2,
                 references: moduleReference,
                 options: TestOptions.DebugDll.WithWarningLevel(5),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program..ctor", csharp11IL);
@@ -719,6 +733,7 @@ public struct Struct
                 options: TestOptions.DebugDll
                     .WithWarningLevel(5)
                     .WithSpecificDiagnosticOptions(ReportStructInitializationWarnings),
+                parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
                 // (6,22): warning CS9016: The 'this' object cannot be used before all of its fields have been assigned

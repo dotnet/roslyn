@@ -1958,7 +1958,7 @@ record struct C(int X, int Y)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 21)
                 );
 
-            var verifier = CompileAndVerify(src);
+            var verifier = CompileAndVerify(src, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics(
                 // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct C(int X, int Y)
@@ -2228,7 +2228,7 @@ record struct C1(object O1, object O2, object O3) // 1, 2
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O3").WithArguments("O3").WithLocation(2, 47)
                 );
 
-            var verifier = CompileAndVerify(source);
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics(
                 // (2,25): warning CS8907: Parameter 'O1' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct C1(object O1, object O2, object O3) // 1, 2
@@ -2910,7 +2910,7 @@ record struct R(int P = 42)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(2, 21)
                 );
 
-            var verifier = CompileAndVerify(src);
+            var verifier = CompileAndVerify(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics(
                 // (2,21): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct R(int P = 42)
@@ -4021,7 +4021,7 @@ record struct Pos2(int X)
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithArguments("Pos.X").WithLocation(5, 16)
                 );
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics(
                 // (5,16): error CS8050: Only auto-implemented properties can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
@@ -7547,7 +7547,7 @@ record struct C
                 Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(8, 13)
                 );
 
-            var verifier = CompileAndVerify(src);
+            var verifier = CompileAndVerify(src, parseOptions: TestOptions.RegularNext);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor(string)", @"
 {
@@ -11257,7 +11257,7 @@ record struct S3(char A)
                 //     public S(int i) : this() { F = i; }
                 Diagnostic(ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, "this").WithLocation(4, 23));
 
-            comp = CreateCompilation(source);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
                 // (1,24): warning CS8907: Parameter 'F' is unread. Did you forget to use it to initialize the property with that name?
                 // record struct S(object F)
