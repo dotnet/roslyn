@@ -6468,7 +6468,7 @@ class MyClass
             comp.VerifyDiagnostics(
                 // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller
                 //    MyStruct(int initField)   // CS0171
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "MyStruct").WithArguments("MyStruct.i").WithLocation(4, 4),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "MyStruct").WithArguments("MyStruct.i").WithLocation(4, 4),
                 // (4,4): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //    MyStruct(int initField)   // CS0171
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "MyStruct").WithArguments("auto default struct fields").WithLocation(4, 4),
@@ -6987,7 +6987,7 @@ namespace MyNamespace
                 VerifyDiagnostics(
                 // (17,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //                 Goo();  // CS0188
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(17, 17),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("this").WithLocation(17, 17),
                 // (14,13): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             S(int i)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(14, 13),
@@ -7040,7 +7040,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "F is Action").WithLocation(10, 18),
                 // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         var b1 = F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "F").WithArguments("this").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "F").WithArguments("this").WithLocation(10, 18),
                 // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(int v)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
@@ -7077,7 +7077,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "this.F is Action").WithLocation(10, 18),
                 // (10,18): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         var b1 = this.F is Action;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this").WithLocation(10, 18),
                 // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(int v)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
@@ -7113,7 +7113,7 @@ struct S
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (10,19): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         /*this.*/ Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Add").WithArguments("this").WithLocation(10, 19),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Add").WithArguments("this").WithLocation(10, 19),
                 // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(dynamic d)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
@@ -7187,7 +7187,7 @@ struct S
             CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
                 // (10,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         this.Add(d);
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(10, 9),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this").WithLocation(10, 9),
                 // (8,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 //     public S(dynamic d)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(8, 12));
@@ -12938,7 +12938,7 @@ class Test
                 .VerifyDiagnostics(
                     // (5,12): error CS0843: Auto-implemented property 'S.AIProp' must be fully assigned before control is returned to the caller.
                     //     public S(int i) { } //CS0843
-                    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.AIProp").WithLocation(5, 12),
+                    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.AIProp").WithLocation(5, 12),
                     // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public S(int i) { } //CS0843
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 12));

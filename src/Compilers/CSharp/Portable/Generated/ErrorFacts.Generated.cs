@@ -256,12 +256,12 @@
                 case ErrorCode.WRN_AnalyzerReferencesFramework:
                 case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                 case ErrorCode.WRN_RecordNamedDisallowed:
-                case ErrorCode.WRN_UnassignedThisAutoProperty:
-                case ErrorCode.WRN_UnassignedThis:
+                case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
                 case ErrorCode.WRN_ParamUnassigned:
                 case ErrorCode.WRN_UseDefViolationProperty:
                 case ErrorCode.WRN_UseDefViolationField:
-                case ErrorCode.WRN_UseDefViolationThis:
+                case ErrorCode.WRN_UseDefViolationThisUnsupportedVersion:
                 case ErrorCode.WRN_UseDefViolationOut:
                 case ErrorCode.WRN_UseDefViolation:
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
@@ -282,11 +282,13 @@
                 case ErrorCode.WRN_LowerCaseTypeName:
                 case ErrorCode.WRN_NullCheckedHasDefaultNull:
                 case ErrorCode.WRN_NullCheckingOnNullableType:
-                case ErrorCode.WRN_UseDefViolationPropertyStructThis:
-                case ErrorCode.WRN_UseDefViolationFieldStructThis:
-                case ErrorCode.WRN_UseDefViolationStructThis:
-                case ErrorCode.WRN_UnassignedStructThisAutoProperty:
-                case ErrorCode.WRN_UnassignedStructThis:
+                case ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
+                case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
+                case ErrorCode.WRN_UnassignedThisSupportedVersion:
+                case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
+                case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
                     return true;
                 default:
                     return false;

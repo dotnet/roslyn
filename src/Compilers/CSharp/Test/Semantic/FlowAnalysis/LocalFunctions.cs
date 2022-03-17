@@ -726,13 +726,13 @@ struct S
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(10, 20),
                 // (7,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         var s = this;
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this").WithLocation(7, 17),
                 // (12,9): error CS0170: Use of possibly unassigned field '_x'
                 //         Local();
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(12, 9),
                 // (5,12): error CS0171: Field 'S._x' must be fully assigned before control is returned to the caller
                 //     public S(int x)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S._x").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S._x").WithLocation(5, 12),
                 // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(int x)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 12));

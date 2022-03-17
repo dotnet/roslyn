@@ -120,11 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool GetIsEnabledByDefault(int code) =>
             (ErrorCode)code is not (
-                ErrorCode.WRN_UseDefViolationPropertyStructThis
-                or ErrorCode.WRN_UseDefViolationFieldStructThis
-                or ErrorCode.WRN_UseDefViolationStructThis
-                or ErrorCode.WRN_UnassignedStructThisAutoProperty
-                or ErrorCode.WRN_UnassignedStructThis);
+                ErrorCode.WRN_UseDefViolationPropertySupportedVersion
+                or ErrorCode.WRN_UseDefViolationFieldSupportedVersion
+                or ErrorCode.WRN_UseDefViolationThisSupportedVersion
+                or ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion
+                or ErrorCode.WRN_UnassignedThisSupportedVersion
+            );
 
         public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {

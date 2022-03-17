@@ -1949,7 +1949,7 @@ record struct C(int X, int Y)
             comp.VerifyEmitDiagnostics(
                 // (3,15): error CS0843: Auto-implemented property 'C.X' must be fully assigned before control is returned to the caller.
                 // record struct C(int X, int Y)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C").WithArguments("C.X").WithLocation(3, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "C").WithArguments("C.X").WithLocation(3, 15),
                 // (3,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct C(int X, int Y)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("auto default struct fields").WithLocation(3, 15),
@@ -2216,7 +2216,7 @@ record struct C1(object O1, object O2, object O3) // 1, 2
             comp.VerifyDiagnostics(
                 // (2,15): error CS0843: Auto-implemented property 'C1.O1' must be fully assigned before control is returned to the caller.
                 // record struct C1(object O1, object O2, object O3) // 1, 2
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C1").WithArguments("C1.O1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "C1").WithArguments("C1.O1").WithLocation(2, 15),
                 // (2,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct C1(object O1, object O2, object O3) // 1, 2
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "C1").WithArguments("auto default struct fields").WithLocation(2, 15),
@@ -2901,7 +2901,7 @@ record struct R(int P = 42)
             comp.VerifyDiagnostics(
                 // (2,15): error CS0843: Auto-implemented property 'R.P' must be fully assigned before control is returned to the caller.
                 // record struct R(int P = 42)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "R").WithArguments("R.P").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "R").WithArguments("R.P").WithLocation(2, 15),
                 // (2,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 // record struct R(int P = 42)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("auto default struct fields").WithLocation(2, 15),
@@ -4012,7 +4012,7 @@ record struct Pos2(int X)
             comp.VerifyEmitDiagnostics(
                 // (2,15): error CS0171: Field 'Pos.x' must be fully assigned before control is returned to the caller
                 // record struct Pos(int X)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "Pos").WithArguments("Pos.x").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Pos").WithArguments("Pos.x").WithLocation(2, 15),
                 // (2,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct Pos(int X)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Pos").WithArguments("auto default struct fields").WithLocation(2, 15),
@@ -7544,7 +7544,7 @@ record struct C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("auto default struct fields").WithLocation(6, 5),
                 // (8,13): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
                 //         _ = this with { X = 42 }; // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolationThis, "this").WithArguments("this").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this").WithLocation(8, 13)
                 );
 
             var verifier = CompileAndVerify(src, parseOptions: TestOptions.RegularNext);
@@ -11246,7 +11246,7 @@ record struct S3(char A)
             comp.VerifyDiagnostics(
                 // (1,15): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 // record struct S(object F)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F").WithLocation(1, 15),
                 // (1,15): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
                 // record struct S(object F)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(1, 15),

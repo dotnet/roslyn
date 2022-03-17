@@ -1211,7 +1211,7 @@ struct S
                 .VerifyDiagnostics(
                 // (5,5): error CS0171: Field 'S.y' must be fully assigned before control is returned to the caller
                 //     S(int x) { this.x = x; }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.y").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.y").WithLocation(5, 5),
                 // (5,5): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     S(int x) { this.x = x; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 5),
@@ -1278,7 +1278,7 @@ struct Program
                 .VerifyDiagnostics(
                 // (5,12): error CS0843: Auto-implemented property 'Program.X' must be fully assigned before control is returned to the caller.
                 //     public Program(int x)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.X").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.X").WithLocation(5, 12),
                 // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public Program(int x)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("auto default struct fields").WithLocation(5, 12));
@@ -1391,10 +1391,10 @@ struct Program
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
     // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x").WithLocation(14, 12),
     // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x2").WithLocation(14, 12),
     // (14,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
     //     public Program(int dummy)
     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("auto default struct fields").WithLocation(14, 12));
@@ -1451,10 +1451,10 @@ struct Program
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 34),
     // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x").WithLocation(14, 12),
     // (14,12): error CS0843: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
     //     public Program(int dummy)
-    Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
+    Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x2").WithLocation(14, 12),
     // (14,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and unsupported. To use Preview features, use the 'preview' language version.
     //     public Program(int dummy)
     Diagnostic(ErrorCode.ERR_FeatureInPreview, "Program").WithArguments("auto default struct fields").WithLocation(14, 12));
@@ -1463,19 +1463,19 @@ struct Program
             comp.VerifyDiagnostics(
                 // (14,12): warning CS9016: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThisAutoProperty, "Program").WithArguments("Program.x").WithLocation(14, 12),
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x").WithLocation(14, 12),
                 // (14,12): warning CS9016: Auto-implemented property 'Program.x2' must be fully assigned before control is returned to the caller.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThisAutoProperty, "Program").WithArguments("Program.x2").WithLocation(14, 12),
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.x2").WithLocation(14, 12),
                 // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
                 //         x.i = 1;
                 Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
                 // (16,9): warning CS9014: Use of possibly unassigned field 'i'
                 //         x.i = 1;
-                Diagnostic(ErrorCode.WRN_UseDefViolationFieldStructThis, "x.i").WithArguments("i").WithLocation(16, 9),
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "x.i").WithArguments("i").WithLocation(16, 9),
                 // (17,34): warning CS9013: Use of possibly unassigned auto-implemented property 'x2'
                 //         System.Console.WriteLine(x2.ii);
-                Diagnostic(ErrorCode.WRN_UseDefViolationPropertyStructThis, "x2").WithArguments("x2").WithLocation(17, 34));
+                Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "x2").WithArguments("x2").WithLocation(17, 34));
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularNext);
             comp.VerifyDiagnostics(
@@ -1771,7 +1771,7 @@ struct Program
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x1").WithArguments("x1").WithLocation(15, 17),
     // (16,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned
     //         Goo(ref x1);
-    Diagnostic(ErrorCode.ERR_UseDefViolationThis, "Goo").WithArguments("this").WithLocation(16, 9),
+    Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("this").WithLocation(16, 9),
     // (17,17): error CS8079: Use of possibly unassigned auto-implemented property 'x2'
     //         Goo(out x2);
     Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "x2").WithArguments("x2").WithLocation(17, 17),
@@ -2416,7 +2416,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Goo").WithArguments("Goo", "2").WithLocation(8, 13),
                 // (6,9): error CS0171: Field 'C.S.x' must be fully assigned before control is returned to the caller
                 //         S(dynamic y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("C.S.x").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("C.S.x").WithLocation(6, 9),
                 // (6,9): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         S(dynamic y)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(6, 9),
@@ -2573,7 +2573,7 @@ class Derived2 : Base
             comp.VerifyDiagnostics(
                 // (3,5): error CS0171: Field 'Derived.x' must be fully assigned before control is returned to the caller
                 //     Derived(int x) { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "Derived").WithArguments("Derived.x").WithLocation(3, 5),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Derived").WithArguments("Derived.x").WithLocation(3, 5),
                 // (3,5): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     Derived(int x) { }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "Derived").WithArguments("auto default struct fields").WithLocation(3, 5),
@@ -2707,7 +2707,7 @@ struct S
             comp.VerifyDiagnostics(
                 // (6,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 //     public S(object x, object y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F").WithLocation(6, 12),
                 // (6,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(object x, object y)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(6, 12),
@@ -2740,7 +2740,7 @@ struct S
             comp.VerifyDiagnostics(
                 // (5,12): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 //     public S(object x, object y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F").WithLocation(5, 12),
                 // (5,12): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public S(object x, object y)
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(5, 12),

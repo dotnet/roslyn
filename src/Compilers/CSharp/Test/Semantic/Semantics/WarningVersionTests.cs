@@ -139,15 +139,7 @@ public struct Struct
     {
     }
 }";
-            var csharp10IL = @"
-{
-  // Code size        2 (0x2)
-  .maxstack  0
-  IL_0000:  nop
-  IL_0001:  ret
-}
-";
-            var csharp11IL = @"
+            var expectedIL = @"
 {
   // Code size       14 (0xe)
   .maxstack  1
@@ -159,7 +151,6 @@ public struct Struct
 }
 ";
             // C# 10
-            // note: no LangVersion diagnostics are given here, even though we will change codegen in the later language version
             var verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
@@ -167,7 +158,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -176,10 +167,10 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8880: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller.
+                // (4,12): warning CS8880: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThisAutoProperty, "Program").WithArguments("Program.Property").WithLocation(4, 12));
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion, "Program").WithArguments("Program.Property", "preview").WithLocation(4, 12));
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
             verifier = CompileAndVerify(
@@ -189,7 +180,7 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -200,10 +191,10 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS9017: Auto-implemented property 'Program.Property' must be fully assigned before control is returned to the caller.
+                // (4,12): warning CS9020: Control is returned to caller before auto-implemented property 'Program.Property' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThisAutoProperty, "Program").WithArguments("Program.Property").WithLocation(4, 12));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+                Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "Program").WithArguments("Program.Property").WithLocation(4, 12));
+            verifier.VerifyIL("Program..ctor", expectedIL);
         }
 
         [Fact]
@@ -226,15 +217,7 @@ public struct Struct
     {
     }
 }";
-            var csharp10IL = @"
-{
-  // Code size        2 (0x2)
-  .maxstack  0
-  IL_0000:  nop
-  IL_0001:  ret
-}
-";
-            var csharp11IL = @"
+            var expectedIL = @"
 {
   // Code size       14 (0xe)
   .maxstack  1
@@ -246,7 +229,6 @@ public struct Struct
 }
 ";
             // C# 10
-            // note: no LangVersion diagnostics are given here, even though we will change codegen in the later language version
             var verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
@@ -254,7 +236,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -263,10 +245,10 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller
+                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThis, "Program").WithArguments("Program.Field").WithLocation(4, 12));
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+                Diagnostic(ErrorCode.WRN_UnassignedThisUnsupportedVersion, "Program").WithArguments("Program.Field", "preview").WithLocation(4, 12));
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
             verifier = CompileAndVerify(
@@ -277,7 +259,7 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -288,10 +270,10 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
+                // (4,12): warning CS9021: Control is returned to caller before field 'Program.Field' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "Program").WithArguments("Program.Field").WithLocation(4, 12));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "Program").WithArguments("Program.Field").WithLocation(4, 12));
+            verifier.VerifyIL("Program..ctor", expectedIL);
         }
 
         [Fact]
@@ -316,20 +298,7 @@ public struct Struct
         s.ToString();
     }
 }";
-            var csharp10IL = @"
-{
-  // Code size       16 (0x10)
-  .maxstack  1
-  .locals init (Struct V_0) //s
-  IL_0000:  nop
-  IL_0001:  ldloca.s   V_0
-  IL_0003:  constrained. ""Struct""
-  IL_0009:  callvirt   ""string object.ToString()""
-  IL_000e:  pop
-  IL_000f:  ret
-}
-";
-            var csharp11IL = @"
+            var expectedIL = @"
 {
   // Code size       28 (0x1c)
   .maxstack  1
@@ -346,7 +315,6 @@ public struct Struct
 }
 ";
             // C# 10
-            // note: no LangVersion diagnostics are given here, even though we will change codegen in the later language version
             var verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
@@ -354,7 +322,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -363,13 +331,13 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller
+                // (4,12): warning CS8881: Field 'Program.Field' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedThis, "Program").WithArguments("Program.Field").WithLocation(4, 12),
+                Diagnostic(ErrorCode.WRN_UnassignedThisUnsupportedVersion, "Program").WithArguments("Program.Field", "preview").WithLocation(4, 12),
                 // (7,9): warning CS8887: Use of unassigned local variable 's'
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_UseDefViolation, "s").WithArguments("s").WithLocation(7, 9));
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
             verifier = CompileAndVerify(
@@ -382,7 +350,7 @@ public struct Struct
                 // (7,9): warning CS8887: Use of unassigned local variable 's'
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_UseDefViolation, "s").WithArguments("s").WithLocation(7, 9));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -393,13 +361,13 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (4,12): warning CS9018: Field 'Program.Field' must be fully assigned before control is returned to the caller
+                // (4,12): warning CS9021: Control is returned to caller before field 'Program.Field' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public Program(int dummy)
-                Diagnostic(ErrorCode.WRN_UnassignedStructThis, "Program").WithArguments("Program.Field").WithLocation(4, 12),
+                Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "Program").WithArguments("Program.Field").WithLocation(4, 12),
                 // (7,9): warning CS8887: Use of unassigned local variable 's'
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_UseDefViolation, "s").WithArguments("s").WithLocation(7, 9));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
         }
 
         [Fact]
@@ -452,22 +420,7 @@ public struct Struct
         Property = default;
     }
 }";
-            var csharp10IL = @"
-{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (Struct V_0) //v2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  call       ""readonly Struct Program.Property.get""
-  IL_0007:  stloc.0
-  IL_0008:  ldarg.0
-  IL_0009:  ldflda     ""Struct Program.<Property>k__BackingField""
-  IL_000e:  initobj    ""Struct""
-  IL_0014:  ret
-}
-";
-            var csharp11IL = @"
+            var expectedIL = @"
 {
   // Code size       33 (0x21)
   .maxstack  1
@@ -486,7 +439,6 @@ public struct Struct
 }
 ";
             // C# 10
-            // note: no LangVersion diagnostics are given here, even though we will change codegen in the later language version
             var verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
@@ -494,7 +446,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -503,10 +455,10 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,21): warning CS8883: Use of possibly unassigned auto-implemented property 'Property'
+                // (6,21): warning CS9015: Use of possibly unassigned auto-implemented property 'Property'. Consider updating to language version 'preview' to automatically default the property.
                 //         Struct v2 = Property;
-                Diagnostic(ErrorCode.WRN_UseDefViolationProperty, "Property").WithArguments("Property").WithLocation(6, 21));
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+                Diagnostic(ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion, "Property").WithArguments("Property", "preview").WithLocation(6, 21));
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
             verifier = CompileAndVerify(
@@ -516,7 +468,7 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -529,8 +481,8 @@ public struct Struct
             verifier.VerifyDiagnostics(
                 // (6,21): warning CS9014: Use of possibly unassigned auto-implemented property 'Property'
                 //         Struct v2 = Property;
-                Diagnostic(ErrorCode.WRN_UseDefViolationPropertyStructThis, "Property").WithArguments("Property").WithLocation(6, 21));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+                Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "Property").WithArguments("Property").WithLocation(6, 21));
+            verifier.VerifyIL("Program..ctor", expectedIL);
         }
 
         [Fact]
@@ -555,22 +507,7 @@ public struct Struct
         Field = default;
     }
 }";
-            var csharp10IL = @"
-{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (Struct V_0) //v2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""Struct Program.Field""
-  IL_0007:  stloc.0
-  IL_0008:  ldarg.0
-  IL_0009:  ldflda     ""Struct Program.Field""
-  IL_000e:  initobj    ""Struct""
-  IL_0014:  ret
-}
-";
-            var csharp11IL = @"
+            var expectedIL = @"
 {
   // Code size       33 (0x21)
   .maxstack  1
@@ -589,7 +526,6 @@ public struct Struct
 }
 ";
             // C# 10
-            // note: no LangVersion diagnostics are given here, even though we will change codegen in the later language version
             var verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
@@ -597,7 +533,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -606,13 +542,10 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // PROTOTYPE(auto-default): give a LangVersion *warning* here.
-                // Use same emit in all language versions
-
-                // (6,21): warning CS8884: Use of possibly unassigned field 'Field'
+                // (6,21): warning CS9016: Use of possibly unassigned field 'Field'. Consider updating to language version 'preview' to automatically default the field.
                 //         Struct v2 = Field;
-                Diagnostic(ErrorCode.WRN_UseDefViolationField, "Field").WithArguments("Field").WithLocation(6, 21));
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion, "Field").WithArguments("Field", "preview").WithLocation(6, 21));
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
             verifier = CompileAndVerify(
@@ -623,7 +556,7 @@ public struct Struct
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
             verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
@@ -635,8 +568,8 @@ public struct Struct
             verifier.VerifyDiagnostics(
                 // (6,21): warning CS9014: Use of possibly unassigned field 'Field'
                 //         Struct v2 = Field;
-                Diagnostic(ErrorCode.WRN_UseDefViolationFieldStructThis, "Field").WithArguments("Field").WithLocation(6, 21));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+                Diagnostic(ErrorCode.WRN_UseDefViolationFieldSupportedVersion, "Field").WithArguments("Field").WithLocation(6, 21));
+            verifier.VerifyIL("Program..ctor", expectedIL);
         }
 
         [Fact]
@@ -661,22 +594,7 @@ public struct Struct
         this.Field = default;
     }
 }";
-            var csharp10IL = @"
-{
-  // Code size       21 (0x15)
-  .maxstack  1
-  .locals init (Program V_0) //p2
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""Program""
-  IL_0007:  stloc.0
-  IL_0008:  ldarg.0
-  IL_0009:  ldflda     ""Struct Program.Field""
-  IL_000e:  initobj    ""Struct""
-  IL_0014:  ret
-}
-";
-            var csharp11IL = @"
+            var expectedIL = @"
 {
   // Code size       33 (0x21)
   .maxstack  1
@@ -695,7 +613,6 @@ public struct Struct
 }
 ";
             // C# 10
-            // note: no LangVersion diagnostics are given here, even though we will change codegen in the later language version
             var verifier = CompileAndVerify(
                 source2,
                 references: moduleReference,
@@ -703,7 +620,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -712,10 +629,10 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned
+                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
                 //         Program p2 = this;
-                Diagnostic(ErrorCode.WRN_UseDefViolationThis, "this").WithArguments("this").WithLocation(6, 22));
-            verifier.VerifyIL("Program..ctor", csharp10IL);
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this", "preview").WithLocation(6, 22));
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
             verifier = CompileAndVerify(
@@ -725,7 +642,7 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+            verifier.VerifyIL("Program..ctor", expectedIL);
 
             verifier = CompileAndVerify(
                 source2,
@@ -736,10 +653,10 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,22): warning CS9016: The 'this' object cannot be used before all of its fields have been assigned
+                // (6,22): warning CS9019: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
                 //         Program p2 = this;
-                Diagnostic(ErrorCode.WRN_UseDefViolationStructThis, "this").WithArguments("this").WithLocation(6, 22));
-            verifier.VerifyIL("Program..ctor", csharp11IL);
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "this").WithArguments("this").WithLocation(6, 22));
+            verifier.VerifyIL("Program..ctor", expectedIL);
         }
 
         [Fact]

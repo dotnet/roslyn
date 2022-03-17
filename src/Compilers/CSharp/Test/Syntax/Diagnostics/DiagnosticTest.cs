@@ -349,11 +349,11 @@ class X
                         case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                         case ErrorCode.WRN_CompileTimeCheckedOverflow:
                         case ErrorCode.WRN_MethGrpToNonDel:
-                        case ErrorCode.WRN_UseDefViolationPropertyStructThis:
-                        case ErrorCode.WRN_UseDefViolationFieldStructThis:
-                        case ErrorCode.WRN_UseDefViolationStructThis:
-                        case ErrorCode.WRN_UnassignedStructThisAutoProperty:
-                        case ErrorCode.WRN_UnassignedStructThis:
+                        case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
+                        case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
+                        case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -362,12 +362,12 @@ class X
                         case ErrorCode.WRN_NubExprIsConstBool2:
                         case ErrorCode.WRN_StaticInAsOrIs:
                         case ErrorCode.WRN_PrecedenceInversion:
-                        case ErrorCode.WRN_UnassignedThisAutoProperty:
-                        case ErrorCode.WRN_UnassignedThis:
+                        case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
+                        case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
                         case ErrorCode.WRN_ParamUnassigned:
                         case ErrorCode.WRN_UseDefViolationProperty:
                         case ErrorCode.WRN_UseDefViolationField:
-                        case ErrorCode.WRN_UseDefViolationThis:
+                        case ErrorCode.WRN_UseDefViolationThisUnsupportedVersion:
                         case ErrorCode.WRN_UseDefViolationOut:
                         case ErrorCode.WRN_UseDefViolation:
                         case ErrorCode.WRN_SyncAndAsyncEntryPoints:
@@ -430,12 +430,12 @@ class X
                     ErrorCode.WRN_ConstOutOfRangeChecked,
                     ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen,
                     ErrorCode.WRN_PrecedenceInversion,
-                    ErrorCode.WRN_UnassignedThisAutoProperty,
-                    ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion,
+                    ErrorCode.WRN_UnassignedThisUnsupportedVersion,
                     ErrorCode.WRN_ParamUnassigned,
                     ErrorCode.WRN_UseDefViolationProperty,
                     ErrorCode.WRN_UseDefViolationField,
-                    ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.WRN_UseDefViolationThisUnsupportedVersion,
                     ErrorCode.WRN_UseDefViolationOut,
                     ErrorCode.WRN_UseDefViolation,
                     ErrorCode.WRN_SyncAndAsyncEntryPoints,
