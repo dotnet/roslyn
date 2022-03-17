@@ -238,6 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             }
         }
 
+        bool IMethodSymbol.IsIterator => _underlying.IsIterator;
+
         bool IMethodSymbol.HidesBaseMethodsByName
         {
             get
