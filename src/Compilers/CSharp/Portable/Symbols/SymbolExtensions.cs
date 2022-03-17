@@ -841,5 +841,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static bool IsRequired(this Symbol symbol) => symbol is FieldSymbol { IsRequired: true } or PropertySymbol { IsRequired: true };
+
+        internal static bool ShouldCheckRequiredMembers(this MethodSymbol method)
+            // PROTOTYPE(req): Check for the SetsRequiredMembersAttribute and return false for that case
+            => method.MethodKind == MethodKind.Constructor;
     }
 }

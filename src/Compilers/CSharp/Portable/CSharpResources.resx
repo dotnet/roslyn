@@ -7007,6 +7007,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RequiredMemberMustBeSettable" xml:space="preserve">
     <value>Required member '{0}' must be settable.</value>
   </data>
+  <data name="ERR_RequiredMemberMustBeSet" xml:space="preserve">
+    <value>Required member '{0}' must be set in the object initializer or attribute constructor.</value>
+  </data>
+  <data name="ERR_RequiredMembersMustBeAssignedValue" xml:space="preserve">
+    <value>Required member '{0}' must be assigned a value, it cannot use a nested member or collection initializer.</value>
+  </data>
+  <data name="ERR_RequiredMembersInvalid" xml:space="preserve">
+    <value>The required members list for '{0}' is malformed and cannot be interpreted.</value>
+  </data>
+  <data name="ERR_RequiredMembersBaseTypeInvalid" xml:space="preserve">
+    <value>The required members list for the base type '{0}' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.</value>
+  </data>
   <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>

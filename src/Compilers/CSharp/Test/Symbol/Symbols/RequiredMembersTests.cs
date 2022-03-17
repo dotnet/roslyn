@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -15,21 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols;
 [CompilerTrait(CompilerFeature.RequiredMembers)]
 public class RequiredMembersTests : CSharpTestBase
 {
-    private const string RequiredMemberAttribute = @"
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public class RequiredMemberAttribute : Attribute
-    {
-        public RequiredMemberAttribute()
-        {
-        }
-    }
-}
-";
+    private const string RequiredMemberAttributeVB = @"
+Namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Field Or AttributeTargets.Property, Inherited := false, AllowMultiple := false)>
+    Public Class RequiredMemberAttribute
+        Inherits Attribute
+    End Class
+End Namespace";
 
-    private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null)
-        => CreateCompilation(new[] { source, RequiredMemberAttribute }, options: options, parseOptions: parseOptions, assemblyName: assemblyName);
+    private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
+        => CreateCompilation(new[] { source, RequiredMemberAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
+
+    private Compilation CreateVisualBasicCompilationWithRequiredMembers(string source)
+        => CreateVisualBasicCompilation(new[] { source, RequiredMemberAttributeVB });
 
     private static Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths, string expectedAttributeLayout)
     {
@@ -1221,5 +1222,1632 @@ struct S3
 ");
 
         comp.VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_NoInheritance_NoneSet(bool useMetadataReference, [CombinatorialValues("", " C")] string constructor)
+    {
+        var c = @"
+public class C
+{
+    public required int Prop { get; set; }
+    public required int Field;
+}
+";
+
+        var creation = $@"C c = new{constructor}();";
+        var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
+
+        var expectedDiagnostics = constructor == " C" ? new[]
+        {
+            // (1,11): error CS9506: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
+            // C c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop").WithLocation(1, 11),
+            // (1,11): error CS9506: Required member 'C.Field' must be set in the object initializer or attribute constructor.
+            // C c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field").WithLocation(1, 11)
+        }
+        : new[] {
+            // (1,7): error CS9506: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
+            // C c = new();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Prop").WithLocation(1, 7),
+            // (1,7): error CS9506: Required member 'C.Field' must be set in the object initializer or attribute constructor.
+            // C c = new();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Field").WithLocation(1, 7)
+        };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var cComp = CreateCompilationWithRequiredMembers(c);
+        comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_NoInheritance_PartialSet(bool useMetadataReference, [CombinatorialValues("", " C")] string constructor)
+    {
+        var c = @"
+public class C
+{
+    public required int Prop1 { get; set; }
+    public required int Prop2 { get; set; }
+    public required int Field1;
+    public required int Field2;
+}
+";
+
+        var creation = $@"C c = new{constructor}() {{ Prop2 = 1, Field2 = 1 }};";
+        var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
+
+        var expectedDiagnostics = constructor == " C" ? new[]
+        {
+            // (1,11): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // C c = new C() { Prop2 = 1, Field2 = 1 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(1, 11),
+            // (1,11): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // C c = new C() { Prop2 = 1, Field2 = 1 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(1, 11)
+        }
+        : new[] {
+            // (1,7): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // C c = new() { Prop2 = 1, Field2 = 1 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Prop1").WithLocation(1, 7),
+            // (1,7): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // C c = new() { Prop2 = 1, Field2 = 1 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Field1").WithLocation(1, 7)
+        };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var cComp = CreateCompilationWithRequiredMembers(c);
+        comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_NoInheritance_AllSet(bool useMetadataReference, [CombinatorialValues("", " C")] string constructor)
+    {
+        var c = @"
+public class C
+{
+    public required int Prop1 { get; set; }
+    public required int Field1;
+}
+";
+
+        var creation = @"
+C c = new" + constructor + @"() { Prop1 = 1, Field1 = 1 };
+System.Console.WriteLine($""{c.Prop1}, {c.Field1}"");
+";
+        var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
+        CompileAndVerify(comp, expectedOutput: "1, 1");
+
+        var cComp = CreateCompilationWithRequiredMembers(c);
+        comp = CreateCompilation(creation, references: new[] { useMetadataReference ? cComp.ToMetadataReference() : cComp.EmitToImageReference() });
+        CompileAndVerify(comp, expectedOutput: "1, 1");
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_Unsettable()
+    {
+        var c = @"
+var c = new C();
+c = new C() { Prop1 = 1, Field1 = 1 };
+
+public class C
+{
+    public required int Prop1 { get; }
+    public required readonly int Field1;
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        comp.VerifyDiagnostics(
+            // (2,13): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // var c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(2, 13),
+            // (2,13): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // var c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(2, 13),
+            // (3,15): error CS0200: Property or indexer 'C.Prop1' cannot be assigned to -- it is read only
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Prop1").WithArguments("C.Prop1").WithLocation(3, 15),
+            // (3,26): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonly, "Field1").WithLocation(3, 26),
+            // (7,25): error CS9505: Required member 'C.Prop1' must be settable.
+            //     public required int Prop1 { get; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(7, 25),
+            // (8,34): error CS9505: Required member 'C.Field1' must be settable.
+            //     public required readonly int Field1;
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field1").WithArguments("C.Field1").WithLocation(8, 34)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_Unsettable_FromMetadata()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+
+<RequiredMember>
+Public Class C
+    <RequiredMember>
+    Public Readonly Property Prop1 As Integer
+    <RequiredMember>
+    Public Readonly Field1 As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        vbComp.VerifyEmitDiagnostics();
+
+        var c = @"
+var c = new C();
+c = new C() { Prop1 = 1, Field1 = 1 };
+";
+        var comp = CreateCompilation(new[] { c }, references: new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (2,13): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // var c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(2, 13),
+            // (2,13): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // var c = new C();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(2, 13),
+            // (3,15): error CS0200: Property or indexer 'C.Prop1' cannot be assigned to -- it is read only
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Prop1").WithArguments("C.Prop1").WithLocation(3, 15),
+            // (3,26): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+            // c = new C() { Prop1 = 1, Field1 = 1 };
+            Diagnostic(ErrorCode.ERR_AssgReadonly, "Field1").WithLocation(3, 26)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_DisallowedNestedObjectInitializer()
+    {
+        var c = @"
+var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
+
+public class C
+{
+    public required D D1 { get; set; }
+    public required D D2;
+}
+public class D
+{
+    public int NestedProp { get; set; }
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        comp.VerifyDiagnostics(
+            // (2,24): error CS9507: Required member 'C.D1' must be assigned a value, it cannot use a nested member or collection initializer.
+            // var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ NestedProp = 1 }").WithArguments("C.D1").WithLocation(2, 24),
+            // (2,49): error CS9507: Required member 'C.D2' must be assigned a value, it cannot use a nested member or collection initializer.
+            // var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ NestedProp = 2 }").WithArguments("C.D2").WithLocation(2, 49)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_NestedObjectCreationAllowed()
+    {
+        var c = @"
+var c = new C() { D1 = new() { NestedProp = 1 }, D2 = new() { NestedProp = 2 } };
+
+public class C
+{
+    public required D D1 { get; set; }
+    public required D D2;
+}
+public class D
+{
+    public int NestedProp { get; set; }
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_DisallowedNestedCollectionInitializer()
+    {
+        var c = @"
+using System.Collections.Generic;
+var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
+
+public class C
+{
+    public required List<int> L1 { get; set; }
+    public required List<int> L2;
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        comp.VerifyDiagnostics(
+            // (3,24): error CS9507: Required member 'C.L1' must be assigned a value, it cannot use a nested member or collection initializer.
+            // var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ 1, 2, 3 }").WithArguments("C.L1").WithLocation(3, 24),
+            // (3,42): error CS9507: Required member 'C.L2' must be assigned a value, it cannot use a nested member or collection initializer.
+            // var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
+            Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ 4, 5, 6 }").WithArguments("C.L2").WithLocation(3, 42)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_NoInheritance_NestedObjectCreationWithCollectionInitializerAllowed()
+    {
+        var c = @"
+using System.Collections.Generic;
+var c = new C() { L1 = new() { 1, 2, 3 }, L2 = new() { 4, 5, 6 } };
+
+public class C
+{
+    public required List<int> L1 { get; set; }
+    public required List<int> L2;
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(c);
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Inheritance_NoneSet(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public required int Prop1 { get; set; }
+    public required int Field1;
+}
+";
+
+        var code = @"
+_ = new Derived();
+
+public class Derived : Base
+{
+    public required int Prop2 { get; set; }
+    public required int Field2;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+
+        var expectedDiagnostics = new[] {
+                // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
+                // _ = new Derived();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop1").WithLocation(2, 9),
+                // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
+                // _ = new Derived();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field1").WithLocation(2, 9),
+                // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
+                // _ = new Derived();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop2").WithLocation(2, 9),
+                // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
+                // _ = new Derived();
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field2").WithLocation(2, 9)
+        };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Inheritance_PartialSet(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public required int Prop1 { get; set; }
+    public required int Field1;
+    public required int Prop2 { get; set; }
+    public required int Field2;
+}
+";
+
+        var code = @"
+_ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
+
+public class Derived : Base
+{
+    public required int Prop3 { get; set; }
+    public required int Field3;
+    public required int Prop4 { get; set; }
+    public required int Field4;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+
+        var expectedDiagnostics = new[] {
+            // (2,9): error CS9506: Required member 'Base.Prop2' must be set in the object initializer or attribute constructor.
+            // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop2").WithLocation(2, 9),
+            // (2,9): error CS9506: Required member 'Base.Field2' must be set in the object initializer or attribute constructor.
+            // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field2").WithLocation(2, 9),
+            // (2,9): error CS9506: Required member 'Derived.Prop4' must be set in the object initializer or attribute constructor.
+            // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop4").WithLocation(2, 9),
+            // (2,9): error CS9506: Required member 'Derived.Field4' must be set in the object initializer or attribute constructor.
+            // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field4").WithLocation(2, 9)
+        };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Inheritance_AllSet(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public required int Prop1 { get; set; }
+    public required int Field1;
+}
+";
+
+        var code = @"
+_ = new Derived() { Prop1 = 1, Field1 = 1, Prop2 = 2, Field2 = 2 };
+
+public class Derived : Base
+{
+    public required int Prop2 { get; set; }
+    public required int Field2;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+        CompileAndVerify(comp).VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ThroughRetargeting_NoneSet()
+    {
+        var retargetedCode = @"public class C {}";
+
+        var originalC = CreateCompilation(new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var @base = @"
+public class Base
+{
+    public required C Prop1 { get; set; }
+    public required C Field1;
+}
+";
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+
+        var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var code = @"
+_ = new Derived();
+
+public class Derived : Base
+{
+    public required C Prop2 { get; set; }
+    public required C Field2;
+}
+";
+
+        var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        comp.VerifyDiagnostics(
+            // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field1").WithLocation(2, 9),
+            // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop1").WithLocation(2, 9),
+            // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop2").WithLocation(2, 9),
+            // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field2").WithLocation(2, 9)
+        );
+
+        var baseSymbol = comp.GetTypeByMetadataName("Base");
+        Assert.IsType<RetargetingNamedTypeSymbol>(baseSymbol);
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ThroughRetargeting_AllSet()
+    {
+        var retargetedCode = @"public class C {}";
+
+        var originalC = CreateCompilation(new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var @base = @"
+public class Base
+{
+    public required C Prop1 { get; set; }
+    public required C Field1;
+}
+";
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+
+        var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var code = @"
+_ = new Derived() { Prop1 = new(), Field1 = new(), Prop2 = new(), Field2 = new() };
+
+public class Derived : Base
+{
+    public required C Prop2 { get; set; }
+    public required C Field2;
+}
+";
+
+        var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        comp.VerifyDiagnostics();
+
+        var baseSymbol = comp.GetTypeByMetadataName("Base");
+        Assert.IsType<RetargetingNamedTypeSymbol>(baseSymbol);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Override_NoneSet(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public virtual required int Prop1 { get; set; }
+}
+";
+
+        var code = @"
+_ = new Derived();
+
+public class Derived : Base
+{
+    public override required int Prop1 { get; set; }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+
+        var expectedDiagnostics = new[] {
+            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
+        };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Override_PartialSet(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public virtual required int Prop1 { get; set; }
+    public virtual required int Prop2 { get; set; }
+}
+";
+
+        var code = @"
+_ = new Derived() { Prop2 = 1 };
+
+public class Derived : Base
+{
+    public override required int Prop1 { get; set; }
+    public override required int Prop2 { get; set; }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+
+        var expectedDiagnostics = new[] {
+            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
+            // _ = new Derived() { Prop2 = 1 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
+        };
+
+        comp.VerifyDiagnostics(expectedDiagnostics);
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EnforcedRequiredMembers_Override_AllSet(bool useMetadataReference)
+    {
+        var @base = @"
+public class Base
+{
+    public virtual required int Prop1 { get; set; }
+    public virtual required int Prop2 { get; set; }
+}
+";
+
+        var code = @"
+_ = new Derived() { Prop1 = 1, Prop2 = 1 };
+
+public class Derived : Base
+{
+    public override required int Prop1 { get; set; }
+    public override required int Prop2 { get; set; }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+        CompileAndVerify(comp).VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(code, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_OverrideRetargeted_AllSet()
+    {
+        var retargetedCode = @"public class C {}";
+        var originalC = CreateCompilation(new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var @base = @"
+public class Base
+{
+    public required virtual C Prop1 { get; set; }
+}
+";
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var code = @"
+_ = new Derived() { Prop1 = new() };
+
+public class Derived : Base
+{
+    public override required C Prop1 { get; set; }
+}
+";
+
+        var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() });
+        comp.VerifyDiagnostics();
+
+        Assert.IsType<RetargetingNamedTypeSymbol>(comp.GetTypeByMetadataName("Base"));
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_OverrideRetargeted_NoneSet()
+    {
+        var retargetedCode = @"public class C {}";
+        var originalC = CreateCompilation(new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var @base = @"
+public class Base
+{
+    public required virtual C Prop1 { get; set; }
+}
+";
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base, new[] { originalC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
+        var retargetedC = CreateCompilation(new AssemblyIdentity("Ret", new Version(2, 0, 0, 0), isRetargetable: true), retargetedCode, TargetFrameworkUtil.StandardReferences);
+
+        var code = @"
+_ = new Derived();
+
+public class Derived : Base
+{
+    public override required C Prop1 { get; set; }
+}
+";
+
+        var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() });
+        comp.VerifyDiagnostics(
+            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
+        );
+
+        Assert.IsType<RetargetingNamedTypeSymbol>(comp.GetTypeByMetadataName("Base"));
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_01()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+<RequiredMember>
+Public Class Derived
+    Inherits Base
+    <RequiredMember>
+    Public Shadows Property P As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        CompileAndVerify(vbComp).VerifyDiagnostics();
+
+        var c = @"
+_ = new Derived2();
+_ = new Derived3();
+
+class Derived2 : Derived
+{
+    public Derived2() {}
+    public Derived2(int x) {}
+}
+class Derived3 : Derived { }";
+
+        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public Derived2() {}
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
+            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public Derived2(int x) {}
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(8, 12),
+            // (10,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // class Derived3 : Derived { }
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(10, 7)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_02()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+<RequiredMember>
+Public Class Derived
+    Inherits Base
+    Public Shadows Property P As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        CompileAndVerify(vbComp).VerifyDiagnostics();
+
+        var c = @"
+_ = new Derived2();
+_ = new Derived3();
+
+class Derived2 : Derived
+{
+    public Derived2() {}
+}
+class Derived3 : Derived { }";
+
+        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public Derived2() {}
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
+            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // class Derived3 : Derived { }
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_03()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+Public Class Derived
+    Inherits Base
+    Public Shadows Property P As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        CompileAndVerify(vbComp).VerifyDiagnostics();
+
+        var c = @"
+_ = new Derived2();
+_ = new Derived3();
+
+class Derived2 : Derived
+{
+    public Derived2() {}
+}
+class Derived3 : Derived { }";
+
+        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public Derived2() {}
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
+            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // class Derived3 : Derived { }
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_04()
+    {
+        var original = @"
+public record Base
+{
+    public required int P { get; init; }
+}
+";
+
+        var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
+        CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        // This IL is the equivalent of:
+        // public record Derived : Base
+        // {
+        //    public new int P { get; init; }
+        // }
+
+        var ilSource = @"
+.assembly extern original {}
+
+.class public auto ansi beforefieldinit Derived
+    extends [original]Base
+    implements class [mscorlib]System.IEquatable`1<class Derived>
+{
+    .custom instance void [original]RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Fields
+    .field private initonly int32 '<P>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = (
+        01 00 00 00 00 00 00 00
+    )
+
+    // Methods
+    .method family hidebysig specialname virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method Derived::get_EqualityContract
+
+    .method public hidebysig specialname 
+        instance int32 get_P () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method Derived::get_P
+
+    .method public hidebysig specialname 
+        instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_P (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method Derived::set_P
+
+    .method public hidebysig virtual 
+        instance string ToString () cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::ToString
+
+    .method family hidebysig virtual 
+        instance bool PrintMembers (
+            class [mscorlib]System.Text.StringBuilder builder
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::PrintMembers
+
+    .method public hidebysig specialname static 
+        bool op_Inequality (
+            class Derived left,
+            class Derived right
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::op_Inequality
+
+    .method public hidebysig specialname static 
+        bool op_Equality (
+            class Derived left,
+            class Derived right
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::op_Equality
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::GetHashCode
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object obj
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::Equals
+
+    .method public final hidebysig virtual 
+        instance bool Equals (
+            class [original]Base other
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::Equals
+
+    .method public hidebysig newslot virtual 
+        instance bool Equals (
+            class Derived other
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::Equals
+
+    .method public hidebysig newslot virtual 
+        instance class Derived '<Clone>$' () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.PreserveBaseOverridesAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .override method instance class [original]Base [original]Base::'<Clone>$'()
+        ldnull
+        throw
+    } // end of method Derived::'<Clone>$'
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class Derived original
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::.ctor
+
+    // Properties
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type Derived::get_EqualityContract()
+    }
+    .property instance int32 P()
+    {
+        .get instance int32 Derived::get_P()
+        .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) Derived::set_P(int32)
+    }
+
+} // end of class Derived
+";
+
+        var il = CompileIL(ilSource);
+
+        var c = @"
+_ = new DerivedDerived1();
+_ = new DerivedDerived2();
+_ = new DerivedDerived3();
+
+record DerivedDerived1 : Derived
+{
+    public DerivedDerived1()
+    {
+    }
+}
+record DerivedDerived2 : Derived
+{
+}
+record DerivedDerived3() : Derived;
+";
+
+        var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
+        // PROTOTYPE(req): do we want to take the effort to remove some of these duplicate errors?
+        comp.VerifyDiagnostics(
+            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived1 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
+            // (6,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // record DerivedDerived1 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
+            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public DerivedDerived1()
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived2 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived2 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
+            // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // record DerivedDerived2 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived3() : Derived;
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived3() : Derived;
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
+            // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // record DerivedDerived3() : Derived;
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedInSource_06()
+    {
+        var original = @"
+public record Base
+{
+    public required int P { get; init; }
+}
+";
+
+        var originalComp = CreateCompilationWithRequiredMembers(new[] { original, IsExternalInitTypeDefinition }, assemblyName: "original");
+        CompileAndVerify(originalComp, verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        // This IL is the equivalent of:
+        // public record Derived : Base
+        // {
+        //    public new required int P { get; init; }
+        // }
+
+        var ilSource = @"
+.assembly extern original {}
+
+.class public auto ansi beforefieldinit Derived
+    extends [original]Base
+    implements class [mscorlib]System.IEquatable`1<class Derived>
+{
+    .custom instance void [original]RequiredMemberAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Fields
+    .field private initonly int32 '<P>k__BackingField'
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = (
+        01 00 00 00 00 00 00 00
+    )
+
+    // Methods
+    .method family hidebysig specialname virtual 
+        instance class [mscorlib]System.Type get_EqualityContract () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method Derived::get_EqualityContract
+
+    .method public hidebysig specialname 
+        instance int32 get_P () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method Derived::get_P
+
+    .method public hidebysig specialname 
+        instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_P (
+            int32 'value'
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method Derived::set_P
+
+    .method public hidebysig virtual 
+        instance string ToString () cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::ToString
+
+    .method family hidebysig virtual 
+        instance bool PrintMembers (
+            class [mscorlib]System.Text.StringBuilder builder
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::PrintMembers
+
+    .method public hidebysig specialname static 
+        bool op_Inequality (
+            class Derived left,
+            class Derived right
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::op_Inequality
+
+    .method public hidebysig specialname static 
+        bool op_Equality (
+            class Derived left,
+            class Derived right
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::op_Equality
+
+    .method public hidebysig virtual 
+        instance int32 GetHashCode () cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::GetHashCode
+
+    .method public hidebysig virtual 
+        instance bool Equals (
+            object obj
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::Equals
+
+    .method public final hidebysig virtual 
+        instance bool Equals (
+            class [original]Base other
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::Equals
+
+    .method public hidebysig newslot virtual 
+        instance bool Equals (
+            class Derived other
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::Equals
+
+    .method public hidebysig newslot virtual 
+        instance class Derived '<Clone>$' () cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.PreserveBaseOverridesAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .override method instance class [original]Base [original]Base::'<Clone>$'()
+        ldnull
+        throw
+    } // end of method Derived::'<Clone>$'
+
+    .method family hidebysig specialname rtspecialname 
+        instance void .ctor (
+            class Derived original
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::.ctor
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::.ctor
+
+    // Properties
+    .property instance class [mscorlib]System.Type EqualityContract()
+    {
+        .get instance class [mscorlib]System.Type Derived::get_EqualityContract()
+    }
+    .property instance int32 P()
+    {
+        .custom instance void [original]RequiredMemberAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .get instance int32 Derived::get_P()
+        .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) Derived::set_P(int32)
+    }
+
+} // end of class Derived
+";
+
+        var il = CompileIL(ilSource);
+
+        var c = @"
+_ = new DerivedDerived1();
+_ = new DerivedDerived2();
+_ = new DerivedDerived3();
+
+record DerivedDerived1 : Derived
+{
+    public DerivedDerived1()
+    {
+    }
+}
+record DerivedDerived2 : Derived
+{
+}
+record DerivedDerived3() : Derived;
+";
+
+        var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
+        // PROTOTYPE(req): do we want to take the effort to remove some of these duplicate errors?
+        comp.VerifyDiagnostics(
+            // (6,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived1 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
+            // (6,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // record DerivedDerived1 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(6, 8),
+            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            //     public DerivedDerived1()
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived2 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
+            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived2 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
+            // (12,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // record DerivedDerived2 : Derived
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived3() : Derived;
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
+            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // record DerivedDerived3() : Derived;
+            Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8),
+            // (15,8): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // record DerivedDerived3() : Derived;
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedFromMetadata_01()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+<RequiredMember>
+Public Class Derived
+    Inherits Base
+    <RequiredMember>
+    Public Shadows Property P As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        CompileAndVerify(vbComp).VerifyDiagnostics();
+
+        var c = @"_ = new Derived();";
+        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived").WithArguments("Derived").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedFromMetadata_02()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+<RequiredMember>
+Public Class Derived
+    Inherits Base
+    Public Shadows Property P As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        CompileAndVerify(vbComp).VerifyDiagnostics();
+
+        var c = @"_ = new Derived();";
+        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived").WithArguments("Derived").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void EnforcedRequiredMembers_ShadowedFromMetadata_03()
+    {
+        var vb = @"
+Imports System.Runtime.CompilerServices
+<RequiredMember>
+Public Class Base
+    <RequiredMember>
+    Public Property P As Integer
+End Class
+
+Public Class Derived
+    Inherits Base
+    Public Shadows Property P As Integer
+End Class
+";
+
+        var vbComp = CreateVisualBasicCompilationWithRequiredMembers(vb);
+        CompileAndVerify(vbComp).VerifyDiagnostics();
+
+        var c = @"_ = new Derived();";
+        var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // _ = new Derived();
+            Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived").WithArguments("Derived").WithLocation(1, 9)
+        );
+    }
+
+    [Fact]
+    public void InterpolatedStringHandlerWithRequiredMembers()
+    {
+        var code = @"
+CustomHandler handler = $"""";
+
+partial class CustomHandler
+{
+    public required int Field;
+}";
+
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false);
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, handler });
+        comp.VerifyDiagnostics(
+            // (2,25): error CS9506: Required member 'CustomHandler.Field' must be set in the object initializer or attribute constructor.
+            // CustomHandler handler = $"";
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, @"$""""").WithArguments("CustomHandler.Field").WithLocation(2, 25)
+        );
+    }
+
+    [Fact]
+    public void CoClassWithRequiredMembers_NoneSet()
+    {
+        string code = @"
+using System;
+using System.Runtime.InteropServices;
+
+_ = new I();
+
+[ComImport, Guid(""00020810-0000-0000-C000-000000000046"")]
+[CoClass(typeof(C))]
+interface I
+{
+}
+
+class C : I
+{
+    public required int P { get; set; }
+}
+
+";
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (5,9): error CS9506: Required member 'C.P' must be set in the object initializer or attribute constructor.
+            // _ = new I();
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "I").WithArguments("C.P").WithLocation(5, 9)
+        );
+    }
+
+    [Fact]
+    public void CoClassWithRequiredMembers_AllSet()
+    {
+        string code = @"
+using System;
+using System.Runtime.InteropServices;
+
+_ = new I() { P = 1 };
+
+[ComImport, Guid(""00020810-0000-0000-C000-000000000046"")]
+[CoClass(typeof(C))]
+interface I
+{
+    public int P { get; set; }
+}
+
+class C : I
+{
+    public required int P { get; set; }
+}
+";
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (5,9): error CS9506: Required member 'C.P' must be set in the object initializer or attribute constructor.
+            // _ = new I() { P = 1 };
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "I").WithArguments("C.P").WithLocation(5, 9)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_NotSet()
+    {
+        var code = @"
+using System;
+
+[Attr]
+class C
+{
+}
+
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (4,2): error CS9506: Required member 'AttrAttribute.P' must be set in the object initializer or attribute constructor.
+            // [Attr]
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Attr").WithArguments("AttrAttribute.P").WithLocation(4, 2)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_AllSet()
+    {
+        var code = @"
+using System;
+
+[Attr(P = 1, F = 2)]
+class C
+{
+}
+
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            var attr = c.GetAttributes().Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive01()
+    {
+        var code = @"
+using System;
+
+[Attr(P = 1, F = 2)]
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var attrAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("AttrAttribute");
+            var attr = attrAttribute.GetAttributes().Where(a => a.AttributeClass!.Name == "AttrAttribute").Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive02()
+    {
+        var code = @"
+using System;
+
+class AttrAttribute : Attribute
+{
+    [Attr(P = 1, F = 2)]
+    public required int P { get; set; }
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var attrAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("AttrAttribute");
+            var p = attrAttribute.GetMember<PropertySymbol>("P");
+            var attr = p.GetAttributes().Where(a => a.AttributeClass!.Name == "AttrAttribute").Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive03()
+    {
+        var code = @"
+using System;
+
+class AttrAttribute : Attribute
+{
+    public required int P { get; set; }
+    [Attr(P = 1, F = 2)]
+    public required int F;
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        var verifier = CompileAndVerify(comp, symbolValidator: verify, sourceSymbolValidator: verify);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var attrAttribute = module.GlobalNamespace.GetMember<NamedTypeSymbol>("AttrAttribute");
+            var f = attrAttribute.GetMember<FieldSymbol>("F");
+            var attr = f.GetAttributes().Where(a => a.AttributeClass!.Name == "AttrAttribute").Single();
+            AssertEx.Equal("AttrAttribute", attr.AttributeClass.ToTestDisplayString());
+            Assert.Equal(2, attr.CommonNamedArguments.Length);
+            Assert.Equal(1, (int)attr.CommonNamedArguments[0].Value.ValueInternal!);
+            Assert.Equal(2, (int)attr.CommonNamedArguments[1].Value.ValueInternal!);
+        }
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive04()
+    {
+        var code = @"
+namespace System.Runtime.CompilerServices;
+
+[RequiredMember]
+public class RequiredMemberAttribute : Attribute
+{
+    public required int P { get; set; }
+}
+";
+
+        var comp = CreateCompilation(code);
+        comp.VerifyDiagnostics(
+            // (4,2): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
+            // [RequiredMember]
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "RequiredMember").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute.P").WithLocation(4, 2),
+            // (4,2): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // [RequiredMember]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(4, 2)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberInAttribute_Recursive05()
+    {
+        var code = @"
+namespace System.Runtime.CompilerServices;
+
+public class RequiredMemberAttribute : Attribute
+{
+    [RequiredMember]
+    public required int P { get; set; }
+}
+";
+
+        var comp = CreateCompilation(code);
+        comp.VerifyDiagnostics(
+            // (6,6): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
+            //     [RequiredMember]
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "RequiredMember").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute.P").WithLocation(6, 6),
+            // (6,6): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            //     [RequiredMember]
+            Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(6, 6)
+        );
     }
 }
