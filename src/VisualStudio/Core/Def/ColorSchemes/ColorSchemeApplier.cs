@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 
             // If this is a supported theme then, use the users configured scheme, otherwise fallback to the VS 2017.
             // Custom themes would be based on the MEF exported color information for classifications which matches the VS 2017 theme.
-            var configuredColorScheme = IsSupportedTheme()
+            var configuredColorScheme = await IsSupportedThemeAsync(cancellationToken).ConfigureAwait(false)
                 ? _settings.GetConfiguredColorScheme()
                 : ColorSchemeName.VisualStudio2017;
 
@@ -134,10 +134,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
             return configuredColorScheme;
         }
 
-        public bool IsSupportedTheme()
-            => _threadingContext.JoinableTaskFactory.Run(() => IsSupportedThemeAsync(_threadingContext.DisposalToken));
-
-        private async Task<bool> IsSupportedThemeAsync(CancellationToken cancellationToken)
+        public async Task<bool> IsSupportedThemeAsync(CancellationToken cancellationToken)
             => IsSupportedTheme(await GetThemeIdAsync(cancellationToken).ConfigureAwait(false));
 
         private bool IsSupportedTheme(Guid themeId)
@@ -147,12 +144,11 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                     theme => theme.Guid == themeId));
         }
 
-        public bool IsThemeCustomized()
-            => _threadingContext.JoinableTaskFactory.Run(async () =>
-                await _classificationVerifier.AreForegroundColorsCustomizedAsync(
-                    _settings.GetConfiguredColorScheme(),
-                    await GetThemeIdAsync(_threadingContext.DisposalToken).ConfigureAwait(false),
-                    _threadingContext.DisposalToken).ConfigureAwait(false));
+        public async Task<bool> IsThemeCustomizedAsync(CancellationToken cancellationToken)
+            => await _classificationVerifier.AreForegroundColorsCustomizedAsync(
+                _settings.GetConfiguredColorScheme(),
+                await GetThemeIdAsync(cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
 
         private async Task<Guid> GetThemeIdAsync(CancellationToken cancellationToken)
         {

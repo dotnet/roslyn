@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 Imports Microsoft.CodeAnalysis.Editor.InlineDiagnostics
 Imports Microsoft.CodeAnalysis.Editor.InlineHints
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.InlineHints
@@ -31,11 +32,13 @@ Imports Microsoft.VisualStudio.LanguageServices.Telemetry
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
+        Private ReadOnly _threadingContext As IThreadingContext
         Private ReadOnly _colorSchemeApplier As ColorSchemeApplier
 
         Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
             MyBase.New(optionStore)
 
+            _threadingContext = componentModel.GetService(Of IThreadingContext)()
             _colorSchemeApplier = componentModel.GetService(Of ColorSchemeApplier)()
 
             InitializeComponent()
@@ -163,9 +166,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
         ' we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
         Friend Overrides Sub OnLoad()
-            Dim isSupportedTheme = _colorSchemeApplier.IsSupportedTheme()
-            Dim isCustomized = _colorSchemeApplier.IsThemeCustomized()
+            Dim cancellationToken = _threadingContext.DisposalToken
+            Dim values = _threadingContext.JoinableTaskFactory.Run(
+                Async Function()
+                    Return (isSupportedTheme:=Await _colorSchemeApplier.IsSupportedThemeAsync(cancellationToken).ConfigureAwait(False),
+                            isCustomized:=Await _colorSchemeApplier.IsThemeCustomizedAsync(cancellationToken).ConfigureAwait(False))
+                End Function)
 
+            Dim isSupportedTheme = values.isSupportedTheme
+            Dim isCustomized = values.isCustomized
             Editor_color_scheme.Visibility = If(isSupportedTheme, Visibility.Visible, Visibility.Collapsed)
             Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
             Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
