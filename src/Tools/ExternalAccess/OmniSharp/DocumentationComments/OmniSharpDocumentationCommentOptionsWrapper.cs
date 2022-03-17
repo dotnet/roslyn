@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
 {
@@ -30,13 +29,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             bool autoXmlDocCommentGeneration,
             CancellationToken cancellationToken)
         {
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-
-            return new(new DocumentationCommentOptions(
-                AutoXmlDocCommentGeneration: autoXmlDocCommentGeneration,
-                TabSize: formattingOptions.TabSize,
-                UseTabs: formattingOptions.UseTabs,
-                NewLine: formattingOptions.NewLine));
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return new(DocumentationCommentOptions.From(documentOptions) with { AutoXmlDocCommentGeneration = autoXmlDocCommentGeneration });
         }
     }
 }

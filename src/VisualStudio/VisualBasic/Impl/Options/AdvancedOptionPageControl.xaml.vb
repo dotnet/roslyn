@@ -96,7 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic)
 
             ' Comments
-            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
+            BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
             BindToOption(InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments, SplitCommentOptions.Enabled, LanguageNames.VisualBasic)
 
             ' Editor help

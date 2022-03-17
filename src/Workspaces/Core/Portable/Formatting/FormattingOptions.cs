@@ -21,17 +21,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
         public static PerLanguageOption<int> IndentationSize { get; } = ((PerLanguageOption<int>)FormattingOptions2.IndentationSize)!;
 
+        /// <inheritdoc cref="AutoFormattingOptions.IndentStyle"/>
+        // Suppression due to https://github.com/dotnet/roslyn/issues/42614
+        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = ((PerLanguageOption<IndentStyle>)AutoFormattingOptions.Metadata.SmartIndent)!;
+
         /// <inheritdoc cref="FormattingOptions2.NewLine"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
         public static PerLanguageOption<string> NewLine { get; } = ((PerLanguageOption<string>)FormattingOptions2.NewLine)!;
-
-        // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-
-        internal static readonly PerLanguageOption2<IndentStyle> SmartIndent2 = new(
-            "FormattingOptions", FormattingOptionGroups.IndentationAndSpacing, "SmartIndent", defaultValue: IndentStyle.Smart);
-
-        /// <inheritdoc cref="AutoFormattingOptions.IndentStyle"/>
-        // Suppression due to https://github.com/dotnet/roslyn/issues/42614
-        public static PerLanguageOption<IndentStyle> SmartIndent { get; } = (PerLanguageOption<IndentStyle>)SmartIndent2!;
     }
 }

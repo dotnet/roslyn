@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
 
-            BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
+            BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
