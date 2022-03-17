@@ -269,6 +269,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var replacementValue = _hint.ReplacementTextChange!.Value;
                 var subjectBuffer = _span.Snapshot.TextBuffer;
 
+                // Selected SpanTrackingMode to be EdgeExclusive by default.
+                // Will revise if there are some scenarios we did not think of that produce undesirable behavior.
                 var currentSnapshotSpan = _span.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
                 subjectBuffer.Replace(currentSnapshotSpan.Span, replacementValue.NewText);
             }
