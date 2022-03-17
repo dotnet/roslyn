@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
     [DataContract]
     internal readonly record struct LineFormattingOptions(
-        [property: DataMember(Order = 1)] bool UseTabs = false,
-        [property: DataMember(Order = 2)] int TabSize = 4,
-        [property: DataMember(Order = 3)] int IndentationSize = 4,
+        [property: DataMember(Order = 0)] bool UseTabs = false,
+        [property: DataMember(Order = 1)] int TabSize = 4,
+        [property: DataMember(Order = 2)] int IndentationSize = 4,
         string? NewLine = null)
     {
-        [property: DataMember(Order = 4)]
+        [property: DataMember(Order = 3)]
         public string NewLine { get; init; } = NewLine ?? Environment.NewLine;
 
         public LineFormattingOptions()
