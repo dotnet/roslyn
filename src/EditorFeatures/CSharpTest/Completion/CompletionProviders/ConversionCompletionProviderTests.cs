@@ -354,41 +354,6 @@ public class Program
 ");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitUserDefinedConversionIsApplied()
-        {
-            await VerifyCustomCommitProviderAsync(@"
-public class C
-{
-    public static explicit operator float(C c) => 0;
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$
-    }
-}
-", "float", @"
-public class C
-{
-    public static explicit operator float(C c) => 0;
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        ((float)c)$$
-    }
-}
-");
-        }
-
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("white.$$", "Black",
@@ -733,46 +698,6 @@ public class Program
         {
             var c = new C<int>();
             ((D<int>)c)$$
-        }
-    }
-}
-"
-            );
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitUserDefinedConversionToArray()
-        {
-            await VerifyCustomCommitProviderAsync(
-@"
-public class C
-{
-    public static explicit operator int[](C _) => default;
-}
-public class Program
-{
-    public static void Main()
-    {
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}
-", "int[]",
-@"
-public class C
-{
-    public static explicit operator int[](C _) => default;
-}
-public class Program
-{
-    public static void Main()
-    {
-        {
-            var c = new C();
-            ((int[])c)$$
         }
     }
 }

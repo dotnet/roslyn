@@ -449,6 +449,79 @@ public class Program
 ")
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitUserDefinedConversionIsApplied() As Task
+            Await VerifyCustomCommitProviderAsync("
+public class C
+{
+    public static explicit operator float(C c) => 0;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        var c = new C();
+        c.$$
+    }
+}
+", "(float)", "
+public class C
+{
+    public static explicit operator float(C c) => 0;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        var c = new C();
+        ((float)c)$$
+    }
+}
+")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitUserDefinedConversionToArray() As Task
+            Await VerifyCustomCommitProviderAsync(
+"
+public class C
+{
+    public static explicit operator int[](C _) => default;
+}
+public class Program
+{
+    public static void Main()
+    {
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}
+", "(int[])",
+"
+public class C
+{
+    public static explicit operator int[](C _) => default;
+}
+public class Program
+{
+    public static void Main()
+    {
+        {
+            var c = new C();
+            ((int[])c)$$
+        }
+    }
+}
+"
+            )
+        End Function
+
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
         <CombinatorialData>
@@ -505,6 +578,62 @@ public class Program
     {{
         C c = null;
         ((To{shouldBeNullableQuestionMark})c{conditionalAccessQuestionMark}.From)$$
+    }}
+}}
+")
+        End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        <InlineData("bool")>
+        <InlineData("byte")>
+        <InlineData("sbyte")>
+        <InlineData("char")>
+        <InlineData("decimal")>
+        <InlineData("double")>
+        <InlineData("float")>
+        <InlineData("int")>
+        <InlineData("uint")>
+        <InlineData("long")>
+        <InlineData("ulong")>
+        <InlineData("short")>
+        <InlineData("ushort")>
+        <InlineData("object")>
+        <InlineData("string")>
+        <InlineData("dynamic")>
+        Public Async Function ExplicitUserDefinedConversionIsAppliedForBuiltinTypeKeywords(builtinType As String) As Task
+            Await VerifyCustomCommitProviderAsync($"
+namespace N
+{{
+    public class C
+    {{
+        public static explicit operator {builtinType}(C _) => default;
+    }}
+    
+    public class Program
+    {{
+        public static void Main()
+        {{
+            var c = new C();
+            c.{builtinType}$$
+        }}
+    }}
+}}
+", $"({builtinType})", $"
+namespace N
+{{
+    public class C
+    {{
+        public static explicit operator {builtinType}(C _) => default;
+    }}
+    
+    public class Program
+    {{
+        public static void Main()
+        {{
+            var c = new C();
+            (({builtinType})c)$$
+        }}
     }}
 }}
 ")
