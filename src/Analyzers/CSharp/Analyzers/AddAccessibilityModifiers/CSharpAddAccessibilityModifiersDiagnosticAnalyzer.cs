@@ -43,22 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             // If we have a class or struct, recurse inwards.
             if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax? typeDeclaration) ||
                 member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
+                member.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration) ||
                 member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration) ||
                 member.IsKind(SyntaxKind.RecordStructDeclaration, out typeDeclaration))
             {
                 ProcessMembers(context, option, typeDeclaration.Members);
             }
-
-#if false
-            // Add this once we have the language version for C# that supports accessibility
-            // modifiers on interface methods.
-            if (option.Value == AccessibilityModifiersRequired.Always &&
-                member.IsKind(SyntaxKind.InterfaceDeclaration, out typeDeclaration))
-            {
-                // Only recurse into an interface if the user wants accessibility modifiers on 
-                ProcessTypeDeclaration(context, generator, option, typeDeclaration);
-            }
-#endif
 
             if (!CSharpAddAccessibilityModifiers.Instance.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, member, option.Value, out var name))
                 return;

@@ -37,51 +37,74 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             // This analyzer bases all of its decisions on the accessibility
             var accessibility = accessibilityFacts.GetAccessibility(member);
 
-            // Omit will flag any accessibility values that exist and are default
-            // The other options will remove or ignore accessibility
-            var isOmit = option == AccessibilityModifiersRequired.OmitIfDefault;
-
-            if (isOmit)
+            if (accessibility == Accessibility.NotApplicable)
             {
-                if (accessibility == Accessibility.NotApplicable)
-                    return false;
-
-                var parentKind = member.GetRequiredParent().Kind();
-                switch (parentKind)
-                {
-                    // Check for default modifiers in namespace and outside of namespace
-                    case SyntaxKind.CompilationUnit:
-                    case SyntaxKind.FileScopedNamespaceDeclaration:
-                    case SyntaxKind.NamespaceDeclaration:
-                        {
-                            // Default is internal
-                            if (accessibility != Accessibility.Internal)
-                                return false;
-                        }
-
-                        break;
-
-                    case SyntaxKind.ClassDeclaration:
-                    case SyntaxKind.RecordDeclaration:
-                    case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.RecordStructDeclaration:
-                        {
-                            // Inside a type, default is private
-                            if (accessibility != Accessibility.Private)
-                                return false;
-                        }
-
-                        break;
-
-                    default:
-                        return false; // Unknown parent kind, don't do anything
-                }
+                return ShouldAddAccessibilityModifier(member, option);
             }
             else
             {
-                // Mode is always, so we have to flag missing modifiers
-                if (accessibility != Accessibility.NotApplicable)
+                return ShouldRemoveAccessibilityModifier(member, accessibility, option);
+            }
+        }
+
+        private static bool ShouldAddAccessibilityModifier(MemberDeclarationSyntax member,
+            AccessibilityModifiersRequired option)
+        {
+            if (member.Parent.IsKind(SyntaxKind.InterfaceDeclaration))
+            {
+                return option == AccessibilityModifiersRequired.Always;
+            }
+
+            return option != AccessibilityModifiersRequired.OmitIfDefault;
+        }
+
+        private static bool ShouldRemoveAccessibilityModifier(MemberDeclarationSyntax member,
+            Accessibility accessibility,
+            AccessibilityModifiersRequired option)
+        {
+            if (member.Parent.IsKind(SyntaxKind.InterfaceDeclaration))
+            {
+                if (option == AccessibilityModifiersRequired.Always || accessibility != Accessibility.Public)
+                {
                     return false;
+                }
+
+                return true;
+            }
+            else if (option != AccessibilityModifiersRequired.OmitIfDefault)
+            {
+                return false;
+            }
+
+            var parentKind = member.GetRequiredParent().Kind();
+            switch (parentKind)
+            {
+                // Check for default modifiers in namespace and outside of namespace
+                case SyntaxKind.CompilationUnit:
+                case SyntaxKind.FileScopedNamespaceDeclaration:
+                case SyntaxKind.NamespaceDeclaration:
+                    {
+                        // Default is internal
+                        if (accessibility != Accessibility.Internal)
+                            return false;
+                    }
+
+                    break;
+
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    {
+                        // Inside a type, default is private
+                        if (accessibility != Accessibility.Private)
+                            return false;
+                    }
+
+                    break;
+
+                default:
+                    return false; // Unknown parent kind, don't do anything
             }
 
             return true;
