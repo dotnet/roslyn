@@ -2451,7 +2451,7 @@ class Goo
 
         [WorkItem(33549, "https://github.com/dotnet/roslyn/issues/33549")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task ShowOnlyInstanceMethodsForBuildInTypes()
+        public async Task ShowOnlyStaticMethodsForBuildInTypes()
         {
             var markup = @"
 class C
@@ -2473,7 +2473,7 @@ class C
 
         [WorkItem(23133, "https://github.com/dotnet/roslyn/issues/23133")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public async Task ShowOnlyInstanceMethodsForNotImportedTypes()
+        public async Task ShowOnlyStaticMethodsForNotImportedTypes()
         {
             var markup = @"
 class C

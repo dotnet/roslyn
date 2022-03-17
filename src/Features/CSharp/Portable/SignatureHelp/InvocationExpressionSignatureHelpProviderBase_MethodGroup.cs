@@ -53,7 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     throughType = semanticModel.GetTypeInfo(throughExpression, cancellationToken).Type;
                 }
 
-                var includeInstance = !throughExpression.IsKind(SyntaxKind.IdentifierName) && !throughExpression.IsKind(SyntaxKind.PredefinedType) && !throughExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression) ||
+                // SyntaxKind.IdentifierName is for basic case, e.g. "MyClass.MyStaticMethod(...)"
+                // SyntaxKind.SimpleMemberAccessExpression is for not imported types, e.g. "MyNamespace.MyClass.MyStaticMethod(...)"
+                // SyntaxKind.PredefinedType is for built-in types, e.g. "string.Equals(...)"
+                var includeInstance = !throughExpression.IsKind(SyntaxKind.IdentifierName, SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.PredefinedType) ||
                     semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(s => s is not INamedTypeSymbol) ||
                     (throughSymbol is not INamespaceOrTypeSymbol && semanticModel.LookupSymbols(throughExpression.SpanStart, container: throughSymbol?.ContainingType).Any(s => s is not INamedTypeSymbol));
 
