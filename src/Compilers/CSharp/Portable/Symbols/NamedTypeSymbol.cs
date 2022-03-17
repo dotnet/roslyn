@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private bool _hasNoBaseCycles;
 
-        private static ImmutableSegmentedDictionary<string, Symbol> RequiredMembersSentinel = ImmutableSegmentedDictionary<string, Symbol>.CreateEmpty();
+        private static readonly ImmutableSegmentedDictionary<string, Symbol> RequiredMembersErrorSentinel = ImmutableSegmentedDictionary<string, Symbol>.Empty.Add("<error sentinel>", null!);
 
         /// <summary>
-        /// <see cref="RequiredMembersSentinel"/> if uninitialized. <see langword="default"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
+        /// <see langword=""="default"/> if uninitialized. <see cref="RequiredMembersErrorSentinel"/> if there are errors. <see cref="ImmutableSegmentedDictionary{TKey, TValue}.Empty"/> if
         /// there are no required members. Otherwise, the required members.
         /// </summary>
-        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = RequiredMembersSentinel;
+        private ImmutableSegmentedDictionary<string, Symbol> _lazyRequiredMembers = default;
 
         // Only the compiler can create NamedTypeSymbols.
         internal NamedTypeSymbol(TupleExtraData tupleData = null)
@@ -518,7 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CalculateRequiredMembersIfRequired();
-                return _lazyRequiredMembers.IsDefault;
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                return _lazyRequiredMembers == RequiredMembersErrorSentinel;
             }
         }
 
@@ -535,7 +536,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CalculateRequiredMembersIfRequired();
-                if (_lazyRequiredMembers.IsDefault)
+                Debug.Assert(!_lazyRequiredMembers.IsDefault);
+                if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
                 {
                     return ImmutableSegmentedDictionary<string, Symbol>.Empty;
                 }
@@ -546,18 +548,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CalculateRequiredMembersIfRequired()
         {
-            if (!ImmutableSegmentedDictionary.ReferenceEquals(RequiredMembersSentinel, _lazyRequiredMembers))
+            if (!_lazyRequiredMembers.IsDefault)
             {
                 return;
             }
+
             ImmutableSegmentedDictionary<string, Symbol>.Builder? builder = null;
             bool success = TryCalculateRequiredMembers(ref builder);
 
             var requiredMembers = success
                 ? builder?.ToImmutable() ?? ImmutableSegmentedDictionary<string, Symbol>.Empty
-                : default(ImmutableSegmentedDictionary<string, Symbol>);
+                : RequiredMembersErrorSentinel;
 
-            RoslynImmutableInterlocked.InterlockedCompareExchange(ref _lazyRequiredMembers, requiredMembers, RequiredMembersSentinel);
+            RoslynImmutableInterlocked.InterlockedInitialize(ref _lazyRequiredMembers, requiredMembers);
         }
 
         /// <summary>
@@ -566,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool TryCalculateRequiredMembers(ref ImmutableSegmentedDictionary<string, Symbol>.Builder? requiredMembersBuilder)
         {
             var lazyRequiredMembers = _lazyRequiredMembers;
-            if (!ImmutableSegmentedDictionary.ReferenceEquals(RequiredMembersSentinel, lazyRequiredMembers))
+            if (_lazyRequiredMembers == RequiredMembersErrorSentinel)
             {
                 if (lazyRequiredMembers.IsDefault)
                 {
