@@ -312,5 +312,75 @@ public class Program
 }
 ")
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitConversionOfConditionalAccessOfStructAppliesNullableStruct() As Task
+            ' see https://sharplab.io/#gist:08c697b6b9b6384b8ec81cc586e064e6 to run a sample
+            ' conversion ((int)c?.S) fails with System.InvalidOperationException: Nullable object must have a value.
+            ' conversion ((int?)c?.S) passes (returns an int? with HasValue == false)
+            Await VerifyCustomCommitProviderAsync("
+public struct S {
+    public static explicit operator int(S _) => 0;
+}
+public class C {
+    public S S { get; } = default;
+}
+public class Program
+{
+    public static void Main()
+    {
+        C c = null;
+        c?.S.$$
+    }
+}
+", "(int?)", "
+public struct S {
+    public static explicit operator int(S _) => 0;
+}
+public class C {
+    public S S { get; } = default;
+}
+public class Program
+{
+    public static void Main()
+    {
+        C c = null;
+        ((int?)c?.S)$$
+    }
+}
+")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitConversionOfNullableStructToNullableStructIsApplied() As Task
+            ' Lifted conversion https://docs.microsoft.com/hu-hu/dotnet/csharp/language-reference/language-specification/conversions#lifted-conversion-operators
+            Await VerifyCustomCommitProviderAsync("
+public struct S {
+    public static explicit operator int(S _) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        S? s = null;
+        s.$$
+    }
+}
+", "(int?)", "
+public struct S {
+    public static explicit operator int(S _) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        S? s = null;
+        ((int?)s)$$
+    }
+}
+")
+        End Function
     End Class
 End Namespace
