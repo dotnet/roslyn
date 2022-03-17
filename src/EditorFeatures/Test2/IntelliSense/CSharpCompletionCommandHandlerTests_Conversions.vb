@@ -170,6 +170,34 @@ class C
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitBuiltInEnumConversionsIsApplied() As Task
+            ' built-in enum conversions:
+            ' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
+            Await VerifyCustomCommitProviderAsync("
+public enum E { One }
+public class Program
+{
+    public static void Main()
+    {
+        var e = E.One;
+        e.$$
+    }
+}
+", "(int)", "
+public enum E { One }
+public class Program
+{
+    public static void Main()
+    {
+        var e = E.One;
+        ((int)e)$$
+    }
+}
+")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
         Public Async Function ExplicitBuiltInEnumConversionsAreLifted() As Task
             ' built-in enum conversions:
             ' https//docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions

@@ -16,7 +16,7 @@ using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
-    public class ConversionCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class CSharpCompletionCommandHandlerTests_Conversions : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(UnnamedSymbolCompletionProvider);
@@ -1163,35 +1163,6 @@ public class Program
     {
         long? l = 0;
         ((int?)l)$$
-    }
-}
-");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitBuiltInEnumConversionsIsApplied()
-        {
-            // built-in enum conversions:
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
-            await VerifyCustomCommitProviderAsync(@"
-public enum E { One }
-public class Program
-{
-    public static void Main()
-    {
-        var e = E.One;
-        e.$$
-    }
-}
-", "int", @"
-public enum E { One }
-public class Program
-{
-    public static void Main()
-    {
-        var e = E.One;
-        ((int)e)$$
     }
 }
 ");
