@@ -3107,6 +3107,31 @@ public class Bar
 }");
         }
 
+        [WpfFact]
+        public void TestRemoveInitializerForImplicitObjectCreationExpression()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new();
+        $$
+    }
+}",
+@"
+public class Bar
+{
+    public void Bar2()
+    {
+        Bar b = new()
+        {
+            $$
+        };
+    }
+}");
+        }
+
         protected override string Language => LanguageNames.CSharp;
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
