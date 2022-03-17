@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             SeparateImportDirectiveGroups = separateImportDirectiveGroups;
         }
 
-        public abstract SyntaxFormattingOptions With(bool useTabs, int tabSize, int indentationSize);
+        public abstract SyntaxFormattingOptions With(LineFormattingOptions lineFormatting);
 
         public bool UseTabs => LineFormatting.UseTabs;
         public int TabSize => LineFormatting.TabSize;

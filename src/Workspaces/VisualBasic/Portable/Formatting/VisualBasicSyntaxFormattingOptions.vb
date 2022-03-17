@@ -28,12 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 separateImportDirectiveGroups:=options.GetOption(GenerationOptions.SeparateImportDirectiveGroups))
         End Function
 
-        Public Overrides Function [With](useTabs As Boolean, tabSize As Integer, indentationSize As Integer) As SyntaxFormattingOptions
+        Public Overrides Function [With](lineFormatting As LineFormattingOptions) As SyntaxFormattingOptions
             Return New VisualBasicSyntaxFormattingOptions(
-                useTabs:=useTabs,
-                tabSize:=tabSize,
-                indentationSize:=indentationSize,
-                newLine:=NewLine,
+                lineFormatting:=lineFormatting,
                 separateImportDirectiveGroups:=SeparateImportDirectiveGroups)
         End Function
     End Class

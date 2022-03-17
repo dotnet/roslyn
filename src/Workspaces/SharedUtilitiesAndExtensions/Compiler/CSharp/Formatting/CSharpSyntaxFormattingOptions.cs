@@ -221,12 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 wrappingKeepStatementsOnSingleLine: options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine),
                 wrappingPreserveSingleLine: options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine));
 
-        public override SyntaxFormattingOptions With(bool useTabs, int tabSize, int indentationSize)
+        public override SyntaxFormattingOptions With(LineFormattingOptions lineFormatting)
             => new CSharpSyntaxFormattingOptions(
-                useTabs: useTabs,
-                tabSize: tabSize,
-                indentationSize: indentationSize,
-                NewLine,
+                lineFormatting,
                 SeparateImportDirectiveGroups,
                 Spacing,
                 SpacingAroundBinaryOperator,
