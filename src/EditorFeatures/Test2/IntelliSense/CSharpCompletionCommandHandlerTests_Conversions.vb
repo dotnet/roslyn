@@ -224,5 +224,57 @@ public class Program
 ")
 
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitBuiltInNumericConversionsAreLifted() As Task
+            ' built-in numeric conversions:
+            ' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
+            Await VerifyCustomCommitProviderAsync("
+public class Program
+{
+    public static void Main()
+    {
+        long? l = 0;
+        l.$$
+    }
+}
+", "(int?)", "
+public class Program
+{
+    public static void Main()
+    {
+        long? l = 0;
+        ((int?)l)$$
+    }
+}
+")
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")>
+        Public Async Function ExplicitBuiltInNumericConversionsAreOffered() As Task
+            ' built-in numeric conversions:
+            ' https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
+            Await VerifyCustomCommitProviderAsync("
+public class Program
+{
+    public static void Main()
+    {
+        long l = 0;
+        l.$$
+    }
+}
+", "(int)", "
+public class Program
+{
+    public static void Main()
+    {
+        long l = 0;
+        ((int)l)$$
+    }
+}
+")
+        End Function
     End Class
 End Namespace

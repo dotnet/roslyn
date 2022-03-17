@@ -1039,33 +1039,6 @@ public class Program
 Explicit conversion of S to int.");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitBuiltInNumericConversionsAreOffered()
-        {
-            // built-in numeric conversions:
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
-            await VerifyCustomCommitProviderAsync(@"
-public class Program
-{
-    public static void Main()
-    {
-        long l = 0;
-        l.$$
-    }
-}
-", "int", @"
-public class Program
-{
-    public static void Main()
-    {
-        long l = 0;
-        ((int)l)$$
-    }
-}
-");
-        }
-
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("sbyte", "byte", "char", "uint", "ulong", "ushort")]
@@ -1139,33 +1112,6 @@ public class Program
                 expectedDescriptionOrNull:
 $@"int.explicit operator byte?(int? value)
 {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task ExplicitBuiltInNumericConversionsAreLifted()
-        {
-            // built-in numeric conversions:
-            // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions
-            await VerifyCustomCommitProviderAsync(@"
-public class Program
-{
-    public static void Main()
-    {
-        long? l = 0;
-        l.$$
-    }
-}
-", "int?", @"
-public class Program
-{
-    public static void Main()
-    {
-        long? l = 0;
-        ((int?)l)$$
-    }
-}
-");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
