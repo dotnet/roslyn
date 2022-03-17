@@ -539,59 +539,75 @@ namespace Roslyn.Utilities
         /// </summary>
         public static string GetRelativePath(string directory, string fullPath)
         {
-            string relativePath = string.Empty;
-
-            directory = TrimTrailingSeparators(directory);
-            fullPath = TrimTrailingSeparators(fullPath);
-
-            if (IsChildPath(directory, fullPath))
-            {
-                return GetRelativeChildPath(directory, fullPath);
-            }
-
-            var directoryPathParts = GetPathParts(directory);
-            var fullPathParts = GetPathParts(fullPath);
-
-            if (directoryPathParts.Length == 0 || fullPathParts.Length == 0)
-            {
-                return fullPath;
-            }
-
-            int index = 0;
-
-            // find index where full path diverges from base path
-            for (; index < directoryPathParts.Length; index++)
-            {
-                if (!PathsEqual(directoryPathParts[index], fullPathParts[index]))
-                {
-                    break;
-                }
-            }
-
-            // if the first part doesn't match, they don't even have the same volume
-            // so there can be no relative path.
-            if (index == 0)
-            {
-                return fullPath;
-            }
-
-            // add backup notation for remaining base path levels beyond the index
-            var remainingParts = directoryPathParts.Length - index;
-            if (remainingParts > 0)
-            {
-                for (int i = 0; i < remainingParts; i++)
-                {
-                    relativePath = relativePath + ParentRelativeDirectory + DirectorySeparatorStr;
-                }
-            }
-
-            // add the rest of the full path parts
-            for (int i = index; i < fullPathParts.Length; i++)
-            {
-                relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
-            }
-
+#if NETSTANDARD
+            return getRelativePath(directory, fullPath);
+#else
+            // On TFMs with a supported API, prefer that
+            var relativePath = Path.GetRelativePath(directory, fullPath);
+#if DEBUG
+            Debug.Assert(relativePath == getRelativePath(directory, fullPath));
+#endif
             return relativePath;
+#endif
+
+#if NETSTANDARD || DEBUG
+            static string getRelativePath(string directory, string fullPath)
+            {
+                string relativePath = string.Empty;
+
+                directory = TrimTrailingSeparators(directory);
+                fullPath = TrimTrailingSeparators(fullPath);
+
+                if (IsChildPath(directory, fullPath))
+                {
+                    return GetRelativeChildPath(directory, fullPath);
+                }
+
+                var directoryPathParts = GetPathParts(directory);
+                var fullPathParts = GetPathParts(fullPath);
+
+                if (directoryPathParts.Length == 0 || fullPathParts.Length == 0)
+                {
+                    return fullPath;
+                }
+
+                int index = 0;
+
+                // find index where full path diverges from base path
+                for (; index < directoryPathParts.Length; index++)
+                {
+                    if (!PathsEqual(directoryPathParts[index], fullPathParts[index]))
+                    {
+                        break;
+                    }
+                }
+
+                // if the first part doesn't match, they don't even have the same volume
+                // so there can be no relative path.
+                if (index == 0)
+                {
+                    return fullPath;
+                }
+
+                // add backup notation for remaining base path levels beyond the index
+                var remainingParts = directoryPathParts.Length - index;
+                if (remainingParts > 0)
+                {
+                    for (int i = 0; i < remainingParts; i++)
+                    {
+                        relativePath = relativePath + ParentRelativeDirectory + DirectorySeparatorStr;
+                    }
+                }
+
+                // add the rest of the full path parts
+                for (int i = index; i < fullPathParts.Length; i++)
+                {
+                    relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
+                }
+
+                return relativePath;
+            }
+#endif
         }
 
         /// <summary>
