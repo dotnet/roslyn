@@ -27,7 +27,7 @@ namespace Build
 
         private bool ExecuteScript(BuildContext context, BuildSettings settings, string args)
         {
-            var configuration = context.Product.Configurations[settings.ResolvedBuildConfiguration];
+            var configuration = context.Product.Configurations[settings.BuildConfiguration];
 
             var argsBuilder = new StringBuilder();
 
