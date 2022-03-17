@@ -189,7 +189,11 @@ namespace Microsoft.CodeAnalysis
 
             public ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken)
             {
-                throw new NotImplementedException();
+                // We can directly return the diagnostics from the underlying tracker; this is because
+                // a generated document cannot have any diagnostics that are produced by a generator:
+                // a generator cannot add diagnostics to it's own file outputs, and generators don't see the
+                // outputs of each other.
+                return UnderlyingTracker.GetSourceGeneratorDiagnosticsAsync(solution, cancellationToken);
             }
         }
     }
