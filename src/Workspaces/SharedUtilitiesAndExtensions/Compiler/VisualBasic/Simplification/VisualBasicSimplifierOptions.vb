@@ -5,8 +5,10 @@
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports System.Runtime.Serialization
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
+    <DataContract>
     Friend NotInheritable Class VisualBasicSimplifierOptions
         Inherits SimplifierOptions
 

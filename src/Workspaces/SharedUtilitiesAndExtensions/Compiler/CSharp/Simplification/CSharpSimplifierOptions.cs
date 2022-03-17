@@ -2,20 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using System;
+using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
+    [DataContract]
     internal sealed class CSharpSimplifierOptions : SimplifierOptions
     {
+        [DataMember(Order = BaseMemberCount + 0)]
         public readonly CodeStyleOption2<bool> VarForBuiltInTypes;
+
+        [DataMember(Order = BaseMemberCount + 1)]
         public readonly CodeStyleOption2<bool> VarWhenTypeIsApparent;
+
+        [DataMember(Order = BaseMemberCount + 2)]
         public readonly CodeStyleOption2<bool> VarElsewhere;
+
+        [DataMember(Order = BaseMemberCount + 3)]
         public readonly CodeStyleOption2<bool> PreferSimpleDefaultExpression;
+
+        [DataMember(Order = BaseMemberCount + 4)]
         public readonly CodeStyleOption2<PreferBracesPreference> PreferBraces;
 
         public CSharpSimplifierOptions(

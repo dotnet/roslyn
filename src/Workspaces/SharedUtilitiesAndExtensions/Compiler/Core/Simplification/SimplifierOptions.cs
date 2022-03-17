@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -13,12 +14,25 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal abstract class SimplifierOptions
     {
+        [DataMember(Order = 0)]
         public readonly CodeStyleOption2<bool> QualifyFieldAccess;
+
+        [DataMember(Order = 1)]
         public readonly CodeStyleOption2<bool> QualifyPropertyAccess;
+
+        [DataMember(Order = 2)]
         public readonly CodeStyleOption2<bool> QualifyMethodAccess;
+
+        [DataMember(Order = 3)]
         public readonly CodeStyleOption2<bool> QualifyEventAccess;
+
+        [DataMember(Order = 4)]
         public readonly CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess;
+
+        [DataMember(Order = 5)]
         public readonly CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration;
+
+        protected const int BaseMemberCount = 6;
 
         protected SimplifierOptions(
             CodeStyleOption2<bool> qualifyFieldAccess,
