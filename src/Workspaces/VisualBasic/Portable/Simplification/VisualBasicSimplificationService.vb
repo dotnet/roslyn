@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_reducers)
         End Sub
 
-        Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions) As SimplifierOptions
-            Return VisualBasicSimplifierOptions.Create(options)
+        Public Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As SimplifierOptions) As SimplifierOptions
+            Return VisualBasicSimplifierOptions.Create(options, DirectCast(fallbackOptions, VisualBasicSimplifierOptions))
         End Function
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode

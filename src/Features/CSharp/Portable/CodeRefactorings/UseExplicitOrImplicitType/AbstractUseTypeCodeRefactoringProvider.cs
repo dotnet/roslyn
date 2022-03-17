@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseType
                 return;
             }
 
-            var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var simplifierOptions = CSharpSimplifierOptions.Create(configOptions);
+            var simplifierOptions = (CSharpSimplifierOptions)await SimplifierOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             var typeStyle = AnalyzeTypeName(declaredType, semanticModel, simplifierOptions, cancellationToken);
             if (typeStyle.IsStylePreferred && typeStyle.Severity != ReportDiagnostic.Suppress)
             {

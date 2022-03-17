@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,20 +14,20 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal interface ISimplificationService : ILanguageService
     {
-        SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options);
+        SimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions);
 
         SyntaxNode Expand(
             SyntaxNode node,
             SemanticModel semanticModel,
-            SyntaxAnnotation annotationForReplacedAliasIdentifier,
-            Func<SyntaxNode, bool> expandInsideNode,
+            SyntaxAnnotation? annotationForReplacedAliasIdentifier,
+            Func<SyntaxNode, bool>? expandInsideNode,
             bool expandParameter,
             CancellationToken cancellationToken);
 
         SyntaxToken Expand(
             SyntaxToken token,
             SemanticModel semanticModel,
-            Func<SyntaxNode, bool> expandInsideNode,
+            Func<SyntaxNode, bool>? expandInsideNode,
             CancellationToken cancellationToken);
 
         Task<Document> ReduceAsync(

@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
             Return VisualBasicSyntaxFacts.Instance
         End Function
 
-        Protected Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions) As VisualBasicSimplifierOptions
-            Return VisualBasicSimplifierOptions.Create(options)
+        Protected Overrides Function GetSimplifierOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicSimplifierOptions
+            Return options.GetVisualBasicSimplifierOptions(syntaxTree)
         End Function
 
         Protected Overrides Function CanSimplifyTypeNameExpression(

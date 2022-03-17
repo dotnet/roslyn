@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
         protected override string GetLanguageName()
             => LanguageNames.CSharp;
 
-        protected override CSharpSimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options)
-            => CSharpSimplifierOptions.Create(options);
+        protected override CSharpSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree)
+            => options.GetCSharpSimplifierOptions(syntaxTree);
 
         protected override bool IsAlreadyQualifiedMemberAccess(ExpressionSyntax node)
             => node.IsKind(SyntaxKind.ThisExpression);

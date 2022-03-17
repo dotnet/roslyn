@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;
 
-        protected override CSharpSimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options)
-            => CSharpSimplifierOptions.Create(options);
+        protected override CSharpSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree)
+            => options.GetCSharpSimplifierOptions(syntaxTree);
 
         protected override bool CanSimplifyTypeNameExpression(
             SemanticModel model, MemberAccessExpressionSyntax node, CSharpSimplifierOptions options,

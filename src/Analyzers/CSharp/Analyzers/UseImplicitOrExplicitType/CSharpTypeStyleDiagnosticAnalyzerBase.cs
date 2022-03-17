@@ -63,8 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
-            var configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var simplifierOptions = CSharpSimplifierOptions.Create(configOptions);
+            var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
 
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, simplifierOptions, cancellationToken);

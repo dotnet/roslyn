@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = semanticModel.SyntaxTree;
-            var configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var options = CSharpSimplifierOptions.Create(configOptions);
+            var options = context.Options.GetCSharpSimplifierOptions(syntaxTree);
             var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
             return simplifier.Diagnostics;
@@ -66,11 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = semanticModel.SyntaxTree;
-            var configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var options = CSharpSimplifierOptions.Create(configOptions);
+            var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
             var root = syntaxTree.GetRoot(cancellationToken);
 
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: codeBlockIntervalTree, cancellationToken);
+            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, simplifierOptions, ignoredSpans: codeBlockIntervalTree, cancellationToken);
             simplifier.Visit(root);
             return simplifier.Diagnostics;
         }

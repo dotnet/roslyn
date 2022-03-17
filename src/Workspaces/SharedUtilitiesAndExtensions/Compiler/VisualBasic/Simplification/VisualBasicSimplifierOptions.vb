@@ -37,14 +37,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             preferPredefinedTypeKeywordInMemberAccess:=CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.DefaultValue,
             preferPredefinedTypeKeywordInDeclaration:=CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration.DefaultValue)
 
-        Friend Overloads Shared Function Create(options As AnalyzerConfigOptions) As VisualBasicSimplifierOptions
+        Friend Overloads Shared Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSimplifierOptions) As VisualBasicSimplifierOptions
+            fallbackOptions = If(fallbackOptions, VisualBasicSimplifierOptions.Default)
+
             Return New VisualBasicSimplifierOptions(
-                qualifyFieldAccess:=options.GetOption(CodeStyleOptions2.QualifyFieldAccess),
-                qualifyPropertyAccess:=options.GetOption(CodeStyleOptions2.QualifyPropertyAccess),
-                qualifyMethodAccess:=options.GetOption(CodeStyleOptions2.QualifyMethodAccess),
-                qualifyEventAccess:=options.GetOption(CodeStyleOptions2.QualifyEventAccess),
-                preferPredefinedTypeKeywordInMemberAccess:=options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess),
-                preferPredefinedTypeKeywordInDeclaration:=options.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration))
+                qualifyFieldAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
+                qualifyPropertyAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
+                qualifyMethodAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
+                qualifyEventAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
+                preferPredefinedTypeKeywordInMemberAccess:=options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
+                preferPredefinedTypeKeywordInDeclaration:=options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration))
         End Function
     End Class
 End Namespace

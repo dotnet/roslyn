@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
             Return LanguageNames.VisualBasic
         End Function
 
-        Protected Overrides Function GetSimplifierOptions(options As AnalyzerConfigOptions) As VisualBasicSimplifierOptions
-            Return VisualBasicSimplifierOptions.Create(options)
+        Protected Overrides Function GetSimplifierOptions(options As AnalyzerOptions, syntaxTree As SyntaxTree) As VisualBasicSimplifierOptions
+            Return options.GetVisualBasicSimplifierOptions(syntaxTree)
         End Function
 
         Protected Overrides Function IsAlreadyQualifiedMemberAccess(node As ExpressionSyntax) As Boolean

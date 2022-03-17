@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference, OperationKind.Invocation);
 
         protected abstract Location GetLocation(IOperation operation);
-        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options);
+        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -128,8 +128,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 _ => throw ExceptionUtilities.UnexpectedValue(operation),
             };
 
-            var configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree);
-            var simplifierOptions = GetSimplifierOptions(configOptions);
+            var simplifierOptions = GetSimplifierOptions(context.Options, context.Operation.Syntax.SyntaxTree);
             var optionValue = simplifierOptions.QualifyMemberAccess(symbolKind);
 
             var shouldOptionBePresent = optionValue.Value;

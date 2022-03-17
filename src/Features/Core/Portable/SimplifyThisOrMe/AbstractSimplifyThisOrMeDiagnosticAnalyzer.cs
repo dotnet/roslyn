@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
 
-        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerConfigOptions options);
+        protected abstract TSimplifierOptions GetSimplifierOptions(AnalyzerOptions options, SyntaxTree syntaxTree);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var syntaxTree = node.SyntaxTree;
 
-            var configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var simplifierOptions = GetSimplifierOptions(configOptions);
+            var simplifierOptions = GetSimplifierOptions(context.Options, syntaxTree);
 
             var model = context.SemanticModel;
             if (!CanSimplifyTypeNameExpression(

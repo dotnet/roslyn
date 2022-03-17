@@ -39,10 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
 
-            Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(semanticModel.SyntaxTree)
-            Dim options = VisualBasicSimplifierOptions.Create(configOptions)
+            Dim simplifierOptions = context.Options.GetVisualBasicSimplifierOptions(semanticModel.SyntaxTree)
 
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, Options, ignoredSpans:=Nothing, cancellationToken)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(context.CodeBlock)
             Return simplifier.Diagnostics
         End Function
@@ -53,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Dim syntaxTree = semanticModel.SyntaxTree
             Dim configOptions = context.Options.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree)
-            Dim options = VisualBasicSimplifierOptions.Create(configOptions)
+            Dim simplifierOptions = context.Options.GetVisualBasicSimplifierOptions(semanticModel.SyntaxTree)
             Dim root = syntaxTree.GetRoot(cancellationToken)
 
-            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, Options, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
+            Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, simplifierOptions, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
             simplifier.Visit(root)
             Return simplifier.Diagnostics
         End Function

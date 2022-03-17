@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             var simplificationService = services.GetRequiredLanguageService<ISimplificationService>(language);
             var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
-            return simplificationService.GetSimplifierOptions(configOptions);
+            return simplificationService.GetSimplifierOptions(configOptions, fallbackOptions: null);
         }
 
         public static async Task<SimplifierOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)

@@ -3,21 +3,30 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
 // TODO: move to LSP layer
 internal static class IdeAnalyzerOptionsStorage
 {
-    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, string language)
-        => new(
+    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, Project project)
+        => GetIdeAnalyzerOptions(globalOptions, project.Solution.Workspace.Services, project.Language);
+
+    public static IdeAnalyzerOptions GetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, HostWorkspaceServices services, string language)
+    {
+        var provider = services.GetLanguageService<IGlobalIdeOptionsProvider>(language);
+
+        return new(
             CrashOnAnalyzerException: globalOptions.GetOption(CrashOnAnalyzerException),
             FadeOutUnusedImports: globalOptions.GetOption(FadeOutUnusedImports, language),
             FadeOutUnreachableCode: globalOptions.GetOption(FadeOutUnreachableCode, language),
             ReportInvalidPlaceholdersInStringDotFormatCalls: globalOptions.GetOption(ReportInvalidPlaceholdersInStringDotFormatCalls, language),
             ReportInvalidRegexPatterns: globalOptions.GetOption(ReportInvalidRegexPatterns, language),
             ReportInvalidJsonPatterns: globalOptions.GetOption(ReportInvalidJsonPatterns, language),
-            DetectAndOfferEditorFeaturesForProbableJsonStrings: globalOptions.GetOption(DetectAndOfferEditorFeaturesForProbableJsonStrings, language));
+            DetectAndOfferEditorFeaturesForProbableJsonStrings: globalOptions.GetOption(DetectAndOfferEditorFeaturesForProbableJsonStrings, language),
+            SimplifierOptions: provider?.GetSimplifierOptions(globalOptions));
+    }
 
     // for testing only
     internal static void SetIdeAnalyzerOptions(this IGlobalOptionService globalOptions, string language, IdeAnalyzerOptions options)
