@@ -349,11 +349,11 @@ class X
                         case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
                         case ErrorCode.WRN_CompileTimeCheckedOverflow:
                         case ErrorCode.WRN_MethGrpToNonDel:
+                        case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
+                        case ErrorCode.WRN_UnassignedThisSupportedVersion:
                         case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
                         case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
                         case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
-                        case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
-                        case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -367,6 +367,8 @@ class X
                         case ErrorCode.WRN_ParamUnassigned:
                         case ErrorCode.WRN_UseDefViolationProperty:
                         case ErrorCode.WRN_UseDefViolationField:
+                        case ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion:
+                        case ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion:
                         case ErrorCode.WRN_UseDefViolationThisUnsupportedVersion:
                         case ErrorCode.WRN_UseDefViolationOut:
                         case ErrorCode.WRN_UseDefViolation:

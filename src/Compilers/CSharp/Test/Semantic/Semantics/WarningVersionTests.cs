@@ -653,7 +653,7 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,22): warning CS9019: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                // (6,22): warning CS9019: The 'this' object cannot be used before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
                 //         Program p2 = this;
                 Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "this").WithArguments("this").WithLocation(6, 22));
             verifier.VerifyIL("Program..ctor", expectedIL);

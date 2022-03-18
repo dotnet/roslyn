@@ -6429,12 +6429,9 @@ public class ExportedSymbol
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS0170: Use of possibly unassigned field 'value'
+                // (6,18): error CS9014: Use of possibly unassigned field 'value'. Consider updating to language version 'preview' to automatically default the field.
                 //         S.Equals(value , value);
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "value").WithArguments("value").WithLocation(6, 18),
-                // (4,5): error CS8652: The feature 'auto default struct fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     S(object x)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("auto default struct fields").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "value").WithArguments("value", "preview").WithLocation(6, 18)
                 );
             verify();
 

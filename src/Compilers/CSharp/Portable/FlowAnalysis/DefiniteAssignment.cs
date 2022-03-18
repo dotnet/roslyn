@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     walker.Free();
                 }
 
-                Debug.Assert(!strictAnalysis || implicitlyInitializedFieldsOpt.IsDefault);
+                Debug.Assert(strictAnalysis || implicitlyInitializedFieldsOpt.IsDefault);
                 return (result, implicitlyInitializedFieldsOpt);
             }
         }

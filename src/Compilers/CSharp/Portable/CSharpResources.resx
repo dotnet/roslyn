@@ -940,7 +940,7 @@
     <value>Use of default literal is not valid in this context</value>
   </data>
   <data name="ERR_UseDefViolationThisUnsupportedVersion" xml:space="preserve">
-    <value>The 'this' object is read before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</value>
+    <value>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</value>
   </data>
   <data name="WRN_UseDefViolationThisUnsupportedVersion" xml:space="preserve">
     <value>The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version '{0}' to auto-default the unassigned fields.</value>
