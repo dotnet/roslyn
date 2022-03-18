@@ -190,7 +190,7 @@ This change was made as part of adding list patterns. The processing rules are m
 
 The workaround is to remove the switch arms with unreachable conditions.
 
-## Adding field initializers to a struct requires an explicitly declared constructor
+## <a name="6"></a> Adding field initializers to a struct requires an explicitly declared constructor
 
 ***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.***. `struct` type declarations with field initializers must include an explicitly declared constructor. Additionally, all fields must be definitely assigned in `struct` instance constructors that do not have a `: this()` initializer so any previously unassigned fields must be assigned from the added constructor or from field initializers. See [dotnet/csharplang#5552](https://github.com/dotnet/csharplang/issues/5552), [dotnet/roslyn#58581](https://github.com/dotnet/roslyn/pull/58581).
 
@@ -230,7 +230,7 @@ struct S
 
 This makes interpolated string processing consistent with the processing for `System.String.Format`:
 
-```#
+```csharp
 using System;
 Console.WriteLine($"{{{12:X}}}");
 //prints now: "{C}" - not "{X}}"
