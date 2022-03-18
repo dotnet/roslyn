@@ -19179,7 +19179,7 @@ public class C
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/60046
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
         public void NullCoalescingOperatorWithTupleNames()
         {

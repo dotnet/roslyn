@@ -2394,6 +2394,24 @@ namespace System
                 parseOptions: parseOptions);
         }
 
+        protected static CSharpCompilation CreateCompilationWithSpanAndMemoryExtensions(CSharpTestSource text, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null)
+        {
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                return CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp, references: new[] { Basic.Reference.Assemblies.Net50.SystemMemory }, options: options, parseOptions: parseOptions);
+            }
+            else
+            {
+                var reference = CreateCompilation(new[] { TestSources.Span, TestSources.MemoryExtensions }, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+                return CreateCompilation(
+                    text,
+                    references: new List<MetadataReference>() { reference.EmitToImageReference() },
+                    options: options,
+                    parseOptions: parseOptions);
+            }
+        }
+
         internal static string GetIdForErrorCode(ErrorCode code)
         {
             return MessageProvider.Instance.GetIdForErrorCode((int)code);
