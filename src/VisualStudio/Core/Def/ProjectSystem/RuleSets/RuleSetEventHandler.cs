@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
     [Export(typeof(RuleSetEventHandler))]
     internal sealed class RuleSetEventHandler : IVsTrackProjectDocumentsEvents2, IVsTrackProjectDocumentsEvents3, IVsTrackProjectDocumentsEvents4
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
         private bool _eventsHookedUp = false;
         private uint _cookie = 0;
@@ -30,8 +32,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RuleSetEventHandler(
+            IThreadingContext threadingContext,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
+            _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
         }
 
@@ -39,11 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
         {
             if (!_eventsHookedUp)
             {
-                var trackProjectDocuments = (IVsTrackProjectDocuments2)_serviceProvider.GetService(typeof(SVsTrackProjectDocuments));
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                if (ErrorHandler.Succeeded(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out _cookie)))
+                if (!_eventsHookedUp)
                 {
-                    _eventsHookedUp = true;
+                    var trackProjectDocuments = (IVsTrackProjectDocuments2)_serviceProvider.GetService(typeof(SVsTrackProjectDocuments));
+
+                    if (ErrorHandler.Succeeded(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out _cookie)))
+                        _eventsHookedUp = true;
                 }
             }
         }

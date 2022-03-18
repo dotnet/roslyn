@@ -159,6 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             // Start the task center task if not already running.
             if (_taskHandler == null)
             {
+                Contract.ThrowIfNull(_taskCenterService);
+
                 // Register a new task handler to handle a new task center task.
                 // Each task handler can only register one task, so we must create a new one each time we start.
                 _taskHandler = _taskCenterService.PreRegister(_options, data: default);
