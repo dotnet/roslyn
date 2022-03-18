@@ -36,6 +36,16 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestNotForExpressionOnLeftOfAssign() As Task
+            Await TestMissingAsync(
+"Class C
+    Sub M()
+        [|Goo|] = Bar()
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         <WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")>
         Public Async Function TestNameMatchesNamespaceName() As Task
             Await TestInRegularAndScriptAsync(
