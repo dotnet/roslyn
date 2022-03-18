@@ -60,8 +60,8 @@ class Type
 
         [Theory]
         [InlineData("default", "null")]
-        [InlineData("default(object)", "((object?)null)")]
-        [InlineData("default(object?)", "((object?)null)")]
+        [InlineData("default(object)", "null")]
+        [InlineData("default(object?)", "null")]
         public async Task ReturnFromNullableContextAsync(string defaultValueExpression, string fixedExpression)
         {
             var source = $@"
