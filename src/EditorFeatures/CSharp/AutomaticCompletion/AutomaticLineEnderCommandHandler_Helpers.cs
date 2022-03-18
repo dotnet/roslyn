@@ -439,6 +439,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return SyntaxFactory.ImplicitObjectCreationExpression(newKeywordToken.WithoutTrailingTrivia(), newArgumentList, baseObjectCreationExpressionNode.Initializer);
             }
 
+            RoslynDebug.Assert(false, $"New derived type of {nameof(BaseObjectCreationExpressionSyntax)} is added");
             return baseObjectCreationExpressionNode;
         }
 
