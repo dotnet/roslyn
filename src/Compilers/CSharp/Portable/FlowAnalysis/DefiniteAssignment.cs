@@ -1198,7 +1198,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
+#if DEBUG
                     Debug.Assert(foundUnassignedField);
+#endif
                 }
 
                 if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
