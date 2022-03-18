@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _supportedFixAllScopes = base.GetSupportedFixAllScopes().ToImmutableArray();
         }
 
-        // TODO: Make API public (tracked by https://github.com/dotnet/roslyn/issues/60029)
-        private protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
+        protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)
         {
             _supportedFixAllScopes = supportedFixAllScopes;
         }
