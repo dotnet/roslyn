@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Windows;
+using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ColorSchemes;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineHints;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
@@ -36,10 +38,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ColorSchemeApplier _colorSchemeApplier;
 
         public AdvancedOptionPageControl(OptionStore optionStore, IComponentModel componentModel) : base(optionStore)
         {
+            _threadingContext = componentModel.GetService<IThreadingContext>();
             _colorSchemeApplier = componentModel.GetService<ColorSchemeApplier>();
 
             InitializeComponent();
@@ -85,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
 
-            BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
+            BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, FeatureOnOffOptions.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
@@ -161,8 +165,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         // we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
         internal override void OnLoad()
         {
-            var isSupportedTheme = _colorSchemeApplier.IsSupportedTheme();
-            var isThemeCustomized = _colorSchemeApplier.IsThemeCustomized();
+            var cancellationToken = _threadingContext.DisposalToken;
+            var (isSupportedTheme, isThemeCustomized) = _threadingContext.JoinableTaskFactory.Run(async () =>
+                (await _colorSchemeApplier.IsSupportedThemeAsync(cancellationToken).ConfigureAwait(false),
+                 await _colorSchemeApplier.IsThemeCustomizedAsync(cancellationToken).ConfigureAwait(false)));
 
             Editor_color_scheme.Visibility = isSupportedTheme ? Visibility.Visible : Visibility.Collapsed;
             Customized_Theme_Warning.Visibility = isSupportedTheme && isThemeCustomized ? Visibility.Visible : Visibility.Collapsed;

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return _providerValues;
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
         {
             foreach (var provider in GetProviders())
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // First we ask the provider to "format" the document. This could be formatting in terms
                     // of adjusting block scopes to file scopes etc., but it could also be more akin to fixers
                     // like adding access modifiers, or adding .ConfigureAwait() calls etc.
-                    document = await provider.FormatNewDocumentAsync(document, hintDocument, options, cancellationToken).ConfigureAwait(false);
+                    document = await provider.FormatNewDocumentAsync(document, hintDocument, cancellationToken).ConfigureAwait(false);
 
                     // Now that the above has changed the document, we use the code action engine to clean up the document
                     // before we call the next provider, otherwise they might not see things as they are meant to be.

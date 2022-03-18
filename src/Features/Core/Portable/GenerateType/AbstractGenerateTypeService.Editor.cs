@@ -312,8 +312,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
                     if (formattingService is not null)
                     {
-                        var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(_semanticDocument.Document, _cancellationToken).ConfigureAwait(false);
-                        codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, formattingOptions, _cancellationToken).ConfigureAwait(false);
+                        codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, _cancellationToken).ConfigureAwait(false);
                     }
                 }
 

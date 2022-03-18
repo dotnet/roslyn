@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -32,8 +31,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             _service = service;
         }
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
+        public Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(
             Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        {
+            return ((INavigationBarItemService)this).GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
+        }
+
+        async Task<ImmutableArray<NavigationBarItem>> INavigationBarItemService.GetItemsAsync(
+            Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return ConvertItems(items, textVersion);

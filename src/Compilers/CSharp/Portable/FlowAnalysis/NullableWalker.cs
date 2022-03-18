@@ -8986,7 +8986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // update the deconstruct method with any inferred type parameters of the containing type
                     if (deconstructMethod.OriginalDefinition != deconstructMethod)
                     {
-                        deconstructMethod = deconstructMethod.OriginalDefinition.AsMember((NamedTypeSymbol)rightResult.Type);
+                        deconstructMethod = (MethodSymbol)AsMemberOfType(rightResult.Type, deconstructMethod);
                     }
                 }
                 else

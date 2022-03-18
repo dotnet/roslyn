@@ -36,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(document);
 
+                if (options.ForceFrozenPartialSemanticsForCrossProcessOperations)
+                {
+                    // Frozen partial semantics is not automatically passed to OOP, so enable it explicitly when desired
+                    document = document.WithFrozenPartialSemantics(cancellationToken);
+                }
+
                 using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var temp);
                 await AbstractClassificationService.AddClassificationsInCurrentProcessAsync(
                     document, span, type, options, temp, cancellationToken).ConfigureAwait(false);

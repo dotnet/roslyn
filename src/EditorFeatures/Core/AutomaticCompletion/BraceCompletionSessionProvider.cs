@@ -10,7 +10,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -35,20 +34,17 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
     {
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public BraceCompletionSessionProvider(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(threadingContext)
         {
             _undoManager = undoManager;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _globalOptions = globalOptions;
         }
 
         public bool TryCreateSession(ITextView textView, SnapshotPoint openingPoint, char openingBrace, char closingBrace, out IBraceCompletionSession session)
@@ -71,7 +67,7 @@ namespace Microsoft.CodeAnalysis.AutomaticCompletion
                         session = new BraceCompletionSession(
                             textView, openingPoint.Snapshot.TextBuffer, openingPoint, openingBrace, closingBrace,
                             undoHistory, _editorOperationsFactoryService,
-                            editorSession, _globalOptions, ThreadingContext);
+                            editorSession, ThreadingContext);
                         return true;
                     }
                 }
