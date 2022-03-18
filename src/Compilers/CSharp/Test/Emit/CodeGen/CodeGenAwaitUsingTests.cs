@@ -2396,7 +2396,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithTasksExtensions(source);
-            comp.MakeTypeMissing(WellKnownType.System_IAsyncDisposable);
+            Assert.Equal(TypeKind.Error, comp.GetWellKnownType(WellKnownType.System_IAsyncDisposable).TypeKind);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "DISPOSED");
         }
