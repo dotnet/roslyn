@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Aliases As Dictionary(Of String, AliasAndImportsClausePosition)
         Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, importSyntaxReference As SyntaxReference, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, importSyntaxReference As SyntaxReference, dependencies As IReadOnlyCollection(Of AssemblySymbol))
     End Class
 
     Partial Friend Class Binder
@@ -137,7 +137,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              aliasTarget,
                                                              If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
 
-                        data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart, dependenciesBag)
+                        Dim syntaxReference = binder.GetSyntaxReference(aliasImportSyntax)
+                        data.AddAlias(syntaxReference, aliasText, aliasSymbol, aliasImportSyntax.SpanStart, syntaxReference, dependenciesBag)
                     End If
                 End If
 
@@ -206,7 +207,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If importedSymbolIsValid Then
-                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
+                            data.AddMember(
+                                binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, binder.GetSyntaxReference(membersImportsSyntax), dependenciesBag)
                         End If
                     End If
                 End If
@@ -237,7 +239,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' "XML namespace prefix '{0}' is already declared."
                         Binder.ReportDiagnostic(diagBag, syntax, ERRID.ERR_DuplicatePrefix, prefix)
                     Else
-                        data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(namespaceName, syntax.SpanStart))
+                        data.XmlNamespaces.Add(prefix, New XmlNamespaceAndImportsClausePosition(
+                            namespaceName, syntax.SpanStart, binder.GetSyntaxReference(syntax)))
                     End If
                 End If
 #If DEBUG Then

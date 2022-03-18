@@ -439,8 +439,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _dependencies = dependencies
             End Sub
 
-            Public Overrides Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, ImmutableArray(Of AssemblySymbol).Empty)
+            Public Overrides Sub AddMember(
+                    syntaxRef As SyntaxReference,
+                    member As NamespaceOrTypeSymbol,
+                    importsClausePosition As Integer,
+                    importSyntaxReference As SyntaxReference,
+                    dependencies As IReadOnlyCollection(Of AssemblySymbol))
+                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, importSyntaxReference, ImmutableArray(Of AssemblySymbol).Empty)
                 Members.Add(member)
                 _membersBuilder.Add(pair)
                 _membersInfoBuilder.Add(New GlobalImportInfo(_globalImport, syntaxRef))
@@ -453,8 +458,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
             End Sub
 
-            Public Overrides Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Dim pair = New AliasAndImportsClausePosition([alias], importsClausePosition, ImmutableArray(Of AssemblySymbol).Empty)
+            Public Overrides Sub AddAlias(
+                    syntaxRef As SyntaxReference,
+                    name As String,
+                    [alias] As AliasSymbol,
+                    importsClausePosition As Integer,
+                    importSyntaxReference As SyntaxReference,
+                    dependencies As IReadOnlyCollection(Of AssemblySymbol))
+                Dim pair = New AliasAndImportsClausePosition([alias], importsClausePosition, importSyntaxReference, ImmutableArray(Of AssemblySymbol).Empty)
                 Aliases.Add(name, pair)
                 _aliasesBuilder.Add(pair)
                 _aliasesInfoBuilder.Add(New GlobalImportInfo(_globalImport, syntaxRef))

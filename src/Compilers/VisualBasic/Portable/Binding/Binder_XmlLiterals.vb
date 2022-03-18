@@ -1432,13 +1432,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _namespaces = namespaces
         End Sub
 
-        Public Function GetImportChainData() As ImmutableArray(Of String)
-            Dim result = ArrayBuilder(Of String).GetInstance(_namespaces.Count)
-            For Each kvp In _namespaces
-                result.Add(kvp.Value.XmlNamespace)
-            Next
-
-            Return result.ToImmutableAndFree()
+        Public Function GetImportChainData() As ImmutableArray(Of (String, SyntaxReference))
+            Return _namespaces.SelectAsArray(Function(kvp) (kvp.Value.XmlNamespace, kvp.Value.SyntaxReference))
         End Function
 
         Friend Overrides ReadOnly Property HasImportedXmlNamespaces As Boolean

@@ -5286,46 +5286,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetEnclosingSymbol(position, cancellationToken);
         }
 
-        private protected sealed override IImportScope GetImportScopeCore(int position, CancellationToken cancellationToken)
+        private protected sealed override ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken)
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
-            return ConvertToImportScope(binder?.ImportChain);
+            var builder = ArrayBuilder<IImportScope>.GetInstance();
 
-            static IImportScope ConvertToImportScope(ImportChain chain)
+            for (var chain = binder?.ImportChain; chain != null; chain = chain.ParentOpt)
             {
-                // Skip by any empty items in the chain.
-                while (chain != null && chain.Imports.IsEmpty)
-                    chain = chain.ParentOpt;
-
-                // If we reached the end, there's nothing to return
-                if (chain == null)
-                    return null;
-
                 var imports = chain.Imports;
-                Debug.Assert(!imports.IsEmpty);
+                if (imports.IsEmpty)
+                    continue;
 
                 // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
                 // node corresponding to this set of imports and chain it to that.
-                return new SimpleImportScope(
-                    ConvertToImportScope(chain.ParentOpt),
-                    ConvertAliases(imports),
-                    imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
-                    imports.Usings.SelectAsArray(static n => n.NamespaceOrType.GetPublicSymbol()),
-                    XmlNamespaces: ImmutableArray<string>.Empty);
+                builder.Add(new SimpleImportScope(
+                    imports.UsingAliases.SelectAsArray(static kvp => (kvp.Value.Alias.GetPublicSymbol(), kvp.Value.UsingDirectiveReference)),
+                    imports.ExternAliases.SelectAsArray(static e => (e.Alias.GetPublicSymbol(), e.ExternAliasDirectiveReference)),
+                    imports.Usings.SelectAsArray(static n => (n.NamespaceOrType.GetPublicSymbol(), n.UsingDirectiveReference)),
+                    XmlNamespaces: ImmutableArray<(string, SyntaxReference)>.Empty));
             }
 
-            static ImmutableArray<IAliasSymbol> ConvertAliases(Imports imports)
-            {
-                if (imports.UsingAliases.IsEmpty)
-                    return ImmutableArray<IAliasSymbol>.Empty;
-
-                var aliases = ArrayBuilder<IAliasSymbol>.GetInstance(imports.UsingAliases.Count);
-                foreach (var kvp in imports.UsingAliases)
-                    aliases.Add(kvp.Value.Alias.GetPublicSymbol());
-
-                return aliases.ToImmutableAndFree();
-            }
+            return builder.ToImmutableAndFree();
         }
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)

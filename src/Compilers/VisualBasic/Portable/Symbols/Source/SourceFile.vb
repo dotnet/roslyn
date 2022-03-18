@@ -295,15 +295,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _membersSyntaxBuilder = membersSyntaxBuilder
             End Sub
 
-            Public Overrides Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, dependencies.ToImmutableArray())
+            Public Overrides Sub AddMember(
+                    syntaxRef As SyntaxReference,
+                    member As NamespaceOrTypeSymbol,
+                    importsClausePosition As Integer,
+                    importSyntaxReference As SyntaxReference,
+                    dependencies As IReadOnlyCollection(Of AssemblySymbol))
+                Dim pair = New NamespaceOrTypeAndImportsClausePosition(member, importsClausePosition, importSyntaxReference, dependencies.ToImmutableArray())
                 Members.Add(member)
                 _membersBuilder.Add(pair)
                 _membersSyntaxBuilder.Add(syntaxRef)
             End Sub
 
-            Public Overrides Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition, dependencies.ToImmutableArray()))
+            Public Overrides Sub AddAlias(
+                    syntaxRef As SyntaxReference,
+                    name As String,
+                    [alias] As AliasSymbol,
+                    importsClausePosition As Integer,
+                    importSyntaxReference As SyntaxReference,
+                    dependencies As IReadOnlyCollection(Of AssemblySymbol))
+                Aliases.Add(name, New AliasAndImportsClausePosition([alias], importsClausePosition, importSyntaxReference, dependencies.ToImmutableArray()))
             End Sub
         End Class
 
