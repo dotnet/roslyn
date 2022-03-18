@@ -9197,6 +9197,7 @@ class C
         public void TestDataFlowsStackArrayInit_02()
         {
             var comp = CreateCompilation(@"
+#nullable enable
 unsafe class C
 {
 	void F()
@@ -9204,7 +9205,7 @@ unsafe class C
         bool b = true;
 		var c = stackalloc int[] { b ? M(out var x) : x };
 	}
-    static int M(out int i) => throw null;
+    static int M(out int i) => throw null!;
 }
 ", options: TestOptions.UnsafeDebugDll);
 
