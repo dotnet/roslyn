@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             Contract.ThrowIfNull(fixAllContext.Document);
 
-            if (!fixAllContext.State.TriggerSpan.HasValue)
+            if (!fixAllContext.State.DiagnosticSpan.HasValue)
                 return null;
 
             var spanMappingService = fixAllContext.Document.GetLanguageService<IFixAllSpanMappingService>();
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return null;
 
             var documentsAndSpansToFix = await spanMappingService.GetFixAllSpansAsync(
-                fixAllContext.Document, fixAllContext.State.TriggerSpan.Value,
+                fixAllContext.Document, fixAllContext.State.DiagnosticSpan.Value,
                 fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
             if (documentsAndSpansToFix.IsEmpty)
                 return null;

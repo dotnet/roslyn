@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal interface IFixAllSpanMappingService : ILanguageService
     {
         /// <summary>
-        /// For the given <paramref name="fixAllScope"/> and <paramref name="triggerSpan"/> in the given <paramref name="document"/>,
+        /// For the given <paramref name="fixAllScope"/> and <paramref name="diagnosticSpan"/> in the given <paramref name="document"/>,
         /// returns the documents and fix all spans within each document that need to be fixed.
         /// Note that this API is only invoked for span based FixAll scopes, i.e. <see cref="FixAllScope.ContainingMember"/>
         /// and <see cref="FixAllScope.ContainingType"/>.
         /// </summary>
         Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-            Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
+            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
     }
 }

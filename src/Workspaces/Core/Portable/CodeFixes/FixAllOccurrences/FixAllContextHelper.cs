@@ -54,17 +54,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         //     type declaration (and its partials), and then return the diagnostics for each of the documents and fixAllSpans.
 
                         var fixAllSpans = fixAllContext.State.FixAllSpans;
-                        var triggerSpan = fixAllContext.State.TriggerSpan;
+                        var diagnosticSpan = fixAllContext.State.DiagnosticSpan;
                         if (!fixAllSpans.IsEmpty)
                         {
                             var documentsAndSpans = SpecializedCollections.SingletonEnumerable(new KeyValuePair<Document, ImmutableArray<TextSpan>>(document, fixAllSpans));
                             return await GetSpanDiagnosticsAsync(fixAllContext, documentsAndSpans).ConfigureAwait(false);
                         }
-                        else if (triggerSpan.HasValue &&
+                        else if (diagnosticSpan.HasValue &&
                             document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
                         {
                             var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(document,
-                                triggerSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
+                                diagnosticSpan.Value, fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
                             return await GetSpanDiagnosticsAsync(fixAllContext, documentsAndSpans).ConfigureAwait(false);
                         }
                     }

@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingService
     {
         public async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-            Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
+            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
-            var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllScope, triggerSpan, cancellationToken).ConfigureAwait(false);
+            var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllScope, diagnosticSpan, cancellationToken).ConfigureAwait(false);
             if (decl == null)
                 return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static async Task<SyntaxNode?> GetContainingMemberOrTypeDeclarationAsync(
             Document document,
             FixAllScope fixAllScope,
-            TextSpan triggerSpan,
+            TextSpan span,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var startContainer = fixAllScope == FixAllScope.ContainingMember
-                ? syntaxFacts.GetContainingMemberDeclaration(root, triggerSpan.Start)
-                : syntaxFacts.GetContainingTypeDeclaration(root, triggerSpan.Start);
+                ? syntaxFacts.GetContainingMemberDeclaration(root, span.Start)
+                : syntaxFacts.GetContainingTypeDeclaration(root, span.Start);
 
             if (startContainer == null)
                 return null;
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (fixAllScope == FixAllScope.ContainingMember && !syntaxFacts.IsMethodLevelMember(startContainer))
                 return null;
 
-            if (triggerSpan.IsEmpty)
+            if (span.IsEmpty)
                 return startContainer;
 
             var endContainer = fixAllScope == FixAllScope.ContainingMember
-                ? syntaxFacts.GetContainingMemberDeclaration(root, triggerSpan.End)
-                : syntaxFacts.GetContainingTypeDeclaration(root, triggerSpan.End);
+                ? syntaxFacts.GetContainingMemberDeclaration(root, span.End)
+                : syntaxFacts.GetContainingTypeDeclaration(root, span.End);
 
             if (startContainer == endContainer)
                 return startContainer;

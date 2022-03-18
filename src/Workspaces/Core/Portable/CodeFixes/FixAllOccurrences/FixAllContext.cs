@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// This overload cannot be used with <see cref="FixAllScope.ContainingMember"/> or
         /// <see cref="FixAllScope.ContainingType"/> value for the <paramref name="scope"/>.
         /// For those fix all scopes, use the <see cref="FixAllContext"/> constructor that
-        /// takes a 'triggerSpan' parameter to identify the containing member or type based
+        /// takes a 'diagnosticSpan' parameter to identify the containing member or type based
         /// on this span.
         /// </para>
         /// </summary>
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(document, triggerSpan: null, codeFixProvider, scope,
+            : this(document, diagnosticSpan: null, codeFixProvider, scope,
                   codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
@@ -107,13 +107,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         /// <summary>
-        /// Creates a new <see cref="FixAllContext"/> with an associated <paramref name="triggerSpan"/>.
+        /// Creates a new <see cref="FixAllContext"/> with an associated <paramref name="diagnosticSpan"/>.
         /// Use this overload when applying fix all to a diagnostic with a source location and
         /// using <see cref="FixAllScope.ContainingMember"/> or <see cref="FixAllScope.ContainingType"/>
-        /// for the <paramref name="scope"/>.  When using other fix all scopes, <paramref name="triggerSpan"/>
-        /// is not required and other constructor which does not take a triggerSpan can be used instead.
+        /// for the <paramref name="scope"/>.  When using other fix all scopes, <paramref name="diagnosticSpan"/>
+        /// is not required and other constructor which does not take a diagnostic span can be used instead.
         /// </summary>
         /// <param name="document">Document within which fix all occurrences was triggered.</param>
+        /// <param name="diagnosticSpan">Span for the diagnostic for which fix all occurrences was triggered.</param>
         /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
         /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
         /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <remarks>TODO: Make API public (tracked by https://github.com/dotnet/roslyn/issues/60029)</remarks>
         internal FixAllContext(
             Document document,
-            TextSpan? triggerSpan,
+            TextSpan? diagnosticSpan,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
             string? codeActionEquivalenceKey,
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
             : this(new FixAllState(
                     fixAllProvider: null,
-                    triggerSpan,
+                    diagnosticSpan,
                     document ?? throw new ArgumentNullException(nameof(document)),
                     document.Project,
                     codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider)),
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken)
             : this(new FixAllState(
                     fixAllProvider: null,
-                    triggerSpan: null,
+                    diagnosticSpan: null,
                     document: null,
                     project ?? throw new ArgumentNullException(nameof(project)),
                     codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider)),
