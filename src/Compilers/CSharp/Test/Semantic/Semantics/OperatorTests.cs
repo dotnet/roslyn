@@ -4841,7 +4841,7 @@ System.Console.Write(i ?? d);
             var verifier = CompileAndVerify(compilation, expectedOutput: "42");
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size      142 (0x8e)
+  // Code size      136 (0x88)
   .maxstack  9
   .locals init (int? V_0, //i
                 object V_1, //d
@@ -4886,12 +4886,11 @@ System.Console.Write(i ?? d);
   IL_0072:  call       ""bool int?.HasValue.get""
   IL_0077:  brtrue.s   IL_007c
   IL_0079:  ldloc.1
-  IL_007a:  br.s       IL_0088
-  IL_007c:  ldloca.s   V_2
-  IL_007e:  call       ""int int?.GetValueOrDefault()""
-  IL_0083:  box        ""int""
-  IL_0088:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
-  IL_008d:  ret
+  IL_007a:  br.s       IL_0082
+  IL_007c:  ldloc.2
+  IL_007d:  box        ""int?""
+  IL_0082:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_0087:  ret
 }
 ");
         }
@@ -4964,7 +4963,45 @@ System.Console.Write(l ?? i);
   IL_0016:  conv.i8
   IL_0017:  br.s       IL_0020
   IL_0019:  ldloca.s   V_1
-  IL_001b:  call       ""long long?.GetValueOrDefault()""
+  IL_001b:  call       ""long long?.Value.get""
+  IL_0020:  call       ""void System.Console.Write(long)""
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableIntAndLong()
+        {
+            var source = @"
+int? i = 42;
+long l = 43;
+System.Console.Write(i ?? l);
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (long V_0, //l
+                int? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  newobj     ""int?..ctor(int)""
+  IL_0007:  ldc.i4.s   43
+  IL_0009:  conv.i8
+  IL_000a:  stloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""bool int?.HasValue.get""
+  IL_0013:  brtrue.s   IL_0018
+  IL_0015:  ldloc.0
+  IL_0016:  br.s       IL_0020
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""int int?.GetValueOrDefault()""
+  IL_001f:  conv.i8
   IL_0020:  call       ""void System.Console.Write(long)""
   IL_0025:  ret
 }
