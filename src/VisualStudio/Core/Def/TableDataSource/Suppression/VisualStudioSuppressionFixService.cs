@@ -38,10 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
     /// Service to compute and apply bulk suppression fixes.
     /// </summary>
     [Export(typeof(IVisualStudioSuppressionFixService))]
+    [Export(typeof(VisualStudioSuppressionFixService))]
     internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressionFixService
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
-        private readonly IWpfTableControl? _tableControl;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
@@ -53,6 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IHierarchyItemToProjectIdMap _projectMap;
         private readonly IGlobalOptionService _globalOptions;
+
+        private IWpfTableControl? _tableControl;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -78,11 +80,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _vsHierarchyItemManager = vsHierarchyItemManager;
             _fixMultipleOccurencesService = workspace.Services.GetRequiredService<IFixMultipleOccurrencesService>();
             _projectMap = workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-
-            var errorList = serviceProvider.GetService(typeof(SVsErrorList)) as IErrorList;
-            _tableControl = errorList?.TableControl;
             _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
             _globalOptions = globalOptions;
+        }
+
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>().ConfigureAwait(false);
+            _tableControl = errorList?.TableControl;
         }
 
         public bool AddSuppressions(IVsHierarchy? projectHierarchy)

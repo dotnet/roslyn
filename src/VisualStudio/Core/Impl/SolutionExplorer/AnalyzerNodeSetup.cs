@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
-            await _analyzerTracker.RegisterAsync(serviceProvider).ConfigureAwait(false);
+            await _analyzerTracker.RegisterAsync(serviceProvider, cancellationToken).ConfigureAwait(false);
             await _analyzerCommandHandler.InitializeAsync(
                 await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>().ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);

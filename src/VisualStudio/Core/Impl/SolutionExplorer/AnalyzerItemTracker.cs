@@ -6,7 +6,9 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -23,18 +25,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private IVsMonitorSelection? _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
+        private readonly IThreadingContext _threadingContext;
 
         public event EventHandler? SelectedHierarchyItemChanged;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerItemsTracker()
+        public AnalyzerItemsTracker(IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
-        public async Task RegisterAsync(IAsyncServiceProvider serviceProvider)
+        public async Task RegisterAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
             _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>().ConfigureAwait(false);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _vsMonitorSelection?.AdviseSelectionEvents(this, out _selectionEventsCookie);
         }
 
