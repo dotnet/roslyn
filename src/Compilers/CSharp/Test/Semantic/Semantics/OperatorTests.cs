@@ -4963,7 +4963,7 @@ System.Console.Write(l ?? i);
   IL_0016:  conv.i8
   IL_0017:  br.s       IL_0020
   IL_0019:  ldloca.s   V_1
-  IL_001b:  call       ""long long?.Value.get""
+  IL_001b:  call       ""long long?.GetValueOrDefault()""
   IL_0020:  call       ""void System.Console.Write(long)""
   IL_0025:  ret
 }
