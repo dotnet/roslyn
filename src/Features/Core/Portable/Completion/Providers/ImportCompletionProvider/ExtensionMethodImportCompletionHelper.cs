@@ -108,6 +108,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return new SerializableUnimportedExtensionMethods(items, isPartialResult, getSymbolsTicks, createItemsTicks, isRemote);
         }
 
+        public static async ValueTask BatchUpdateCacheAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
+        {
+            var latestProjects = CompletionUtilities.GetDistinctProjectsFromLatestSolutionSnapshot(projects);
+            foreach (var project in latestProjects)
+            {
+                await SymbolComputer.UpdateCacheAsync(project, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         private static ImmutableArray<SerializableImportCompletionItem> ConvertSymbolsToCompletionItems(
             Compilation compilation, ImmutableArray<IMethodSymbol> extentsionMethodSymbols, ImmutableArray<ITypeSymbol> targetTypeSymbols, CancellationToken cancellationToken)
         {
@@ -213,9 +222,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             stringCache[symbol] = name;
             return name;
         }
-
-        private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Workspace workspace)
-            => workspace.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
 
         private static async Task<ExtensionMethodImportCompletionCacheEntry> GetUpToDateCacheEntryAsync(
             Project project,

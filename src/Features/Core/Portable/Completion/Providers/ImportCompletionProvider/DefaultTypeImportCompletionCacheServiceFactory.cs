@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultTypeImportCompletionCacheServiceFactory() : base(CancellationToken.None)
+        public DefaultTypeImportCompletionCacheServiceFactory() : base(AbstractTypeImportCompletionService.BatchUpdateCacheAsync, CancellationToken.None)
         {
         }
     }

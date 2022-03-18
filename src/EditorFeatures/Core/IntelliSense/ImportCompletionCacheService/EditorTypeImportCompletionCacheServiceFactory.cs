@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.IntelliSense
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorTypeImportCompletionCacheServiceFactory(IThreadingContext threadingContext)
-            : base(threadingContext.DisposalToken)
+            : base(AbstractTypeImportCompletionService.BatchUpdateCacheAsync, threadingContext.DisposalToken)
         {
         }
     }

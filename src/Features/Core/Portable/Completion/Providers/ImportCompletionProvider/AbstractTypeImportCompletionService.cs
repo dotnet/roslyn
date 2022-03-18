@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractTypeImportCompletionService : ITypeImportCompletionService
     {
-        private readonly AsyncBatchingWorkQueue<Project> _workQueue;
-
         private IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry> CacheService { get; }
 
         protected abstract string GenericTypeSuffix { get; }
@@ -32,19 +30,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string Language { get; }
 
-        internal AbstractTypeImportCompletionService(Workspace workspace, IAsynchronousOperationListener listener)
+        internal AbstractTypeImportCompletionService(Workspace workspace)
         {
             CacheService = workspace.Services.GetRequiredService<IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>>();
-            _workQueue = new(
-                   TimeSpan.FromSeconds(1),
-                   BatchUpdateCacheAsync,
-                   listener,
-                   CacheService.DisposalToken);
         }
 
         public void QueueCacheWarmUpTask(Project project)
         {
-            _workQueue.AddWork(project);
+            CacheService.WorkQueue.AddWork(project);
         }
 
         public async Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
@@ -140,17 +133,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             finally
             {
                 if (!forceCacheCreation)
-                    _workQueue.AddWork(currentProject);
+                    CacheService.WorkQueue.AddWork(currentProject);
             }
         }
 
-        private async ValueTask BatchUpdateCacheAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
+        public static async ValueTask BatchUpdateCacheAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
         {
             var latestProjects = CompletionUtilities.GetDistinctProjectsFromLatestSolutionSnapshot(projects);
             foreach (var project in latestProjects)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                _ = await GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
+                var service = (AbstractTypeImportCompletionService)project.GetRequiredLanguageService<ITypeImportCompletionService>();
+                _ = await service.GetCacheEntriesAsync(project, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
             }
         }
 

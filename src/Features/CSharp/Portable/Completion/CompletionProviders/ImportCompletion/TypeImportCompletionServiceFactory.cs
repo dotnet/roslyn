@@ -14,22 +14,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExportLanguageServiceFactory(typeof(ITypeImportCompletionService), LanguageNames.CSharp), Shared]
     internal sealed class TypeImportCompletionServiceFactory : ILanguageServiceFactory
     {
-        private readonly IAsynchronousOperationListenerProvider _provider;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeImportCompletionServiceFactory(IAsynchronousOperationListenerProvider provider)
+        public TypeImportCompletionServiceFactory()
         {
-            _provider = provider;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpTypeImportCompletionService(languageServices.WorkspaceServices.Workspace, _provider.GetListener(FeatureAttribute.CompletionSet));
+            => new CSharpTypeImportCompletionService(languageServices.WorkspaceServices.Workspace);
 
         private class CSharpTypeImportCompletionService : AbstractTypeImportCompletionService
         {
-            public CSharpTypeImportCompletionService(Workspace workspace, IAsynchronousOperationListener listener)
-                : base(workspace, listener)
+            public CSharpTypeImportCompletionService(Workspace workspace)
+                : base(workspace)
             {
             }
 

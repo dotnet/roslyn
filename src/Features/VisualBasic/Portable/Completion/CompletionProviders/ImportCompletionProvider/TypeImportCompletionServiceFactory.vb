@@ -13,23 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Friend NotInheritable Class TypeImportCompletionServiceFactory
         Implements ILanguageServiceFactory
 
-        Private ReadOnly _provider As IAsynchronousOperationListenerProvider
-
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(provider As IAsynchronousOperationListenerProvider)
-            _provider = provider
+        Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New BasicTypeImportCompletionService(languageServices.WorkspaceServices.Workspace, _provider.GetListener(FeatureAttribute.CompletionSet))
+            Return New BasicTypeImportCompletionService(languageServices.WorkspaceServices.Workspace)
         End Function
 
         Private Class BasicTypeImportCompletionService
             Inherits AbstractTypeImportCompletionService
 
-            Public Sub New(workspace As Workspace, listener As IAsynchronousOperationListener)
-                MyBase.New(workspace, listener)
+            Public Sub New(workspace As Workspace)
+                MyBase.New(workspace)
             End Sub
 
             Protected Overrides ReadOnly Property GenericTypeSuffix As String

@@ -10,10 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -35,29 +33,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // The value indicates if we can reduce an extension method with this receiver type given receiver type.
             private readonly ConcurrentDictionary<ITypeSymbol, bool> _checkedReceiverTypes;
 
-            private static readonly object _gate = new();
-            private static AsyncBatchingWorkQueue<Project>? _workQueue;
-
-            private static AsyncBatchingWorkQueue<Project> GetWorkQueue(Project project)
-            {
-                lock (_gate)
-                {
-                    if (_workQueue is null)
-                    {
-                        var cacheService = GetCacheService(project.Solution.Workspace);
-                        var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
-                        var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
-                        _workQueue = new(
-                                TimeSpan.FromSeconds(1),
-                                BatchUpdateCacheAsync,
-                                listenerProvider.GetListener(FeatureAttribute.CompletionSet),
-                                cacheService.DisposalToken);
-                    }
-
-                    return _workQueue;
-                }
-            }
-
             public SymbolComputer(
                 Document document,
                 SemanticModel semanticModel,
@@ -73,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 var receiverTypeNames = GetReceiverTypeNames(receiverTypeSymbol);
                 _receiverTypeNames = AddComplexTypes(receiverTypeNames);
-                _cacheService = GetCacheService(document.Project.Solution.Workspace);
+                _cacheService = GetCacheService(document.Project);
                 _checkedReceiverTypes = new ConcurrentDictionary<ITypeSymbol, bool>();
             }
 
@@ -89,6 +64,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     document, semanticModel, receiverTypeSymbol, position, namespaceInScope);
             }
 
+            private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
+                => project.Solution.Workspace.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
+
             private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
                 => peReference.FilePath ?? peReference.Display;
 
@@ -97,24 +75,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             /// </summary>
             public static void QueueCacheWarmUpTask(Project project)
             {
-                var queue = GetWorkQueue(project);
-                queue.AddWork(project);
+                GetCacheService(project).WorkQueue.AddWork(project);
             }
 
-            private static async ValueTask BatchUpdateCacheAsync(ImmutableArray<Project> projects, CancellationToken cancellationToken)
+            public static async ValueTask UpdateCacheAsync(Project project, CancellationToken cancellationToken)
             {
-                var latestProjects = CompletionUtilities.GetDistinctProjectsFromLatestSolutionSnapshot(projects);
-                foreach (var project in latestProjects)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var cacheService = GetCacheService(project.Solution.Workspace);
+                cancellationToken.ThrowIfCancellationRequested();
+                var cacheService = GetCacheService(project);
 
-                    foreach (var relevantProject in GetAllRelevantProjects(project))
-                        await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
+                foreach (var relevantProject in GetAllRelevantProjects(project))
+                    await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var peReference in GetAllRelevantPeReferences(project))
-                        await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
-                }
+                foreach (var peReference in GetAllRelevantPeReferences(project))
+                    await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, loadOnly: false, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
@@ -167,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     // If we are not force creating/updating the cache, an update task needs to be queued in background.
                     if (!forceCacheCreation)
-                        GetWorkQueue(_originatingDocument.Project).AddWork(_originatingDocument.Project);
+                        GetCacheService(_originatingDocument.Project).WorkQueue.AddWork(_originatingDocument.Project);
                 }
             }
 
