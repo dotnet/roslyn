@@ -1,4 +1,3 @@
-Microsoft.CodeAnalysis.CodeFixes.FixAllContext.GetDocumentSpanDiagnosticsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan filterSpan) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingMember = 4 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.ContainingType = 5 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void

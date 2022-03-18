@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Gets all the diagnostics in the given <paramref name="filterSpan"/> for the given <paramref name="document"/> filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan filterSpan)
+        internal async Task<ImmutableArray<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan filterSpan)
         {
             if (document == null)
             {

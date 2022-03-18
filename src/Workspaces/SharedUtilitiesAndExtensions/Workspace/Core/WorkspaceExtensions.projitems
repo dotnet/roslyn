@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\CodeActionOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationPreferences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\IVirtualCharLanguageService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\ISyntaxContextService.cs" />
