@@ -9,6 +9,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
@@ -18,16 +19,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
     [Shared]
     internal sealed class UnitTestingSolutionCrawlerServiceAccessorFactory : IWorkspaceServiceFactory
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UnitTestingSolutionCrawlerServiceAccessorFactory() { }
+        public UnitTestingSolutionCrawlerServiceAccessorFactory(IGlobalOptionService globalOptions)
+        {
+            _globalOptions = globalOptions;
+        }
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var solutionCrawlerRegistrationService = workspaceServices.GetRequiredService<ISolutionCrawlerRegistrationService>();
             var solutionCrawlerService = workspaceServices.GetRequiredService<ISolutionCrawlerService>();
-            return new UnitTestingSolutionCrawlerServiceAccessor(solutionCrawlerRegistrationService, solutionCrawlerService);
+            return new UnitTestingSolutionCrawlerServiceAccessor(solutionCrawlerRegistrationService, solutionCrawlerService, _globalOptions);
         }
     }
 }

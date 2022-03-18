@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string EmbeddedStatementPlacement = nameof(EmbeddedStatementPlacement);
         public const string FileHeader = nameof(FileHeader);
         public const string FixFormatting = nameof(FixFormatting);
+        public const string FixIncorrectConstraint = nameof(FixIncorrectConstraint);
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
         public const string FixIncorrectFunctionReturnType = nameof(FixIncorrectFunctionReturnType);
         public const string FixReturnType = nameof(FixReturnType);
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string SimplifyPropertyPattern = nameof(SimplifyPropertyPattern);
         public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
         public const string SpellCheck = nameof(SpellCheck);
+        public const string TransposeRecordKeyword = nameof(TransposeRecordKeyword);
         public const string UnsealClass = nameof(UnsealClass);
         public const string UpdateLegacySuppressions = nameof(UpdateLegacySuppressions);
         public const string UpdateProjectToAllowUnsafe = nameof(UpdateProjectToAllowUnsafe);

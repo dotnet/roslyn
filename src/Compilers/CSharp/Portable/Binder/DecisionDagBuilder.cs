@@ -484,6 +484,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 output = input;
                 return new Tests.One(new BoundDagExplicitNullTest(constant.Syntax, input));
             }
+            else if (constant.ConstantValue.IsString && input.Type.IsSpanOrReadOnlySpanChar())
+            {
+                output = input;
+                return new Tests.One(new BoundDagValueTest(constant.Syntax, constant.ConstantValue, input));
+            }
             else
             {
                 var tests = ArrayBuilder<Tests>.GetInstance(2);

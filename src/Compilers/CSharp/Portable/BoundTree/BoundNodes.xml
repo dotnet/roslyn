@@ -1118,8 +1118,6 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow" />
     <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
-    <!-- Equality method to be used when dispatching on a non-integral type such as string. -->
-    <Field Name="EqualityMethod" Type="MethodSymbol?" />
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
@@ -1755,6 +1753,7 @@
     <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstructorExpanded" Type="bool" />
+    <Field Name="ConstructorDefaultArguments" Type="BitVector"/>
     <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>

@@ -167,6 +167,11 @@
         <target state="translated">Obliczanie elementów zależnych...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Call_Hierarchy">
+        <source>Call Hierarchy</source>
+        <target state="new">Call Hierarchy</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
         <target state="translated">Wartość miejsca wywołania:</target>
@@ -450,6 +455,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Wygeneruj plik .editorconfig na podstawie ustawień</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="new">Go To Definition</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -822,6 +832,11 @@
         <target state="translated">Reguły nazewnictwa</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="new">Navigate asynchronously (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="translated">Przejdź do pozycji „{0}”</target>
@@ -830,6 +845,11 @@
       <trans-unit id="Navigate_to_external_sources">
         <source>Navigate to External Sources</source>
         <target state="translated">Przejdź do źródeł zewnętrznych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating">
+        <source>Navigating</source>
+        <target state="new">Navigating</target>
         <note />
       </trans-unit>
       <trans-unit id="Never">

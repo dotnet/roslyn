@@ -40,6 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property SingleLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.SingleLineRawStringLiteralToken
         Public ReadOnly Property MultiLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.MultiLineRawStringLiteralToken
 
+        Public ReadOnly Property XmlTextLiteralToken As Integer = SyntaxKind.XmlTextLiteralToken Implements ISyntaxKinds.XmlTextLiteralToken
+
         Public ReadOnly Property DelegateKeyword As Integer = SyntaxKind.DelegateKeyword Implements ISyntaxKinds.DelegateKeyword
         Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKinds.IfKeyword
         Public ReadOnly Property TrueKeyword As Integer = SyntaxKind.TrueKeyword Implements ISyntaxKinds.TrueKeyword
@@ -60,10 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property TrueLiteralExpression As Integer = SyntaxKind.TrueLiteralExpression Implements ISyntaxKinds.TrueLiteralExpression
 
         Public ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression Implements ISyntaxKinds.AnonymousObjectCreationExpression
+        Public ReadOnly Property ArrayCreationExpression As Integer = SyntaxKind.ArrayCreationExpression Implements ISyntaxKinds.ArrayCreationExpression
         Public ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression Implements ISyntaxKinds.AwaitExpression
         Public ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression Implements ISyntaxKinds.BaseExpression
         Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKinds.ConditionalAccessExpression
         Public ReadOnly Property ConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.ConditionalExpression
+        Public ReadOnly Property ImplicitArrayCreationExpression As Integer? = Nothing Implements ISyntaxKinds.ImplicitArrayCreationExpression
         Public ReadOnly Property ImplicitObjectCreationExpression As Integer? = Nothing Implements ISyntaxKinds.ImplicitObjectCreationExpression
         Public ReadOnly Property IndexExpression As Integer? = Nothing Implements ISyntaxKinds.IndexExpression
         Public ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression Implements ISyntaxKinds.InvocationExpression

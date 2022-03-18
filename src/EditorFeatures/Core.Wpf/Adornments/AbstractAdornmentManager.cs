@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 
         protected SnapshotPoint? GetMappedPoint(SnapshotSpan snapshotSpan, IMappingTagSpan<T> mappingTagSpan)
         {
-            var point = mappingTagSpan.Span.Start.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
+            var point = mappingTagSpan.Span.End.GetPoint(snapshotSpan.Snapshot, PositionAffinity.Predecessor);
             if (point == null)
             {
                 return null;

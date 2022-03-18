@@ -6,13 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,14 +21,15 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions.XmlSnippetParser;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
 /// <summary>
 /// Supports built in legacy snippets for razor scenarios.
 /// </summary>
-[ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(VSInternalMethods.TextDocumentInlineCompletionName)]
+[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(InlineCompletionsHandler)), Shared]
+[Method(VSInternalMethods.TextDocumentInlineCompletionName)]
 internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
@@ -42,17 +42,18 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InlineCompletionsHandler()
-    {
-    }
-
-    public override string Method => VSInternalMethods.TextDocumentInlineCompletionName;
+    private readonly XmlSnippetParser _xmlSnippetParser;
 
     public override bool MutatesSolutionState => false;
 
     public override bool RequiresLSPSolution => true;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser)
+    {
+        _xmlSnippetParser = xmlSnippetParser;
+    }
 
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
@@ -90,33 +91,16 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         var matchingSnippetInfo = snippetInfo.First(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
 
-        var matchingSnippet = RetrieveSnippetFromXml(matchingSnippetInfo, context);
-        if (matchingSnippet == null)
-        {
-            return null;
-        }
-
-        // We currently only support snippet expansions, the others require selection support which is not applicable here.
-        if (!matchingSnippet.IsExpansionSnippet())
-        {
-            return null;
-        }
-
-        var expansion = new ExpansionTemplate(matchingSnippet);
-
-        // Parse the snippet XML
-        var parsedSnippet = expansion.Parse(context);
+        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(matchingSnippetInfo, context);
         if (parsedSnippet == null)
         {
-            context.TraceError($"Could not parse code from snippet {matchingSnippet.Title}");
             return null;
         }
 
         // Use the formatting options specified by the client to format the snippet.
-        var documentOptions = await ProtocolConversions.FormattingOptionsToDocumentOptionsAsync(
-                request.Options, context.Document, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, context.Document, cancellationToken).ConfigureAwait(false);
 
-        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, documentOptions, cancellationToken).ConfigureAwait(false);
+        var formattedLspSnippet = await GetFormattedLspSnippetAsync(parsedSnippet, wordOnLeft.Value, context.Document, sourceText, formattingOptions, cancellationToken).ConfigureAwait(false);
 
         return new VSInternalInlineCompletionList
         {
@@ -138,7 +122,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
     /// 
     /// Note that the operations in this method are sensitive to the context in the document and so must be calculated on each request.
     /// </summary>
-    private static async Task<string> GetFormattedLspSnippetAsync(ParsedXmlSnippet parsedSnippet, TextSpan snippetShortcut, Document originalDocument, SourceText originalSourceText, DocumentOptionSet documentOptions, CancellationToken cancellationToken)
+    private static async Task<string> GetFormattedLspSnippetAsync(ParsedXmlSnippet parsedSnippet, TextSpan snippetShortcut, Document originalDocument, SourceText originalSourceText, SyntaxFormattingOptions options, CancellationToken cancellationToken)
     {
         // Calculate the snippet text with defaults + snippet function results.
         var (snippetFullText, fields, caretSpan) = await GetReplacedSnippetTextAsync(
@@ -152,7 +136,7 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         var root = await originalDocument.WithText(documentWithSnippetText).GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var spanToFormat = TextSpan.FromBounds(textChange.Span.Start, snippetEndPosition);
-        var formattingChanges = Formatter.GetFormattedTextChanges(root, spanToFormat, originalDocument.Project.Solution.Workspace, options: documentOptions, cancellationToken: cancellationToken)
+        var formattingChanges = Formatter.GetFormattedTextChanges(root, spanToFormat, originalDocument.Project.Solution.Workspace.Services, options, cancellationToken: cancellationToken)
             ?.ToImmutableArray() ?? ImmutableArray<TextChange>.Empty;
 
         var formattedText = documentWithSnippetText.WithChanges(formattingChanges);
@@ -267,28 +251,5 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         }
 
         return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), caretSpan);
-    }
-
-    private static CodeSnippet? RetrieveSnippetFromXml(SnippetInfo snippetInfo, RequestContext context)
-    {
-        context.TraceInformation($"Reading XML for {snippetInfo.Title} with path {snippetInfo.Path}");
-
-        var path = snippetInfo.Path;
-        if (path == null)
-        {
-            context.TraceInformation($"Missing file path for snippet {snippetInfo.Title}");
-            return null;
-        }
-
-        if (!File.Exists(path))
-        {
-            context.TraceInformation($"Snippet {snippetInfo.Title} has an invalid file path: {snippetInfo.Path}");
-            return null;
-        }
-
-        // Load the xml for the snippet from disk.
-        // Any exceptions thrown here we allow to bubble up and let the queue log it.
-        var snippet = CodeSnippet.ReadSnippetFromFile(snippetInfo.Path, snippetInfo.Title, context);
-        return snippet;
     }
 }

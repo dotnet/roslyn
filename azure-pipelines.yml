@@ -120,6 +120,17 @@ jobs:
     configuration: Debug
     testArguments: -testCoreClr -testIOperation -testCompilerOnly
 
+# This leg runs almost all the compiler tests supported on CoreCLR, but
+#  with additional validation for used assemblies and GetEmitDiagnostics
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
+    jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+
 # Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml
   parameters:
@@ -208,6 +219,16 @@ jobs:
         ArtifactName: 'VSIX - PreRelease'
         publishLocation: Container
       condition: succeeded()
+
+- job: Correctness_TodoCheck
+  pool:
+    vmImage: ubuntu-20.04
+  timeoutInMinutes: 10
+  steps:
+    - template: eng/pipelines/checkout-unix-task.yml
+
+    - pwsh: eng/todo-check.ps1
+      displayName: Validate TODO/PROTOTYPE comments are not present
 
 - job: Correctness_Rebuild
   pool:

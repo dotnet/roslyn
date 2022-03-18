@@ -807,9 +807,19 @@
         <target state="translated">#line 指令值缺失或超出范围</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ListPatternRequiresLength">
+        <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
+        <target state="new">List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">“{0}”没有与函数指针“{1}”匹配的重载</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedRecord">
+        <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
+        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -905,6 +915,16 @@
       <trans-unit id="ERR_NoCopyConstructorInBaseType">
         <source>No accessible copy constructor found in base type '{0}'.</source>
         <target state="translated">在基类型“{0}”中找不到可访问的复制构造函数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoEnumConstraint">
+        <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
+        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
@@ -1060,6 +1080,11 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">分部方法“{0}”必须具有可访问性修饰符，因为它具有 "out" 参数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
+        <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
+        <target state="new">A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
@@ -1377,6 +1402,11 @@
         <target state="translated">弃元</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDisposalPattern">
+        <source>pattern-based disposal</source>
+        <target state="new">pattern-based disposal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">扩展的属性模式</target>
@@ -1485,6 +1515,11 @@
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
         <target state="translated">参数 null 检查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureSpanCharConstantPattern">
+        <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

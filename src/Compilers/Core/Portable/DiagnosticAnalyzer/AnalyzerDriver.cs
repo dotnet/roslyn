@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSourceOrByAnalyzers(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
             diagnostics = FilterDiagnosticsSuppressedInSource(diagnostics, compilation, CurrentCompilationData.SuppressMessageAttributeState);
-            return ApplyProgrammaticSuppressions(diagnostics, compilation);
+            return ApplyProgrammaticSuppressionsAndFilterDiagnostics(diagnostics, compilation);
         }
 
         private static ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSource(
@@ -1100,6 +1100,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return builder.ToImmutable();
+        }
+
+        internal ImmutableArray<Diagnostic> ApplyProgrammaticSuppressionsAndFilterDiagnostics(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation)
+        {
+            if (reportedDiagnostics.IsEmpty)
+            {
+                return reportedDiagnostics;
+            }
+
+            var diagnostics = ApplyProgrammaticSuppressions(reportedDiagnostics, compilation);
+            if (compilation.Options.ReportSuppressedDiagnostics || diagnostics.All(d => !d.IsSuppressed))
+            {
+                return diagnostics;
+            }
+
+            return diagnostics.WhereAsArray(d => !d.IsSuppressed);
         }
 
         private bool IsInGeneratedCode(Location location, Compilation compilation, CancellationToken cancellationToken)

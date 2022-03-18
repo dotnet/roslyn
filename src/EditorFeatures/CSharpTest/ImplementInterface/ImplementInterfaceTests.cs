@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -7286,10 +7287,10 @@ class Class : IInterface
 
     public int Prop => throw new System.NotImplementedException();
 }",
-                Options =
+                CodeActionOptions = CodeActionOptions.Default with
                 {
-                    { ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd },
-                },
+                    ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
+                }
             }.RunAsync();
         }
 
@@ -7461,10 +7462,10 @@ class Class : IInterface
     public int ReadWriteProp { get; set; }
     public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }",
-                Options =
+                CodeActionOptions = CodeActionOptions.Default with
                 {
-                    { ImplementTypeOptions.Metadata.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties },
-                },
+                    ImplementTypeOptions = new ImplementTypeOptions(PropertyGenerationBehavior: ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
+                }
             }.RunAsync();
         }
 

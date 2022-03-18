@@ -2020,6 +2020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
+        ERR_ListPatternRequiresLength = 8985,
         ERR_DiscardCannotBeNullChecked = 8990,
         ERR_MustNullCheckInImplementation = 8991,
         ERR_NonNullableValueTypeIsNullChecked = 8992,
@@ -2044,6 +2045,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_IllegalAtSequence = 9008,
         ERR_StringMustStartWithQuoteCharacter = 9009,
+
+        ERR_NoEnumConstraint = 9010,
+        ERR_NoDelegateConstraint = 9011,
+        ERR_MisplacedRecord = 9012,
+        ERR_PatternSpanCharCannotBeStringNull = 9013,
 
         #endregion
 

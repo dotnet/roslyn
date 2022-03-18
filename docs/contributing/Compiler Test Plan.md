@@ -2,7 +2,8 @@ This document provides guidance for thinking about language interactions and tes
 
 # General concerns:
 - Completeness of the specification as a guide for testing (is the spec complete enough to suggest what the compiler should do in each scenario?)
-- Other external documentation
+- *Ping* for new breaking changes and general ping for partner teams (Bill, Kathleen, Mads, IDE, Razor)
+- Help review external documentation
 - Backward and forward compatibility (interoperation with previous and future compilers, each in both directions)
 - Error handling/recovery (missing libraries, including missing types in mscorlib; errors in parsing, ambiguous lookup, inaccessible lookup, wrong kind of thing found, instance vs static thing found, wrong type for the context, value vs variable)
 - BCL (including mono) and other customer impact
@@ -94,7 +95,7 @@ This document provides guidance for thinking about language interactions and tes
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice, constant `string` matching `Span<char>`)
 - Switch expressions
 - With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
@@ -133,8 +134,8 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Compiling expressions in Immediate/Watch windows or hovering over an expression
     - Compiling expressions in [DebuggerDisplay("...")]
 	- Assigning values in Locals/Autos/Watch windows
- 
-- Edit-and-continue
+
+- [Edit-and-continue](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Testing%20for%20Interactive%20readiness.md)
 
 - Live Unit Testing (instrumentation)
 
@@ -359,6 +360,7 @@ __makeref( x )
 - Var Pattern
 - Declaration Pattern
 - Constant Pattern
+- Constant `string` matching `Span<char>`
 - Recursive Pattern
 - Parenthesized Pattern
 - `and` Pattern

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -50,11 +51,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected readonly Document OriginalDocument;
             protected readonly SourceText OriginalSourceText;
             protected readonly CancellationToken CancellationToken;
-
-            protected readonly bool UseTabs;
-            protected readonly int TabSize;
-            protected readonly string NewLine;
-            protected readonly int WrappingColumn;
+            protected readonly SyntaxWrappingOptions Options;
 
             protected readonly SyntaxTriviaList NewLineTrivia;
             protected readonly SyntaxTriviaList SingleWhitespaceTrivia;
@@ -70,22 +67,18 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 TWrapper service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                SyntaxWrappingOptions options,
                 CancellationToken cancellationToken)
             {
                 Wrapper = service;
                 OriginalDocument = document;
                 OriginalSourceText = originalSourceText;
                 CancellationToken = cancellationToken;
-
-                UseTabs = options.GetOption(FormattingOptions2.UseTabs);
-                TabSize = options.GetOption(FormattingOptions2.TabSize);
-                NewLine = options.GetOption(FormattingOptions2.NewLine);
-                WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
+                Options = options;
 
                 var generator = SyntaxGenerator.GetGenerator(document);
                 var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(NewLine));
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(options.FormattingOptions.NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
@@ -96,19 +89,26 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
             {
-                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
+                var newLine = Options.FormattingOptions.NewLine;
+                var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), newLine));
                 newSourceText = newSourceText.WithChanges(
-                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + NewLine.Length, newSourceText.Length), ""));
+                    new TextChange(TextSpan.FromBounds(nodeOrToken.Span.End + newLine.Length, newSourceText.Length), ""));
                 var newDocument = OriginalDocument.WithText(newSourceText);
+
+                // The only auto-formatting option that's relevant is indent style. Others only control behavior on typing.
+                var indentationOptions = new IndentationOptions(
+                    Options.FormattingOptions,
+                    new AutoFormattingOptions(
+                        IndentStyle: indentStyle));
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
                 var desiredIndentation = indentationService.GetIndentation(
                     newDocument, originalLineNumber + 1,
-                    indentStyle,
+                    indentationOptions,
                     CancellationToken);
 
-                return desiredIndentation.GetIndentationString(newSourceText, UseTabs, TabSize);
+                return desiredIndentation.GetIndentationString(newSourceText, Options.FormattingOptions.UseTabs, Options.FormattingOptions.TabSize);
             }
 
             /// <summary>

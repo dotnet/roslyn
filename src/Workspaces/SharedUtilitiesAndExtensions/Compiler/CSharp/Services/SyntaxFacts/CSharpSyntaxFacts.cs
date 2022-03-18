@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsTargetTypedConditionalExpression(ParseOptions options)
             => options.LanguageVersion() >= LanguageVersion.CSharp9;
 
+        public bool SupportsConstantInterpolatedStrings(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp10;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
                     (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
-                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax or OperatorDeclarationSyntax or RelationalPatternSyntax)) ||
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
@@ -653,6 +656,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 }
             }
 
+            return false;
+        }
+
+        public bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression)
+        {
+            if (node is InitializerExpressionSyntax
+                {
+                    Parent: BaseObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax
+                })
+            {
+                creationExpression = node.Parent;
+                return true;
+            }
+
+            creationExpression = null;
             return false;
         }
 

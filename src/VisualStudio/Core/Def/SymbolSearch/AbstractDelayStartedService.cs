@@ -2,20 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SymbolSearch;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -27,94 +22,82 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// </summary>
     internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
     {
-        private readonly List<string> _registeredLanguageNames = new();
-
-        private readonly Workspace _workspace;
-        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IGlobalOptionService _globalOptions;
 
-        // Option that controls if this service is enabled or not (regardless of language).
+        /// <summary>
+        /// The set of languages that have loaded that care about this service.  If one language loads and has an
+        /// appropriate <see cref="_perLanguageOptions"/> also enabled, then this service will start working.
+        /// </summary>
+        private readonly ConcurrentSet<string> _registeredLanguages = new();
+
+        /// <summary>
+        /// Option that controls if this service is enabled or not (regardless of language).
+        /// </summary>
         private readonly Option2<bool> _featureEnabledOption;
 
-        // Options that control if this service is enabled or not for a particular language.
+        /// <summary>
+        /// Options that control if this service is enabled or not for a particular language.
+        /// </summary>
         private readonly ImmutableArray<PerLanguageOption2<bool>> _perLanguageOptions;
 
-        private bool _enabled = false;
+        protected CancellationToken DisposalToken => ThreadingContext.DisposalToken;
 
-        protected CancellationToken DisposalToken { get; }
+        private readonly AsyncBatchingWorkQueue _optionChangedWorkQueue;
+
+        private bool _enabled = false;
 
         protected AbstractDelayStartedService(
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext,
-            Workspace workspace,
             Option2<bool> featureEnabledOption,
             ImmutableArray<PerLanguageOption2<bool>> perLanguageOptions)
             : base(threadingContext)
         {
-            _workspace = workspace;
-            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _globalOptions = globalOptions;
             _featureEnabledOption = featureEnabledOption;
             _perLanguageOptions = perLanguageOptions;
-            DisposalToken = threadingContext.DisposalToken;
+
+            _optionChangedWorkQueue = new AsyncBatchingWorkQueue(
+                TimeSpan.FromMilliseconds(500),
+                ProcessOptionChangesAsync,
+                listenerProvider.GetListener(FeatureAttribute.Workspace),
+                this.DisposalToken);
+            _globalOptions.OptionChanged += OnOptionChanged;
         }
 
         protected abstract Task EnableServiceAsync(CancellationToken cancellationToken);
 
-        protected abstract void StartWorking();
-
-        internal void Connect(string languageName)
+        public void RegisterLanguage(string language)
         {
-            this.AssertIsForeground();
+            _registeredLanguages.Add(language);
+            _optionChangedWorkQueue.AddWork();
+        }
 
+        private void OnOptionChanged(object sender, OptionChangedEventArgs e)
+            => _optionChangedWorkQueue.AddWork();
+
+        private async ValueTask ProcessOptionChangesAsync(CancellationToken arg)
+        {
+            // If we're already enabled, nothing to do.
+            if (_enabled)
+                return;
+
+            // If feature is totally disabled.  Do nothing.
             if (!_globalOptions.GetOption(_featureEnabledOption))
-            {
-                // Feature is totally disabled.  Do nothing.
                 return;
-            }
 
-            _registeredLanguageNames.Add(languageName);
-            if (_registeredLanguageNames.Count == 1)
-            {
-                // Register to hear about option changing.
-                var optionsService = _workspace.Services.GetRequiredService<IOptionService>();
-                optionsService.OptionChanged += OnOptionChanged;
-            }
-
-            // Kick things off.
-            OnOptionChanged(this, EventArgs.Empty);
-        }
-
-        private void OnOptionChanged(object sender, EventArgs e)
-        {
-            this.AssertIsForeground();
-
-            if (!_registeredLanguageNames.Any(IsRegisteredForLanguage))
-            {
-                // The feature is not enabled for any registered languages.
+            // If feature isn't enabled for any registered language, do nothing.
+            var languageEnabled = _registeredLanguages.Any(lang => _perLanguageOptions.Any(option => _globalOptions.GetOption(option, lang)));
+            if (!languageEnabled)
                 return;
-            }
 
-            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(AbstractDelayStartedService.EnableServiceAsync), tag: GetType());
-            var enableAsync = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
-            {
-                // The first time we see that we're registered for a language, enable the
-                // service.
-                if (!_enabled)
-                {
-                    _enabled = true;
-                    await EnableServiceAsync(ThreadingContext.DisposalToken).ConfigureAwait(true);
-                }
+            // We were enabled for some language.  Kick off the work for this service now. Since we're now enabled, we
+            // no longer need to listen for option changes.
+            _enabled = true;
+            _globalOptions.OptionChanged -= OnOptionChanged;
 
-                // Then tell it to start work.
-                StartWorking();
-            });
-
-            enableAsync.Task.CompletesAsyncOperation(asyncToken);
+            await this.EnableServiceAsync(this.DisposalToken).ConfigureAwait(false);
         }
-
-        private bool IsRegisteredForLanguage(string language)
-            => _perLanguageOptions.Any(option => _globalOptions.GetOption(option, language));
     }
 }

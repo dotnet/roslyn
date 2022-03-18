@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -60,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             var reference = new MockAnalyzerReference();
             var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
             var document = project.Documents.Single();
-            var unused = await fixService.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+            var unused = await fixService.GetMostSevereFixAsync(
+                document, TextSpan.FromBounds(0, 0), CodeActionRequestPriority.None, CodeActionOptions.Default, CancellationToken.None);
 
             var fixer1 = (MockFixer)fixers.Single().Value;
             var fixer2 = (MockFixer)reference.Fixer!;
@@ -297,7 +299,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             errorReportingService.OnError = message => errorReported = true;
 
             GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
-            var unused = await tuple.codeFixService.GetMostSevereFixableDiagnosticAsync(document, TextSpan.FromBounds(0, 0), cancellationToken: CancellationToken.None);
+            var unused = await tuple.codeFixService.GetMostSevereFixAsync(
+                document, TextSpan.FromBounds(0, 0), CodeActionRequestPriority.None, CodeActionOptions.Default, CancellationToken.None);
             Assert.True(extensionManager.IsDisabled(codefix));
             Assert.False(extensionManager.IsIgnored(codefix));
             Assert.True(errorReported);

@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsThrowExpression(ParseOptions options);
         bool SupportsTargetTypedConditionalExpression(ParseOptions options);
         bool SupportsIsNotTypeExpression(ParseOptions options);
+        bool SupportsConstantInterpolatedStrings(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -341,6 +342,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
+        bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression);
 
         bool IsDirective([NotNullWhen(true)] SyntaxNode? node);
         bool IsStatement([NotNullWhen(true)] SyntaxNode? node);

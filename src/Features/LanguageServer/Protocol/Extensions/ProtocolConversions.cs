@@ -11,7 +11,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
+        private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -147,6 +150,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 throw new ArgumentNullException(nameof(filePath));
 
             return new Uri(filePath, UriKind.Absolute);
+        }
+
+        public static Uri GetUriFromPartialFilePath(string? filePath)
+        {
+            if (filePath is null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            return new Uri(SourceGeneratedDocumentBaseUri, filePath);
         }
 
         public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
@@ -648,24 +659,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 debugName: projectContext.Id.Substring(delimiter + 1));
         }
 
-        public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
+        public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
             LSP.FormattingOptions? options,
             Document document,
             CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             if (options != null)
             {
                 // LSP doesn't currently support indent size as an option. However, except in special
                 // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-                documentOptions = documentOptions
-                    .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
-                    .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
-                    .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
+                formattingOptions = formattingOptions.With(
+                    useTabs: !options.InsertSpaces,
+                    tabSize: options.TabSize,
+                    indentationSize: options.TabSize);
             }
 
-            return documentOptions;
+            return formattingOptions;
         }
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)
