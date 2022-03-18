@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspace workspace,
             IVisualStudioSuppressionFixService suppressionFixService,
-            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
+            VisualStudioDiagnosticListSuppressionStateService suppressionStateService,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             IDiagnosticAnalyzerService diagnosticService,
             ICodeActionEditHandlerService editHandlerService,
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _threadingContext = threadingContext;
             _workspace = workspace;
             _suppressionFixService = (VisualStudioSuppressionFixService)suppressionFixService;
-            _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
+            _suppressionStateService = suppressionStateService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _diagnosticService = diagnosticService;
             _editHandlerService = editHandlerService;

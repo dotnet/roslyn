@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             IDiagnosticAnalyzerService diagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandlerService,
-            IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
+            VisualStudioDiagnosticListSuppressionStateService suppressionStateService,
             IUIThreadOperationExecutor uiThreadOperationExecutor,
             IVsHierarchyItemManager vsHierarchyItemManager,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _diagnosticService = diagnosticService;
             _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
             _codeFixService = codeFixService;
-            _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
+            _suppressionStateService = suppressionStateService;
             _editHandlerService = editHandlerService;
             _uiThreadOperationExecutor = uiThreadOperationExecutor;
             _vsHierarchyItemManager = vsHierarchyItemManager;
