@@ -99,8 +99,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.StringLiteral);
 
         [DebuggerStepThrough]
+        public static FormattedClassification UTF8String(string text)
+            => New(text, ClassificationTypeNames.UTF8StringLiteral);
+
+        [DebuggerStepThrough]
         public static FormattedClassification Verbatim(string text)
             => New(text, ClassificationTypeNames.VerbatimStringLiteral);
+
+        [DebuggerStepThrough]
+        public static FormattedClassification UTF8Verbatim(string text)
+            => New(text, ClassificationTypeNames.UTF8VerbatimStringLiteral);
 
         [DebuggerStepThrough]
         public static FormattedClassification Escape(string text)

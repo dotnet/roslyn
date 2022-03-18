@@ -1,3 +1,5 @@
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.UTF8StringLiteral = "UTF8 string" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.UTF8VerbatimStringLiteral = "UTF8 string - verbatim" -> string
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
