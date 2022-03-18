@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SpellCheck), [Shared]>
+    <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateVariable)>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)>
     Partial Friend Class VisualBasicSpellCheckCodeFixProvider
         Inherits AbstractSpellCheckCodeFixProvider(Of SimpleNameSyntax)
