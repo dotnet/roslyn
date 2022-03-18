@@ -2,7 +2,7 @@
 
 ## Foreach enumerator as a ref struct
 
-***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.***. A `foreach` using a ref struct enumerator type reports an error if the language version is set to 7.3 or earlier.
+***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.*** A `foreach` using a ref struct enumerator type reports an error if the language version is set to 7.3 or earlier.
 
 This fixes a bug where the feature was supported in newer compilers targeting a version of C# prior to its support.
 
@@ -13,7 +13,7 @@ Possible workarounds are:
 
 ## Async `foreach` prefers pattern based `DisposeAsync` to an explicit interface implementation of `IAsyncDisposable.DisposeAsync()`
 
-***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.***. An async `foreach` prefers to bind using a pattern-based `DisposeAsync()` method rather than `IAsyncDisposable.DisposeAsync()`.
+***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.*** An async `foreach` prefers to bind using a pattern-based `DisposeAsync()` method rather than `IAsyncDisposable.DisposeAsync()`.
 
 For instance, the `DisposeAsync()` will be picked, rather than the `IAsyncEnumerator<int>.DisposeAsync()` method on `AsyncEnumerator`:
 
@@ -50,7 +50,7 @@ To workaround this error, remove the pattern based `DisposeAsync` method from yo
 
 ## Disallow converted strings as a default argument
 
-***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.***. The C# compiler would accept incorrect default argument values involving a reference conversion of a string constant, and would emit `null` as the constant value instead of the default value specified in source. In Visual Studio 17.2, this becomes an error. See [roslyn#59806](https://github.com/dotnet/roslyn/pull/59806).
+***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.*** The C# compiler would accept incorrect default argument values involving a reference conversion of a string constant, and would emit `null` as the constant value instead of the default value specified in source. In Visual Studio 17.2, this becomes an error. See [roslyn#59806](https://github.com/dotnet/roslyn/pull/59806).
 
 This change fixes a spec violation in the compiler. Default arguments must be compile time constants. Previous versions allowed the following code:
 
@@ -155,7 +155,7 @@ The workaround is to remove the by reference modifier.
 
 ## Length, Count assumed to be non-negative in patterns
 
-***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.***. `Length` and `Count` properties on countable and indexable types
+***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.*** `Length` and `Count` properties on countable and indexable types
 are assumed to be non-negative for purpose of subsumption and exhaustiveness analysis of patterns and switches.
 Those types can be used with implicit Index indexer and list patterns.
 
@@ -192,7 +192,7 @@ The workaround is to remove the switch arms with unreachable conditions.
 
 ## <a name="6"></a> Adding field initializers to a struct requires an explicitly declared constructor
 
-***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.***. `struct` type declarations with field initializers must include an explicitly declared constructor. Additionally, all fields must be definitely assigned in `struct` instance constructors that do not have a `: this()` initializer so any previously unassigned fields must be assigned from the added constructor or from field initializers. See [dotnet/csharplang#5552](https://github.com/dotnet/csharplang/issues/5552), [dotnet/roslyn#58581](https://github.com/dotnet/roslyn/pull/58581).
+***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.*** `struct` type declarations with field initializers must include an explicitly declared constructor. Additionally, all fields must be definitely assigned in `struct` instance constructors that do not have a `: this()` initializer so any previously unassigned fields must be assigned from the added constructor or from field initializers. See [dotnet/csharplang#5552](https://github.com/dotnet/csharplang/issues/5552), [dotnet/roslyn#58581](https://github.com/dotnet/roslyn/pull/58581).
 
 There are two ways to initialize a variable to its default value in C#: `new()` and `default`. For classes, the difference is evident since `new` creates a new instance and `default` returns `null`. The difference is more subtle for structs, since for `default`, structs return an instance with each field/property set to its own default. We added field initializers for structs in C# 10. Field initializers are executed only when an explicitly declared constructor runs. Significantly, they don't execute when you use `default` or create an array of any `struct` type.
 
@@ -226,7 +226,7 @@ struct S
 
 ## Format specifiers can't contain curly braces
 
-***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.***. Format specifiers in interpolated strings can not contain curly braces (either `{` or `}`). In previous versions `{{` was interpreted as an escaped `{` and `}}` was interpreted as an escaped `}` char in the format specifier. Now the first `}` char in a format specifier ends the interpolation, and any `{` char is an error.
+***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.*** Format specifiers in interpolated strings can not contain curly braces (either `{` or `}`). In previous versions `{{` was interpreted as an escaped `{` and `}}` was interpreted as an escaped `}` char in the format specifier. Now the first `}` char in a format specifier ends the interpolation, and any `{` char is an error.
 
 This makes interpolated string processing consistent with the processing for `System.String.Format`:
 
