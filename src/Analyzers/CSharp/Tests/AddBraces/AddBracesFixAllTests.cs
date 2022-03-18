@@ -590,5 +590,77 @@ class Program2
 
             await TestInRegularAndScriptAsync(input, expected);
         }
+
+        [Theory]
+        [InlineData("FixAllInContainingMember")]
+        [InlineData("FixAllInContainingType")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInContainingMemberAndType_TopLevelStatements(string fixAllScope)
+        {
+            var input = $@"
+{{|{fixAllScope}:if|}} (true) if (true) return;
+
+if (false) if (false) return;
+
+class OtherType
+{{
+    void OtherMethod()
+    {{
+        if (true) if (true) return;
+    }}
+}}";
+
+            var expected = @"
+if (true)
+{
+    if (true)
+    {
+        return;
+    }
+}
+
+if (false)
+{
+    if (false)
+    {
+        return;
+    }
+}
+
+class OtherType
+{
+    void OtherMethod()
+    {
+        if (true) if (true) return;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [Theory]
+        [InlineData("FixAllInContainingMember")]
+        [InlineData("FixAllInContainingType")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInContainingMemberAndType_TopLevelStatements_ErrorCase(string fixAllScope)
+        {
+            // Error case: Global statements should precede non-global statements.
+            var input = $@"
+class OtherType
+{{
+    void OtherMethod()
+    {{
+        if (true) if (true) return;
+    }}
+}}
+
+{{|{fixAllScope}:if|}} (true) if (true) return;
+
+if (false) if (false) return;";
+
+            await TestMissingInRegularAndScriptAsync(input);
+        }
     }
 }

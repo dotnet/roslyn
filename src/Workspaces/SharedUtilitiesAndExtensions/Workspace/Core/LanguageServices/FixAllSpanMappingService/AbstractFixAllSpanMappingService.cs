@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 {
     internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingService
     {
+        protected abstract Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
+            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
+
         public async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
             Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
         {
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllScope, diagnosticSpan, cancellationToken).ConfigureAwait(false);
             if (decl == null)
-                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+                return await GetFixAllSpansIfWithinGlobalStatementAsync(document, diagnosticSpan, fixAllScope, cancellationToken).ConfigureAwait(false);
 
             if (fixAllScope == FixAllScope.ContainingMember)
             {

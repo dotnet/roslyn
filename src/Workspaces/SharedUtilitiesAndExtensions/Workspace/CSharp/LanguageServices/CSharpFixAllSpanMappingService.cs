@@ -5,9 +5,17 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes
 {
@@ -18,6 +26,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpFixAllSpanMappingService()
         {
+        }
+
+        protected override async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
+            Document document, TextSpan diagnosticSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindNode(diagnosticSpan);
+            if (node.GetAncestorOrThis<GlobalStatementSyntax>() is null)
+                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+
+            // Compute the fix all span for the global statements to be fixed.
+            // If the file has non-global statements towards the end, they need to be excluded
+            // from the fix all span.
+            var fixAllSpan = root.FullSpan;
+            var firstNonGlobalStatement = root.ChildNodes().FirstOrDefault(n => n is not GlobalStatementSyntax);
+            if (firstNonGlobalStatement is not null)
+            {
+                // Bail out for error case where a non-global statement precedes global statements.
+                if (root.FullSpan.Start == firstNonGlobalStatement.FullSpan.Start)
+                    return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+
+                fixAllSpan = new TextSpan(root.FullSpan.Start, firstNonGlobalStatement.FullSpan.Start - 1);
+            }
+
+            return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
+                .Add(document, ImmutableArray.Create(fixAllSpan));
         }
     }
 }
