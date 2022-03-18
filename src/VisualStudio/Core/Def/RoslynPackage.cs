@@ -164,6 +164,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
             RegisterEditorFactory(settingsEditorFactory);
+
+            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
@@ -209,7 +211,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
-            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
             await this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().InitializeAsync(this).ConfigureAwait(false);
