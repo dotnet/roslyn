@@ -11,7 +11,7 @@ Possible workarounds are:
 1. Change the `ref struct` type to a `struct` or `class` type.
 1. Upgrade the `<LangVersion>` element to 7.3 or later.
 
-## Async `foreach` prefers pattern based `DisposeAsync` to and explicit interface implementation of `IAsyncDisposable.DisposeAsync()`
+## Async `foreach` prefers pattern based `DisposeAsync` to an explicit interface implementation of `IAsyncDisposable.DisposeAsync()`
 
 ***Introduced in .NET SDK 6.0.300, Visual Studio 2022 version 17.2.***. An async `foreach` prefers to bind using a pattern-based `DisposeAsync()` method rather than `IAsyncDisposable.DisposeAsync()`.
 
