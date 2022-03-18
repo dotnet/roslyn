@@ -84,14 +84,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         [|goo|];
     }
 }",
-new string[]
+new[]
 {
     string.Format(FeaturesResources.Generate_field_0, "goo"),
     string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
     string.Format(FeaturesResources.Generate_property_0, "goo"),
     string.Format(FeaturesResources.Generate_local_0, "goo"),
     string.Format(FeaturesResources.Generate_parameter_0, "goo"),
-    string.Format(FeaturesResources.Generate_field_0, "goo"),
 });
         }
 
@@ -106,7 +105,7 @@ new string[]
         [|_goo|];
     }
 }",
-new string[]
+new[]
 {
     string.Format(FeaturesResources.Generate_field_0, "_goo"),
     string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
