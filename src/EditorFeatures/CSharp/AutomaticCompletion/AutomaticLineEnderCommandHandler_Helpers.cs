@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// Add brace for ObjectCreationExpression if it doesn't have initializer
         /// </summary>
         private static bool ShouldAddBraceForObjectCreationExpression(ObjectCreationExpressionSyntax objectCreationExpressionNode)
-            => objectCreationExpressionNode.Initializer == null && !objectCreationExpressionNode.NewKeyword.IsMissing;
+            => objectCreationExpressionNode.Initializer == null;
 
         /// <summary>
         /// Add braces for field and event field if they only have one variable, semicolon is missing and don't have readonly keyword
