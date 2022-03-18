@@ -209,10 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
-
-            // The misc files workspace needs to be loaded on the UI thread.  This way it will have
-            // the appropriate task scheduler to report events on.
-            this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
+            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
             await this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().InitializeAsync(this).ConfigureAwait(false);
