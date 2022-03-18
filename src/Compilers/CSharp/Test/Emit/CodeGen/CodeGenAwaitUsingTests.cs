@@ -2379,7 +2379,7 @@ class Program
         }
 
         [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
-        public void IAsyncDisposableInterfaceUnnecessaryForPatternDisposal()
+        public void MissingIAsyncDisposableInterfaceInPatternDisposal()
         {
             var source = @"
 using System.Threading.Tasks;
@@ -2395,14 +2395,14 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithTasksExtensions(source);
             comp.MakeTypeMissing(WellKnownType.System_IAsyncDisposable);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "DISPOSED");
         }
 
         [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
-        public void IDisposableInterfaceUnnecessaryForPatternDisposal()
+        public void MissingIDisposableInterfaceOnClass()
         {
             var source = @"
 using (new C()) { }
@@ -2411,7 +2411,6 @@ class C
 {
     public void Dispose()
     {
-        System.Console.Write(""DISPOSED"");
     }
 }
 ";
@@ -2425,7 +2424,7 @@ class C
         }
 
         [Fact, WorkItem(45111, "https://github.com/dotnet/roslyn/issues/45111")]
-        public void IDisposableInterfaceUnnecessaryForPatternDisposal_RefStruct()
+        public void MissingIDisposableInterfaceOnRefStruct()
         {
             var source = @"
 using (new C()) { }
