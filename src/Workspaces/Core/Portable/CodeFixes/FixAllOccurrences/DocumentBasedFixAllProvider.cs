@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
                 else
                 {
-                    var diagnostics = ImmutableArray<Diagnostic>.Empty;
+                    using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
                     foreach (var fixAllSpan in fixAllContext.State.FixAllSpans)
                     {
-                        diagnostics = diagnostics.AddRange(await fixAllContext.GetDocumentSpanDiagnosticsAsync(
-                            fixAllContext.Document, fixAllSpan).ConfigureAwait(false));
+                        var spanDiagnostics = await fixAllContext.GetDocumentSpanDiagnosticsAsync(fixAllContext.Document, fixAllSpan).ConfigureAwait(false);
+                        diagnostics.AddRange(spanDiagnostics);
                     }
 
-                    return diagnostics;
+                    return diagnostics.ToImmutable();
                 }
             }
 
