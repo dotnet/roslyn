@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var spanConstructor = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__ctorArray, diagnostics, syntax.Location);
             if (spanConstructor is null)
             {
-                return createBadExpression(syntax, paramArrayType);
+                return createBadExpression(syntax, paramArrayType, arrayArgs);
             }
 
             var spanType = spanConstructor.ContainingType.Construct(elementType);
@@ -1157,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanToReadOnlySpanOperator = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan, diagnostics, syntax.Location);
                 if (spanToReadOnlySpanOperator is null)
                 {
-                    return createBadExpression(syntax, paramArrayType);
+                    return createBadExpression(syntax, paramArrayType, ImmutableArray.Create(span));
                 }
 
                 spanToReadOnlySpanOperator = spanToReadOnlySpanOperator.AsMember(spanType);
@@ -1182,25 +1182,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return span;
 
-            static BoundExpression createBadExpression(SyntaxNode syntax, TypeSymbol type)
+            static BoundExpression createBadExpression(SyntaxNode syntax, TypeSymbol type, ImmutableArray<BoundExpression> childArgs)
             {
-                return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, type)
+                return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol?>.Empty, childArgs, type)
                 { WasCompilerGenerated = true };
-            }
-        }
-
-        /// <summary>
-        /// To create literal expression for IOperation, set localRewriter to null.
-        /// </summary>
-        private static BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, LocalRewriter? localRewriter)
-        {
-            if (localRewriter != null)
-            {
-                return localRewriter.MakeLiteral(syntax, constantValue, type);
-            }
-            else
-            {
-                return new BoundLiteral(syntax, constantValue, type, constantValue.IsBad) { WasCompilerGenerated = true };
             }
         }
 

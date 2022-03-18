@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -631,18 +633,44 @@ class Program
     static void F2(params ReadOnlySpan<object> args) { }
     static void Main()
     {
-        F1();
+        F1(1, 2);
         F2();
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'System.Span`1..ctor'
-                //         F1();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F1()").WithArguments("System.Span`1", ".ctor").WithLocation(8, 9),
+                //         F1(1, 2);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F1(1, 2)").WithArguments("System.Span`1", ".ctor").WithLocation(8, 9),
                 // (9,9): error CS0656: Missing compiler required member 'System.Span`1..ctor'
                 //         F2();
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", ".ctor").WithLocation(9, 9));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ElementAt(0);
+            var operation = model.GetOperation(expr);
+            var actualOperationTree = GetOperationTreeForTest(comp, operation);
+            var expectedOperationTree =
+@"IInvocationOperation (void Program.F1(params System.Span<System.Object> args)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F1(1, 2)')
+  Instance Receiver:
+    null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F1(1, 2)')
+        IInvalidOperation (OperationKind.Invalid, Type: System.Span<System.Object>, IsImplicit) (Syntax: 'F1(1, 2)')
+          Children(2):
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '2')
+                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
         [Fact]
@@ -712,7 +740,7 @@ class Program
     static void F2(params ReadOnlySpan<object> args) { }
     static void Main()
     {
-        F1();
+        F1(1, 2);
         F2();
     }
 }";
@@ -721,6 +749,37 @@ class Program
                 // (9,9): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
                 //         F2();
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", "op_Implicit").WithLocation(9, 9));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ElementAt(1);
+            var operation = model.GetOperation(expr);
+            var actualOperationTree = GetOperationTreeForTest(comp, operation);
+            var expectedOperationTree =
+@"IInvocationOperation (void Program.F2(params System.ReadOnlySpan<System.Object> args)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F2()')
+  Instance Receiver:
+    null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F2()')
+        IInvalidOperation (OperationKind.Invalid, Type: System.ReadOnlySpan<System.Object>, IsImplicit) (Syntax: 'F2()')
+          Children(1):
+              IObjectCreationOperation (Constructor: System.Span<System.Object>..ctor(System.Object[] array)) (OperationKind.ObjectCreation, Type: System.Span<System.Object>, IsImplicit) (Syntax: 'F2()')
+                Arguments(1):
+                    IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F2()')
+                      IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Object[], IsImplicit) (Syntax: 'F2()')
+                        Dimension Sizes(1):
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'F2()')
+                        Initializer:
+                          IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'F2()')
+                            Element Values(0)
+                      InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Initializer:
+                  null
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+            OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
         [Fact]
