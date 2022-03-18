@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             _globalOptions = globalOptions;
         }
 
-        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
             var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>().ConfigureAwait(false);
             _tableControl = errorList?.TableControl;
