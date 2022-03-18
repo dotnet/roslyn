@@ -28,12 +28,14 @@ namespace Microsoft.CodeAnalysis
         public sealed class Builder
         {
             private readonly ImmutableDictionary<SyntaxInputNode, Exception>.Builder _syntaxExceptions = ImmutableDictionary.CreateBuilder<SyntaxInputNode, Exception>();
+            private readonly ImmutableDictionary<SyntaxInputNode, TimeSpan>.Builder _syntaxTimes = ImmutableDictionary.CreateBuilder<SyntaxInputNode, TimeSpan>();
             private readonly StateTableStore.Builder _tableBuilder = new StateTableStore.Builder();
             private readonly Compilation _compilation;
             private readonly ImmutableArray<SyntaxInputNode> _syntaxInputNodes;
             private readonly bool _enableTracking;
             private readonly SyntaxStore _previous;
             private readonly CancellationToken _cancellationToken;
+            private SyntaxInputNode? _causedUpdate;
 
             internal Builder(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, bool enableTracking, SyntaxStore previousStore, CancellationToken cancellationToken)
             {
@@ -51,6 +53,8 @@ namespace Microsoft.CodeAnalysis
                 // when we don't have a value for this node, we update all the syntax inputs at once
                 if (!_tableBuilder.Contains(syntaxInputNode))
                 {
+                    _causedUpdate = syntaxInputNode;
+
                     // CONSIDER: when the compilation is the same as previous, the syntax trees must also be the same.
                     // if we have a previous state table for a node, we can just short circuit knowing that it is up to date
                     // This step isn't part of the tree, so we can skip recording.
@@ -69,13 +73,12 @@ namespace Microsoft.CodeAnalysis
                         else
                         {
                             syntaxInputBuilders.Add((node, node.GetBuilder(_previous._tables, _enableTracking)));
+                            _syntaxTimes[node] = TimeSpan.Zero;
                         }
                     }
 
                     if (syntaxInputBuilders.Count > 0)
                     {
-                        GeneratorRunStateTable.Builder temporaryRunStateBuilder = new GeneratorRunStateTable.Builder(_enableTracking);
-
                         // at this point we need to grab the syntax trees from the new compilation, and optionally diff them against the old ones
                         NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
 
@@ -88,8 +91,16 @@ namespace Microsoft.CodeAnalysis
                             {
                                 try
                                 {
-                                    _cancellationToken.ThrowIfCancellationRequested();
-                                    syntaxInputBuilders[i].builder.VisitTree(root, state, model, _cancellationToken);
+                                    Stopwatch sw = Stopwatch.StartNew();
+                                    try
+                                    {
+                                        _cancellationToken.ThrowIfCancellationRequested();
+                                        syntaxInputBuilders[i].builder.VisitTree(root, state, model, _cancellationToken);
+                                    }
+                                    finally
+                                    {
+                                        _syntaxTimes[syntaxInputBuilders[i].node] = _syntaxTimes[syntaxInputBuilders[i].node].Add(sw.Elapsed);
+                                    }
                                 }
                                 catch (UserFunctionException ufe)
                                 {
@@ -117,6 +128,53 @@ namespace Microsoft.CodeAnalysis
                 if (!_tableBuilder.TryGetTable(syntaxInputNode, out var result))
                 {
                     throw _syntaxExceptions[syntaxInputNode];
+                }
+                return result;
+            }
+
+            /// <summary>
+            /// Gets the adjustment to wall clock time that should be applied for a set of input nodes.
+            /// </summary>
+            /// <remarks>
+            /// The syntax store updates all input nodes in parallel the first time an input node is asked to update,
+            /// so that it can share the semantic model between multiple nodes and improve perf. 
+            /// 
+            /// Unfortunately that means that the first generator to request the results of a syntax node will incorrectly 
+            /// have its wall clock time contain the time of all other syntax nodes. And conversely other input nodes will 
+            /// not have the true time taken.
+            /// 
+            /// This method gets the adjustment that should be applied to the wall clock time for a set of input nodes
+            /// so that the correct time is attributed to each.
+            /// </remarks>
+            public TimeSpan GetRuntimeAdjustment(ImmutableArray<SyntaxInputNode> inputNodes)
+            {
+                TimeSpan result = TimeSpan.Zero;
+                foreach (var node in inputNodes)
+                {
+                    // this node might not have run at all this pass
+                    if (!_syntaxTimes.ContainsKey(node))
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert(_causedUpdate is not null);
+
+                    // when this node was the cause of the update, subtract the time that was spent calculating other nodes
+                    if (node == _causedUpdate)
+                    {
+                        foreach (var kvp in _syntaxTimes)
+                        {
+                            if (kvp.Key != node)
+                            {
+                                result = result.Subtract(kvp.Value);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result = result.Add(_syntaxTimes[node]);
+                    }
+
                 }
                 return result;
             }
