@@ -86,7 +86,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledHashSet<FieldSymbol>? _implicitlyInitializedFieldsOpt;
 
-        private void AddImplicitlyInitializedField(FieldSymbol field) => (_implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance()).Add(field);
+        private void AddImplicitlyInitializedField(FieldSymbol field)
+        {
+            Debug.Assert(TrackImplicitlyInitializedFields);
+            (_implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance()).Add(field);
+        }
+
+        private bool TrackImplicitlyInitializedFields
+        {
+            get
+            {
+                return _requireOutParamsAssigned && !this._emptyStructTypeCache._dev12CompilerCompatibility;
+            }
+        }
 
         /// <summary>
         /// Map from variables that had their addresses taken, to the location of the first corresponding
@@ -456,7 +468,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAutoDefaultStructs.RequiredVersion()));
                                 }
 
-                                this.AddImplicitlyInitializedField(field);
+                                if (TrackImplicitlyInitializedFields)
+                                {
+                                    this.AddImplicitlyInitializedField(field);
+                                }
                             }
                         }
                         reported = true;
@@ -496,7 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Also run the compat (weaker) version of analysis to see if we get the same diagnostics.
             // If any are missing, the extra ones from the strong analysis will be downgraded to a warning.
-            (DiagnosticBag compatDiagnostics, _) = analyze(strictAnalysis: false);
+            (DiagnosticBag compatDiagnostics, var unused) = analyze(strictAnalysis: false);
+            Debug.Assert(unused.IsDefault);
 
             // If the compat diagnostics caused a stack overflow, the two analyses might not produce comparable sets of diagnostics.
             // So we just report the compat ones including that error.
@@ -573,11 +589,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     bool badRegion = false;
                     walker.Analyze(ref badRegion, result);
-                    // PROTOTYPE(auto-default): should we make 'strictAnalysis' observable within the walker
-                    // to avoid building '_implicitlyInitializedFieldsOpt' at all?
-                    if (strictAnalysis && walker._implicitlyInitializedFieldsOpt is { } implicitlyInitializedFields)
+                    if (walker._implicitlyInitializedFieldsOpt is { } implicitlyInitializedFields)
                     {
-                        Debug.Assert(walker._requireOutParamsAssigned);
+                        Debug.Assert(walker.TrackImplicitlyInitializedFields);
                         var builder = ArrayBuilder<FieldSymbol>.GetInstance(implicitlyInitializedFields.Count);
                         foreach (var field in implicitlyInitializedFields)
                         {
@@ -1175,7 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void addDiagnosticForStructThis(Symbol thisParameter, int thisSlot)
             {
                 Debug.Assert(CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct });
-                if (_requireOutParamsAssigned)
+                if (TrackImplicitlyInitializedFields)
                 {
 #if DEBUG
                     bool foundUnassignedField = false;
@@ -1240,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (containingSlot == thisSlot)
                     {
-                        if (_requireOutParamsAssigned)
+                        if (TrackImplicitlyInitializedFields)
                         {
                             // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
                             AddImplicitlyInitializedField((FieldSymbol)variableBySlot[fieldSlot].Symbol);

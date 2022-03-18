@@ -2051,16 +2051,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MisplacedRecord = 9012,
         ERR_PatternSpanCharCannotBeStringNull = 9013,
 
-        ERR_UseDefViolationPropertyUnsupportedVersion = 9013,
-        ERR_UseDefViolationFieldUnsupportedVersion = 9014,
-        WRN_UseDefViolationPropertyUnsupportedVersion = 9015,
-        WRN_UseDefViolationFieldUnsupportedVersion = 9016,
+        // TODO2: pack before merge
+        ERR_UseDefViolationPropertyUnsupportedVersion = 9020,
+        ERR_UseDefViolationFieldUnsupportedVersion = 9021,
+        WRN_UseDefViolationPropertyUnsupportedVersion = 9022,
+        WRN_UseDefViolationFieldUnsupportedVersion = 9023,
 
-        WRN_UseDefViolationPropertySupportedVersion = 9017,
-        WRN_UseDefViolationFieldSupportedVersion = 9018,
-        WRN_UseDefViolationThisSupportedVersion = 9019,
-        WRN_UnassignedThisAutoPropertySupportedVersion = 9020,
-        WRN_UnassignedThisSupportedVersion = 9021,
+        WRN_UseDefViolationPropertySupportedVersion = 9024,
+        WRN_UseDefViolationFieldSupportedVersion = 9025,
+        WRN_UseDefViolationThisSupportedVersion = 9026,
+        WRN_UnassignedThisAutoPropertySupportedVersion = 9027,
+        WRN_UnassignedThisSupportedVersion = 9028,
 
         #endregion
 
