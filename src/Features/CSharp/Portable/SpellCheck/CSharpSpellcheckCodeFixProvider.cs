@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.SpellCheck;
 namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SpellCheck), Shared]
-    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateVariable)]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
     internal partial class CSharpSpellCheckCodeFixProvider : AbstractSpellCheckCodeFixProvider<SimpleNameSyntax>
     {
