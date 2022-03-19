@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis
     /// Represents a chain of symbols that are imported to a particular position in a source file.  Symbols may be
     /// imported, but may not necessarily be available at that location (for example, an alias symbol hidden by another
     /// symbol).  There is no guarantee that the same chain will be returned from successive calls to <see
-    /// cref="SemanticModel.GetImportScopes"/>.  Each symbol or xml-namespace import has an optional associated location
-    /// the import was declared at.
+    /// cref="SemanticModel.GetImportScopes"/>.  Each symbol or xml-namespace import has a reference to the location the
+    /// import directive was declared at.
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
