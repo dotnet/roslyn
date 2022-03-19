@@ -242,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private void OnSetAnalysisScope(BackgroundAnalysisScope? scope)
         {
             if (_serviceProvider is null
-                || !_serviceProvider.TryGetService<SVsShell, IVsShell>(out var shell))
+                || !_serviceProvider.TryGetService<SVsShell, IVsShell>(_threadingContext.JoinableTaskFactory, out var shell))
             {
                 return;
             }
