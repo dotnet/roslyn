@@ -137,8 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              aliasTarget,
                                                              If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
 
-                        Dim syntaxReference = binder.GetSyntaxReference(aliasImportSyntax)
-                        data.AddAlias(syntaxReference, aliasText, aliasSymbol, aliasImportSyntax.SpanStart, dependenciesBag)
+                        data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart, dependenciesBag)
                     End If
                 End If
 
@@ -207,8 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If importedSymbolIsValid Then
-                            data.AddMember(
-                                binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
+                            data.AddMember(binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
                         End If
                     End If
                 End If
