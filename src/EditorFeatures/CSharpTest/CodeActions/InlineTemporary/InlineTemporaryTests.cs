@@ -5321,7 +5321,7 @@ System.Console.WriteLine(val2);
 
             var expected = @"
 int val = 0;
-System.Console.WriteLine((int)(val + 1));
+System.Console.WriteLine(val + 1);
 ";
 
             // Global statements in regular code are local variables, so Inline Temporary works. Script code is not
