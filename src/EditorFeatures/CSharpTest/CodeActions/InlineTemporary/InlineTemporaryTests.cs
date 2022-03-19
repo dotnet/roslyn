@@ -5346,7 +5346,7 @@ System.Console.WriteLine(val + 1);
 @"
 {
     int val = 0;
-    System.Console.WriteLine((int)(val + 1));
+    System.Console.WriteLine(val + 1);
 }
 ",
                 TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
