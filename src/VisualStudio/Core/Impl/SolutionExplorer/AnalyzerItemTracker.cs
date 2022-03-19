@@ -38,7 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public async Task RegisterAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
-            _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>().ConfigureAwait(false);
+            _vsMonitorSelection ??= await serviceProvider.GetServiceAsync<SVsShellMonitorSelection, IVsMonitorSelection>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _vsMonitorSelection?.AdviseSelectionEvents(this, out _selectionEventsCookie);
         }
