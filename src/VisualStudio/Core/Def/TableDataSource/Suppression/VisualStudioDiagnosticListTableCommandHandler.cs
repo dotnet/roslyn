@@ -69,7 +69,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
-            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>().ConfigureAwait(false);
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             _tableControl = errorList?.TableControl;
 
             // Add command handlers for bulk suppression commands.

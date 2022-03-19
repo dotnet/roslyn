@@ -80,8 +80,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
-            _textManager = await serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager>().ConfigureAwait(false);
-            var runningDocumentTable = await serviceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>().ConfigureAwait(false);
+            _textManager = await serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var runningDocumentTable = await serviceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
