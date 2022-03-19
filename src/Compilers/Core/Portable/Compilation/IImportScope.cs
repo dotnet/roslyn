@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     /// <remarks>
     /// <list type="bullet">
+    /// Scopes returned will always have at least one non-empty property value in them.
     /// <item>
     /// In C# there will be an <see cref="IImportScope"/> for every containing namespace-declarations that include any
     /// import directives.  There will also be an <see cref="IImportScope"/> for the containing compilation-unit if it
