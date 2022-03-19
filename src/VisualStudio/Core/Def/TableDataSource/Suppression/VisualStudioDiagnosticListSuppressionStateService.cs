@@ -58,8 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
-            _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>().ConfigureAwait(false);
-            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(throwOnFailure: false).ConfigureAwait(false);
+            _shellService = await serviceProvider.GetServiceAsync<SVsUIShell, IVsUIShell>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(
+                _threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
             _tableControl = errorList?.TableControl;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

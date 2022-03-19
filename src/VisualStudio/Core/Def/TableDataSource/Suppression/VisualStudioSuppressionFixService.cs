@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -41,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
     [Export(typeof(VisualStudioSuppressionFixService))]
     internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressionFixService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
@@ -59,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSuppressionFixService(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
@@ -70,6 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             IAsynchronousOperationListenerProvider listenerProvider,
             IGlobalOptionService globalOptions)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
             _diagnosticService = diagnosticService;
             _buildErrorDiagnosticService = workspace.ExternalErrorDiagnosticUpdateSource;
@@ -86,7 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
-            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>().ConfigureAwait(false);
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             _tableControl = errorList?.TableControl;
         }
 
