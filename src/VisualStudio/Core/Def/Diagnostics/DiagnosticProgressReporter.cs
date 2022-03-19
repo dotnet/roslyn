@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// report UI changes concurrently.
         /// </summary>
         private readonly object _lock = new();
+        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspace _workspace;
 
         /// <summary>
@@ -84,14 +86,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TaskCenterSolutionAnalysisProgressReporter(VisualStudioWorkspace workspace)
+        public TaskCenterSolutionAnalysisProgressReporter(
+            IThreadingContext threadingContext,
+            VisualStudioWorkspace workspace)
         {
+            _threadingContext = threadingContext;
             _workspace = workspace;
         }
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
-            _taskCenterService = await serviceProvider.GetServiceAsync<SVsTaskStatusCenterService, IVsTaskStatusCenterService>().ConfigureAwait(false);
+            _taskCenterService = await serviceProvider.GetServiceAsync<SVsTaskStatusCenterService, IVsTaskStatusCenterService>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
             var crawlerService = _workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(_workspace);
