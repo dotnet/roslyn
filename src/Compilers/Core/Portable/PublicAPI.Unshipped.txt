@@ -4,7 +4,7 @@ Microsoft.CodeAnalysis.IImportScope
 Microsoft.CodeAnalysis.IImportScope.Aliases.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.IAliasSymbol! alias, Microsoft.CodeAnalysis.SyntaxReference! declaratingSyntaxReference)>
 Microsoft.CodeAnalysis.IImportScope.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.IAliasSymbol! alias, Microsoft.CodeAnalysis.SyntaxReference! declaratingSyntaxReference)>
 Microsoft.CodeAnalysis.IImportScope.Imports.get -> System.Collections.Immutable.ImmutableArray<(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol! namespaceOrType, Microsoft.CodeAnalysis.SyntaxReference! declaratingSyntaxReference)>
-Microsoft.CodeAnalysis.IImportScope.XmlNamespaces.get -> System.Collections.Immutable.ImmutableArray<(string! xmlNamespace, Microsoft.CodeAnalysis.SyntaxReference! declaratingSyntaxReference)>
+Microsoft.CodeAnalysis.IImportScope.XmlNamespaces.get -> System.Collections.Immutable.ImmutableArray<(string! name, Microsoft.CodeAnalysis.SyntaxReference! declaratingSyntaxReference)>
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool

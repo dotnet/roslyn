@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
         /// Xml namespaces imported at this level of the chain.  This corresponds to <c>Imports &lt;xmlns:prefix =
         /// "name"&gt;</c> in Visual Basic.  It will be empty in C#.
         /// </summary>
-        ImmutableArray<(string xmlNamespace, SyntaxReference declaratingSyntaxReference)> XmlNamespaces { get; }
+        ImmutableArray<(string name, SyntaxReference declaratingSyntaxReference)> XmlNamespaces { get; }
     }
 
     /// <summary>
@@ -62,5 +62,5 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<(IAliasSymbol alias, SyntaxReference declaratingSyntaxReference)> Aliases,
         ImmutableArray<(IAliasSymbol alias, SyntaxReference declaratingSyntaxReference)> ExternAliases,
         ImmutableArray<(INamespaceOrTypeSymbol namespaceOrType, SyntaxReference declaratingSyntaxReference)> Imports,
-        ImmutableArray<(string xmlNamespace, SyntaxReference declaratingSyntaxReference)> XmlNamespaces) : IImportScope;
+        ImmutableArray<(string name, SyntaxReference declaratingSyntaxReference)> XmlNamespaces) : IImportScope;
 }
