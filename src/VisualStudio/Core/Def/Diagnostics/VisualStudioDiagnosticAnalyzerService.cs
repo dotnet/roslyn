@@ -70,7 +70,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             _serviceProvider = (IServiceProvider)serviceProvider;
 
             // Hook up the "Run Code Analysis" menu command for CPS based managed projects.
-            var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>().ConfigureAwait(false);
+            var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             if (menuCommandService != null)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
