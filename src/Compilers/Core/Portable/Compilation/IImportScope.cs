@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<(IAliasSymbol alias, SyntaxReference declaratingSyntaxReference)> Aliases { get; }
 
         /// <summary>
-        /// Aliases defined at this level of the chain.  This corresponds to <c>extern alias X;</c> in C#.  It will be
-        /// empty in Visual Basic.
+        /// Extern aliases defined at this level of the chain.  This corresponds to <c>extern alias X;</c> in C#.  It
+        /// will be empty in Visual Basic.
         /// </summary>
         ImmutableArray<(IAliasSymbol alias, SyntaxReference declaratingSyntaxReference)> ExternAliases { get; }
 
