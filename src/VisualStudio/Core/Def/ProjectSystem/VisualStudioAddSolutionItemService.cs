@@ -45,7 +45,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             _dte = await serviceProvider.GetServiceAsync<DTE, DTE>(
                 _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-            _fileChangeService = await serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsFileChangeEx>().ConfigureAwait(false);
+            _fileChangeService = await serviceProvider.GetServiceAsync<SVsFileChangeEx, IVsFileChangeEx>(
+                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
         }
 
         public void TrackFilePathAndAddSolutionItemWhenFileCreated(string filePath)
