@@ -30,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Aliases As Dictionary(Of String, AliasAndImportsClausePosition)
         Public ReadOnly XmlNamespaces As Dictionary(Of String, XmlNamespaceAndImportsClausePosition)
 
-        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, importSyntaxReference As SyntaxReference, dependencies As IReadOnlyCollection(Of AssemblySymbol))
-        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, importSyntaxReference As SyntaxReference, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+        Public MustOverride Sub AddMember(syntaxRef As SyntaxReference, member As NamespaceOrTypeSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
+        Public MustOverride Sub AddAlias(syntaxRef As SyntaxReference, name As String, [alias] As AliasSymbol, importsClausePosition As Integer, dependencies As IReadOnlyCollection(Of AssemblySymbol))
     End Class
 
     Partial Friend Class Binder
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
 
                         Dim syntaxReference = binder.GetSyntaxReference(aliasImportSyntax)
-                        data.AddAlias(syntaxReference, aliasText, aliasSymbol, aliasImportSyntax.SpanStart, syntaxReference, dependenciesBag)
+                        data.AddAlias(syntaxReference, aliasText, aliasSymbol, aliasImportSyntax.SpanStart, dependenciesBag)
                     End If
                 End If
 
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         If importedSymbolIsValid Then
                             data.AddMember(
-                                binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, binder.GetSyntaxReference(membersImportsSyntax), dependenciesBag)
+                                binder.GetSyntaxReference(importsName), importedSymbol, membersImportsSyntax.SpanStart, dependenciesBag)
                         End If
                     End If
                 End If
