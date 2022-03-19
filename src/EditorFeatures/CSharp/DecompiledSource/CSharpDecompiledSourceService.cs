@@ -7,10 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +22,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -42,29 +39,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         public CSharpDecompiledSourceService(HostLanguageServices provider)
             => this.provider = provider;
 
-        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
+        public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference metadataReference, string assemblyLocation, CancellationToken cancellationToken)
         {
             // Get the name of the type the symbol is in
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
-
-            var metadataReference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
-            var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
-
-            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
-                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly &&
-                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
-            {
-                try
-                {
-                    var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
-                    GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
-                {
-                }
-            }
 
             // Decompile
             document = PerformDecompilation(document, fullName, symbolCompilation, metadataReference, assemblyLocation);
