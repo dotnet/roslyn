@@ -9596,7 +9596,7 @@ public class C
             var conversionInTopLevel = speculativeModelInTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
             Assert.Equal(ConversionKind.Identity, conversionInTopLevel.Kind);
 
-            // Speculate inside a valid top-level position.
+            // Speculate outside a top-level position.
             model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: BlockSyntax }).Span.End, nodeToSpeculate, out var speculativeModelOutsideTopLevel);
             var conversionOutsideTopLevel = speculativeModelOutsideTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
             Assert.Equal(ConversionKind.NoConversion, conversionOutsideTopLevel.Kind);
