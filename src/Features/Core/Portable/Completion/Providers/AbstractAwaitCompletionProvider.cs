@@ -213,7 +213,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(builder);
-            return CompletionChange.Create(Utilities.Collapse(newText, builder.ToImmutableArray()));
+            var allChanges = builder.ToImmutable();
+
+            // Collapse all text changes down to a single change (for clients that only care about that), but also keep
+            // all the individual changes around for clients that prefer the fine-grained information.
+            return CompletionChange.Create(Utilities.Collapse(newText, allChanges), allChanges);
         }
 
         /// <summary>

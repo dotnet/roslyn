@@ -16,13 +16,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UnusedReferences;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences.Dialog;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 }
 
                 var dialog = _unusedReferenceDialogProvider.CreateDialog();
-                if (dialog.ShowModal(solution, projectFilePath, referenceUpdates) == false)
+                if (dialog.ShowModal(_threadingContext.JoinableTaskFactory, solution, projectFilePath, referenceUpdates) == false)
                 {
                     return;
                 }
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
                 _threadOperationExecutor.Execute(ServicesVSResources.Remove_Unused_References, ServicesVSResources.Updating_project_references, allowCancellation: false, showProgress: true, (operationContext) =>
                 {
-                    ApplyUnusedReferenceUpdates(solution, projectFilePath, referenceChanges, CancellationToken.None);
+                    ApplyUnusedReferenceUpdates(_threadingContext.JoinableTaskFactory, solution, projectFilePath, referenceChanges, CancellationToken.None);
                 });
             }
 
@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private ImmutableArray<ReferenceUpdate> GetUnusedReferencesForProject(Solution solution, string projectFilePath, string projectAssetsFile, CancellationToken cancellationToken)
         {
-            var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
+            var unusedReferences = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await this.ReferenceCleanupService.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
                 var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
@@ -202,9 +202,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             return referenceUpdates;
         }
 
-        private static void ApplyUnusedReferenceUpdates(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
+        private static void ApplyUnusedReferenceUpdates(JoinableTaskFactory joinableTaskFactory, Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates, CancellationToken cancellationToken)
         {
-            ThreadHelper.JoinableTaskFactory.Run(
+            joinableTaskFactory.Run(
                 () => UnusedReferencesRemover.UpdateReferencesAsync(solution, projectFilePath, referenceUpdates, cancellationToken));
         }
 

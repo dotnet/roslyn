@@ -261,7 +261,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
         {
             // Obtain services and QueryInterface from the main thread
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
             var monitorSelectionService = (IVsMonitorSelection)await GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
@@ -269,11 +269,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Switch to the background object for constructing commands
             await TaskScheduler.Default;
 
-            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+            var threadingContext = ComponentModel.GetService<IThreadingContext>();
+
+            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
                 .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
 
-            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
                 .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
         }
@@ -281,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private async Task LoadCallstackExplorerMenusAsync(CancellationToken cancellationToken)
         {
             // Obtain services and QueryInterface from the main thread
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
             StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);

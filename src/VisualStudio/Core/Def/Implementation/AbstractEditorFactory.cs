@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -247,7 +248,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void FormatDocumentCreatedFromTemplate(IVsHierarchy hierarchy, uint itemid, string filePath, CancellationToken cancellationToken)
         {
-            Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
+            var threadingContext = _componentModel.GetService<IThreadingContext>();
+            threadingContext.JoinableTaskFactory.Run(() => FormatDocumentCreatedFromTemplateAsync(hierarchy, itemid, filePath, cancellationToken));
         }
 
         // NOTE: This function has been created to hide IWinFormsEditorFactory type in non-WinForms scenarios (e.g. editing .cs or .vb file)
