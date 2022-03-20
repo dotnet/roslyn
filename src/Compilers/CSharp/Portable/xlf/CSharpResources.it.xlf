@@ -1447,6 +1447,11 @@
         <target state="translated">rimozioni</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDisposalPattern">
+        <source>pattern-based disposal</source>
+        <target state="new">pattern-based disposal</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">criteri di proprietà estesa</target>

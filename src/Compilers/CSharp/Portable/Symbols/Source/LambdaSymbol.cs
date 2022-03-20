@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(unboundLambda.Syntax.GetReference())
         {
             Debug.Assert(syntaxReferenceOpt is not null);
+            Debug.Assert(containingSymbol.DeclaringCompilation == compilation);
+
             _binder = binder;
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;

@@ -4546,8 +4546,14 @@ tryAgain:
         /// leading/trailing trivia.  However, if there is trivia between the tokens, then appropriate errors will be
         /// reported that the tokens cannot merge successfully.
         /// </summary>
+        /// <remarks>
+        /// IsFabricatedToken should be updated for tokens whose SyntaxKind is <paramref name="kind"/>.
+        /// </remarks>
         private SyntaxToken? MergeAdjacent(SyntaxToken t1, SyntaxToken t2, SyntaxKind kind)
         {
+            // Make sure we don't reuse the merged token for incremental parsing.
+            // "=>" wasn't proven to be a source of issues. See https://github.com/dotnet/roslyn/issues/60002
+            Debug.Assert(Blender.Reader.IsFabricatedToken(kind) || kind == SyntaxKind.EqualsGreaterThanToken);
             if (NoTriviaBetween(t1, t2))
                 return SyntaxFactory.Token(t1.GetLeadingTrivia(), kind, t2.GetTrailingTrivia());
 
@@ -7866,14 +7872,14 @@ done:;
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
                 this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
             {
-                return this.ParseForEachStatement(attributes, ParseAwaitKeyword(MessageID.IDS_FeatureAsyncStreams));
+                return this.ParseForEachStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
             }
             else if (IsPossibleAwaitUsing())
             {
                 if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
                 {
                     // `await using Type ...` is handled below in ParseLocalDeclarationStatement
-                    return this.ParseUsingStatement(attributes, ParseAwaitKeyword(MessageID.IDS_FeatureAsyncUsing));
+                    return this.ParseUsingStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
                 }
             }
             else if (this.IsPossibleLabeledStatement())
@@ -7902,13 +7908,6 @@ done:;
         // Checking for brace to disambiguate between unsafe statement and unsafe local function
         private StatementSyntax TryParseStatementStartingWithUnsafe(SyntaxList<AttributeListSyntax> attributes)
             => IsPossibleUnsafeStatement() ? ParseUnsafeStatement(attributes) : null;
-
-        private SyntaxToken ParseAwaitKeyword(MessageID feature)
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword);
-            SyntaxToken awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-            return feature != MessageID.None ? CheckFeatureAvailability(awaitToken, feature) : awaitToken;
-        }
 
         private bool IsPossibleAwaitUsing()
             => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
@@ -9694,7 +9693,7 @@ tryAgain:
             bool canParseAsLocalFunction = false;
             if (IsPossibleAwaitUsing())
             {
-                awaitKeyword = ParseAwaitKeyword(MessageID.None);
+                awaitKeyword = this.EatContextualToken(SyntaxKind.AwaitKeyword);
                 usingKeyword = EatToken();
             }
             else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
@@ -9707,11 +9706,6 @@ tryAgain:
                 awaitKeyword = null;
                 usingKeyword = null;
                 canParseAsLocalFunction = true;
-            }
-
-            if (usingKeyword != null)
-            {
-                usingKeyword = CheckFeatureAvailability(usingKeyword, MessageID.IDS_FeatureUsingDeclarations);
             }
 
             var mods = _pool.Allocate();

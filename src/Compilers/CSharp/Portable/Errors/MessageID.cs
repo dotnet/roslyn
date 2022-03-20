@@ -247,6 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureCacheStaticMethodGroupConversion = MessageBase + 12816,
         IDS_FeatureRawStringLiterals = MessageBase + 12817,
+        IDS_FeatureDisposalPattern = MessageBase + 12818,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -423,9 +424,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
-                case MessageID.IDS_FeatureAsyncStreams:
+                case MessageID.IDS_FeatureAsyncStreams: // semantic check
                 case MessageID.IDS_FeatureRecursivePatterns:
-                case MessageID.IDS_FeatureUsingDeclarations:
+                case MessageID.IDS_FeatureUsingDeclarations: // semantic check
+                case MessageID.IDS_FeatureDisposalPattern: //semantic check
                 case MessageID.IDS_FeatureStaticLocalFunctions:
                 case MessageID.IDS_FeatureNameShadowingInNestedFunctions:
                 case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check

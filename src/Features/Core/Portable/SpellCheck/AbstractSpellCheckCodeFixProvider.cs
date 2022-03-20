@@ -227,6 +227,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
         private class SpellCheckCodeAction : CodeAction.DocumentChangeAction
         {
+            internal override CodeActionPriority Priority => CodeActionPriority.Low;
+
             public SpellCheckCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
                 : base(title, createChangedDocument, equivalenceKey)
             {
@@ -235,6 +237,8 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 
         private class MyCodeAction : CodeAction.CodeActionWithNestedActions
         {
+            internal override CodeActionPriority Priority => CodeActionPriority.Low;
+
             public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
                 : base(title, nestedActions, isInlinable: true)
             {

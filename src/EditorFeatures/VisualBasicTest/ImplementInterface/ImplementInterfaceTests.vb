@@ -4649,8 +4649,7 @@ class Class
         End Set
     End Property
 end class", parameters:=New TestParameters(codeActionOptions:=New CodeActionOptions(
-            SearchOptions:=SymbolSearchOptions.Default,
-            ImplementTypeOptions:=New ImplementTypeOptions(PropertyGenerationBehavior:=ImplementTypePropertyGenerationBehavior.PreferAutoProperties))))
+            implementTypeOptions:=New ImplementTypeOptions(PropertyGenerationBehavior:=ImplementTypePropertyGenerationBehavior.PreferAutoProperties))))
         End Function
     End Class
 End Namespace

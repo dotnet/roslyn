@@ -4,17 +4,16 @@
 
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+internal sealed class ActiveStatementTag : TextMarkerTag
 {
-    internal sealed class ActiveStatementTag : TextMarkerTag
+    internal const string TagId = "RoslynActiveStatementTag";
+
+    public static readonly ActiveStatementTag Instance = new();
+
+    private ActiveStatementTag()
+        : base(TagId)
     {
-        internal const string TagId = "RoslynActiveStatementTag";
-
-        public static readonly ActiveStatementTag Instance = new();
-
-        private ActiveStatementTag()
-            : base(TagId)
-        {
-        }
     }
 }
