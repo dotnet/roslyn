@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.PdbSourceDocument
 
         public void Clear()
         {
-            _logItemsQueue.AddWork(null);
+            _logItemsQueue.AddWork<string?>(null);
         }
 
         public void Log(string value)
