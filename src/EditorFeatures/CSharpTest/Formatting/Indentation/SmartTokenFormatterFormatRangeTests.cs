@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -3571,6 +3570,9 @@ class Program{
         {
             using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
 
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
+
             var testDocument = workspace.Documents.Single();
             var buffer = testDocument.GetTextBuffer();
             var position = testDocument.CursorPosition.Value;
@@ -3586,11 +3588,7 @@ class Program{
             }
 
             Assert.Equal(tokenKind, endToken.Kind());
-
-            var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
-                AutoFormattingOptions.Default);
-
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);

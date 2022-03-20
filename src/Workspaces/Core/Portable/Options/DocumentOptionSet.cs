@@ -24,8 +24,6 @@ namespace Microsoft.CodeAnalysis.Options
             _language = language;
         }
 
-        internal string Language => _language;
-
         private protected override object? GetOptionCore(OptionKey optionKey)
             => _backingOptionSet.GetOption(optionKey);
 

@@ -50,16 +50,28 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// <summary>
         /// Determines the desired indentation of a given line.
         /// </summary>
-        IndentationResult GetIndentation(Document document, int lineNumber, IndentationOptions options, CancellationToken cancellationToken);
+        IndentationResult GetIndentation(
+            Document document, int lineNumber,
+            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken);
     }
 
     internal static class IIndentationServiceExtensions
     {
+        public static IndentationResult GetIndentation(
+            this IIndentationService service, Document document,
+            int lineNumber, CancellationToken cancellationToken)
+        {
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var style = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
+
+            return service.GetIndentation(document, lineNumber, style, cancellationToken);
+        }
+
         /// <summary>
         /// Get's the preferred indentation for <paramref name="token"/> if that token were on its own line.  This
         /// effectively simulates where the token would be if the user hit enter at the start of the token.
         /// </summary>
-        public static string GetPreferredIndentation(this SyntaxToken token, Document document, IndentationOptions options, CancellationToken cancellationToken)
+        public static string GetPreferredIndentation(this SyntaxToken token, Document document, CancellationToken cancellationToken)
         {
             var sourceText = document.GetTextSynchronously(cancellationToken);
             var tokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
@@ -74,11 +86,15 @@ namespace Microsoft.CodeAnalysis.Indentation
             // Token was on a line with something else.  Determine where we would indent the token if it was on the next
             // line and use that to determine the indentation of the final line.
 
+            var options = document.Project.Solution.Options;
+            var languageName = document.Project.Language;
+            var newLine = options.GetOption(FormattingOptions.NewLine, languageName);
+
             var annotation = new SyntaxAnnotation();
             var newToken = token.WithAdditionalAnnotations(annotation);
 
             var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(syntaxGenerator.EndOfLine(options.FormattingOptions.NewLine)));
+            newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(syntaxGenerator.EndOfLine(newLine)));
 
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var newRoot = root.ReplaceToken(token, newToken);
@@ -87,13 +103,15 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             var newTokenLine = newText.Lines.GetLineFromPosition(newRoot.GetAnnotatedTokens(annotation).Single().SpanStart);
 
+            var indentStyle = document.Project.Solution.Options.GetOption(FormattingOptions.SmartIndent, languageName);
             var indenter = document.GetRequiredLanguageService<IIndentationService>();
-            var indentation = indenter.GetIndentation(newDocument, newTokenLine.LineNumber, options, cancellationToken);
+
+            var indentation = indenter.GetIndentation(newDocument, newTokenLine.LineNumber, indentStyle, cancellationToken);
 
             return indentation.GetIndentationString(
                 newText,
-                options.FormattingOptions.UseTabs,
-                options.FormattingOptions.TabSize);
+                options.GetOption(FormattingOptions.UseTabs, languageName),
+                options.GetOption(FormattingOptions.TabSize, languageName));
         }
     }
 
