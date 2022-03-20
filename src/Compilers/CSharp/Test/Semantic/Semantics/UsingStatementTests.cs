@@ -1773,9 +1773,6 @@ class C
 }";
 
             CreateEmptyCompilation(source).VerifyDiagnostics(
-                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
-                //         using (var v = null) ;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
                 // (11,20): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         using (var v = null) ;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = null").WithArguments("<null>").WithLocation(11, 20),
@@ -1784,6 +1781,32 @@ class C
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 30));
         }
 
+        [Fact]
+        public void MissingIDisposable_NoLocal()
+        {
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public class Void { }
+}
+class C
+{
+    void M()
+    {
+        using (null);
+    }
+}";
+
+            CreateEmptyCompilation(source).VerifyDiagnostics(
+                // (11,9): error CS0518: Predefined type 'System.IDisposable' is not defined or imported
+                //         using (null);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "using").WithArguments("System.IDisposable").WithLocation(11, 9),
+                // (11,21): warning CS0642: Possible mistaken empty statement
+                //         using (null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 21)
+                );
+        }
 
         [WorkItem(9581, "https://github.com/dotnet/roslyn/issues/9581")]
         [Fact]
