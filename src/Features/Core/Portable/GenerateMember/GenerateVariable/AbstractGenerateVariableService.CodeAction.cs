@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 if (_generateProperty)
                 {
-                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state));
+                    var getAccessor = CreateAccessor(_state.DetermineMaximalAccessibility());
                     var setAccessor = _isReadonly || _refKind != RefKind.None
                         ? null
                         : CreateAccessor(DetermineMinimalAccessibility(_state));
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
-                        accessibility: DetermineMaximalAccessibility(_state),
+                        accessibility: _state.DetermineMaximalAccessibility(),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
                         refKind: _refKind,
@@ -114,31 +114,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)
                     : default;
-            }
-
-            private static Accessibility DetermineMaximalAccessibility(State state)
-            {
-                if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface)
-                {
-                    return Accessibility.NotApplicable;
-                }
-
-                var accessibility = Accessibility.Public;
-
-                // Ensure that we're not overly exposing a type.
-                var containingTypeAccessibility = state.TypeToGenerateIn.DetermineMinimalAccessibility();
-                var effectiveAccessibility = AccessibilityUtilities.Minimum(
-                    containingTypeAccessibility, accessibility);
-
-                var returnTypeAccessibility = state.TypeMemberType.DetermineMinimalAccessibility();
-
-                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
-                    effectiveAccessibility)
-                {
-                    return returnTypeAccessibility;
-                }
-
-                return accessibility;
             }
 
             private Accessibility DetermineMinimalAccessibility(State state)

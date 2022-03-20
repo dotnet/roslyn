@@ -1513,15 +1513,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodGroup = node.Argument as BoundMethodGroup;
             if (methodGroup != null)
             {
-                if ((object)node.MethodOpt != null && node.MethodOpt.RequiresInstanceReceiver)
-                {
-                    EnterRegionIfNeeded(methodGroup);
-                    VisitRvalue(methodGroup.ReceiverOpt);
-                    LeaveRegionIfNeeded(methodGroup);
-                }
-                else if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
+                if (node.MethodOpt?.OriginalDefinition is LocalFunctionSymbol localFunc)
                 {
                     VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
+                }
+                else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(receiver, method))
+                {
+                    EnterRegionIfNeeded(methodGroup);
+                    VisitRvalue(receiver);
+                    LeaveRegionIfNeeded(methodGroup);
                 }
             }
             else
@@ -1530,6 +1530,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            static bool ignoreReceiver(BoundExpression receiver, MethodSymbol method)
+            {
+                // static methods that aren't extensions get an implicit `this` receiver that should be ignored
+                return method.IsStatic && !method.IsExtensionMethod;
+            }
         }
 
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)

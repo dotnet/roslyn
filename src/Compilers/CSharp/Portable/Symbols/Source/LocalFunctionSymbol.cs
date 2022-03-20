@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LocalFunctionStatementSyntax syntax)
             : base(syntax.GetReference())
         {
+            Debug.Assert(containingSymbol.DeclaringCompilation == binder.Compilation);
             _containingSymbol = containingSymbol;
 
             _declarationDiagnostics = new BindingDiagnosticBag();

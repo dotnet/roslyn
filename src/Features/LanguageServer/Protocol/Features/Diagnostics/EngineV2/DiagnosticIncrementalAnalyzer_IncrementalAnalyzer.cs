@@ -146,19 +146,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                         .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(options));
 
                 // get driver only with active analyzers.
-                var crashOnAnalyzerException = GlobalOptions.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException);
-                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, activeAnalyzers, includeSuppressedDiagnostics: true, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
 
-                var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
+                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+
+                var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.OldResult == null)
                 {
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
                     return;
                 }
-
-                // we might not have compilationWithAnalyzers even if project supports compilation if we are called with no analyzers. 
-                var compilation = compilationWithAnalyzers?.Compilation ??
-                    (project.SupportsCompilation ? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false) : null);
 
                 // no cancellation after this point.
                 // any analyzer that doesn't have result will be treated as returned empty set

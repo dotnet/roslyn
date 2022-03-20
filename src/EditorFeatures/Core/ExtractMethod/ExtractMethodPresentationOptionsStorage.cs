@@ -11,18 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class ExtractMethodPresentationOptions : IOptionProvider
+    internal static class ExtractMethodPresentationOptionsStorage
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExtractMethodPresentationOptions()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            AllowBestEffort);
-
         private const string FeatureName = "ExtractMethodOptions";
 
         public static readonly PerLanguageOption2<bool> AllowBestEffort = new(FeatureName, "AllowBestEffort", defaultValue: true,

@@ -633,7 +633,6 @@ Class C
         End Set
     End Property
 End Class", parameters:=New TestParameters(codeActionOptions:=New CodeActionOptions(
-            SearchOptions:=SymbolSearchOptions.Default,
             ImplementTypeOptions:=New ImplementTypeOptions(PropertyGenerationBehavior:=ImplementTypePropertyGenerationBehavior.PreferAutoProperties))))
         End Function
     End Class

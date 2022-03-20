@@ -8,12 +8,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static class InternalDiagnosticsOptions
     {
-        private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
-
-        public static readonly Option2<bool> CrashOnAnalyzerException = new("InternalDiagnosticsOptions", "CrashOnAnalyzerException", defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "CrashOnAnalyzerException"));
-
         public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new("InternalDiagnosticsOptions", "NormalDiagnosticMode", defaultValue: DiagnosticMode.Default,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "NormalDiagnosticMode"));
+            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\Internal\Diagnostics\NormalDiagnosticMode"));
     }
 }
