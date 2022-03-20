@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
@@ -19,7 +20,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
         protected override string LanguageName => LanguageNames.VisualBasic;
 
         public BasicGoToDefinition()
-            : base(nameof(BasicGoToDefinition))
+            : base(nameof(BasicGoToDefinition), WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
         {
         }
 
@@ -67,6 +68,24 @@ End Class", HangMitigatingCancellationToken);
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal("Int32 [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             await TestServices.EditorVerifier.TextContainsAsync("Public Structure Int32", cancellationToken: HangMitigatingCancellationToken);
+        }
+
+        [IdeFact]
+        public async Task GoToBaseFromMetadataAsSource()
+        {
+            var project = ProjectName;
+            await TestServices.SolutionExplorer.AddFileAsync(project, "SomeClass.vb", cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(project, "SomeClass.vb", HangMitigatingCancellationToken);
+            await TestServices.Editor.SetTextAsync(
+@"Class SomeClass
+    Public Overrides Function ToString() As String
+        Return MyBase.ToString()
+    End Function
+End Class", HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("Overrides", charsOffset: -1, HangMitigatingCancellationToken);
+            await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal("Object [from metadata]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+            await TestServices.EditorVerifier.TextContainsAsync(@"Public Overridable Function ToString$$() As String", assertCaretPosition: true);
         }
     }
 }

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     var fullAssemblyName = containingAssembly.Identity.GetDisplayName();
                     GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
-                    isReferenceAssembly = false;
+                    isReferenceAssembly = assemblyLocation is null;
                 }
                 catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
                 {
