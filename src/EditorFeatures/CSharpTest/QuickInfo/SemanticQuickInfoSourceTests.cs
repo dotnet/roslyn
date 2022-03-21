@@ -1587,12 +1587,88 @@ class C
                 MainDescription("class System.String"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStringLiteralUTF8_01()
+        {
+            await TestInMethodAsync(@"var f = ""Goo""u8$$",
+                MainDescription("byte[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestStringLiteralUTF8_02()
+        {
+            await TestInMethodAsync(@"var f = ""Goo""U8$$",
+                MainDescription("byte[]"));
+        }
+
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestVerbatimStringLiteral()
         {
             await TestInMethodAsync(@"string f = @""cat""$$",
                 MainDescription("class System.String"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVerbatimStringLiteralUTF8_01()
+        {
+            await TestInMethodAsync(@"string f = @""cat""u8$$",
+                MainDescription("byte[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestVerbatimStringLiteralUTF8_02()
+        {
+            await TestInMethodAsync(@"string f = @""cat""U8$$",
+                MainDescription("byte[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteral()
+        {
+            await TestInMethodAsync(@"string f = """"""Goo""""""$$",
+                MainDescription("class System.String"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralUTF8_01()
+        {
+            await TestInMethodAsync(@"string f = """"""Goo""""""u8$$",
+                MainDescription("byte[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralUTF8_02()
+        {
+            await TestInMethodAsync(@"string f = """"""Goo""""""U8$$",
+                MainDescription("byte[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralMultiline()
+        {
+            await TestInMethodAsync(@"string f = """"""
+                Goo
+    """"""$$",
+                MainDescription("class System.String"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralMultilineUTF8_01()
+        {
+            await TestInMethodAsync(@"string f = """"""
+                Goo
+    """"""u8$$",
+                MainDescription("byte[]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestRawStringLiteralMultilineUTF8_02()
+        {
+            await TestInMethodAsync(@"string f = """"""
+                Goo
+    """"""U8$$",
+                MainDescription("byte[]"));
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
