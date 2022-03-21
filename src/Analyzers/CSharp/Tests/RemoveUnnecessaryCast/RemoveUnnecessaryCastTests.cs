@@ -12769,7 +12769,7 @@ class C
             }.RunAsync();
         }
 
-        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [WorkItem(60292, "https://github.com/dotnet/roslyn/issues/60292")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task KeepNecessaryExplicitNullableCast()
         {
