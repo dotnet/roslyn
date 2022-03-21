@@ -47,28 +47,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function GetAsyncSupportingDeclaration(semanticModel As SemanticModel, token As SyntaxToken) As SyntaxNode
-            Dim functionSyntax = token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
+        Protected Overrides Function GetAsyncSupportingDeclarationIgnoringSemantics(token As SyntaxToken) As SyntaxNode
+            Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
+        End Function
+
+        Protected Overrides Function GetAsyncSupportingDeclaration(semanticModel As SemanticModel, token As SyntaxToken, cancellationToken As CancellationToken) As SyntaxNode
+            Dim functionSyntax = GetAsyncSupportingDeclarationIgnoringSemantics(token)
             If functionSyntax Is Nothing Then
                 Return Nothing
             End If
 
-            If semanticModel Is Nothing Then
-                Return functionSyntax
-            End If
-
-            Dim declaredMethod = TryCast(semanticModel.GetDeclaredSymbol(functionSyntax), IMethodSymbol)
+            Dim declaredMethod = TryCast(semanticModel.GetEnclosingSymbol(token.SpanStart, cancellationToken), IMethodSymbol)
             If declaredMethod Is Nothing Then
-                Dim typeInfo = semanticModel.GetTypeInfo(functionSyntax)
-                If typeInfo.ConvertedType IsNot Nothing AndAlso typeInfo.ConvertedType.IsDelegateType() Then
-                    declaredMethod = DirectCast(typeInfo.ConvertedType, INamedTypeSymbol).DelegateInvokeMethod
-                End If
+                ' For some reason, tests within Shared Function Main() gave the containing type as the enclosing symbol
+                ' instead of the Main() function.
+                declaredMethod = TryCast(semanticModel.GetDeclaredSymbol(functionSyntax, cancellationToken), IMethodSymbol)
             End If
 
-            If declaredMethod Is Nothing OrElse declaredMethod.ReturnsVoid Then
-                ' We don't automatically add async modifier to a void returning method,
-                ' so user need to fix the error And make an explicit decision of whether
-                ' to change return type to Task.
+            If declaredMethod Is Nothing Then
+                Return Nothing
+            End If
+
+            ' We don't automatically add async modifier to a non-awaitable-returning method,
+            ' so user need to fix the error And make an explicit decision of whether
+            ' to change return type to Task.
+            If Not declaredMethod.ReturnType.IsAwaitableNonDynamic(semanticModel, token.SpanStart) Then
                 Return Nothing
             End If
 

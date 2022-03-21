@@ -124,10 +124,11 @@ End Class
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_MultiLineFunctionLambdaExpression() As Task
+        Public Async Function AwaitCompletionDoesNotAddAsync_Boolean_MultiLineFunctionLambdaExpression() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System
+Imports System.Threading.Tasks
 
 Public Class C
     Public Shared Sub Main()
@@ -144,10 +145,48 @@ End Class
                 state.SendTab()
                 Assert.Equal("
 Imports System
+Imports System.Threading.Tasks
 
 Public Class C
     Public Shared Sub Main()
-        Dim x As Func(Of Boolean) = Async Function()
+        Dim x As Func(Of Boolean) = Function()
+                                        Await
+                                    End Function
+    End Sub
+End Class
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory>
+        <InlineData("Task(Of Boolean)")>
+        <InlineData("Task")>
+        Public Async Function AwaitCompletionAddsAsync_MultiLineFunctionLambdaExpression(type As String) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Sub Main()
+        Dim x As Func(Of ]]><%= type %><![CDATA[) = Function()
+                                        $$
+                                    End Function
+    End Sub
+End Class
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal($"
+Imports System
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Sub Main()
+        Dim x As Func(Of {type}) = Async Function()
                                         Await
                                     End Function
     End Sub
@@ -191,9 +230,10 @@ End Class
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_SingleLineFunctionLambdaExpression() As Task
+        Public Async Function AwaitCompletionDoesNotAddAsync_Boolean_SingleLineFunctionLambdaExpression() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
+Imports System
 Imports System.Threading.Tasks
 
 Public Class C
@@ -208,11 +248,45 @@ End Class
 
                 state.SendTab()
                 Assert.Equal("
+Imports System
 Imports System.Threading.Tasks
 
 Public Class C
     Public Shared Sub Main()
-        Dim x As Func(Of Boolean) = Async Function() Await
+        Dim x As Func(Of Boolean) = Function() Await
+    End Sub
+End Class
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfTheory>
+        <InlineData("Task(Of Boolean)")>
+        <InlineData("Task")>
+        Public Async Function AwaitCompletionAddsAsync_SingleLineFunctionLambdaExpression(type As String) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Sub Main()
+        Dim x As Func(Of ]]><%= type %><![CDATA[) = Function() $$
+    End Sub
+End Class
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="Await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal($"
+Imports System
+Imports System.Threading.Tasks
+
+Public Class C
+    Public Shared Sub Main()
+        Dim x As Func(Of {type}) = Async Function() Await
     End Sub
 End Class
 ", state.GetDocumentText())
