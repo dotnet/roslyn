@@ -29,23 +29,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
     internal sealed class SyncNamespacesCommandHandler
     {
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SyncNamespacesCommandHandler(
-            IThreadingContext threadingContext,
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
-            _threadingContext = threadingContext;
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
         }
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
