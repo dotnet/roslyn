@@ -38,10 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodArgumentInfo? PatternDisposeInfo;
 
         // Conversions that will be required when the foreach is lowered.
-        public readonly Conversion CollectionConversion; //collection expression to collection type
-        public readonly Conversion CurrentConversion; // current to element type
-        // public readonly Conversion ElementConversion; // element type to iteration var type - also required for arrays, so stored elsewhere
-        public readonly Conversion EnumeratorConversion; // enumerator to object
+        public readonly BoundValuePlaceholder? CurrentPlaceholder;
+        public readonly BoundExpression? CurrentConversion; // current to element type
 
         public readonly BinderFlags Location;
 
@@ -55,9 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool needsDisposal,
             BoundAwaitableInfo? disposeAwaitableInfo,
             MethodArgumentInfo? patternDisposeInfo,
-            Conversion collectionConversion,
-            Conversion currentConversion,
-            Conversion enumeratorConversion,
+            BoundValuePlaceholder? currentPlaceholder,
+            BoundExpression? currentConversion,
             BinderFlags location)
         {
             Debug.Assert((object)collectionType != null, $"Field '{nameof(collectionType)}' cannot be null");
@@ -76,9 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.NeedsDisposal = needsDisposal;
             this.DisposeAwaitableInfo = disposeAwaitableInfo;
             this.PatternDisposeInfo = patternDisposeInfo;
-            this.CollectionConversion = collectionConversion;
+            this.CurrentPlaceholder = currentPlaceholder;
             this.CurrentConversion = currentConversion;
-            this.EnumeratorConversion = enumeratorConversion;
             this.Location = location;
         }
 
@@ -98,9 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundAwaitableInfo? DisposeAwaitableInfo;
             public MethodArgumentInfo? PatternDisposeInfo;
 
-            public Conversion CollectionConversion;
-            public Conversion CurrentConversion;
-            public Conversion EnumeratorConversion;
+            public BoundValuePlaceholder? CurrentPlaceholder;
+            public BoundExpression? CurrentConversion;
 
             public ForEachEnumeratorInfo Build(BinderFlags location)
             {
@@ -121,9 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NeedsDisposal,
                     DisposeAwaitableInfo,
                     PatternDisposeInfo,
-                    CollectionConversion,
+                    CurrentPlaceholder,
                     CurrentConversion,
-                    EnumeratorConversion,
                     location);
             }
 

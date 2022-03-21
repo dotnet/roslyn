@@ -384,7 +384,13 @@ class P
   }
 }";
 
-            CompileAndVerify(source2, expectedOutput: @"2");
+            CompileAndVerify(source2, parseOptions: TestOptions.Regular9, expectedOutput: @"2");
+
+            var comp = CreateCompilation(source2);
+            comp.VerifyDiagnostics(
+                // (15,5): error CS0121: The call is ambiguous between the following methods or properties: 'P.M1(P.DA, object)' and 'P.M1(P.DB, int)'
+                //     M1(() => () => i, i);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("P.M1(P.DA, object)", "P.M1(P.DB, int)").WithLocation(15, 5));
         }
 
         [Fact]
@@ -1321,7 +1327,7 @@ class C
             string source = @"
 using System;
 using System.Linq.Expressions;
-class p
+class @p
 {
     static void Goo<T>(ref Func<T, T> a) { }
     static void Bar<T>(out Func<T, T> a) { a = null; }
@@ -6452,7 +6458,7 @@ class Ambig
     static void overload2(byte b, goo f) { }
 }
 
-class goo
+class @goo
 {
     public static implicit operator goo(int i)
     {
@@ -6460,7 +6466,7 @@ class goo
     }
 }
 
-class bar
+class @bar
 {
     public static implicit operator bar(int i)
     {
@@ -6468,7 +6474,7 @@ class bar
     }
 }
 
-class baz
+class @baz
 {
     public static implicit operator baz(int i)
     {
@@ -7052,8 +7058,8 @@ class C : IA
             var source = @"
 public class Test
 {
-    public delegate dynamic nongenerics(dynamic id);
-    public delegate T generics< T>(dynamic id);
+    public delegate dynamic @nongenerics(dynamic id);
+    public delegate T @generics< T>(dynamic id);
     public dynamic Goo(nongenerics Meth, dynamic id)
     {
         return null;
@@ -7096,7 +7102,7 @@ public class Goo
     {
     }
 }
-public struct start
+public struct @start
 {
     static void M(D002<dynamic, object> d) {}
     static public void Main()
@@ -9031,7 +9037,8 @@ public static class Class
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput:
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput:
 @"RemoveDetail
 RemoveDetail
 RemoveDetail
@@ -10995,6 +11002,30 @@ class Program
         }
 
         [Fact]
+        public void GenericInferenceErrorRecovery()
+        {
+            var code = @"
+class Program
+{
+    public static void Method<T>(in T p)
+    {
+        System.Console.WriteLine(typeof(T).ToString());
+    }
+
+    static void Main()
+    {
+        Method((null, 1));
+    }
+}
+";
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (11,9): error CS0411: The type arguments for method 'Program.Method<T>(in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Method((null, 1));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in T)").WithLocation(11, 9));
+        }
+
+        [Fact]
         public void GenericInferenceLambdaVariance()
         {
             var code = @"
@@ -11262,7 +11293,8 @@ public static class Extensions
         throw new NotImplementedException();
 }";
 
-            CompileAndVerify(code, expectedOutput: @"2");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(code, verify: Verification.FailsILVerify, expectedOutput: @"2");
         }
 
         [Fact]

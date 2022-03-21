@@ -157,12 +157,15 @@ struct S
                 // (4,9): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     int a = 2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 9),
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 8),
                 // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
                 //     int a { get { return 1; } set {} }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
-                // (4,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+                // (4,9): warning CS0169: The field 'S.a' is never used
                 //     int a = 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a").WithLocation(4, 9));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("S.a").WithLocation(4, 9));
         }
 
         [Fact]
@@ -205,6 +208,9 @@ struct S
 
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (2,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // struct S
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(2, 8),
                 // (4,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int P { get; set; } = 1;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P").WithArguments("struct field initializers", "10.0").WithLocation(4, 16),
@@ -2042,10 +2048,12 @@ End Class";
 }";
             var compilation3 = CreateCompilation(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
-                // (6,16): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 16),
-                // (8,15): error CS0428: Cannot convert method group 'Q' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Q").WithArguments("Q", "object").WithLocation(8, 15));
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = B2.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "B2.P").WithArguments("P", "object").WithLocation(6, 13),
+                // (8,13): warning CS8974: Converting method group 'Q' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = b.Q;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "b.Q").WithArguments("Q", "object").WithLocation(8, 13));
         }
 
         [ClrOnlyFact]
@@ -2098,8 +2106,9 @@ static class E
 }";
             var compilation3 = CreateCompilationWithMscorlib40AndSystemCore(source3, new[] { reference1 });
             compilation3.VerifyDiagnostics(
-                // (6,15): error CS0428: Cannot convert method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "P").WithArguments("P", "object").WithLocation(6, 15));
+                // (6,13): warning CS8974: Converting method group 'P' to non-delegate type 'object'. Did you intend to invoke the method?
+                //         o = a.P;
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "a.P").WithArguments("P", "object").WithLocation(6, 13));
         }
 
         [ClrOnlyFact]

@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -59,9 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
-        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
             => text[insertedCharacterPosition] == '.';
 
         /// <summary>
@@ -74,17 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Gets the dot-like token we're after, and also the start of the expression we'd want to place any text before.
         /// </summary>
-        private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position)
+        private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position, CancellationToken cancellationToken)
         {
-            var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
-
-            // Has to be a . or a .. token
-            if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
-                return default;
-
-            // don't want to trigger after a number.  All other cases after dot are ok.
-            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+            if (CompletionUtilities.GetDotTokenLeftOfPosition(root.SyntaxTree, position, cancellationToken) is not SyntaxToken dotToken)
                 return default;
 
             // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
@@ -108,14 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
 
             // Escape hatch feature flag to let us disable this feature remotely if we run into any issues with it, 
-            var workspace = document.Project.Solution.Workspace;
-            var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
-            var disabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.UnnamedSymbolCompletionDisabled);
-            if (disabled)
+            if (context.CompletionOptions.UnnamedSymbolCompletionDisabled)
                 return;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var dotAndExprStart = GetDotAndExpressionStart(root, position);
+            var dotAndExprStart = GetDotAndExpressionStart(root, position, cancellationToken);
             if (dotAndExprStart == default)
                 return;
 
@@ -123,8 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var options = CodeAnalysis.Completion.Providers.CompletionUtilities.GetUpdatedRecommendationOptions(context.Options, document.Project.Language);
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken);
+            var options = context.CompletionOptions.ToRecommendationServiceOptions();
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(document, semanticModel, position, options, cancellationToken);
 
             AddUnnamedSymbols(context, position, semanticModel, recommendedSymbols.UnnamedSymbols, cancellationToken);
         }
@@ -165,17 +156,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        public override async Task<CompletionDescription?> GetDescriptionAsync(
+        internal override async Task<CompletionDescription?> GetDescriptionAsync(
             Document document,
             CompletionItem item,
+            CompletionOptions options,
+            SymbolDescriptionOptions displayOptions,
             CancellationToken cancellationToken)
         {
             var kind = item.Properties[KindName];
             return kind switch
             {
-                IndexerKindName => await GetIndexerDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
-                OperatorKindName => await GetOperatorDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
-                ConversionKindName => await GetConversionDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
+                IndexerKindName => await GetIndexerDescriptionAsync(document, item, displayOptions, cancellationToken).ConfigureAwait(false),
+                OperatorKindName => await GetOperatorDescriptionAsync(document, item, displayOptions, cancellationToken).ConfigureAwait(false),
+                ConversionKindName => await GetConversionDescriptionAsync(document, item, displayOptions, cancellationToken).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }
@@ -194,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
 
-            var (dotToken, _) = GetDotAndExpressionStart(root, position);
+            var (dotToken, _) = GetDotAndExpressionStart(root, position, cancellationToken);
             var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
                 ? dotToken.GetPreviousToken()
                 : (SyntaxToken?)null;

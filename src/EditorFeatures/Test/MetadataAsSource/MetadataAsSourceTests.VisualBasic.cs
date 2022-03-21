@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
         public class VisualBasic : AbstractMetadataAsSourceTests
         {
             [Theory, CombinatorialData, WorkItem(530123, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123"), Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-            public async Task TestGenerateTypeInModule(bool allowDecompilation)
+            public async Task TestGenerateTypeInModule(bool signaturesOnly)
             {
                 var metadataSource = @"
 Module M
@@ -26,9 +26,9 @@ Module M
     End Class
 End Module";
 
-                var expected = allowDecompilation switch
+                var expected = signaturesOnly switch
                 {
-                    false => $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+                    true => $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
@@ -37,9 +37,9 @@ Friend Module M
         Public Sub New()
     End Class
 End Module",
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using Microsoft.VisualBasic.CompilerServices;
@@ -64,20 +64,20 @@ internal sealed class M
 #endif",
                 };
 
-                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, allowDecompilation: allowDecompilation);
+                await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
             }
 
             // This test depends on the version of mscorlib used by the TestWorkspace and may 
             // change in the future
             [WorkItem(530526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
             [Theory, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-            [InlineData(false)]
-            [InlineData(true, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
-            public async Task BracketedIdentifierSimplificationTest(bool allowDecompilation)
+            [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
+            [InlineData(true)]
+            public async Task BracketedIdentifierSimplificationTest(bool signaturesOnly)
             {
-                var expected = allowDecompilation switch
+                var expected = signaturesOnly switch
                 {
-                    false => $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+                    true => $@"#Region ""{FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
 ' mscorlib.v4_6_1038_0.dll
 #End Region
 
@@ -96,9 +96,9 @@ Namespace System
         Public ReadOnly Property IsError As Boolean
     End Class
 End Namespace",
-                    true => $@"#region {FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+                    false => $@"#region {FeaturesResources.Assembly} mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Runtime.InteropServices;
@@ -206,7 +206,7 @@ namespace System
                 };
 
                 using var context = TestContext.Create(LanguageNames.VisualBasic);
-                await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected, allowDecompilation: allowDecompilation);
+                await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected, signaturesOnly: signaturesOnly);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
@@ -226,13 +226,13 @@ namespace System
             }
 
             [Theory, CombinatorialData, WorkItem(26605, "https://github.com/dotnet/roslyn/issues/26605")]
-            public async Task TestValueTuple(bool allowDecompilation)
+            public async Task TestValueTuple(bool signaturesOnly)
             {
                 using var context = TestContext.Create(LanguageNames.VisualBasic);
 
-                var expected = allowDecompilation switch
+                var expected = signaturesOnly switch
                 {
-                    false => $@"#Region ""{FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51""
+                    true => $@"#Region ""{FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51""
 ' System.ValueTuple.dll
 #End Region
 
@@ -258,9 +258,9 @@ Namespace System
         Public Overrides Function ToString() As String
     End Structure
 End Namespace",
-                    true => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+                    false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // {FeaturesResources.location_unknown}
-// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+// Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
 
 using System.Collections;
@@ -460,7 +460,7 @@ namespace System
 #endif",
                 };
 
-                await context.GenerateAndVerifySourceAsync("System.ValueTuple", expected, allowDecompilation: allowDecompilation);
+                await context.GenerateAndVerifySourceAsync("System.ValueTuple", expected, signaturesOnly: signaturesOnly);
             }
         }
     }

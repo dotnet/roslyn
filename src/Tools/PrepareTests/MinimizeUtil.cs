@@ -28,7 +28,6 @@ internal static class MinimizeUtil
         {
             "global.json",
             "NuGet.config",
-            "src/Workspaces/MSBuildTest/Resources/.editorconfig",
             "src/Workspaces/MSBuildTest/Resources/global.json",
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.props",
             "src/Workspaces/MSBuildTest/Resources/Directory.Build.targets",

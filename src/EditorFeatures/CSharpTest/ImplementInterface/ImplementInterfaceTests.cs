@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -100,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                 FixedCode = expectedMarkup,
                 CodeActionEquivalenceKey = codeAction?.equivalenceKey,
                 CodeActionIndex = codeAction?.index,
+                LanguageVersion = LanguageVersion.CSharp10,
             }.RunAsync();
         }
 
@@ -1117,7 +1119,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return ((IComparer)this.x).Compare(x, y);
+        return this.x.Compare(x, y);
     }
 }",
 codeAction: ("False;False;False:global::System.Collections.IComparer;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;x", 1));
@@ -1142,7 +1144,7 @@ sealed class X : IComparer
 
     public int Compare(object x, object y)
     {
-        return ((IComparer)a).Compare(x, y);
+        return a.Compare(x, y);
     }
 }",
 codeAction: ("False;False;False:global::System.Collections.IComparer;mscorlib;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a", 1));
@@ -7285,10 +7287,10 @@ class Class : IInterface
 
     public int Prop => throw new System.NotImplementedException();
 }",
-                Options =
+                CodeActionOptions = CodeActionOptions.Default with
                 {
-                    { ImplementTypeOptions.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd },
-                },
+                    ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
+                }
             }.RunAsync();
         }
 
@@ -7460,10 +7462,10 @@ class Class : IInterface
     public int ReadWriteProp { get; set; }
     public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
 }",
-                Options =
+                CodeActionOptions = CodeActionOptions.Default with
                 {
-                    { ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties },
-                },
+                    ImplementTypeOptions = new ImplementTypeOptions(PropertyGenerationBehavior: ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
+                }
             }.RunAsync();
         }
 
@@ -9381,6 +9383,103 @@ class C : IGoo<string>
 ");
         }
 
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : {|CS0535:I|}
+{
+}",
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : I
+{
+    public void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter_ExplicitInterfaceImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : {|CS0535:I|}
+{
+}",
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d);
+}
+
+class D : I
+{
+    void I.M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : default
+        where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}", codeAction: ("True;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+        }
+
+        [WorkItem(53012, "https://github.com/dotnet/roslyn/issues/53012")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNullableTypeParameter_ExplicitInterfaceImplementationWithClassConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) where T1 : class;
+}
+
+class D : {|CS0535:I|}
+{
+}",
+@"#nullable enable
+
+interface I
+{
+    void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) where T1 : class;
+}
+
+class D : I
+{
+    void I.M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+        where T1 : class
+        where T3 : default
+    {
+        throw new System.NotImplementedException();
+    }
+}", codeAction: ("True;False;False:global::I;TestProject;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+        }
+
         [WorkItem(51779, "https://github.com/dotnet/roslyn/issues/51779")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestImplementTwoPropertiesOfCSharp5()
@@ -9429,7 +9528,7 @@ class Program : ITest
         }
 
         [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceMember()
         {
             await new VerifyCS.Test
@@ -9467,7 +9566,7 @@ class C : ITest
         }
 
         [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceMemberExplicitly()
         {
             await new VerifyCS.Test
@@ -9505,7 +9604,7 @@ class C : ITest
         }
 
         [WorkItem(53925, "https://github.com/dotnet/roslyn/issues/53925")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceMember_ImplementAbstractly()
         {
             await new VerifyCS.Test
@@ -9543,7 +9642,7 @@ abstract class C : ITest
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceOperator_OnlyExplicitlyImplementable()
         {
             await new VerifyCS.Test
@@ -9579,7 +9678,7 @@ class C : ITest
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceOperator_ImplementImplicitly()
         {
             await new VerifyCS.Test
@@ -9622,7 +9721,7 @@ class C : ITest<C>
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceOperator_ImplementExplicitly()
         {
             await new VerifyCS.Test
@@ -9658,7 +9757,7 @@ class C : ITest<C>
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterfaceOperator_ImplementAbstractly()
         {
             await new VerifyCS.Test
@@ -9695,7 +9794,7 @@ abstract class C : ITest<C>
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterface_Explicitly()
         {
             await new VerifyCS.Test
@@ -9732,7 +9831,7 @@ class C : ITest
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterface_Implicitly()
         {
             await new VerifyCS.Test
@@ -9769,7 +9868,7 @@ class C : ITest
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterface_ImplementImplicitly()
         {
             await new VerifyCS.Test
@@ -9806,7 +9905,7 @@ class C : ITest<C>
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterface_ImplementExplicitly()
         {
             await new VerifyCS.Test
@@ -9843,7 +9942,7 @@ class C : ITest<C>
         }
 
         [WorkItem(53927, "https://github.com/dotnet/roslyn/issues/53927")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56171"), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestStaticAbstractInterface_ImplementAbstractly()
         {
             await new VerifyCS.Test

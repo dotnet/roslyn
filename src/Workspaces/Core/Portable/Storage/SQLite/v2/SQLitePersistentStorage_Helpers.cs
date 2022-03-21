@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             if (stream.CanSeek)
             {
-                if (stream.Length >= 0 && stream.Length <= int.MaxValue)
+                if (stream.Length is >= 0 and <= int.MaxValue)
                 {
                     var length = (int)stream.Length;
                     byte[] bytes;

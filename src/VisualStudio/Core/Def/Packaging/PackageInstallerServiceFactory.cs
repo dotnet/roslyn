@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -74,10 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// <c>solutionChanged == true iff changedProject == null</c> and <c>solutionChanged == false iff changedProject
         /// != null</c>. So technically having both values is redundant.  However, i like the clarity of having both.
         /// </remarks>
-        private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>? _workQueue;
+        private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)> _workQueue;
 
-        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
-            new();
+        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion = new();
 
         /// <summary>
         /// Lock used to protect reads and writes of <see cref="_packageSourcesTask"/>.
@@ -97,17 +97,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             VSUtilities.IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
+            IGlobalOptionService globalOptions,
             SVsServiceProvider serviceProvider,
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
-            : base(threadingContext,
-                   workspace,
-                   SymbolSearchOptions.Enabled,
-                   SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                   SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(globalOptions,
+                   listenerProvider,
+                   threadingContext,
+                   SymbolSearchGlobalOptions.Enabled,
+                   ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _operationExecutor = operationExecutor;
             _workspace = workspace;
@@ -170,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 if (_packageSourceProvider != null)
                     return _packageSourceProvider.Value.GetSources(includeUnOfficial: true, includeDisabled: false).SelectAsArray(r => new PackageSource(r.Key, r.Value));
             }
-            catch (Exception ex) when (ex is InvalidDataException || ex is InvalidOperationException)
+            catch (Exception ex) when (ex is InvalidDataException or InvalidOperationException)
             {
                 // These exceptions can happen when the nuget.config file is broken.
             }
@@ -228,32 +229,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
         {
             if (!IsEnabled)
-            {
                 return;
-            }
 
-            // Continue on captured context since EnableServiceAsync is part of a UI thread initialization sequence
-            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(true);
+            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(false);
 
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
-        }
-
-        protected override void StartWorking()
-        {
-            this.AssertIsForeground();
-
-            if (!this.IsEnabled)
-            {
-                return;
-            }
-
-            OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-
-            Contract.ThrowIfNull(_workQueue, "We should only be called after EnableService is called");
 
             // Kick off an initial set of work that will analyze the entire solution.
+            OnSourceProviderSourcesChanged(this, EventArgs.Empty);
             _workQueue.AddWork((solutionChanged: true, changedProject: null));
         }
 
@@ -272,21 +257,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             PackageSourcesChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public bool TryInstallPackage(
-            Workspace workspace,
-            DocumentId documentId,
-            string source,
-            string packageName,
-            string? version,
-            bool includePrerelease,
-            IProgressTracker progressTracker,
-            CancellationToken cancellationToken)
-        {
-            return this.ThreadingContext.JoinableTaskFactory.Run(
-                () => TryInstallPackageAsync(workspace, documentId, source, packageName, version, includePrerelease, progressTracker, cancellationToken));
-        }
-
-        private async Task<bool> TryInstallPackageAsync(
+        public async Task<bool> TryInstallPackageAsync(
             Workspace workspace,
             DocumentId documentId,
             string source,
@@ -583,8 +554,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // as we know these languages are safe to build up this index for.
             ProjectState? newState = null;
 
-            if (project?.Language == LanguageNames.CSharp ||
-                project?.Language == LanguageNames.VisualBasic)
+            if (project?.Language is LanguageNames.CSharp or
+                LanguageNames.VisualBasic)
             {
                 var projectGuid = _workspace.GetProjectGuid(projectId);
                 if (projectGuid != Guid.Empty)
@@ -665,7 +636,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
         }
 
-        private int CompareSplit(string[] split1, string[] split2)
+        private static int CompareSplit(string[] split1, string[] split2)
         {
             ThisCanBeCalledOnAnyThread();
 

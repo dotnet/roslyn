@@ -30,7 +30,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.
   Children(1):
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Console')
+            IOperation:  (OperationKind.None, Type: System.Console, IsInvalid) (Syntax: 'Console')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -344,7 +344,7 @@ IFieldInitializerOperation (Field: Program.x As System.Int32) (OperationKind.Fie
   IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
     Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
     Operand: 
-      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+      IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -406,7 +406,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: X(), IsInvalid) (Syn
             Operand: 
               IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'Program - 1')
                 Left: 
-                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+                  IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
                 Right: 
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -492,7 +492,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'C1(1)')
   Children(2):
-      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1')
+      IOperation:  (OperationKind.None, Type: M1.C1, IsInvalid) (Syntax: 'C1')
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 

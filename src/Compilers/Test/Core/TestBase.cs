@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using static TestReferences.NetFx;
 using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using Basic.Reference.Assemblies;
 
 namespace Roslyn.Test.Utilities
 {
@@ -150,6 +151,11 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v4_0_30319_17929 => s_systemCoreRef_v4_0_30319_17929.Value;
 
+        private static readonly Lazy<MetadataReference> s_systemRuntimeSerializationRef_v4_0_30319_17929 = new Lazy<MetadataReference>(
+            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntimeSerialization).GetReference(display: "System.Runtime.Serialization.v4_0_30319_17929.dll"),
+            LazyThreadSafetyMode.PublicationOnly);
+        public static MetadataReference SystemRuntimeSerializationRef_v4_0_30319_17929 => s_systemRuntimeSerializationRef_v4_0_30319_17929.Value;
+
         private static readonly Lazy<MetadataReference> s_systemCoreRef_v46 = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(ResourcesNet461.SystemCore).GetReference(display: "System.Core.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);
@@ -238,7 +244,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference CSharpDesktopRef => s_desktopCSharpRef.Value;
 
         private static readonly Lazy<MetadataReference> s_std20Ref = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNetStandard20.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
+            () => AssemblyMetadata.CreateFromImage(NetStandard20.Resources.netstandard).GetReference(display: "netstandard20.netstandard.dll"),
             LazyThreadSafetyMode.PublicationOnly);
 
         public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
@@ -248,11 +254,6 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
 
         public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
-
-        private static readonly Lazy<MetadataReference> s_systemDynamicRuntimeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.netstandard13.System_Dynamic_Runtime).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)"),
-            LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference SystemDynamicRuntimeRef => s_systemDynamicRuntimeRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(ResourcesNet451.System).GetReference(display: "System.v4_0_30319.dll"),

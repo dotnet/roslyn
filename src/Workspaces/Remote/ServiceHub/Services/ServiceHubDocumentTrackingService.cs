@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Debug.Fail(message);
 
             // record NFW to see who violates contract.
-            WatsonReporter.ReportNonFatal(new InvalidOperationException(message));
+            FatalError.ReportAndCatch(new InvalidOperationException(message));
         }
     }
 }

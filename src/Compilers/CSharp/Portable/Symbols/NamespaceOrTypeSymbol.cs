@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -204,8 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (syntax != null)
                     {
-                        foreach (var loc in memberT.Locations)
+                        // PERF: Avoid accessing Locations for performance, but assert that the alternative approach is
+                        // equivalent.
+                        Debug.Assert(memberT.MergedDeclaration.Declarations.SelectAsArray(decl => decl.NameLocation).SequenceEqual(memberT.Locations));
+                        foreach (var declaration in memberT.MergedDeclaration.Declarations)
                         {
+                            var loc = declaration.NameLocation;
                             if (loc.IsInSource && loc.SourceTree == syntax.SyntaxTree && syntax.Span.Contains(loc.SourceSpan))
                             {
                                 return memberT;

@@ -35,8 +35,8 @@ void M()
         int i = 1;
     }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var documentURI = locations["caret"].Single().Uri;
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI);
@@ -63,8 +63,8 @@ void M()
 		int i = 1;
 	}
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var documentURI = locations["caret"].Single().Uri;
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: false, tabSize: 4);
@@ -91,8 +91,8 @@ void M()
     int i = 1;
   }
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
-            var documentURI = locations["caret"].Single().Uri;
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
             var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: true, tabSize: 2);
@@ -107,7 +107,7 @@ void M()
             int tabSize = 4)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
-                CreateDocumentFormattingParams(uri, insertSpaces, tabSize), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                CreateDocumentFormattingParams(uri, insertSpaces, tabSize), CancellationToken.None);
         }
 
         private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri, bool insertSpaces, int tabSize)

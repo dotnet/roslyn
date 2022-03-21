@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
@@ -48,32 +49,26 @@ namespace Microsoft.CodeAnalysis.AddPackage
             var symbolSearchService = _symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
             var installerService = _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
-            var language = document.Project.Language;
-
-            var options = workspaceServices.Workspace.Options;
-            var searchNugetPackages = options.GetOption(
-                SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
-
             var codeActions = ArrayBuilder<CodeAction>.GetInstance();
             if (symbolSearchService != null &&
                 installerService != null &&
-                searchNugetPackages &&
+                context.Options.SearchOptions.SearchNuGetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
-                var packageSources = installerService.TryGetPackageSources();
+                var packageSources = PackageSourceHelper.GetPackageSources(installerService.TryGetPackageSources());
 
-                foreach (var packageSource in packageSources)
+                foreach (var (name, source) in packageSources)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var sortedPackages = await FindMatchingPackagesAsync(
-                        packageSource, symbolSearchService,
+                        name, symbolSearchService,
                         assemblyNames, cancellationToken).ConfigureAwait(false);
 
                     foreach (var package in sortedPackages)
                     {
                         codeActions.Add(new InstallPackageParentCodeAction(
-                            installerService, packageSource.Source,
+                            installerService, source,
                             package.PackageName, IncludePrerelease, document));
                     }
                 }
@@ -83,7 +78,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
         }
 
         private static async Task<ImmutableArray<PackageWithAssemblyResult>> FindMatchingPackagesAsync(
-            PackageSource source,
+            string sourceName,
             ISymbolSearchService searchService,
             ISet<string> assemblyNames,
             CancellationToken cancellationToken)
@@ -94,7 +89,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             foreach (var assemblyName in assemblyNames)
             {
                 var packagesWithAssembly = await searchService.FindPackagesWithAssemblyAsync(
-                    source.Name, assemblyName, cancellationToken).ConfigureAwait(false);
+                    sourceName, assemblyName, cancellationToken).ConfigureAwait(false);
 
                 result.AddRange(packagesWithAssembly);
             }

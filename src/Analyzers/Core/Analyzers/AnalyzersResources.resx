@@ -157,7 +157,7 @@
     <value>Use 'throw' expression</value>
   </data>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
-    <value>Add 'this' or 'Me' qualification.</value>
+    <value>Add 'this' or 'Me' qualification</value>
   </data>
   <data name="Member_access_should_be_qualified" xml:space="preserve">
     <value>Member access should be qualified.</value>
@@ -297,9 +297,6 @@
   </data>
   <data name="Invalid_format_string" xml:space="preserve">
     <value>Invalid format string</value>
-  </data>
-  <data name="Convert_to_tuple" xml:space="preserve">
-    <value>Convert to tuple</value>
   </data>
   <data name="Simplify_conditional_expression" xml:space="preserve">
     <value>Simplify conditional expression</value>

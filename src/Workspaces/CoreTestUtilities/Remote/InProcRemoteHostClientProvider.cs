@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         private readonly HostWorkspaceServices _services;
         private readonly Lazy<WorkspaceManager> _lazyManager;
-        private readonly AsyncLazy<RemoteHostClient> _lazyClient;
+        private readonly Lazy<RemoteHostClient> _lazyClient;
 
         public SolutionAssetCache? RemoteAssetStorage { get; set; }
         public Type[]? AdditionalRemoteParts { get; set; }
@@ -78,13 +78,12 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                     RemoteAssetStorage ?? new SolutionAssetCache(),
                     testSerializerServiceFactory.SharedTestGeneratorReferences,
                     AdditionalRemoteParts));
-            _lazyClient = new AsyncLazy<RemoteHostClient>(
-                cancellationToken => InProcRemoteHostClient.CreateAsync(
+            _lazyClient = new Lazy<RemoteHostClient>(
+                () => InProcRemoteHostClient.Create(
                     _services,
                     callbackDispatchers,
                     TraceListener,
-                    new RemoteHostTestData(_lazyManager.Value, isInProc: true)),
-                cacheResult: true);
+                    new RemoteHostTestData(_lazyManager.Value, isInProc: true)));
         }
 
         public void Dispose()
@@ -101,6 +100,6 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => _lazyClient.GetValueAsync(cancellationToken).AsNullable();
+            => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
     }
 }

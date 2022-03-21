@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
@@ -275,8 +276,9 @@ End Module
 
         Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action
             Dim endConstructor = New EndConstructCommandHandler(
-                                    GetExportedValue(Of IEditorOperationsFactoryService)(workspace),
-                                    GetExportedValue(Of ITextUndoHistoryRegistry)(workspace))
+                workspace.GetService(Of IEditorOperationsFactoryService),
+                workspace.GetService(Of ITextUndoHistoryRegistry),
+                workspace.GetService(Of IGlobalOptionService))
 
             Dim view = workspace.Documents.Single().GetTextView()
             Dim buffer = workspace.Documents.Single().GetTextBuffer()

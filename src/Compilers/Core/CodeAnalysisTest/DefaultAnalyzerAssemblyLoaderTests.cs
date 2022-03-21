@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var loader = new DefaultAnalyzerAssemblyLoader();
 
-            Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null));
+            Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null!));
             Assert.Throws<ArgumentException>("fullPath", () => loader.AddDependencyLocation("a"));
         }
 
@@ -150,6 +151,44 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(@"", actual);
         }
 
+        private static void VerifyAssemblies(IEnumerable<Assembly> assemblies, params (string simpleName, string version, string path)[] expected)
+        {
+            Assert.Equal(expected, assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location)).Order());
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void AssemblyLoading_DependencyInDifferentDirectory()
+        {
+            StringBuilder sb = new StringBuilder();
+            var loader = new DefaultAnalyzerAssemblyLoader();
+
+            var tempDir = Temp.CreateDirectory();
+
+            var deltaFile = tempDir.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(deltaFile.Path);
+            loader.AddDependencyLocation(_testFixture.Gamma.Path);
+            Assembly gamma = loader.LoadFromPath(_testFixture.Gamma.Path);
+
+            var b = gamma.CreateInstance("Gamma.G")!;
+            var writeMethod = b.GetType().GetMethod("Write")!;
+            writeMethod.Invoke(b, new object[] { sb, "Test G" });
+
+            var actual = sb.ToString();
+            Assert.Equal(@"Delta: Gamma: Test G
+", actual);
+
+#if NETCOREAPP
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(1, alcs.Length);
+
+            VerifyAssemblies(
+                alcs[0].Assemblies,
+                ("Delta", "1.0.0.0", deltaFile.Path),
+                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
+            );
+#endif
+        }
+
         [Fact]
         public void AssemblyLoading_MultipleVersions()
         {
@@ -173,15 +212,16 @@ Delta: Gamma: Beta: Test B
             var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
             Assert.Equal(2, alcs.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[0].Assemblies,
                 ("Delta", "1.0.0.0", _testFixture.Delta1.Path),
                 ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
-            }, alcs[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+            );
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs[1].Assemblies,
                 ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
-                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
-            }, alcs[1].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
 #endif
 
             var actual = sb.ToString();
@@ -201,6 +241,199 @@ Delta: Epsilon: Test E
 ",
                     actual);
             }
+        }
+
+        [Fact]
+        public void AssemblyLoading_MultipleVersions_NoExactMatch()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(_testFixture.Epsilon.Path);
+            loader.AddDependencyLocation(_testFixture.Delta3.Path);
+
+            Assembly epsilon = loader.LoadFromPath(_testFixture.Epsilon.Path);
+            var e = epsilon.CreateInstance("Epsilon.E")!;
+            e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+
+#if NETCOREAPP
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(1, alcs.Length);
+
+            VerifyAssemblies(
+                alcs[0].Assemblies,
+                ("Delta", "3.0.0.0", _testFixture.Delta3.Path),
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
+#endif
+
+            var actual = sb.ToString();
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                Assert.Equal(
+@"Delta.3: Epsilon: Test E
+",
+                    actual);
+            }
+            else
+            {
+                Assert.Equal(
+@"Delta: Epsilon: Test E
+",
+                    actual);
+            }
+        }
+
+        [Fact]
+        public void AssemblyLoading_MultipleVersions_MultipleEqualMatches()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            // Delta2B and Delta2 have the same version, but we prefer Delta2 because it's in the same directory as Epsilon.
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.Delta2B.Path);
+            loader.AddDependencyLocation(_testFixture.Delta2.Path);
+            loader.AddDependencyLocation(_testFixture.Epsilon.Path);
+
+            Assembly epsilon = loader.LoadFromPath(_testFixture.Epsilon.Path);
+            var e = epsilon.CreateInstance("Epsilon.E")!;
+            e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+
+#if NETCOREAPP
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(1, alcs.Length);
+
+            VerifyAssemblies(
+                alcs[0].Assemblies,
+                ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
+#endif
+
+            var actual = sb.ToString();
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                Assert.Equal(
+@"Delta.2: Epsilon: Test E
+",
+                    actual);
+            }
+            else
+            {
+                Assert.Equal(
+@"Delta: Epsilon: Test E
+",
+                    actual);
+            }
+        }
+
+
+        [Fact]
+        public void AssemblyLoading_MultipleVersions_MultipleVersionsOfSameAnalyzerItself()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.Delta2.Path);
+            loader.AddDependencyLocation(_testFixture.Delta2B.Path);
+
+            Assembly delta2 = loader.LoadFromPath(_testFixture.Delta2.Path);
+            Assembly delta2B = loader.LoadFromPath(_testFixture.Delta2B.Path);
+
+            // 2B or not 2B? That is the question...that depends on whether we're on .NET Core or not.
+
+#if NETCOREAPP
+
+            // On Core, we're able to load both of these into separate AssemblyLoadContexts.
+            Assert.NotEqual(delta2B.Location, delta2.Location);
+            Assert.Equal(_testFixture.Delta2.Path, delta2.Location);
+            Assert.Equal(_testFixture.Delta2B.Path, delta2B.Location);
+
+#else
+
+            // In non-core, we cache by assembly identity; since we don't use multiple AppDomains we have no
+            // way to load different assemblies with the same identity, no matter what. Thus, we'll get the
+            // same assembly for both of these.
+            Assert.Same(delta2B, delta2);
+#endif
+        }
+
+        [Fact]
+        public void AssemblyLoading_MultipleVersions_ExactAndGreaterMatch()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.Delta2B.Path);
+            loader.AddDependencyLocation(_testFixture.Delta3.Path);
+            loader.AddDependencyLocation(_testFixture.Epsilon.Path);
+
+            Assembly epsilon = loader.LoadFromPath(_testFixture.Epsilon.Path);
+            var e = epsilon.CreateInstance("Epsilon.E")!;
+            e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+
+#if NETCOREAPP
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(1, alcs.Length);
+
+            VerifyAssemblies(
+                alcs[0].Assemblies,
+                ("Delta", "2.0.0.0", _testFixture.Delta2B.Path),
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
+#endif
+
+            var actual = sb.ToString();
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                Assert.Equal(
+@"Delta.2B: Epsilon: Test E
+",
+                    actual);
+            }
+            else
+            {
+                Assert.Equal(
+@"Delta: Epsilon: Test E
+",
+                    actual);
+            }
+        }
+
+        [Fact]
+        public void AssemblyLoading_MultipleVersions_WorseMatchInSameDirectory()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var tempDir = Temp.CreateDirectory();
+            var epsilonFile = tempDir.CreateFile("Epsilon.dll").CopyContentFrom(_testFixture.Epsilon.Path);
+            var delta1File = tempDir.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta1.Path);
+
+            // Epsilon wants Delta2, but since Delta1 is in the same directory, we prefer Delta1 over Delta2.
+            // This is because the CLR will see it first and load it, without giving us any chance to redirect
+            // in the AssemblyResolve hook.
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(delta1File.Path);
+            loader.AddDependencyLocation(_testFixture.Delta2.Path);
+            loader.AddDependencyLocation(epsilonFile.Path);
+
+            Assembly epsilon = loader.LoadFromPath(epsilonFile.Path);
+            var e = epsilon.CreateInstance("Epsilon.E")!;
+            e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+
+#if NETCOREAPP
+            var alcs = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader);
+            Assert.Equal(1, alcs.Length);
+
+            VerifyAssemblies(
+                alcs[0].Assemblies,
+                ("Delta", "1.0.0.0", delta1File.Path),
+                ("Epsilon", "0.0.0.0", epsilonFile.Path));
+#endif
+
+            var actual = sb.ToString();
+            Assert.Equal(
+@"Delta: Epsilon: Test E
+",
+                actual);
         }
 
         [Fact]
@@ -228,18 +461,18 @@ Delta: Epsilon: Test E
             var alcs1 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader1);
             Assert.Equal(1, alcs1.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs1[0].Assemblies,
                 ("Delta", "1.0.0.0", _testFixture.Delta1.Path),
-                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path)
-            }, alcs1[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Gamma", "0.0.0.0", _testFixture.Gamma.Path));
 
             var alcs2 = DefaultAnalyzerAssemblyLoader.TestAccessor.GetOrderedLoadContexts(loader2);
             Assert.Equal(1, alcs2.Length);
 
-            Assert.Equal(new[] {
+            VerifyAssemblies(
+                alcs2[0].Assemblies,
                 ("Delta", "2.0.0.0", _testFixture.Delta2.Path),
-                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path)
-            }, alcs2[0].Assemblies.Select(a => (a.GetName().Name!, a.GetName().Version!.ToString(), a.Location)).Order());
+                ("Epsilon", "0.0.0.0", _testFixture.Epsilon.Path));
 #endif
 
             var actual = sb.ToString();
@@ -280,19 +513,72 @@ Delta: Epsilon: Test E
             var eWrite = e.GetType().GetMethod("Write")!;
 
             var actual = sb.ToString();
-            if (ExecutionConditionUtil.IsCoreClr)
-            {
-                var exception = Assert.Throws<TargetInvocationException>(() => eWrite.Invoke(e, new object[] { sb, "Test E" }));
-                Assert.IsAssignableFrom<FileNotFoundException>(exception.InnerException);
-            }
-            else
-            {
-                eWrite.Invoke(e, new object[] { sb, "Test E" });
-                Assert.Equal(
+            eWrite.Invoke(e, new object[] { sb, "Test E" });
+            Assert.Equal(
 @"Delta: Gamma: Test G
 ",
-                    actual);
-            }
+                actual);
+        }
+
+        [Fact]
+        public void AssemblyLoading_UnifyToHighest()
+        {
+            var sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+
+            // Gamma depends on Delta v1, and Epsilon depends on Delta v2. But both should load
+            // and both use Delta v2. We intentionally here are not adding a reference to Delta1, since
+            // this test is testing what happens if it's not present. A simple example for this scenario
+            // is an analyzer that depends on both Gamma and Epsilon; an analyzer package can't reasonably
+            // package both Delta v1 and Delta v2, so it'll only package the highest and things should work.
+            loader.AddDependencyLocation(_testFixture.GammaReferencingPublicSigned.Path);
+            loader.AddDependencyLocation(_testFixture.EpsilonReferencingPublicSigned.Path);
+            loader.AddDependencyLocation(_testFixture.DeltaPublicSigned2.Path);
+
+            var gamma = loader.LoadFromPath(_testFixture.GammaReferencingPublicSigned.Path);
+            var g = gamma.CreateInstance("Gamma.G")!;
+            g.GetType().GetMethod("Write")!.Invoke(g, new object[] { sb, "Test G" });
+
+            var epsilon = loader.LoadFromPath(_testFixture.EpsilonReferencingPublicSigned.Path);
+            var e = epsilon.CreateInstance("Epsilon.E")!;
+            e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
+
+            var actual = sb.ToString();
+
+            Assert.Equal(
+@"Delta.2: Gamma: Test G
+Delta.2: Epsilon: Test E
+",
+                actual);
+        }
+
+        [Fact]
+        public void AssemblyLoading_CanLoadDifferentVersionsDirectly()
+        {
+            var sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+
+            // Ensure that no matter what, if we have two analyzers of different versions, we never unify them.
+            loader.AddDependencyLocation(_testFixture.DeltaPublicSigned1.Path);
+            loader.AddDependencyLocation(_testFixture.DeltaPublicSigned2.Path);
+
+            var delta1Assembly = loader.LoadFromPath(_testFixture.DeltaPublicSigned1.Path);
+            var delta1Instance = delta1Assembly.CreateInstance("Delta.D")!;
+            delta1Instance.GetType().GetMethod("Write")!.Invoke(delta1Instance, new object[] { sb, "Test D1" });
+
+            var delta2Assembly = loader.LoadFromPath(_testFixture.DeltaPublicSigned2.Path);
+            var delta2Instance = delta2Assembly.CreateInstance("Delta.D")!;
+            delta2Instance.GetType().GetMethod("Write")!.Invoke(delta2Instance, new object[] { sb, "Test D2" });
+
+            var actual = sb.ToString();
+
+            Assert.Equal(
+@"Delta: Test D1
+Delta.2: Test D2
+",
+                actual);
         }
 
         [Fact]
@@ -347,6 +633,40 @@ Delta: Epsilon: Test E
             Assert.Equal(FileAttributes.Archive, (FileAttributes)result!);
         }
 
+        [Fact]
+        public void AssemblyLoading_Delete()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            var loader = new DefaultAnalyzerAssemblyLoader();
+
+            var tempDir = Temp.CreateDirectory();
+            var deltaCopy = tempDir.CreateFile("Delta.dll").CopyContentFrom(_testFixture.Delta1.Path);
+            loader.AddDependencyLocation(deltaCopy.Path);
+            Assembly delta = loader.LoadFromPath(deltaCopy.Path);
+
+            try
+            {
+                File.Delete(deltaCopy.Path);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return;
+            }
+
+            // The above call may or may not throw depending on the platform configuration.
+            // If it doesn't throw, we might as well check that things are still functioning reasonably.
+
+            var d = delta.CreateInstance("Delta.D");
+            d!.GetType().GetMethod("Write")!.Invoke(d, new object[] { sb, "Test D" });
+
+            var actual = sb.ToString();
+            Assert.Equal(
+@"Delta: Test D
+",
+                actual);
+        }
+
 #if NETCOREAPP
         [Fact]
         public void VerifyCompilerAssemblySimpleNames()
@@ -399,6 +719,71 @@ Delta: Epsilon: Test E
             {
                 allReferenceSimpleNames.Free();
             }
+        }
+
+        [Fact]
+        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesSystemCollectionsImmutable()
+        {
+            // Create a separate ALC as the compiler context, load the compiler assembly and a modified version of S.C.I into it,
+            // then use that to load and run `AssemblyLoadingInNonDefaultContextHelper1` below. We expect the analyzer running in
+            // its own `DirectoryLoadContext` would use the bogus S.C.I loaded in the compiler load context instead of the real one
+            // in the default context.
+            var compilerContext = new System.Runtime.Loader.AssemblyLoadContext("compilerContext");
+            _ = compilerContext.LoadFromAssemblyPath(_testFixture.UserSystemCollectionsImmutable.Path);
+            _ = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+
+            var testAssembly = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoaderTests).GetTypeInfo().Assembly.Location);
+            var testObject = testAssembly.CreateInstance(typeof(DefaultAnalyzerAssemblyLoaderTests).FullName!,
+                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, _testFixture }, null, null)!;
+
+            StringBuilder sb = new StringBuilder();
+            testObject.GetType().GetMethod(nameof(AssemblyLoadingInNonDefaultContextHelper1), BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(testObject, new object[] { sb });
+            Assert.Equal("42", sb.ToString());
+        }
+
+        // This helper does the same thing as in `AssemblyLoading_AnalyzerReferencesSystemCollectionsImmutable_01` test above except the assertions.
+        private void AssemblyLoadingInNonDefaultContextHelper1(StringBuilder sb)
+        {
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.UserSystemCollectionsImmutable.Path);
+            loader.AddDependencyLocation(_testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+
+            Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerReferencesSystemCollectionsImmutable1.Path);
+            var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+            analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
+        }
+
+        [Fact]
+        public void AssemblyLoadingInNonDefaultContext_AnalyzerReferencesNonCompilerAssemblyUsedByDefaultContext()
+        {
+            // Load the V2 of Delta to default ALC, then create a separate ALC for compiler and load compiler assembly.
+            // Next use compiler context to load and run `AssemblyLoadingInNonDefaultContextHelper2` below. We expect the analyzer running in
+            // its own `DirectoryLoadContext` would load and use Delta V1 located in its directory instead of V2 already loaded in the default context.
+            _ = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(_testFixture.Delta2.Path);
+            var compilerContext = new System.Runtime.Loader.AssemblyLoadContext("compilerContext");
+            _ = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location);
+
+            var testAssembly = compilerContext.LoadFromAssemblyPath(typeof(DefaultAnalyzerAssemblyLoaderTests).GetTypeInfo().Assembly.Location);
+            var testObject = testAssembly.CreateInstance(typeof(DefaultAnalyzerAssemblyLoaderTests).FullName!,
+                ignoreCase: false, BindingFlags.Default, binder: null, args: new object[] { _output, _testFixture }, null, null)!;
+
+            StringBuilder sb = new StringBuilder();
+            testObject.GetType().GetMethod(nameof(AssemblyLoadingInNonDefaultContextHelper2), BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(testObject, new object[] { sb });
+            Assert.Equal(
+@"Delta: Hello
+",
+                sb.ToString());
+        }
+
+        private void AssemblyLoadingInNonDefaultContextHelper2(StringBuilder sb)
+        {
+            var loader = new DefaultAnalyzerAssemblyLoader();
+            loader.AddDependencyLocation(_testFixture.AnalyzerReferencesDelta1.Path);
+            loader.AddDependencyLocation(_testFixture.Delta1.Path);
+
+            Assembly analyzerAssembly = loader.LoadFromPath(_testFixture.AnalyzerReferencesDelta1.Path);
+            var analyzer = analyzerAssembly.CreateInstance("Analyzer")!;
+            analyzer.GetType().GetMethod("Method")!.Invoke(analyzer, new object[] { sb });
         }
 #endif
     }

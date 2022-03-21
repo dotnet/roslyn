@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
             if (node.Parent is ArgumentSyntax argument && argument.Parent?.Parent is InvocationExpressionSyntax invocation)
             {
                 var symbol = model.GetSymbolInfo(invocation.Expression).Symbol;
-                if (!(symbol is IMethodSymbol method) || method.PartialImplementationPart is object)
+                if (symbol is not IMethodSymbol method || method.PartialImplementationPart is object)
                 {
                     // We don't handle partial methods yet
                     return null;

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // force corresponding slots if do not exist
                 while (!TypeSymbol.Equals(containingType, symbol.ContainingType, TypeCompareKind.ConsiderEverything))
                 {
-                    var restField = containingType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault() as FieldSymbol;
+                    var restField = containingType.GetMembers(NamedTypeSymbol.ValueTupleRestFieldName).FirstOrDefault(s => s is not TupleVirtualElementFieldSymbol) as FieldSymbol;
                     if (restField is null)
                     {
                         return -1;

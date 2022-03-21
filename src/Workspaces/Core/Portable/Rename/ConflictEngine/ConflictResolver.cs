@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (symbol.IsAnonymousType())
             {
                 return symbol.ToDisplayParts(s_metadataSymbolDisplayFormat)
-                    .WhereAsArray(p => p.Kind != SymbolDisplayPartKind.PropertyName && p.Kind != SymbolDisplayPartKind.FieldName)
+                    .WhereAsArray(p => p.Kind is not SymbolDisplayPartKind.PropertyName and not SymbolDisplayPartKind.FieldName)
                     .ToDisplayString();
             }
             else

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 return false;
             }
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 return ReportDiagnostic.Default;
             }
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //  2. Compiler diagnostics
             //  3. Non-configurable diagnostics
             if (!descriptor.IsEnabledByDefault ||
-                descriptor.ImmutableCustomTags().Any(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.ImmutableCustomTags().Any(tag => tag is WellKnownDiagnosticTags.Compiler or WellKnownDiagnosticTags.NotConfigurable))
             {
                 severity = default;
                 return false;
@@ -183,5 +184,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsCompilationEnd(this DiagnosticDescriptor descriptor)
             => descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.CompilationEnd);
+
+        // TODO: the value stored in descriptor should already be valid URI (https://github.com/dotnet/roslyn/issues/59205)
+        internal static Uri? GetValidHelpLinkUri(this DiagnosticDescriptor descriptor)
+           => Uri.TryCreate(descriptor.HelpLinkUri, UriKind.Absolute, out var uri) &&
+              (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) ? uri : null;
     }
 }

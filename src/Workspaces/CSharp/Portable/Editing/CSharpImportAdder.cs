@@ -194,6 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
                 if (node.IsRightSideOfDotOrArrowOrColonColon())
                     return;
 
+                // Check to see if we have a var. If so, then nothing assigned to a var
+                // would bring any imports that could cause a potential conflict.
+                if (node.IsVar)
+                    return;
+
                 var symbol = _model.GetSymbolInfo(node, _cancellationToken).GetAnySymbol();
                 if (symbol?.Kind == SymbolKind.NamedType)
                     _conflictNamespaces.AddRange(_importedTypes[(symbol.Name, node.Arity)]);

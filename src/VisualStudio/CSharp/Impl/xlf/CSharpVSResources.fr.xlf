@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Block_scoped">
         <source>Block scoped</source>
-        <target state="new">Block scoped</target>
+        <target state="translated">Bloc inclus dans l'étendue</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
-        <target state="new">File scoped</target>
+        <target state="translated">Fichier inclus dans l'étendue</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -122,6 +122,11 @@
         <target state="translated">Placer une accolade ouvrante sur une nouvelle ligne pour les initialiseurs d'objets, de collections, de tableaux et with</target>
         <note>{Locked="with"}</note>
       </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Préférer le modèle de propriété étendue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Préférer la création d'objets implicites quand le type est apparent</target>
@@ -134,7 +139,12 @@
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">Préférer la vérification « null » à la vérification de type</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

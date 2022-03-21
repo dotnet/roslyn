@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false;
 
             int count = variables.Count;
-            var nestedConversions = ArrayBuilder<Conversion>.GetInstance(count);
+            var nestedConversions = ArrayBuilder<(BoundValuePlaceholder?, BoundExpression?)>.GetInstance(count);
             for (int i = 0; i < count; i++)
             {
                 var variable = variables[i];
@@ -306,11 +306,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, diagnostics,
                         variable.NestedVariables, out nestedConversion);
+
+                    Debug.Assert(nestedConversion.Kind == ConversionKind.Deconstruction);
+                    var operandPlaceholder = new BoundValuePlaceholder(syntax, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated();
+                    nestedConversions.Add((operandPlaceholder, new BoundConversion(syntax, operandPlaceholder, nestedConversion,
+                                                                                   @checked: false, explicitCastInCode: false,
+                                                                                   conversionGroupOpt: null, constantValueOpt: null,
+#pragma warning disable format
+                                                                                   type: ErrorTypeSymbol.UnknownResultType) { WasCompilerGenerated = true }));
+#pragma warning restore format
                 }
                 else
                 {
                     var single = variable.Single;
                     Debug.Assert(single is object);
+                    Debug.Assert(single.Type is not null);
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                     nestedConversion = this.Conversions.ClassifyConversionFromType(tupleOrDeconstructedTypes[i], single.Type, ref useSiteInfo);
                     diagnostics.Add(single.Syntax, useSiteInfo);
@@ -319,9 +329,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         hasErrors = true;
                         GenerateImplicitConversionError(diagnostics, Compilation, single.Syntax, nestedConversion, tupleOrDeconstructedTypes[i], single.Type);
+                        nestedConversions.Add((null, null));
+                    }
+                    else
+                    {
+                        var operandPlaceholder = new BoundValuePlaceholder(syntax, tupleOrDeconstructedTypes[i]).MakeCompilerGenerated();
+                        nestedConversions.Add((operandPlaceholder, CreateConversion(syntax, operandPlaceholder,
+                                                                                    nestedConversion, isCast: false, conversionGroupOpt: null, single.Type, diagnostics)));
                     }
                 }
-                nestedConversions.Add(nestedConversion);
             }
 
             conversion = new Conversion(ConversionKind.Deconstruction, deconstructMethod, nestedConversions.ToImmutableAndFree());
@@ -805,11 +821,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static BoundDiscardExpression BindDiscardExpression(
+        private BoundDiscardExpression BindDiscardExpression(
             SyntaxNode syntax,
             TypeWithAnnotations declTypeWithAnnotations)
         {
-            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.Type);
+            // Cannot escape out of the current expression, as it's a compiler-synthesized location.
+            return new BoundDiscardExpression(syntax, LocalScopeDepth, declTypeWithAnnotations.Type);
         }
 
         /// <summary>

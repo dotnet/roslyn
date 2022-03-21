@@ -309,5 +309,13 @@ class C
             await VerifyKeywordAsync(AddInsideMethod($@"
 {keyword} $$"));
         }
+
+        [WorkItem(49743, "https://github.com/dotnet/roslyn/issues/49743")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInPreprocessorDirective()
+        {
+            await VerifyAbsenceAsync(
+@"#$$");
+        }
     }
 }

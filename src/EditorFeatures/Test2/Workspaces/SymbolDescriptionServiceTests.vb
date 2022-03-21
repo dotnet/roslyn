@@ -27,7 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             Dim symbolDescriptionService = languageServiceProvider.GetService(Of ISymbolDisplayService)()
 
-            Dim actualDescription = Await symbolDescriptionService.ToDescriptionStringAsync(workspace, semanticModel, cursorPosition, symbol)
+            Dim options = SymbolDescriptionOptions.Default
+            Dim actualDescription = Await symbolDescriptionService.ToDescriptionStringAsync(semanticModel, cursorPosition, symbol, options)
 
             Assert.Equal(expectedDescription, actualDescription)
 

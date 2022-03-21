@@ -1256,7 +1256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var baseParameter = baseParameters[i];
                     var baseParameterType = baseParameter.TypeWithAnnotations;
-                    var overrideParameter = overrideParameters[i + overrideParameterOffset];
+                    int parameterIndex = i + overrideParameterOffset;
+                    var overrideParameter = overrideParameters[parameterIndex];
                     var overrideParameterType = getNotNullIfNotNullOutputType(overrideParameter.TypeWithAnnotations, overrideParameter.NotNullIfParameterNotNull);
                     // check nested nullability
                     if (!isValidNullableConversion(
@@ -1292,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var overrideParam = overrideParameters[i + overrideParameterOffset];
                         var baseParam = baseParameters[i];
-                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && NullableWalker.GetParameterState(baseParam.TypeWithAnnotations, baseParam.FlowAnalysisAnnotations).IsNotNull)
+                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && NullableWalker.GetParameterState(baseParam.TypeWithAnnotations, baseParam.FlowAnalysisAnnotations, baseParam.IsNullChecked).IsNotNull)
                         {
                             return outputType.AsNotAnnotated();
                         }

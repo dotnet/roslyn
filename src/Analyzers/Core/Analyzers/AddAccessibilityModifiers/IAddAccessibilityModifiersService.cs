@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
     internal interface IAddAccessibilityModifiers
     {
         bool ShouldUpdateAccessibilityModifier(
-            ISyntaxFacts syntaxFacts,
+            IAccessibilityFacts accessibilityFacts,
             SyntaxNode member,
             AccessibilityModifiersRequired option,
             out SyntaxToken name);

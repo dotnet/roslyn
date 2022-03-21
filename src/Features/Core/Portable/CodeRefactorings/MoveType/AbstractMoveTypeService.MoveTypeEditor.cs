@@ -299,7 +299,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 TTypeDeclarationSyntax currentTypeNode)
             {
                 var syntaxFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var withoutBlankLines = syntaxFacts.GetNodeWithoutLeadingBlankLines(currentTypeNode);
+                var bannerService = State.SemanticDocument.Document.GetRequiredLanguageService<IFileBannerFactsService>();
+
+                var withoutBlankLines = bannerService.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 
                 // Add an elastic marker so the formatter can add any blank lines it thinks are
                 // important to have (i.e. after a block of usings/imports).

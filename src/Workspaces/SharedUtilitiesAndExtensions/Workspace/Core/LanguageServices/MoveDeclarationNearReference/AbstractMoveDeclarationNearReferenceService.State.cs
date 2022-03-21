@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             {
                 for (var i = originalIndexInBlock; i < firstStatementIndexAffectedInBlock; i++)
                 {
-                    if (!(InnermostBlockStatements[i] is TLocalDeclarationStatementSyntax))
+                    if (InnermostBlockStatements[i] is not TLocalDeclarationStatementSyntax)
                     {
                         return false;
                     }

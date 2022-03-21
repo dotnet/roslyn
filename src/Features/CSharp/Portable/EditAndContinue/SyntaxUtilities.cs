@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (LambdaUtilities.IsLambdaBody(syntax))
             {
                 Debug.Assert(allowLambda);
-                Debug.Assert(syntax is ExpressionSyntax || syntax is BlockSyntax);
+                Debug.Assert(syntax is ExpressionSyntax or BlockSyntax);
                 return;
             }
 
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             // special case for top level statements, which have no containing block other than the compilation unit
-            if (syntax is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (syntax is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
             {
                 return;
             }
@@ -125,15 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             Debug.Assert(false);
         }
 
-        public static bool ContainsTopLevelStatements(this CompilationUnitSyntax compilationUnit)
-        {
-            if (compilationUnit.Members.Count == 0)
-            {
-                return false;
-            }
-
-            return compilationUnit.Members[0] is GlobalStatementSyntax;
-        }
+        public static bool ContainsGlobalStatements(this CompilationUnitSyntax compilationUnit)
+            => compilationUnit.Members.Count > 0 && compilationUnit.Members[0] is GlobalStatementSyntax;
 
         public static void FindLeafNodeAndPartner(SyntaxNode leftRoot, int leftPosition, SyntaxNode rightRoot, out SyntaxNode leftNode, out SyntaxNode rightNodeOpt)
         {

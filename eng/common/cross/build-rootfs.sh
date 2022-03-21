@@ -6,8 +6,8 @@ usage()
 {
     echo "Usage: $0 [BuildArch] [CodeName] [lldbx.y] [--skipunmount] --rootfsdir <directory>]"
     echo "BuildArch can be: arm(default), armel, arm64, x86"
-    echo "CodeName - optional, Code name for Linux, can be: xenial(default), zesty, bionic, alpine, alpine3.9 or alpine3.13. If BuildArch is armel, LinuxCodeName is jessie(default) or tizen."
-    echo "                              for FreeBSD can be: freebsd11, freebsd12, freebsd13"
+    echo "CodeName - optional, Code name for Linux, can be: xenial(default), zesty, bionic, alpine, alpine3.13 or alpine3.14. If BuildArch is armel, LinuxCodeName is jessie(default) or tizen."
+    echo "                              for FreeBSD can be: freebsd12, freebsd13"
     echo "                              for illumos can be: illumos."
     echo "lldbx.y - optional, LLDB version, can be: lldb3.9(default), lldb4.0, lldb5.0, lldb6.0 no-lldb. Ignored for alpine and FreeBSD"
     echo "--skipunmount - optional, will skip the unmount of rootfs folder."
@@ -32,9 +32,9 @@ __UbuntuPackages="build-essential"
 __AlpinePackages="alpine-base"
 __AlpinePackages+=" build-base"
 __AlpinePackages+=" linux-headers"
-__AlpinePackagesEdgeCommunity=" lldb-dev"
-__AlpinePackagesEdgeMain+=" python3"
-__AlpinePackagesEdgeMain+=" libedit"
+__AlpinePackages+=" lldb-dev"
+__AlpinePackages+=" python3"
+__AlpinePackages+=" libedit"
 
 # symlinks fixer
 __UbuntuPackages+=" symlinks"
@@ -60,13 +60,13 @@ __AlpinePackages+=" krb5-dev"
 __AlpinePackages+=" openssl-dev"
 __AlpinePackages+=" zlib-dev"
 
-__FreeBSDBase="12.2-RELEASE"
-__FreeBSDPkg="1.12.0"
+__FreeBSDBase="12.3-RELEASE"
+__FreeBSDPkg="1.17.0"
 __FreeBSDABI="12"
 __FreeBSDPackages="libunwind"
 __FreeBSDPackages+=" icu"
 __FreeBSDPackages+=" libinotify"
-__FreeBSDPackages+=" lttng-ust"
+__FreeBSDPackages+=" openssl"
 __FreeBSDPackages+=" krb5"
 __FreeBSDPackages+=" terminfo-db"
 
@@ -99,6 +99,15 @@ while :; do
             __AlpineArch=armv7
             __QEMUArch=arm
             ;;
+        armv6)
+            __BuildArch=armv6
+            __UbuntuArch=armhf
+            __QEMUArch=arm
+            __UbuntuRepo="http://raspbian.raspberrypi.org/raspbian/"
+            __CodeName=buster
+            __LLDB_Package="liblldb-6.0-dev"
+            __Keyring="/usr/share/keyrings/raspbian-archive-keyring.gpg"
+            ;;
         arm64)
             __BuildArch=arm64
             __UbuntuArch=arm64
@@ -110,6 +119,15 @@ while :; do
             __UbuntuArch=armel
             __UbuntuRepo="http://ftp.debian.org/debian/"
             __CodeName=jessie
+            ;;
+        ppc64le)
+            __BuildArch=ppc64le
+            __UbuntuArch=ppc64el
+            __UbuntuRepo="http://ports.ubuntu.com/ubuntu-ports/"
+            __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libunwind8-dev//')
+            __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libomp-dev//')
+            __UbuntuPackages=$(echo ${__UbuntuPackages} | sed 's/ libomp5//')
+            unset __LLDB_Package
             ;;
         s390x)
             __BuildArch=s390x
@@ -176,8 +194,8 @@ while :; do
             __LLDB_Package="liblldb-6.0-dev"
             ;;
         tizen)
-            if [ "$__BuildArch" != "armel" ] && [ "$__BuildArch" != "arm64" ]; then
-                echo "Tizen is available only for armel and arm64."
+            if [ "$__BuildArch" != "arm" ] && [ "$__BuildArch" != "armel" ] && [ "$__BuildArch" != "arm64" ] && [ "$__BuildArch" != "x86" ] ; then
+                echo "Tizen is available only for arm, armel, arm64 and x86."
                 usage;
                 exit 1;
             fi
@@ -185,28 +203,18 @@ while :; do
             __UbuntuRepo=
             __Tizen=tizen
             ;;
-        alpine|alpine3.9)
-            __CodeName=alpine
-            __UbuntuRepo=
-            __AlpineVersion=3.9
-            __AlpinePackagesEdgeMain+=" llvm11-libs"
-            __AlpinePackagesEdgeMain+=" clang-libs"
-            ;;
-        alpine3.13)
+        alpine|alpine3.13)
             __CodeName=alpine
             __UbuntuRepo=
             __AlpineVersion=3.13
-            # Alpine 3.13 has all the packages we need in the 3.13 repository
-            __AlpinePackages+=$__AlpinePackagesEdgeCommunity
-            __AlpinePackagesEdgeCommunity=
-            __AlpinePackages+=$__AlpinePackagesEdgeMain
-            __AlpinePackagesEdgeMain=
             __AlpinePackages+=" llvm10-libs"
             ;;
-        freebsd11)
-            __FreeBSDBase="11.3-RELEASE"
-            __FreeBSDABI="11"
-            ;&
+        alpine3.14)
+            __CodeName=alpine
+            __UbuntuRepo=
+            __AlpineVersion=3.14
+            __AlpinePackages+=" llvm11-libs"
+            ;;
         freebsd12)
             __CodeName=freebsd
             __BuildArch=x64
@@ -241,6 +249,12 @@ while :; do
 
     shift
 done
+
+if [ -e "$__Keyring" ]; then
+    __Keyring="--keyring=$__Keyring"
+else
+    __Keyring=""
+fi
 
 if [ "$__BuildArch" == "armel" ]; then
     __LLDB_Package="lldb-3.5-dev"
@@ -278,20 +292,6 @@ if [[ "$__CodeName" == "alpine" ]]; then
       -X http://dl-cdn.alpinelinux.org/alpine/v$__AlpineVersion/community \
       -U --allow-untrusted --root $__RootfsDir --arch $__AlpineArch --initdb \
       add $__AlpinePackages
-
-    if [[ -n "$__AlpinePackagesEdgeMain" ]]; then
-      $__ApkToolsDir/apk-tools-$__ApkToolsVersion/apk \
-        -X http://dl-cdn.alpinelinux.org/alpine/edge/main \
-        -U --allow-untrusted --root $__RootfsDir --arch $__AlpineArch --initdb \
-        add $__AlpinePackagesEdgeMain
-    fi
-
-    if [[ -n "$__AlpinePackagesEdgeCommunity" ]]; then
-      $__ApkToolsDir/apk-tools-$__ApkToolsVersion/apk \
-        -X http://dl-cdn.alpinelinux.org/alpine/edge/community \
-        -U --allow-untrusted --root $__RootfsDir --arch $__AlpineArch --initdb \
-        add $__AlpinePackagesEdgeCommunity
-    fi
 
     rm -r $__ApkToolsDir
 elif [[ "$__CodeName" == "freebsd" ]]; then
@@ -357,7 +357,7 @@ elif [[ "$__CodeName" == "illumos" ]]; then
     wget -P "$__RootfsDir"/usr/include/netpacket https://raw.githubusercontent.com/illumos/illumos-gate/master/usr/src/uts/common/inet/sockmods/netpacket/packet.h
     wget -P "$__RootfsDir"/usr/include/sys https://raw.githubusercontent.com/illumos/illumos-gate/master/usr/src/uts/common/sys/sdt.h
 elif [[ -n $__CodeName ]]; then
-    qemu-debootstrap --arch $__UbuntuArch $__CodeName $__RootfsDir $__UbuntuRepo
+    qemu-debootstrap $__Keyring --arch $__UbuntuArch $__CodeName $__RootfsDir $__UbuntuRepo
     cp $__CrossDir/$__BuildArch/sources.list.$__CodeName $__RootfsDir/etc/apt/sources.list
     chroot $__RootfsDir apt-get update
     chroot $__RootfsDir apt-get -f -y install

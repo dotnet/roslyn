@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => new RemoteEditAndContinueService(arguments, callback);
         }
 
-        private sealed class ManagedEditAndContinueDebuggerService : IManagedEditAndContinueDebuggerService
+        private sealed class ManagedEditAndContinueDebuggerService : IManagedHotReloadService
         {
             private readonly RemoteCallback<IRemoteEditAndContinueService.ICallback> _callback;
             private readonly RemoteServiceCallbackId _callbackId;
@@ -36,17 +36,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _callbackId = callbackId;
             }
 
-            Task<ImmutableArray<ManagedActiveStatementDebugInfo>> IManagedEditAndContinueDebuggerService.GetActiveStatementsAsync(CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetActiveStatementsAsync(_callbackId, cancellationToken), cancellationToken).AsTask();
+            ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> IManagedHotReloadService.GetActiveStatementsAsync(CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetActiveStatementsAsync(_callbackId, cancellationToken), cancellationToken);
 
-            Task<ManagedEditAndContinueAvailability> IManagedEditAndContinueDebuggerService.GetAvailabilityAsync(Guid moduleVersionId, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetAvailabilityAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken).AsTask();
+            ValueTask<ManagedHotReloadAvailability> IManagedHotReloadService.GetAvailabilityAsync(Guid moduleVersionId, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetAvailabilityAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken);
 
-            Task<ImmutableArray<string>> IManagedEditAndContinueDebuggerService.GetCapabilitiesAsync(CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetCapabilitiesAsync(_callbackId, cancellationToken), cancellationToken).AsTask();
+            ValueTask<ImmutableArray<string>> IManagedHotReloadService.GetCapabilitiesAsync(CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.GetCapabilitiesAsync(_callbackId, cancellationToken), cancellationToken);
 
-            Task IManagedEditAndContinueDebuggerService.PrepareModuleForUpdateAsync(Guid moduleVersionId, CancellationToken cancellationToken)
-                => _callback.InvokeAsync((callback, cancellationToken) => callback.PrepareModuleForUpdateAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken).AsTask();
+            ValueTask IManagedHotReloadService.PrepareModuleForUpdateAsync(Guid moduleVersionId, CancellationToken cancellationToken)
+                => _callback.InvokeAsync((callback, cancellationToken) => callback.PrepareModuleForUpdateAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken);
         }
 
         private readonly RemoteCallback<IRemoteEditAndContinueService.ICallback> _callback;
@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> BreakStateChangedAsync(DebuggingSessionId sessionId, bool inBreakState, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().BreakStateChanged(sessionId, inBreakState, out var documentsToReanalyze);
+                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState, out var documentsToReanalyze);
                 return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
             }, cancellationToken);
         }
@@ -150,9 +150,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
+                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
 
-                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty);
+                    return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty, syntaxError: null);
                 }
             }, cancellationToken);
         }

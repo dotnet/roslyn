@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.SwitchBetweenLambdaAndLocalFunction,
                 RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
                 RudeEditKind.NotSupportedByRuntime,
-                RudeEditKind.MakeMethodAsync,
-                RudeEditKind.MakeMethodIterator,
+                RudeEditKind.MakeMethodAsyncNotSupportedByRuntime,
+                RudeEditKind.MakeMethodIteratorNotSupportedByRuntime,
                 RudeEditKind.ChangeImplicitMainReturnType
             };
 
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
+                RudeEditKind.ChangingNonCustomAttribute
             };
 
             var arg3 = new HashSet<RudeEditKind>()

@@ -44,12 +44,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GenerateNamespaceDeclaration(service As ICodeGenerationService, [namespace] As INamespaceSymbol, options As CodeGenerationOptions, cancellationToken As CancellationToken) As SyntaxNode
             Dim name As String = Nothing
             Dim innermostNamespace As INamespaceSymbol = Nothing
-            options = If(options, CodeGenerationOptions.Default)
             GetNameAndInnermostNamespace([namespace], options, name, innermostNamespace)
 
             Dim declaration = GetDeclarationSyntaxWithoutMembers([namespace], innermostNamespace, name, options)
 
-            declaration = If(options.GenerateMembers,
+            declaration = If(options.Context.GenerateMembers,
                 service.AddMembers(declaration, innermostNamespace.GetMembers().AsEnumerable(), options, cancellationToken),
                 declaration)
 

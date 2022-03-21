@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -30,7 +31,8 @@ namespace Microsoft.CodeAnalysis
         internal string ClientDirectory { get; }
 
         /// <summary>
-        /// The path in which the compilation takes place.
+        /// The path in which the compilation takes place. This is also referred to as "baseDirectory" in 
+        /// the code base.
         /// </summary>
         internal string WorkingDirectory { get; }
 
@@ -72,6 +74,7 @@ namespace Microsoft.CodeAnalysis
         public CommonMessageProvider MessageProvider { get; }
         public CommandLineArguments Arguments { get; }
         public IAnalyzerAssemblyLoader AssemblyLoader { get; private set; }
+        public GeneratorDriverCache? GeneratorDriverCache { get; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
 
         /// <summary>
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="ICommonCompilerFileSystem"/> used to access the file system inside this instance.
         /// </summary>
-        internal ICommonCompilerFileSystem FileSystem { get; set; } = StandardFileSystem.Instance;
+        internal ICommonCompilerFileSystem FileSystem { get; set; }
 
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators);
 
-        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
+        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache, ICommonCompilerFileSystem? fileSystem)
         {
             IEnumerable<string> allArgs = args;
 
@@ -129,12 +132,9 @@ namespace Microsoft.CodeAnalysis
             this.Arguments = parser.Parse(allArgs, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, additionalReferenceDirectories);
             this.MessageProvider = parser.MessageProvider;
             this.AssemblyLoader = assemblyLoader;
+            this.GeneratorDriverCache = driverCache;
             this.EmbeddedSourcePaths = GetEmbeddedSourcePaths(Arguments);
-
-            if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
-            {
-                EmitDeterminismKey(Arguments, args, buildPaths.WorkingDirectory, parser);
-            }
+            this.FileSystem = fileSystem ?? StandardFileSystem.Instance;
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
@@ -734,7 +734,55 @@ namespace Microsoft.CodeAnalysis
         /// <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
         /// <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
-        private protected virtual Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics) { return input; }
+        private protected Compilation RunGenerators(Compilation input, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts, DiagnosticBag generatorDiagnostics)
+        {
+            GeneratorDriver? driver = null;
+            string cacheKey = string.Empty;
+            bool disableCache = !Arguments.ParseOptions.Features.ContainsKey("enable-generator-cache") || string.IsNullOrWhiteSpace(Arguments.OutputFileName);
+            if (this.GeneratorDriverCache is object && !disableCache)
+            {
+                cacheKey = deriveCacheKey();
+                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey)?
+                                                  .WithUpdatedParseOptions(parseOptions)
+                                                  .WithUpdatedAnalyzerConfigOptions(analyzerConfigOptionsProvider)
+                                                  .ReplaceAdditionalTexts(additionalTexts);
+            }
+
+            driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
+            generatorDiagnostics.AddRange(diagnostics);
+
+            if (!disableCache)
+            {
+                this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
+            }
+            return compilationOut;
+
+            string deriveCacheKey()
+            {
+                Debug.Assert(!string.IsNullOrWhiteSpace(Arguments.OutputFileName));
+
+                // CONSIDER: The only piece of the cache key that is required for correctness is the generators that were used.
+                //           We set up the graph statically based on the generators, so as long as the generator inputs haven't
+                //           changed we can technically run any project against another's cache and still get the correct results.
+                //           Obviously that would remove the point of the cache, so we also key off of the output file name
+                //           and output path so that collisions are unlikely and we'll usually get the correct cache for any 
+                //           given compilation. 
+
+                PooledStringBuilder sb = PooledStringBuilder.GetInstance();
+                sb.Builder.Append(Arguments.GetOutputFilePath(Arguments.OutputFileName));
+                foreach (var generator in generators)
+                {
+                    // append the generator FQN and the MVID of the assembly it came from, so any changes will invalidate the cache
+                    var type = generator.GetGeneratorType();
+                    sb.Builder.Append(type.AssemblyQualifiedName);
+                    sb.Builder.Append(type.Assembly.ManifestModule.ModuleVersionId.ToString());
+                }
+                return sb.ToStringAndFree();
+            }
+        }
+
+        private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
@@ -883,8 +931,8 @@ namespace Microsoft.CodeAnalysis
                 // Optimization: don't create a bunch of entries pointing to a no-op
                 if (options.Count > 0)
                 {
-                    Debug.Assert(existing.GetOptions(syntaxTree) == CompilerAnalyzerConfigOptions.Empty);
-                    builder.Add(syntaxTree, new CompilerAnalyzerConfigOptions(options));
+                    Debug.Assert(existing.GetOptions(syntaxTree) == DictionaryAnalyzerConfigOptions.Empty);
+                    builder.Add(syntaxTree, new DictionaryAnalyzerConfigOptions(options));
                 }
                 i++;
             }
@@ -898,8 +946,8 @@ namespace Microsoft.CodeAnalysis
                     // Optimization: don't create a bunch of entries pointing to a no-op
                     if (options.Count > 0)
                     {
-                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == CompilerAnalyzerConfigOptions.Empty);
-                        builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
+                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == DictionaryAnalyzerConfigOptions.Empty);
+                        builder.Add(additionalFiles[i], new DictionaryAnalyzerConfigOptions(options));
                     }
                 }
             }
@@ -945,7 +993,7 @@ namespace Microsoft.CodeAnalysis
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
                 {
                     Debug.Assert(analyzerConfigSet is object);
-                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
 
                     // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
                     // configuring diagnostic reporting on additional text files individually.
@@ -1096,6 +1144,11 @@ namespace Microsoft.CodeAnalysis
                     emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
                 }
 
+                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+                {
+                    EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, emitOptions);
+                }
+
                 if (Arguments.SourceLink != null)
                 {
                     var sourceLinkStreamOpt = OpenFile(
@@ -1209,14 +1262,9 @@ namespace Microsoft.CodeAnalysis
                                         return;
                                     }
 
-                                    success = compilation.GenerateResourcesAndDocumentationComments(
-                                        moduleBeingBuilt,
-                                        xmlStreamDisposerOpt?.Stream,
-                                        win32ResourceStreamOpt,
-                                        useRawWin32Resources: false,
-                                        emitOptions.OutputNameOverride,
-                                        diagnostics,
-                                        cancellationToken);
+                                    success =
+                                        compilation.GenerateResources(moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, diagnostics, cancellationToken) &&
+                                        compilation.GenerateDocumentationComments(xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnostics, cancellationToken);
                                 }
                             }
 
@@ -1398,14 +1446,19 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger? touchedFilesLogger)
         {
-            var builder = ImmutableArray.CreateBuilder<AdditionalTextFile>();
+            var builder = ArrayBuilder<AdditionalTextFile>.GetInstance();
+            var filePaths = new HashSet<string>(PathUtilities.Comparer);
 
             foreach (var file in Arguments.AdditionalFiles)
             {
-                builder.Add(new AdditionalTextFile(file, this));
+                Debug.Assert(PathUtilities.IsAbsolute(file.Path));
+                if (filePaths.Add(PathUtilities.ExpandAbsolutePathWithRelativeParts(file.Path)))
+                {
+                    builder.Add(new AdditionalTextFile(file, this));
+                }
             }
 
-            return builder.ToImmutableArray();
+            return builder.ToImmutableAndFree();
         }
 
         private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)
@@ -1602,68 +1655,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void EmitDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
+        private void EmitDeterminismKey(
+            Compilation compilation,
+            ICommonCompilerFileSystem fileSystem,
+            ImmutableArray<AdditionalText> additionalTexts,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
+            EmitOptions? emitOptions)
         {
-            var key = CreateDeterminismKey(args, rawArgs, baseDirectory, parser);
-            var filePath = Path.Combine(args.OutputDirectory, args.OutputFileName + ".key");
-            using (var stream = File.Create(filePath))
-            {
-                var bytes = Encoding.UTF8.GetBytes(key);
-                stream.Write(bytes, 0, bytes.Length);
-            }
-        }
-
-        /// <summary>
-        /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is 
-        /// meant to be inline with the specification here:
-        /// 
-        ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
-        /// 
-        /// Issue #8193 tracks filling this out to the full specification. 
-        /// 
-        ///     https://github.com/dotnet/roslyn/issues/8193
-        /// </summary>
-        private static string CreateDeterminismKey(CommandLineArguments args, string[] rawArgs, string baseDirectory, CommandLineParser parser)
-        {
-            List<Diagnostic> diagnostics = new List<Diagnostic>();
-            var flattenedArgs = ArrayBuilder<string>.GetInstance();
-            parser.FlattenArgs(rawArgs, diagnostics, flattenedArgs, null, baseDirectory);
-
-            var builder = new StringBuilder();
-            var name = !string.IsNullOrEmpty(args.OutputFileName)
-                ? Path.GetFileNameWithoutExtension(Path.GetFileName(args.OutputFileName))
-                : $"no-output-name-{Guid.NewGuid().ToString()}";
-
-            builder.AppendLine($"{name}");
-            builder.AppendLine($"Command Line:");
-            foreach (var current in flattenedArgs)
-            {
-                builder.AppendLine($"\t{current}");
-            }
-
-            builder.AppendLine("Source Files:");
-            var hash = MD5.Create();
-            foreach (var sourceFile in args.SourceFiles)
-            {
-                var sourceFileName = Path.GetFileName(sourceFile.Path);
-
-                string hashValue;
-                try
-                {
-                    var bytes = File.ReadAllBytes(sourceFile.Path);
-                    var hashBytes = hash.ComputeHash(bytes);
-                    var data = BitConverter.ToString(hashBytes);
-                    hashValue = data.Replace("-", "");
-                }
-                catch (Exception ex)
-                {
-                    hashValue = $"Could not compute {ex.Message}";
-                }
-                builder.AppendLine($"\t{sourceFileName} - {hashValue}");
-            }
-
-            flattenedArgs.Free();
-            return builder.ToString();
+            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, pathMap, emitOptions);
+            var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
+            using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            var bytes = Encoding.UTF8.GetBytes(key);
+            stream.Write(bytes, 0, bytes.Length);
         }
     }
 }

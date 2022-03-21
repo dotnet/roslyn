@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             else if (hintDocument is not null)
             {
                 // If there is no file header preference, see if we can use the one in the hint document
-                var syntaxFacts = hintDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+                var bannerService = hintDocument.GetRequiredLanguageService<IFileBannerFactsService>();
                 var hintSyntaxRoot = await hintDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var fileBanner = syntaxFacts.GetFileBanner(hintSyntaxRoot);
+                var fileBanner = bannerService.GetFileBanner(hintSyntaxRoot);
 
                 var rootWithBanner = rootToFormat.WithPrependedLeadingTrivia(fileBanner);
                 return document.WithSyntaxRoot(rootWithBanner);

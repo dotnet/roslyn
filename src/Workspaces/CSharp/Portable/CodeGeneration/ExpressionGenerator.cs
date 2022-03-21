@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -52,18 +50,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
         internal static ExpressionSyntax GenerateExpression(
-            ITypeSymbol type,
-            object value,
+            ITypeSymbol? type,
+            object? value,
             bool canUseFieldReference)
         {
-            if (value != null)
+            if (type != null && value != null)
             {
                 if (type.TypeKind == TypeKind.Enum)
                 {
                     var enumType = (INamedTypeSymbol)type;
-                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.TryCreateEnumConstantValue(enumType, value);
+                    return (ExpressionSyntax)CSharpFlagsEnumGenerator.Instance.CreateEnumConstantValue(enumType, value);
                 }
-                else if (type.IsNullable())
+
+                if (type.IsNullable())
                 {
                     // If the type of the argument is T?, then the type of the supplied default value can either be T 
                     // (e.g. int? x = 5) or it can be T? (e.g. SomeStruct? x = null). The below statement handles the case
@@ -75,23 +74,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return GenerateNonEnumValueExpression(type, value, canUseFieldReference);
         }
 
-        internal static ExpressionSyntax GenerateNonEnumValueExpression(ITypeSymbol type, object value, bool canUseFieldReference)
+        internal static ExpressionSyntax GenerateNonEnumValueExpression(ITypeSymbol? type, object? value, bool canUseFieldReference)
             => value switch
             {
                 bool val => GenerateBooleanLiteralExpression(val),
                 string val => GenerateStringLiteralExpression(val),
                 char val => GenerateCharLiteralExpression(val),
-                sbyte val => GenerateLiteralExpression(type, val, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (sbyte)-x, "128"),
-                short val => GenerateLiteralExpression(type, val, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (short)-x, "32768"),
-                int val => GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, "2147483648"),
-                long val => GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, "9223372036854775808"),
-                byte val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v)),
-                ushort val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v)),
-                uint val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal),
-                ulong val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal),
+                sbyte val => GenerateLiteralExpression(type, val, LiteralSpecialValues.SByteSpecialValues, formatString: null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (sbyte)-x, "128"),
+                short val => GenerateLiteralExpression(type, val, LiteralSpecialValues.Int16SpecialValues, formatString: null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v), x => x < 0, x => (short)-x, "32768"),
+                int val => GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, "2147483648"),
+                long val => GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, "9223372036854775808"),
+                byte val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.ByteSpecialValues, formatString: null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v)),
+                ushort val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt16SpecialValues, formatString: null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v)),
+                uint val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt32SpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal),
+                ulong val => GenerateNonNegativeLiteralExpression(type, val, LiteralSpecialValues.UInt64SpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal),
                 float val => GenerateSingleLiteralExpression(type, val, canUseFieldReference),
                 double val => GenerateDoubleLiteralExpression(type, val, canUseFieldReference),
-                decimal val => GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, null),
+                decimal val => GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, formatString: null, canUseFieldReference, SyntaxFactory.Literal, x => x < 0, x => -x, integerMinValueString: null),
                 _ => type == null || type.IsReferenceType || type.IsPointerType() || type.IsNullable()
                     ? GenerateNullLiteral()
                     : (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(type),
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 SyntaxKind.CharacterLiteralExpression, SyntaxFactory.Literal(literal, val));
         }
 
-        private static string DetermineSuffix(ITypeSymbol type, object value)
+        private static string DetermineSuffix(ITypeSymbol? type, object value)
         {
             if (value is float)
             {
@@ -126,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 var isNotSingle = !IsSpecialType(type, SpecialType.System_Single);
                 var containsDoubleCharacter =
-                    stringValue.Contains("E") || stringValue.Contains("e") || stringValue.Contains(".") ||
-                    stringValue.Contains("+") || stringValue.Contains("-");
+                    stringValue.Contains('E') || stringValue.Contains('e') || stringValue.Contains('.') ||
+                    stringValue.Contains('+') || stringValue.Contains('-');
 
                 if (isNotSingle || containsDoubleCharacter)
                 {
@@ -160,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var scale = d.GetScale();
 
                 var isNotDecimal = !IsSpecialType(type, SpecialType.System_Decimal);
-                var isOutOfRange = d < long.MinValue || d > long.MaxValue;
+                var isOutOfRange = d is < long.MinValue or > long.MaxValue;
                 var scaleIsNotZero = scale != 0;
 
                 if (isNotDecimal || isOutOfRange || scaleIsNotZero)
@@ -172,50 +171,50 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return string.Empty;
         }
 
-        private static ExpressionSyntax GenerateDoubleLiteralExpression(ITypeSymbol type, double value, bool canUseFieldReference)
+        private static ExpressionSyntax GenerateDoubleLiteralExpression(ITypeSymbol? type, double value, bool canUseFieldReference)
         {
             if (!canUseFieldReference)
             {
                 if (double.IsNaN(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateDoubleLiteralExpression(null, 0.0, false),
-                        GenerateDoubleLiteralExpression(null, 0.0, false));
+                        GenerateDoubleLiteralExpression(type: null, 0.0, canUseFieldReference: false),
+                        GenerateDoubleLiteralExpression(type: null, 0.0, canUseFieldReference: false));
                 }
                 else if (double.IsPositiveInfinity(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateDoubleLiteralExpression(null, 1.0, false),
-                        GenerateDoubleLiteralExpression(null, 0.0, false));
+                        GenerateDoubleLiteralExpression(type: null, 1.0, canUseFieldReference: false),
+                        GenerateDoubleLiteralExpression(type: null, 0.0, canUseFieldReference: false));
                 }
                 else if (double.IsNegativeInfinity(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
                         SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, GenerateDoubleLiteralExpression(null, 1.0, false)),
-                        GenerateDoubleLiteralExpression(null, 0.0, false));
+                        GenerateDoubleLiteralExpression(type: null, 0.0, canUseFieldReference: false));
                 }
             }
 
             return GenerateLiteralExpression(
-                type, value, LiteralSpecialValues.DoubleSpecialValues, "R", canUseFieldReference,
-                SyntaxFactory.Literal, x => x < 0, x => -x, null);
+                type, value, LiteralSpecialValues.DoubleSpecialValues, formatString: "R", canUseFieldReference,
+                SyntaxFactory.Literal, x => x < 0, x => -x, integerMinValueString: null);
         }
 
-        private static ExpressionSyntax GenerateSingleLiteralExpression(ITypeSymbol type, float value, bool canUseFieldReference)
+        private static ExpressionSyntax GenerateSingleLiteralExpression(ITypeSymbol? type, float value, bool canUseFieldReference)
         {
             if (!canUseFieldReference)
             {
                 if (float.IsNaN(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateSingleLiteralExpression(null, 0.0F, false),
-                        GenerateSingleLiteralExpression(null, 0.0F, false));
+                        GenerateSingleLiteralExpression(type: null, 0.0F, canUseFieldReference: false),
+                        GenerateSingleLiteralExpression(type: null, 0.0F, canUseFieldReference: false));
                 }
                 else if (float.IsPositiveInfinity(value))
                 {
                     return SyntaxFactory.BinaryExpression(SyntaxKind.DivideExpression,
-                        GenerateSingleLiteralExpression(null, 1.0F, false),
-                        GenerateSingleLiteralExpression(null, 0.0F, false));
+                        GenerateSingleLiteralExpression(type: null, 1.0F, canUseFieldReference: false),
+                        GenerateSingleLiteralExpression(type: null, 0.0F, canUseFieldReference: false));
                 }
                 else if (float.IsNegativeInfinity(value))
                 {
@@ -226,27 +225,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             return GenerateLiteralExpression(
-                type, value, LiteralSpecialValues.SingleSpecialValues, "R", canUseFieldReference,
+                type, value, LiteralSpecialValues.SingleSpecialValues, formatString: "R", canUseFieldReference,
                 SyntaxFactory.Literal, x => x < 0, x => -x, null);
         }
 
         private static ExpressionSyntax GenerateNonNegativeLiteralExpression<T>(
-            ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants,
-            string formatString, bool canUseFieldReference,
+            ITypeSymbol? type, T value, IEnumerable<KeyValuePair<T, string>> constants,
+            string? formatString, bool canUseFieldReference,
             Func<string, T, SyntaxToken> tokenFactory)
             where T : IEquatable<T>
         {
             return GenerateLiteralExpression(
                 type, value, constants, formatString, canUseFieldReference,
-                tokenFactory, isNegative: x => false, negate: t => throw new InvalidOperationException(), null);
+                tokenFactory, isNegative: x => false, negate: t => throw new InvalidOperationException(), integerMinValueString: null);
         }
 
         private static ExpressionSyntax GenerateLiteralExpression<T>(
-            ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants,
-            string formatString, bool canUseFieldReference,
+            ITypeSymbol? type, T value, IEnumerable<KeyValuePair<T, string>> constants,
+            string? formatString, bool canUseFieldReference,
             Func<string, T, SyntaxToken> tokenFactory,
             Func<T, bool> isNegative, Func<T, T> negate,
-            string integerMinValueString)
+            string? integerMinValueString)
             where T : IEquatable<T>
         {
             if (canUseFieldReference)
@@ -267,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var suffix = DetermineSuffix(type, nonNegativeValue);
 
             var stringValue = negative && nonNegativeValue.Equals(value)
-                ? integerMinValueString
+                ? (integerMinValueString ?? throw ExceptionUtilities.Unreachable)
                 : ((IFormattable)nonNegativeValue).ToString(formatString, CultureInfo.InvariantCulture) + suffix;
 
             var literal = SyntaxFactory.LiteralExpression(
@@ -275,17 +274,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return negative
                 ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, literal)
-                : (ExpressionSyntax)literal;
+                : literal;
         }
 
-        private static ExpressionSyntax GenerateFieldReference<T>(ITypeSymbol type, T value, IEnumerable<KeyValuePair<T, string>> constants)
+        private static ExpressionSyntax? GenerateFieldReference<T>(ITypeSymbol? type, T value, IEnumerable<KeyValuePair<T, string>> constants)
+            where T : IEquatable<T>
         {
             foreach (var constant in constants)
             {
                 if (constant.Key.Equals(value))
                 {
                     var memberAccess = GenerateMemberAccess("System", typeof(T).Name);
-                    if (type != null && !(type is IErrorTypeSymbol))
+                    if (type is not null and not IErrorTypeSymbol)
                     {
                         memberAccess = memberAccess.WithAdditionalAnnotations(SpecialTypeAnnotation.Create(type.SpecialType));
                     }

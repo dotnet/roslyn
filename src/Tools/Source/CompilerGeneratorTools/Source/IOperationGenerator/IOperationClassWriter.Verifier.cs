@@ -60,7 +60,7 @@ namespace IOperationGenerator
                     }
                 }
 
-                if (!(abstractNode is Node node))
+                if (abstractNode is not Node node)
                     continue;
                 if (node.SkipChildrenGeneration || node.SkipClassGeneration)
                     continue;

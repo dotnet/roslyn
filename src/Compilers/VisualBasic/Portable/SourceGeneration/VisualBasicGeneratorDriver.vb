@@ -44,9 +44,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Create(generators, additionalTexts, parseOptions, analyzerConfigOptionsProvider, driverOptions:=Nothing)
         End Function
 
-        Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection
-            Return New AdditionalSourcesCollection(".vb")
-        End Function
+        Friend Overrides ReadOnly Property SourceExtension As String
+            Get
+                Return ".vb"
+            End Get
+        End Property
 
     End Class
 

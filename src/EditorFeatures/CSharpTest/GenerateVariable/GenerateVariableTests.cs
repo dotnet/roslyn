@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -73,6 +71,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
         goo;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSimpleLowercaseIdentifierAllOptionsOffered()
+        {
+            await TestExactActionSetOfferedAsync(
+@"class Class
+{
+    void Method()
+    {
+        [|goo|];
+    }
+}",
+new[]
+{
+    string.Format(FeaturesResources.Generate_field_0, "goo"),
+    string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
+    string.Format(FeaturesResources.Generate_property_0, "goo"),
+    string.Format(FeaturesResources.Generate_local_0, "goo"),
+    string.Format(FeaturesResources.Generate_parameter_0, "goo"),
+});
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestUnderscorePrefixAllOptionsOffered()
+        {
+            await TestExactActionSetOfferedAsync(
+@"class Class
+{
+    void Method()
+    {
+        [|_goo|];
+    }
+}",
+new[]
+{
+    string.Format(FeaturesResources.Generate_field_0, "_goo"),
+    string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
+});
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -278,7 +315,7 @@ class Class
         [|goo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -298,7 +335,7 @@ class Class : Base
         [|goo|] = 1;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_property_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -453,7 +490,7 @@ class Class
         Method(out [|goo|]);
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "goo", "Class"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo") });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -2083,7 +2120,7 @@ class D
         [|p|]++;
     }
 }",
-new[] { string.Format(FeaturesResources.Generate_field_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_property_1_0, "p", "Program"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
+new[] { string.Format(FeaturesResources.Generate_field_0, "p"), string.Format(FeaturesResources.Generate_property_0, "p"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p") });
 
             await TestInRegularAndScriptAsync(
 @"class Program
@@ -7308,7 +7345,7 @@ public class Test
     {
         get
         {
-            return [|_field|];
+            return [|goo|];
         }
     }
 }",
@@ -7320,11 +7357,11 @@ public class Test
     {
         get
         {
-            return _field;
+            return goo;
         }
     }
 
-    public static int _field { get; private set; }
+    public static int goo { get; private set; }
 }",
 index: PropertyIndex);
         }
@@ -7342,7 +7379,7 @@ public class Test
     {
         get
         {
-            return [|_field|];
+            return [|goo|];
         }
     }
 }",
@@ -7354,8 +7391,8 @@ public class Test
     {
         get
         {
-            int _field = 0;
-            return _field;
+            int goo = 0;
+            return goo;
         }
     }
 }",
@@ -9465,8 +9502,8 @@ class C
     }
 }", new[]
 {
-    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
-    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_property_0, "Field"),
+    string.Format(FeaturesResources.Generate_field_0, "Field"),
 });
         }
 
@@ -9488,8 +9525,8 @@ class C
     }
 }", new[]
 {
-    string.Format(FeaturesResources.Generate_property_1_0, "Field", "C"),
-    string.Format(FeaturesResources.Generate_field_1_0, "Field", "C"),
+    string.Format(FeaturesResources.Generate_property_0, "Field"),
+    string.Format(FeaturesResources.Generate_field_0, "Field"),
 });
         }
 
@@ -9520,6 +9557,66 @@ namespace ConsoleApp5
         public async Task TestMissingOfferParameterInTopLevel()
         {
             await TestMissingAsync("[|Console|].WriteLine();", new TestParameters(Options.Regular));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [WorkItem(47586, "https://github.com/dotnet/roslyn/issues/47586")]
+        public async Task TestGenerateParameterFromLambda()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        Action<int> call = _ => Debug.Assert([|expected|]);
+    }
+}",
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething(bool expected)
+    {
+        Action<int> call = _ => Debug.Assert(expected);
+    }
+}", index: Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [WorkItem(47586, "https://github.com/dotnet/roslyn/issues/47586")]
+        public async Task TestGenerateParameterFromLambdaInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        void M()
+        {
+            Action<int> call = _ => Debug.Assert([|expected|]);
+        }
+    }
+}",
+@"using System;
+using System.Diagnostics;
+
+class Class
+{
+    private static void AssertSomething()
+    {
+        void M(bool expected)
+        {
+            Action<int> call = _ => Debug.Assert(expected);
+        }
+    }
+}", index: Parameter);
         }
     }
 }

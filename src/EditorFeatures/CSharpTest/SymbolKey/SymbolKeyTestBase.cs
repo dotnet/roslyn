@@ -393,10 +393,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             private static void GetAnonymousExprSymbols(ExpressionSyntax expr, SemanticModel model, List<ISymbol> list)
             {
                 var kind = expr.Kind();
-                if (kind != SyntaxKind.AnonymousObjectCreationExpression &&
-                    kind != SyntaxKind.AnonymousMethodExpression &&
-                    kind != SyntaxKind.ParenthesizedLambdaExpression &&
-                    kind != SyntaxKind.SimpleLambdaExpression)
+                if (kind is not SyntaxKind.AnonymousObjectCreationExpression and
+                    not SyntaxKind.AnonymousMethodExpression and
+                    not SyntaxKind.ParenthesizedLambdaExpression and
+                    not SyntaxKind.SimpleLambdaExpression)
                 {
                     return;
                 }

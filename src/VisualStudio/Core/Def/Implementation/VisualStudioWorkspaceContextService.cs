@@ -6,54 +6,39 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceService(typeof(IWorkspaceContextService), ServiceLayer.Host), Shared]
-    internal class VisualStudioWorkspaceContextService : IWorkspaceContextService
+    internal sealed class VisualStudioWorkspaceContextService : IWorkspaceContextService
     {
-        /// <summary>
-        /// Roslyn LSP feature flag name, as defined in the PackageRegistraion.pkgdef
-        /// by everything following '$RootKey$\FeatureFlags\' and '\' replaced by '.'
-        /// </summary>
-        public const string LspEditorFeatureFlagName = "Roslyn.LSP.Editor";
-
         // UI context defined by Live Share when connected as a guest in a Live Share session
         // https://devdiv.visualstudio.com/DevDiv/_git/Cascade?path=%2Fsrc%2FVS%2FContracts%2FGuidList.cs&version=GBmain&line=32&lineEnd=33&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents
-        private static readonly Guid LiveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
+        private static readonly Guid s_liveShareGuestUIContextGuid = Guid.Parse("fd93f3eb-60da-49cd-af15-acda729e357e");
 
-        private readonly Workspace _workspace;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceContextService(VisualStudioWorkspace vsWorkspace)
+        public VisualStudioWorkspaceContextService(IGlobalOptionService globalOptions)
         {
-            _workspace = vsWorkspace;
+            _globalOptions = globalOptions;
         }
 
         public bool IsCloudEnvironmentClient()
-        {
-            var context = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid);
-            return context.IsActive;
-        }
+            => UIContext.FromUIContextGuid(VSConstants.UICONTEXT.CloudEnvironmentConnected_guid).IsActive;
 
         public bool IsInLspEditorContext()
-        {
-            var featureFlagService = _workspace.Services.GetRequiredService<IExperimentationService>();
-            var isInLspContext = IsLiveShareGuest() || IsCloudEnvironmentClient() || featureFlagService.IsExperimentEnabled(LspEditorFeatureFlagName);
-            return isInLspContext;
-        }
+            => IsLiveShareGuest() || IsCloudEnvironmentClient() || _globalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
 
         /// <summary>
         /// Checks if the VS instance is running as a Live Share guest session.
         /// </summary>
         private static bool IsLiveShareGuest()
-        {
-            var context = UIContext.FromUIContextGuid(LiveShareGuestUIContextGuid);
-            return context.IsActive;
-        }
+            => UIContext.FromUIContextGuid(s_liveShareGuestUIContextGuid).IsActive;
     }
 }

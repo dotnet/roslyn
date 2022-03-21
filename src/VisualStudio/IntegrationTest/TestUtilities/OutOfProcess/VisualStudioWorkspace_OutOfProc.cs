@@ -4,8 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -26,9 +24,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc.SetOptionInfer(projectName, value);
             WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
-
-        public void SetPersistenceOption(bool value)
-            => SetOption("Enabled", PersistentStorageOptions.OptionName, value);
 
         public bool IsPrettyListingOn(string languageName)
             => _inProc.IsPrettyListingOn(languageName);
@@ -60,74 +55,40 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
 
-        public void SetQuickInfo(bool value)
-            => _inProc.EnableQuickInfo(value);
-
         public void SetImportCompletionOption(bool value)
         {
-            SetPerLanguageOption(
-                optionName: "ShowItemsFromUnimportedNamespaces",
-                feature: "CompletionOptions",
-                language: LanguageNames.CSharp,
-                value: value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, value);
+        }
 
-            SetPerLanguageOption(
-                optionName: "ShowItemsFromUnimportedNamespaces",
-                feature: "CompletionOptions",
-                language: LanguageNames.VisualBasic,
-                value: value);
+        public void SetEnableDecompilationOption(bool value)
+        {
+            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
         }
 
         public void SetArgumentCompletionSnippetsOption(bool value)
         {
-            SetPerLanguageOption(
-                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
-                language: LanguageNames.CSharp,
-                value: value);
-
-            SetPerLanguageOption(
-                optionName: CompletionOptions.EnableArgumentCompletionSnippets.Name,
-                feature: CompletionOptions.EnableArgumentCompletionSnippets.Feature,
-                language: LanguageNames.VisualBasic,
-                value: value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, value);
         }
 
         public void SetTriggerCompletionInArgumentLists(bool value)
-        {
-            SetPerLanguageOption(
-                optionName: CompletionOptions.TriggerInArgumentLists.Name,
-                feature: CompletionOptions.TriggerInArgumentLists.Feature,
-                language: LanguageNames.CSharp,
-                value: value);
-        }
+            => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
 
         public void SetFullSolutionAnalysis(bool value)
         {
-            SetPerLanguageOption(
-                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
-                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
-                language: LanguageNames.CSharp,
-                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
-
-            SetPerLanguageOption(
-                optionName: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Name,
-                feature: SolutionCrawlerOptions.BackgroundAnalysisScopeOption.Feature,
-                language: LanguageNames.VisualBasic,
-                value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
+            var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
         }
 
-        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
-        {
-            SetOption(
-                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.EnableOpeningInWorkspace.Name,
-                feature: LanguageServices.Implementation.SourceGeneratedFileManager.EnableOpeningInWorkspace.Feature,
-                value: value);
-        }
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
+        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
+            => _inProc.SetGlobalOption(option, language, value);
     }
 }

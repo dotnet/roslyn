@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                 //
                 // Similarly if this is for the codefix only offer if we do see that there's an error.
                 var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, fullHeader: true, out _))
+                var headerFacts = semanticDocument.Document.GetRequiredLanguageService<IHeaderFactsService>();
+                if (headerFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, fullHeader: true, out _))
                 {
                     var fixesError = FixesError(classType, baseType);
                     if (forRefactoring == fixesError)
@@ -99,6 +100,14 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                     {
                         // this code is in error, but we're the refactoring codepath.  Offer nothing
                         // and let the code fix provider handle it instead.
+                        return true;
+                    }
+
+                    // If this is a struct that has initializers, but is missing a parameterless constructor then we are fixing
+                    // an error (CS8983) but since this is the only scenario where we support structs we don't need to actually
+                    // check for anything else.
+                    if (classType.TypeKind == TypeKind.Struct)
+                    {
                         return true;
                     }
                 }

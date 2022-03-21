@@ -18,6 +18,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var comp = CSharpCompilation.Create(
                 name,
                 new[] { SyntaxFactory.ParseSyntaxTree(@"class C {}") },
-                references: new MetadataReference[] { MetadataReference.CreateFromImage(TestMetadata.ResourcesNetStandard20.netstandard) },
+                references: new MetadataReference[] { NetStandard20.netstandard },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel));
             var compFile = directory.CreateFile(name);
             comp.Emit(compFile.Path);

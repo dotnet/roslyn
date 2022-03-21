@@ -70,7 +70,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
             Assert.False(viewModel.ShowMessage)
         End Sub
 
-        Private Function CreateViewModel(Optional defaultNamespace As String = Nothing, Optional availableNamespaces As ImmutableArray(Of String) = Nothing) As MoveToNamespaceDialogViewModel
+        Private Shared Function CreateViewModel(Optional defaultNamespace As String = Nothing, Optional availableNamespaces As ImmutableArray(Of String) = Nothing) As MoveToNamespaceDialogViewModel
             If (defaultNamespace Is Nothing) Then
                 defaultNamespace = "Default.Namespace"
             End If

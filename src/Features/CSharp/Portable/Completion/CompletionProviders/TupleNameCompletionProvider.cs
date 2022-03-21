@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -36,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
             try
@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
-                var workspace = document.Project.Solution.Workspace;
-                var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
 
                 var index = GetElementIndex(context);
                 if (index == null)
@@ -55,15 +54,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
-                var inferredTypes = typeInferrer.InferTypes(semanticModel, context.TargetToken.Parent.SpanStart, cancellationToken)
+                var typeInferrer = document.GetRequiredLanguageService<ITypeInferenceService>();
+                var inferredTypes = typeInferrer.InferTypes(semanticModel, context.TargetToken.Parent!.SpanStart, cancellationToken)
                         .Where(t => t.IsTupleType)
                         .Cast<INamedTypeSymbol>()
                         .ToImmutableArray();
 
                 AddItems(inferredTypes, index.Value, completionContext, context.TargetToken.Parent.SpanStart);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -82,9 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
             }
 
-            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.TupleExpression))
+            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent is TupleExpressionSyntax tupleExpr)
             {
-                var tupleExpr = (TupleExpressionSyntax)context.TargetToken.Parent as TupleExpressionSyntax;
                 return (tupleExpr.Arguments.GetWithSeparators().IndexOf(context.TargetToken) + 1) / 2;
             }
 

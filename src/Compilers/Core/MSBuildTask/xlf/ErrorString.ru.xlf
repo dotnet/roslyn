@@ -101,7 +101,7 @@
       </trans-unit>
       <trans-unit id="ImplicitlySkipAnalyzersMessage">
         <source>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</source>
-        <target state="new">Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</target>
+        <target state="translated">Анализаторы пропускаются для ускорения сборки. Для запуска анализаторов можно выполнить команды "Собрать" или "Пересобрать".</target>
         <note />
       </trans-unit>
       <trans-unit id="SharedCompilationFallback">

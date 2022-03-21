@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
 
+            return RegionAnalysisContext((CSharpSyntaxNode)expression);
+        }
+
+        private RegionAnalysisContext RegionAnalysisContext(CSharpSyntaxNode expression)
+        {
             var memberModel = GetMemberModel(expression);
             if (memberModel == null)
             {

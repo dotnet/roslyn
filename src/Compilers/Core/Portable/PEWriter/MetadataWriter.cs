@@ -1798,13 +1798,18 @@ namespace Microsoft.Cci
 
                 DefineModuleImportScope();
 
+                EmbedTypeDefinitionDocumentInformation(module);
+
                 if (module.SourceLinkStreamOpt != null)
                 {
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                EmbedCompilationOptions(module);
-                EmbedMetadataReferenceInformation(module);
+                if (!module.IsEncDelta)
+                {
+                    EmbedCompilationOptions(module);
+                    EmbedMetadataReferenceInformation(module);
+                }
             }
 
             int[] methodBodyOffsets;
@@ -4111,8 +4116,8 @@ namespace Microsoft.Cci
                 Debug.Assert(!this.TryGetValue(item, out i));
 #endif
                 int index = _firstRowId + _rows.Count;
-                this.AddItem(item, index);
                 _rows.Add(item);
+                this.AddItem(item, index);
                 return index;
             }
 

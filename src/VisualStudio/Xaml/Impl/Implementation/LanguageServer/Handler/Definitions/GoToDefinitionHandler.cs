@@ -20,13 +20,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions;
+using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Definitions
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(Methods.TextDocumentDefinitionName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(GoToDefinitionHandler)), Shared]
+    [Method(Methods.TextDocumentDefinitionName)]
     internal class GoToDefinitionHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -37,8 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
-
-        public override string Method => Methods.TextDocumentDefinitionName;
 
         public override bool MutatesSolutionState => false;
 
@@ -108,38 +107,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
             Contract.ThrowIfNull(sourceDefinition.FilePath);
 
-            var document = context.Solution?.GetDocuments(ProtocolConversions.GetUriFromFilePath(sourceDefinition.FilePath)).FirstOrDefault();
-            if (document != null)
+            if (sourceDefinition.Span != null)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var span = sourceDefinition.GetTextSpan(sourceText);
-                if (span != null)
+                // If the Span is not null, use the span.
+                var document = context.Solution?.GetDocuments(ProtocolConversions.GetUriFromFilePath(sourceDefinition.FilePath)).FirstOrDefault();
+                if (document != null)
                 {
                     return await ProtocolConversions.TextSpanToLocationAsync(
                                                 document,
-                                                span.Value,
+                                                sourceDefinition.Span.Value,
                                                 isStale: false,
                                                 cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    // Cannot find the file in solution. This is probably a file lives outside of the solution like generic.xaml
+                    // which lives in the Windows SDK folder. Try getting the SourceText from the file path.
+                    using var fileStream = new FileStream(sourceDefinition.FilePath, FileMode.Open, FileAccess.Read);
+                    var sourceText = SourceText.From(fileStream);
+                    return new LSP.Location
+                    {
+                        Uri = new Uri(sourceDefinition.FilePath),
+                        Range = ProtocolConversions.TextSpanToRange(sourceDefinition.Span.Value, sourceText)
+                    };
                 }
             }
             else
             {
-                // Cannot find the file in solution. This is probably a file lives outside of the solution like generic.xaml
-                // which lives in the Windows SDK folder. Try getting the SourceText from the file path.
-                using var fileStream = new FileStream(sourceDefinition.FilePath, FileMode.Open, FileAccess.Read);
-                var sourceText = SourceText.From(fileStream);
-                var span = sourceDefinition.GetTextSpan(sourceText);
-                if (span != null)
-                {
-                    return new LSP.Location
-                    {
-                        Uri = new Uri(sourceDefinition.FilePath),
-                        Range = ProtocolConversions.TextSpanToRange(span.Value, sourceText),
-                    };
-                }
-            }
+                // We should have the line and column, so use them to build the LSP Range.
+                var position = new Position(sourceDefinition.Line, sourceDefinition.Column);
 
-            return null;
+                return new LSP.Location
+                {
+                    Uri = new Uri(sourceDefinition.FilePath),
+                    Range = new LSP.Range() { Start = position, End = position }
+                };
+            }
         }
 
         private static async Task<LSP.Location[]> GetSymbolDefinitionLocationsAsync(XamlSymbolDefinition symbolDefinition, RequestContext context, IMetadataAsSourceFileService metadataAsSourceFileService, CancellationToken cancellationToken)
@@ -162,13 +165,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
             else
             {
-                var metadataLocation = symbol.Locations.Where(loc => loc.IsInMetadata).FirstOrDefault();
-                if (metadataLocation != null && metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+                if (metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
                     var project = context.Document?.GetCodeProject();
                     if (project != null)
                     {
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

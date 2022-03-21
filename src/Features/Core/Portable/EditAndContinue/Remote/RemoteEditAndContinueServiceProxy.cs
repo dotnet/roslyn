@@ -13,7 +13,8 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).GetActiveStatementsAsync(cancellationToken);
 
-            public ValueTask<ManagedEditAndContinueAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
+            public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
                 => ((EditSessionCallback)GetCallback(callbackId)).GetAvailabilityAsync(mvid, cancellationToken);
 
             public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class EditSessionCallback
         {
-            private readonly IManagedEditAndContinueDebuggerService _debuggerService;
+            private readonly IManagedHotReloadService _debuggerService;
 
-            public EditSessionCallback(IManagedEditAndContinueDebuggerService debuggerService)
+            public EditSessionCallback(IManagedHotReloadService debuggerService)
             {
                 _debuggerService = debuggerService;
             }
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
             }
 
-            public async ValueTask<ManagedEditAndContinueAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
+            public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
             {
                 try
                 {
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
-                    return new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.InternalError, e.Message);
+                    return new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.InternalError, e.Message);
                 }
             }
 
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
             Solution solution,
-            IManagedEditAndContinueDebuggerService debuggerService,
+            IManagedHotReloadService debuggerService,
             ImmutableArray<DocumentId> captureMatchingDocuments,
             bool captureAllMatchingDocuments,
             bool reportDiagnostics,
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Workaround for solution crawler not supporting mapped locations to make Razor work.
                 // We pretend the diagnostic is in the original document, but use the mapped line span.
                 // Razor will ignore the column (which will be off because #line directives can't currently map columns) and only use the line number.
-                if (designTimeDocument != document && data.DataLocation.IsMapped)
+                if (designTimeDocument != document)
                 {
                     diagnostic = RemapLocation(designTimeDocument, data);
                 }
@@ -208,8 +209,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.Assert(data.DataLocation != null);
             Debug.Assert(designTimeDocument.FilePath != null);
 
-            var mappedSpan = data.DataLocation.GetFileLinePositionSpan();
-            var location = Location.Create(designTimeDocument.FilePath, textSpan: default, mappedSpan.Span);
+            // If the location in the generated document is in a scope of user-visible #line mapping use the mapped span,
+            // otherwise (if it's hidden) display the diagnostic at the start of the file.
+            var span = data.DataLocation.IsMapped ? data.DataLocation.GetFileLinePositionSpan().Span : default;
+            var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
 
             return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
         }

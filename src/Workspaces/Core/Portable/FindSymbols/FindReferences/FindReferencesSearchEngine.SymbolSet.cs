@@ -126,10 +126,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// multi-targetting/shared-project documents.  This will not include symbols up or down the inheritance
             /// hierarchy.
             /// </summary>
-            private static async Task<HashSet<ISymbol>> DetermineInitialSearchSymbolsAsync(
+            private static async Task<MetadataUnifyingSymbolHashSet> DetermineInitialSearchSymbolsAsync(
                 FindReferencesSearchEngine engine, ISymbol symbol, CancellationToken cancellationToken)
             {
-                var result = new HashSet<ISymbol>();
+                var result = new MetadataUnifyingSymbolHashSet();
                 var workQueue = new Stack<ISymbol>();
 
                 // Start with the initial symbol we're searching for.
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private static async Task<HashSet<ISymbol>> DetermineInitialUpSymbolsAsync(
                 FindReferencesSearchEngine engine, HashSet<ISymbol> initialSymbols, CancellationToken cancellationToken)
             {
-                var upSymbols = new HashSet<ISymbol>();
+                var upSymbols = new MetadataUnifyingSymbolHashSet();
                 var workQueue = new Stack<ISymbol>();
                 workQueue.Push(initialSymbols);
 
@@ -164,14 +164,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             protected static async Task AddCascadedAndLinkedSymbolsToAsync(
-                FindReferencesSearchEngine engine, ImmutableArray<ISymbol> symbols, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
+                FindReferencesSearchEngine engine, ImmutableArray<ISymbol> symbols, MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
             {
                 foreach (var symbol in symbols)
                     await AddCascadedAndLinkedSymbolsToAsync(engine, symbol, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
             }
 
             protected static async Task AddCascadedAndLinkedSymbolsToAsync(
-                FindReferencesSearchEngine engine, ISymbol symbol, HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
+                FindReferencesSearchEngine engine, ISymbol symbol, MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
             {
                 var solution = engine._solution;
                 symbol = await MapAndAddLinkedSymbolsAsync(symbol).ConfigureAwait(false);
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </remarks>
             protected static async Task AddDownSymbolsAsync(
                 FindReferencesSearchEngine engine, ISymbol symbol,
-                HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
+                MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue,
                 ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(projects.Count == 1, "Only a single project should be passed in");
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// </summary>
             protected static async Task AddUpSymbolsAsync(
                 FindReferencesSearchEngine engine, ISymbol symbol,
-                HashSet<ISymbol> seenSymbols, Stack<ISymbol> workQueue,
+                MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue,
                 ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
             {
                 if (!InvolvesInheritance(symbol))

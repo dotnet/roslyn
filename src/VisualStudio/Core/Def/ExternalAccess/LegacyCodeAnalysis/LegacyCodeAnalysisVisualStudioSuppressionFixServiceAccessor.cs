@@ -4,7 +4,9 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices;
@@ -43,6 +45,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
             {
                 errorReportingService.ShowGlobalErrorInfo(
                     string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    TelemetryFeatureName.LegacySuppressionFix,
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,
@@ -62,7 +66,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
             catch (Exception ex)
             {
                 errorReportingService.ShowGlobalErrorInfo(
-                    string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    message: string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    TelemetryFeatureName.LegacySuppressionFix,
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,
@@ -82,7 +88,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis
             catch (Exception ex)
             {
                 errorReportingService.ShowGlobalErrorInfo(
-                    string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    message: string.Format(ServicesVSResources.Error_updating_suppressions_0, ex.Message),
+                    TelemetryFeatureName.LegacySuppressionFix,
+                    ex,
                     new InfoBarUI(
                         WorkspacesResources.Show_Stack_Trace,
                         InfoBarUI.UIKind.HyperLink,

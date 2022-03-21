@@ -33,7 +33,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
         protected abstract bool IsNameOf(SyntaxNode node);
 
-        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+        // High priority as we need to know about unbound identifiers so that we can run add-using to fix them.
+        public CodeActionRequestPriority RequestPriority
+            => CodeActionRequestPriority.High;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(DiagnosticDescriptor);

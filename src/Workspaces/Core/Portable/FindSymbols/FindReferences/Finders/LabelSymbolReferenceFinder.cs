@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal class LabelSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILabelSymbol>
+    internal sealed class LabelSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILabelSymbol>
     {
         protected override Func<SyntaxToken, bool> GetTokensMatchFunction(ISyntaxFactsService syntaxFacts, string name)
         {

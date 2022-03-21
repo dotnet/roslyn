@@ -490,30 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
             {
-                bool isNullableEnabled = AreNullableAnnotationsEnabled(questionToken);
-                bool isGeneratedCode = IsGeneratedCode(questionToken);
-                var location = questionToken.GetLocation();
-
                 if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
                 {
                     // Inside a method body or other executable code, we can question IsValueType without causing cycles.
                     if (typeArgument.HasType && !ShouldCheckConstraints)
                     {
-                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(
-                            isNullableEnabled,
-                            isGeneratedCode,
-                            typeArgument,
-                            location,
-                            diagnosticBag);
+                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, typeArgument, diagnosticBag);
                     }
-                    else
+                    else if (LazyMissingNonNullTypesContextDiagnosticInfo.IsNullableReference(typeArgument.Type))
                     {
-                        LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
-                            isNullableEnabled,
-                            isGeneratedCode,
-                            typeArgument,
-                            location,
-                            diagnosticBag);
+                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, type: null, diagnosticBag);
                     }
                 }
             }
@@ -1336,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep check and error in sync with ConstructNamedTypeUnlessTypeArgumentOmitted.
         /// </remarks>
-        private static BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
+        private BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
             SyntaxNode syntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeWithAnnotations> typeArguments,
@@ -1369,6 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         members.SelectAsArray(s_toMethodSymbolFunc),
                         lookupResult,
                         methodGroupFlags,
+                        this,
                         hasErrors);
 
                 case SymbolKind.Property:

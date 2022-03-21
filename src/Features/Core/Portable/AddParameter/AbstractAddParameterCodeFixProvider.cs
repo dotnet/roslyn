@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 // Not supported if this is "new { ... }" (as there are no parameters at all.
                 var typeNode = syntaxFacts.IsImplicitObjectCreationExpression(node)
                     ? node
-                    : syntaxFacts.GetObjectCreationType(objectCreation);
+                    : syntaxFacts.GetTypeOfObjectCreationExpression(objectCreation);
                 if (typeNode == null)
                 {
                     return new RegisterFixData<TArgumentSyntax>();
@@ -278,18 +278,19 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 using var builderDisposer = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
 
-                var nonCascadingActions = ImmutableArray.CreateRange<CodeFixData, CodeAction>(codeFixData, data =>
+                var nonCascadingActions = codeFixData.SelectAsArray(data =>
                 {
                     var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
-                    return new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
+                    return (CodeAction)new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
                 });
 
-                var cascading = codeFixData.Where(data => data.CreateChangedSolutionCascading != null);
-                var cascadingActions = ImmutableArray.CreateRange<CodeAction>(cascading.Select(data =>
-                {
-                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
-                    return new MyCodeAction(title: title, data.CreateChangedSolutionCascading);
-                }));
+                var cascadingActions = codeFixData.SelectAsArray(
+                    data => data.CreateChangedSolutionCascading != null,
+                    data =>
+                    {
+                        var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
+                        return (CodeAction)new MyCodeAction(title: title, data.CreateChangedSolutionCascading!);
+                    });
 
                 var aMethod = codeFixData.First().Method; // We need to term the MethodGroup and need an arbitrary IMethodSymbol to do so.
                 var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, includeParameters: false);
@@ -325,7 +326,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
                 var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
 
-                var cascadingFix = AddParameterService.Instance.HasCascadingDeclarations(methodToUpdate)
+                var cascadingFix = AddParameterService.HasCascadingDeclarations(methodToUpdate)
                     ? new Func<CancellationToken, Task<Solution>>(c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))
                     : null;
 
@@ -343,12 +344,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)
         {
             var methodDisplay = methodToUpdate.ToDisplayString(new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
                 parameterOptions: SymbolDisplayParameterOptions.None,
-                memberOptions: methodToUpdate.IsConstructor()
-                    ? SymbolDisplayMemberOptions.None
-                    : SymbolDisplayMemberOptions.IncludeContainingType));
+                memberOptions: SymbolDisplayMemberOptions.None));
 
             var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
             var signature = includeParameters
@@ -374,7 +373,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 invocationDocument, argument, cancellationToken).ConfigureAwait(false);
 
             var newParameterIndex = isNamedArgument ? (int?)null : argumentList.IndexOf(argument);
-            return await AddParameterService.Instance.AddParameterAsync(
+            return await AddParameterService.AddParameterAsync(
                 invocationDocument,
                 method,
                 argumentType,

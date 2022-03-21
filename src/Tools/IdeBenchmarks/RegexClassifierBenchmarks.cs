@@ -85,7 +85,10 @@ class Program
 
             var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
 
-            await service.AddSemanticClassificationsAsync(document, span,
+            await service.AddSemanticClassificationsAsync(
+                document,
+                span,
+                ClassificationOptions.Default,
                 extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                 extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
                 results,

@@ -41,7 +41,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// Clicks the "OK" button and waits for the Move To Namespace operation to complete.
         /// </summary>
         public void ClickOK()
-            => _inProc.ClickOK();
+        {
+            _inProc.ClickOK();
+            this.VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
+        }
 
         /// <summary>
         /// Clicks the "Cancel" button and waits for the Move To Namespace operation to complete.

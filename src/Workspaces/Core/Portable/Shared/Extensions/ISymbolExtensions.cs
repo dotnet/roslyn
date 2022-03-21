@@ -270,6 +270,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     element.ReplaceNodes(RewriteMany(symbol, visitedSymbols, compilation, element.Nodes().ToArray(), cancellationToken));
                     xmlText = element.ToString(SaveOptions.DisableFormatting);
                 }
+                catch (XmlException)
+                {
+                    // Malformed documentation comments will produce an exception during parsing. This is not directly
+                    // actionable, so avoid the overhead of telemetry reporting for it.
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1385578
+                }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
                 }
@@ -489,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 if (memberSymbol is IMethodSymbol methodSymbol)
                 {
-                    if (methodSymbol.MethodKind == MethodKind.Constructor || methodSymbol.MethodKind == MethodKind.StaticConstructor)
+                    if (methodSymbol.MethodKind is MethodKind.Constructor or MethodKind.StaticConstructor)
                     {
                         var baseType = memberSymbol.ContainingType.BaseType;
 #nullable disable // Can 'baseType' be null here? https://github.com/dotnet/roslyn/issues/39166

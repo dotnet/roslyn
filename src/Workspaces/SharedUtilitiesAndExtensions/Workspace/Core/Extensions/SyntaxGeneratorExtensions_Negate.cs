@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -17,10 +16,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SyntaxGeneratorExtensions
     {
-        private const string LongLength = "LongLength";
-
-        private static readonly Dictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
-            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>()
+        private static readonly ImmutableDictionary<BinaryOperatorKind, BinaryOperatorKind> s_negatedBinaryMap =
+            new Dictionary<BinaryOperatorKind, BinaryOperatorKind>
             {
                 { BinaryOperatorKind.Equals, BinaryOperatorKind.NotEquals },
                 { BinaryOperatorKind.NotEquals, BinaryOperatorKind.Equals },
@@ -32,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 { BinaryOperatorKind.And, BinaryOperatorKind.Or },
                 { BinaryOperatorKind.ConditionalOr, BinaryOperatorKind.ConditionalAnd },
                 { BinaryOperatorKind.ConditionalAnd, BinaryOperatorKind.ConditionalOr },
-            };
+            }.ToImmutableDictionary();
 
         public static SyntaxNode Negate(
             this SyntaxGenerator generator,
@@ -52,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool negateBinary,
             CancellationToken cancellationToken)
         {
+            var options = semanticModel.SyntaxTree.Options;
             var syntaxFacts = generatorInternal.SyntaxFacts;
+
             if (syntaxFacts.IsParenthesizedExpression(expressionOrPattern))
             {
                 return generatorInternal.AddParentheses(
@@ -97,7 +96,23 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal);
 
             if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
-                return GetNegationOfUnaryPattern(expressionOrPattern, generatorInternal, syntaxFacts);
+                return GetNegationOfUnaryPattern(expressionOrPattern, generator, generatorInternal, syntaxFacts);
+
+            if (syntaxFacts.IsIsTypeExpression(expressionOrPattern))
+            {
+                syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+                if (syntaxFacts.SupportsNotPattern(options))
+                    return generatorInternal.IsPatternExpression(expression, generatorInternal.NotPattern(type));
+
+                if (syntaxFacts.SupportsIsNotTypeExpression(options))
+                    return generatorInternal.IsNotTypeExpression(expression, type);
+            }
+
+            if (syntaxFacts.IsIsNotTypeExpression(expressionOrPattern))
+            {
+                syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+                return generator.IsTypeExpression(expression, type);
+            }
 
             // TODO(cyrusn): We could support negating relational patterns in the future.  i.e.
             //
@@ -118,60 +133,48 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var syntaxFacts = generatorInternal.SyntaxFacts;
             syntaxFacts.GetPartsOfBinaryExpression(expressionNode, out var leftOperand, out var operatorToken, out var rightOperand);
 
-            var binaryOperation = semanticModel.GetOperation(expressionNode, cancellationToken) as IBinaryOperation;
-            if (binaryOperation == null)
+            var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
+            if (operation is not IBinaryOperation binaryOperation)
             {
-                // x is y   ->    x is not y
-                if (syntaxFacts.IsIsExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
+                if (syntaxFacts.IsIsTypeExpression(expressionNode))
+                {
+                    // `is object`  ->   `is null`
+                    if (syntaxFacts.IsPredefinedType(rightOperand, PredefinedType.Object) &&
+                        generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
+                    {
+                        return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression()));
+                    }
+
+                    // `is y`   ->    `is not y`
+                    if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+                        return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
+                }
 
                 // Apply the logical not operator if it is not a binary operation.
                 return generator.LogicalNotExpression(expressionNode);
             }
 
             if (!s_negatedBinaryMap.TryGetValue(binaryOperation.OperatorKind, out var negatedKind))
-            {
                 return generator.LogicalNotExpression(expressionNode);
-            }
-            else
+
+            if (binaryOperation.OperatorKind is BinaryOperatorKind.Or or
+                                                BinaryOperatorKind.And or
+                                                BinaryOperatorKind.ConditionalAnd or
+                                                BinaryOperatorKind.ConditionalOr)
             {
-                var negateOperands = false;
-                switch (binaryOperation.OperatorKind)
-                {
-                    case BinaryOperatorKind.Or:
-                    case BinaryOperatorKind.And:
-                    case BinaryOperatorKind.ConditionalAnd:
-                    case BinaryOperatorKind.ConditionalOr:
-                        negateOperands = true;
-                        break;
-                }
-
-                //Workaround for https://github.com/dotnet/roslyn/issues/23956
-                //Issue to remove this when above is merged
-                if (binaryOperation.OperatorKind == BinaryOperatorKind.Or && syntaxFacts.IsLogicalOrExpression(expressionNode))
-                {
-                    negatedKind = BinaryOperatorKind.ConditionalAnd;
-                }
-                else if (binaryOperation.OperatorKind == BinaryOperatorKind.And && syntaxFacts.IsLogicalAndExpression(expressionNode))
-                {
-                    negatedKind = BinaryOperatorKind.ConditionalOr;
-                }
-
-                var newLeftOperand = leftOperand;
-                var newRightOperand = rightOperand;
-                if (negateOperands)
-                {
-                    newLeftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
-                    newRightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
-                }
-
-                var newBinaryExpressionSyntax = NewBinaryOperation(binaryOperation, newLeftOperand, negatedKind, newRightOperand, generator)
-                    .WithTriviaFrom(expressionNode);
-
-                var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
-                var newTokenWithTrivia = newToken.WithTriviaFrom(operatorToken);
-                return newBinaryExpressionSyntax.ReplaceToken(newToken, newTokenWithTrivia);
+                leftOperand = generator.Negate(generatorInternal, leftOperand, semanticModel, cancellationToken);
+                rightOperand = generator.Negate(generatorInternal, rightOperand, semanticModel, cancellationToken);
             }
+
+            var newBinaryExpressionSyntax = negatedKind is BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals
+                ? generatorInternal.NegateEquality(generator, expressionNode, leftOperand, negatedKind, rightOperand)
+                : NegateRelational(generator, binaryOperation, leftOperand, negatedKind, rightOperand);
+            newBinaryExpressionSyntax = newBinaryExpressionSyntax.WithTriviaFrom(expressionNode);
+
+            var newToken = syntaxFacts.GetOperatorTokenOfBinaryExpression(newBinaryExpressionSyntax);
+            return newBinaryExpressionSyntax.ReplaceToken(
+                newToken,
+                newToken.WithTriviaFrom(operatorToken));
         }
 
         private static SyntaxNode GetNegationOfBinaryPattern(
@@ -209,25 +212,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Don't recurse into patterns if the language doesn't support negated patterns.
             // Just wrap with a normal '!' expression.
             var syntaxFacts = generatorInternal.SyntaxFacts;
+            syntaxFacts.GetPartsOfIsPatternExpression(isExpression, out var left, out var isToken, out var pattern);
+
+            SyntaxNode? negatedPattern = null;
             if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
             {
-                syntaxFacts.GetPartsOfIsPatternExpression(isExpression, out var left, out var isToken, out var pattern);
-                var negated = generator.Negate(generatorInternal, pattern, semanticModel, cancellationToken);
+                // We do support 'not' patterns.  So attempt to push a 'not' pattern into the current is-pattern RHS.
+                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, cancellationToken);
+            }
+            else if (syntaxFacts.IsNotPattern(pattern))
+            {
+                // we don't support 'not' patterns, but we have a 'not' pattern in code.  Do a simple unwrapping of it.
+                negatedPattern = GetNegationOfNotPattern(pattern, generator, generatorInternal, syntaxFacts);
+            }
 
-                // Negating the pattern may have formed something illegal.  If so, just do a normal `!` negation.
-                if (IsLegalPattern(syntaxFacts, negated, designatorsLegal: true))
+            // Negating the pattern may have formed something illegal.  If so, just do a normal `!` negation.
+            if (negatedPattern != null && IsLegalPattern(syntaxFacts, negatedPattern, designatorsLegal: true))
+            {
+                if (syntaxFacts.IsTypePattern(negatedPattern))
                 {
-                    if (syntaxFacts.IsTypePattern(negated))
-                    {
-                        // We started with `x is not t`.  Unwrap the type pattern for 't' and create a simple `is` binary expr `x is t`.
-                        var type = syntaxFacts.GetTypeOfTypePattern(negated);
-                        return generator.IsTypeExpression(left, type);
-                    }
-                    else
-                    {
-                        // Keep this as a normal `is-pattern`, just with the pattern portion negated.
-                        return generatorInternal.IsPatternExpression(left, isToken, negated);
-                    }
+                    // We started with `x is not t`.  Unwrap the type pattern for 't' and create a simple `is` binary expr `x is t`.
+                    var type = syntaxFacts.GetTypeOfTypePattern(negatedPattern);
+                    return generator.IsTypeExpression(left, type);
+                }
+                else
+                {
+                    // Keep this as a normal `is-pattern`, just with the pattern portion negated.
+                    return generatorInternal.IsPatternExpression(left, isToken, negatedPattern);
                 }
             }
 
@@ -247,7 +258,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (syntaxFacts.IsNotPattern(pattern))
             {
+                // it's fine to have `not string s` (or `not (string s)`) as long as we're currently in a location where
+                // designators are legal themselves.
                 syntaxFacts.GetPartsOfUnaryPattern(pattern, out _, out var subPattern);
+                if (syntaxFacts.IsParenthesizedPattern(subPattern))
+                    subPattern = syntaxFacts.GetPatternOfParenthesizedPattern(subPattern);
+
+                if (syntaxFacts.IsDeclarationPattern(subPattern))
+                    return designatorsLegal;
+
                 return IsLegalPattern(syntaxFacts, subPattern, designatorsLegal: false);
             }
 
@@ -275,46 +294,29 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
-        private static SyntaxNode NewBinaryOperation(
+        private static SyntaxNode NegateRelational(
+            SyntaxGenerator generator,
             IBinaryOperation binaryOperation,
             SyntaxNode leftOperand,
             BinaryOperatorKind operationKind,
-            SyntaxNode rightOperand,
-            SyntaxGenerator generator)
+            SyntaxNode rightOperand)
         {
-            switch (operationKind)
+            return operationKind switch
             {
-                case BinaryOperatorKind.Equals:
-                    return binaryOperation.LeftOperand.Type?.IsValueType == true && binaryOperation.RightOperand.Type?.IsValueType == true
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.ReferenceEqualsExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.NotEquals:
-                    return binaryOperation.LeftOperand.Type?.IsValueType == true && binaryOperation.RightOperand.Type?.IsValueType == true
-                        ? generator.ValueNotEqualsExpression(leftOperand, rightOperand)
-                        : generator.ReferenceNotEqualsExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.LessThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.LessThanOrEqualExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.GreaterThanOrEqual:
-                    return IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
-                        ? generator.ValueEqualsExpression(leftOperand, rightOperand)
-                        : generator.GreaterThanOrEqualExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.LessThan:
-                    return generator.LessThanExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.GreaterThan:
-                    return generator.GreaterThanExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.Or:
-                    return generator.BitwiseOrExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.And:
-                    return generator.BitwiseAndExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.ConditionalOr:
-                    return generator.LogicalOrExpression(leftOperand, rightOperand);
-                case BinaryOperatorKind.ConditionalAnd:
-                    return generator.LogicalAndExpression(leftOperand, rightOperand);
-            }
-
-            return null;
+                BinaryOperatorKind.LessThanOrEqual => IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
+                    ? generator.ValueEqualsExpression(leftOperand, rightOperand)
+                    : generator.LessThanOrEqualExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.GreaterThanOrEqual => IsSpecialCaseBinaryExpression(binaryOperation, operationKind)
+                    ? generator.ValueEqualsExpression(leftOperand, rightOperand)
+                    : generator.GreaterThanOrEqualExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.LessThan => generator.LessThanExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.GreaterThan => generator.GreaterThanExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.Or => generator.BitwiseOrExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.And => generator.BitwiseAndExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.ConditionalOr => generator.LogicalOrExpression(leftOperand, rightOperand),
+                BinaryOperatorKind.ConditionalAnd => generator.LogicalAndExpression(leftOperand, rightOperand),
+                _ => throw ExceptionUtilities.UnexpectedValue(operationKind),
+            };
         }
 
         /// <summary>
@@ -327,24 +329,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             BinaryOperatorKind operationKind)
         {
             if (binaryOperation == null)
-            {
                 return false;
-            }
 
             var rightOperand = RemoveImplicitConversion(binaryOperation.RightOperand);
             var leftOperand = RemoveImplicitConversion(binaryOperation.LeftOperand);
 
-            switch (operationKind)
+            return operationKind switch
             {
-                case BinaryOperatorKind.LessThanOrEqual when rightOperand.IsNumericLiteral():
-                    return CanSimplifyToLengthEqualsZeroExpression(
-                        leftOperand, (ILiteralOperation)rightOperand);
-                case BinaryOperatorKind.GreaterThanOrEqual when leftOperand.IsNumericLiteral():
-                    return CanSimplifyToLengthEqualsZeroExpression(
-                        rightOperand, (ILiteralOperation)leftOperand);
-            }
-
-            return false;
+                BinaryOperatorKind.LessThanOrEqual when rightOperand.IsNumericLiteral()
+                    => CanSimplifyToLengthEqualsZeroExpression(leftOperand, (ILiteralOperation)rightOperand),
+                BinaryOperatorKind.GreaterThanOrEqual when leftOperand.IsNumericLiteral()
+                    => CanSimplifyToLengthEqualsZeroExpression(rightOperand, (ILiteralOperation)leftOperand),
+                _ => false,
+            };
         }
 
         private static IOperation RemoveImplicitConversion(IOperation operation)
@@ -363,11 +360,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 if (variableExpression is IPropertyReferenceOperation propertyOperation)
                 {
                     var property = propertyOperation.Property;
-                    if ((property.Name == nameof(Array.Length) || property.Name == LongLength))
+                    if (property.Name is nameof(Array.Length) or nameof(Array.LongLength))
                     {
                         var containingType = property.ContainingType;
                         if (containingType?.SpecialType == SpecialType.System_Array ||
-                            containingType.SpecialType == SpecialType.System_String)
+                            containingType?.SpecialType == SpecialType.System_String)
                         {
                             return true;
                         }
@@ -375,16 +372,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var type = variableExpression.Type;
-                if (type != null)
+                switch (type?.SpecialType)
                 {
-                    switch (type.SpecialType)
-                    {
-                        case SpecialType.System_Byte:
-                        case SpecialType.System_UInt16:
-                        case SpecialType.System_UInt32:
-                        case SpecialType.System_UInt64:
-                            return true;
-                    }
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_UInt64:
+                        return true;
                 }
             }
 
@@ -448,21 +442,46 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode GetNegationOfUnaryPattern(
             SyntaxNode pattern,
+            SyntaxGenerator generator,
             SyntaxGeneratorInternal generatorInternal,
             ISyntaxFacts syntaxFacts)
         {
-            syntaxFacts.GetPartsOfUnaryPattern(pattern, out var opToken, out var subPattern);
-
             // not not p    ->   p
             if (syntaxFacts.IsNotPattern(pattern))
             {
-                return subPattern.WithPrependedLeadingTrivia(opToken.LeadingTrivia)
-                                 .WithAdditionalAnnotations(Simplifier.Annotation);
+                return GetNegationOfNotPattern(pattern, generator, generatorInternal, syntaxFacts);
             }
 
             // If there are other interesting unary patterns in the future, we can support specialized logic for
             // negating them here.
             return generatorInternal.NotPattern(pattern);
+        }
+
+        private static SyntaxNode GetNegationOfNotPattern(
+            SyntaxNode pattern,
+            SyntaxGenerator generator,
+            SyntaxGeneratorInternal generatorInternal,
+            ISyntaxFacts syntaxFacts)
+        {
+            Contract.ThrowIfFalse(syntaxFacts.IsNotPattern(pattern));
+
+            syntaxFacts.GetPartsOfUnaryPattern(pattern, out var opToken, out var subPattern);
+
+            // If we started with `not object`, instead of converting to `object`, directly convert to `not null`
+            if (syntaxFacts.SupportsNotPattern(pattern.SyntaxTree.Options) &&
+                syntaxFacts.IsTypePattern(subPattern))
+            {
+                var type = syntaxFacts.GetTypeOfTypePattern(subPattern);
+                if (syntaxFacts.IsPredefinedType(type, PredefinedType.Object))
+                {
+                    return generatorInternal.UnaryPattern(opToken,
+                        generatorInternal.ConstantPattern(
+                            generator.NullLiteralExpression().WithTriviaFrom(type)));
+                }
+            }
+
+            return subPattern.WithPrependedLeadingTrivia(opToken.LeadingTrivia)
+                             .WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }
 }

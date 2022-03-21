@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             if (left == null || right == null)
                 return false;
 
-            if (!(left is IdentifierNameSyntax) && !(left is MemberAccessExpressionSyntax))
+            if (left is not IdentifierNameSyntax and not MemberAccessExpressionSyntax)
                 return false;
 
             var leftSymbol = semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol();
@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             // Since this is a self assignment/compare, these symbols should be the same.
             Debug.Assert(leftSymbol.Equals(rightSymbol));
 
-            if (leftSymbol.Kind != SymbolKind.Local &&
-                leftSymbol.Kind != SymbolKind.Parameter &&
-                leftSymbol.Kind != SymbolKind.Field &&
-                leftSymbol.Kind != SymbolKind.Property)
+            if (leftSymbol.Kind is not SymbolKind.Local and
+                not SymbolKind.Parameter and
+                not SymbolKind.Field and
+                not SymbolKind.Property)
             {
                 return false;
             }
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             var members = from t in enclosingType.GetBaseTypesAndThis()
                           from m in t.GetMembers()
                           where !m.IsStatic
-                          where m is IFieldSymbol || m is IPropertySymbol
+                          where m is IFieldSymbol or IPropertySymbol
                           where !m.Equals(leftSymbol)
                           where m.Name == localOrParamName ||
                                 m.Name == pascalName ||

@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         protected static string? GetClassificationForType(ITypeSymbol type)
             => type.GetClassification();
 
-        public virtual void AddClassifications(Workspace workspace, SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxNode syntax, SemanticModel semanticModel, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 
-        public virtual void AddClassifications(Workspace workspace, SyntaxToken syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxToken syntax, SemanticModel semanticModel, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 

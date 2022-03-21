@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -1515,6 +1514,85 @@ True
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Subject").WithArguments("Teacher.Subject", "null").WithLocation(37, 40));
+        }
+
+        /// <see cref="DynamicAnalysisResourceTests.TestPatternSpans_WithSharedWhenExpression"/>
+        /// for meaning of the spans
+        [Fact]
+        public void PatternsCoverage_WithSharedWhenExpression()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    public static void TestMain()
+    {
+        Method3(1, b1: false, b2: false);
+    }
+
+    static string Method3(int i, bool b1, bool b2) // Method 3
+    {
+        switch (i)
+        {
+            case not 1 when b1:
+                return ""b1"";
+            case var _ when b2:
+                return ""b2"";
+            case 1:
+                return ""1"";
+            default:
+                return ""default"";
+        }
+    }
+}
+";
+            string expectedOutput = @"Flushing
+Method 1
+File 1
+True
+True
+True
+Method 2
+File 1
+True
+True
+Method 3
+File 1
+True
+False
+True
+False
+False
+True
+False
+True
+Method 6
+File 1
+True
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+            CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
         }
 
         [Fact]

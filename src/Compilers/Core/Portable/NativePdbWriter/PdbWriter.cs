@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography;
@@ -767,6 +768,14 @@ namespace Microsoft.Cci
             {
                 AddDocumentIndex(kvp.Value);
             }
+        }
+
+        public void WriteCompilerVersion(string language)
+        {
+            var compilerAssembly = typeof(Compilation).Assembly;
+            var fileVersion = Version.Parse(compilerAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+            var versionString = compilerAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            _symWriter.AddCompilerInfo((ushort)fileVersion.Major, (ushort)fileVersion.Minor, (ushort)fileVersion.Build, (ushort)fileVersion.Revision, $"{language} - {versionString}");
         }
     }
 }

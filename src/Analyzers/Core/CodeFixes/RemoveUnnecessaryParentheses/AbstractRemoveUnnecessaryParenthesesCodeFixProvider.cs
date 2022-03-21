@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var originalNodes = diagnostics.SelectAsArray(
                 d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(
                     findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken));

@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// True if at least one of the threads whom this active statement belongs to is in a leaf frame.
         /// </summary>
         public bool IsLeaf
-            => (Flags & ActiveStatementFlags.IsLeafFrame) != 0;
+            => (Flags & ActiveStatementFlags.LeafFrame) != 0;
 
         /// <summary>
         /// True if at least one of the threads whom this active statement belongs to is in a non-leaf frame.
         /// </summary>
         public bool IsNonLeaf
-            => (Flags & ActiveStatementFlags.IsNonLeafFrame) != 0;
+            => (Flags & ActiveStatementFlags.NonLeafFrame) != 0;
 
         /// <summary>
         /// True if the active statement is located in a version of the method that's not the latest version of the method.
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// True if the active statement is located in a version of the method that precedes a later version that was created by Hot Reload update.
         /// </summary>
         public bool IsStale
-            => (Flags & ActiveStatementFlags.IsStale) != 0;
+            => (Flags & ActiveStatementFlags.Stale) != 0;
 
         private string GetDebuggerDisplay()
             => $"{Ordinal}: {Span}";
