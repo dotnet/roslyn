@@ -174,19 +174,19 @@ namespace Microsoft.DiaSymReader
                 {
                     switch (RuntimeInformation.ProcessArchitecture, createReader)
                     {
-                        case (Architecture.X86, true): 
+                        case (Architecture.X86, true):
                             CreateSymReader32(ref clsid, out instance);
                             break;
                         case (Architecture.X86, false):
                             CreateSymWriter32(ref clsid, out instance);
                             break;
-                        case (Architecture.X64, true): 
+                        case (Architecture.X64, true):
                             CreateSymReaderAmd64(ref clsid, out instance);
                             break;
                         case (Architecture.X64, false):
                             CreateSymWriterAmd64(ref clsid, out instance);
                             break;
-                        case (Architecture.Arm64, true): 
+                        case (Architecture.Arm64, true):
                             CreateSymReaderArm64(ref clsid, out instance);
                             break;
                         case (Architecture.Arm64, false):
