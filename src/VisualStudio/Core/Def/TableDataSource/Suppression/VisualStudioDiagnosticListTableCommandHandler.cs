@@ -40,9 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
+        private readonly IAsynchronousOperationListener _listener;
 
         private IWpfTableControl? _tableControl;
-        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
