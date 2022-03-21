@@ -277,6 +277,11 @@
         <target state="translated">'{0}' 必須符合被覆寫之成員 '{1}' 的僅供初始化</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_AddConstraint">
+        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</source>
+        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
         <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
         <target state="translated">無法將 {0} 轉換成類型 '{1}'，因為傳回型別不符合委派傳回型別</target>

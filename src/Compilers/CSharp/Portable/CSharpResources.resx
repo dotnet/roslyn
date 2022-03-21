@@ -1556,6 +1556,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_CantChangeReturnTypeOnOverride" xml:space="preserve">
     <value>'{0}': return type must be '{2}' to match overridden member '{1}'</value>
   </data>
+  <data name="ERR_CantChangeReturnTypeOnOverride_AddConstraint" xml:space="preserve">
+    <value>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</value>
+  </data>
   <data name="ERR_CantDeriveFromSealedType" xml:space="preserve">
     <value>'{0}': cannot derive from sealed type '{1}'</value>
   </data>

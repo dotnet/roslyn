@@ -995,8 +995,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else
                                 {
-                                    // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                    if (getInvalidNullableTypeArgument(overridingMethod.ReturnType) is { } typeParameter &&
+                                        (overridingMember as SourceOrdinaryMethodSymbol)?.GetSyntax().ConstraintClauses.Count == 0)
+                                    {
+                                        // error CS8971: '{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.
+                                        diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride_AddConstraint,
+                                            overridingMemberLocation,
+                                            overridingMember,
+                                            overriddenMember,
+                                            overriddenMethod.ReturnType,
+                                            typeParameter.Name,
+                                            typeParameter.IsReferenceType ? "class" : "default");
+                                    }
+                                    else
+                                    {
+                                        // error CS0508: '{0}': return type must be '{2}' to match overridden member '{1}'.
+                                        diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
+                                    }
                                 }
                             }
                         }
@@ -1148,6 +1163,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                  checkReturnType ? ReportBadReturn : null,
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
+            }
+
+            // Returns the first type parameter T that is not a value type but is included in an (invalid) Nullable<T>.
+            static TypeParameterSymbol getInvalidNullableTypeArgument(TypeSymbol type)
+            {
+                var nullableType = type.VisitType(
+                    static (t, _, _) => t.IsNullableType() && t.GetNullableUnderlyingType() is { } underlyingType && underlyingType.IsTypeParameter() && !underlyingType.IsValueType,
+                    arg: (object)null);
+                return (TypeParameterSymbol)nullableType?.GetNullableUnderlyingType();
             }
         }
 

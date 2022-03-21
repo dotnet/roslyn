@@ -277,6 +277,11 @@
         <target state="translated">'{0}', geçersiz kılınmış '{1}' üyesinin yalnızca init öğesi bakımından eşleşmelidir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_AddConstraint">
+        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</source>
+        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
         <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
         <target state="translated">Dönüş türü temsilci dönüş türüyle eşleşmediğinden {0}, ' {1} ' türüne dönüştürülemiyor</target>

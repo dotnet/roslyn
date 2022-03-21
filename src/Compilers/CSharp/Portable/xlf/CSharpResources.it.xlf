@@ -277,6 +277,11 @@
         <target state="translated">'{0}' deve corrispondere per sola inizializzazione del membro '{1}' di cui è stato eseguito l'override</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_AddConstraint">
+        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</source>
+        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
         <source>Cannot convert {0} to type '{1}' because the return type does not match the delegate return type</source>
         <target state="translated">Non è possibile convertire {0} nel tipo ' {1}' perché il tipo restituito non corrisponde al tipo restituito del delegato</target>

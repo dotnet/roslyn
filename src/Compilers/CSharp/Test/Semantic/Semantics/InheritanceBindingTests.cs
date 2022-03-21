@@ -9783,5 +9783,154 @@ class C2 : I
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(46458, "https://github.com/dotnet/roslyn/issues/46458")]
+        public void OverrideWithTQuestion_01()
+        {
+            var source =
+@"#nullable enable
+abstract class A
+{
+    public abstract T? F1<T>();
+    public abstract T? F2<T>() where T : A;
+}
+class B : A
+{
+    public override T? F1<T>() => default;
+    public override T? F2<T>() => default;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,24): error CS8971: 'B.F1<T>()': return type must be 'T' to match overridden member 'A.F1<T>()'. Consider adding a 'where T : default' constraint to the overridden member type parameter.
+                //     public override T? F1<T>() => default;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride_AddConstraint, "F1").WithArguments("B.F1<T>()", "A.F1<T>()", "T", "T", "default").WithLocation(9, 24),
+                // (9,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? F1<T>() => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F1").WithArguments("System.Nullable<T>", "T", "T").WithLocation(9, 24),
+                // (10,24): error CS8971: 'B.F2<T>()': return type must be 'T' to match overridden member 'A.F2<T>()'. Consider adding a 'where T : class' constraint to the overridden member type parameter.
+                //     public override T? F2<T>() => default;
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride_AddConstraint, "F2").WithArguments("B.F2<T>()", "A.F2<T>()", "T", "T", "class").WithLocation(10, 24),
+                // (10,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? F2<T>() => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F2").WithArguments("System.Nullable<T>", "T", "T").WithLocation(10, 24));
+        }
+
+        [Fact]
+        [WorkItem(46458, "https://github.com/dotnet/roslyn/issues/46458")]
+        public void OverrideWithTQuestion_02()
+        {
+            var source =
+@"#nullable enable
+abstract class A
+{
+    public abstract void F1<T>(T? t);
+    public abstract void F2<T>(T? t) where T : A;
+}
+class B : A
+{
+    public override void F1<T>(T? t) { }
+    public override void F2<T>(T? t) { }
+}";
+            // PROTOTYPE: Need to identify the matching overrides.
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,7): error CS0534: 'B' does not implement inherited abstract member 'A.F2<T>(T?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F2<T>(T?)").WithLocation(7, 7),
+                // (7,7): error CS0534: 'B' does not implement inherited abstract member 'A.F1<T>(T?)'
+                // class B : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "A.F1<T>(T?)").WithLocation(7, 7),
+                // (9,26): error CS0115: 'B.F1<T>(T?)': no suitable method found to override
+                //     public override void F1<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F1").WithArguments("B.F1<T>(T?)").WithLocation(9, 26),
+                // (9,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void F1<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t").WithArguments("System.Nullable<T>", "T", "T").WithLocation(9, 35),
+                // (10,26): error CS0115: 'B.F2<T>(T?)': no suitable method found to override
+                //     public override void F2<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "F2").WithArguments("B.F2<T>(T?)").WithLocation(10, 26),
+                // (10,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void F2<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t").WithArguments("System.Nullable<T>", "T", "T").WithLocation(10, 35));
+        }
+
+        [Fact]
+        [WorkItem(46458, "https://github.com/dotnet/roslyn/issues/46458")]
+        public void ExplicitlyImplementWithTQuestion_01()
+        {
+            var source =
+@"#nullable enable
+interface I
+{
+    T? F1<T>();
+    T? F2<T>() where T : C;
+}
+class C : I
+{
+    T? I.F1<T>() => default;
+    T? I.F2<T>() => default;
+}";
+            // PROTOTYPE: Need to identify the matching implementations.
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0535: 'C' does not implement interface member 'I.F1<T>()'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.F1<T>()").WithLocation(7, 11),
+                // (7,11): error CS0535: 'C' does not implement interface member 'I.F2<T>()'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.F2<T>()").WithLocation(7, 11),
+                // (9,10): error CS0539: 'C.F1<T>()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     T? I.F1<T>() => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "F1").WithArguments("C.F1<T>()").WithLocation(9, 10),
+                // (9,10): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     T? I.F1<T>() => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F1").WithArguments("System.Nullable<T>", "T", "T").WithLocation(9, 10),
+                // (10,10): error CS0539: 'C.F2<T>()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     T? I.F2<T>() => default;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "F2").WithArguments("C.F2<T>()").WithLocation(10, 10),
+                // (10,10): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     T? I.F2<T>() => default;
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F2").WithArguments("System.Nullable<T>", "T", "T").WithLocation(10, 10));
+        }
+
+        [Fact]
+        [WorkItem(46458, "https://github.com/dotnet/roslyn/issues/46458")]
+        public void ExplicitlyImplementWithTQuestion_02()
+        {
+            var source =
+@"#nullable enable
+interface I
+{
+    void F1<T>(T? t);
+    void F2<T>(T? t) where T : C;
+}
+class C : I
+{
+    void I.F1<T>(T? t) { }
+    void I.F2<T>(T? t) { }
+}";
+            // PROTOTYPE: Need to identify the matching implementations.
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,11): error CS0535: 'C' does not implement interface member 'I.F1<T>(T?)'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.F1<T>(T?)").WithLocation(7, 11),
+                // (7,11): error CS0535: 'C' does not implement interface member 'I.F2<T>(T?)'
+                // class C : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.F2<T>(T?)").WithLocation(7, 11),
+                // (9,12): error CS0539: 'C.F1<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.F1<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "F1").WithArguments("C.F1<T>(T?)").WithLocation(9, 12),
+                // (9,21): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.F1<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t").WithArguments("System.Nullable<T>", "T", "T").WithLocation(9, 21),
+                // (10,12): error CS0539: 'C.F2<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.F2<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "F2").WithArguments("C.F2<T>(T?)").WithLocation(10, 12),
+                // (10,21): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.F2<T>(T? t) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "t").WithArguments("System.Nullable<T>", "T", "T").WithLocation(10, 21));
+        }
     }
 }
