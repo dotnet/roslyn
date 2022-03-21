@@ -6522,16 +6522,16 @@ class C
         var _ = void (parameter parameter) => throw null;
     }
 
-    void M2<TParameter>(parameter parameter) => throw null;
+    void M2(parameter parameter) => throw null;
 }
 ");
             comp.VerifyDiagnostics(
                 // (6,23): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
                 //         var _ = void (parameter parameter) => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(6, 23),
-                // (9,25): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
-                //     void M2<TParameter>(parameter parameter) => throw null;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 25)
+                // (9,13): error CS0246: The type or namespace name 'parameter' could not be found (are you missing a using directive or an assembly reference?)
+                //     void M2(parameter parameter) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 13)
                 );
         }
     }
