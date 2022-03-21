@@ -7,6 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.IntelliSense
 {
@@ -18,8 +19,8 @@ namespace Microsoft.CodeAnalysis.IntelliSense
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorExtensionMethodImportCompletionCacheServiceFactory(IThreadingContext threadingContext)
-            : base(ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, threadingContext.DisposalToken)
+        public EditorExtensionMethodImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider, IThreadingContext threadingContext)
+            : base(listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, threadingContext.DisposalToken)
         {
         }
     }

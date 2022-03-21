@@ -24,11 +24,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly ConcurrentDictionary<ProjectId, TProjectCacheEntry> _projectItemsCache
             = new();
 
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly Func<ImmutableArray<Project>, CancellationToken, ValueTask> _processBatchAsync;
         private readonly CancellationToken _disposalToken;
 
-        protected AbstractImportCompletionCacheServiceFactory(Func<ImmutableArray<Project>, CancellationToken, ValueTask> processBatchAsync, CancellationToken disposalToken)
+        protected AbstractImportCompletionCacheServiceFactory(
+            IAsynchronousOperationListenerProvider listenerProvider,
+            Func<ImmutableArray<Project>, CancellationToken, ValueTask> processBatchAsync
+            , CancellationToken disposalToken)
         {
+            _listenerProvider = listenerProvider;
             _processBatchAsync = processBatchAsync;
             _disposalToken = disposalToken;
         }
@@ -45,13 +50,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            var exportProvider = (IMefHostExportProvider)workspaceServices.HostServices;
-            var listenerProvider = exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value;
-
             var workQueue = new AsyncBatchingWorkQueue<Project>(
                     TimeSpan.FromSeconds(1),
                     _processBatchAsync,
-                    listenerProvider.GetListener(FeatureAttribute.CompletionSet),
+                    _listenerProvider.GetListener(FeatureAttribute.CompletionSet),
                     _disposalToken);
 
             return new ImportCompletionCacheService(

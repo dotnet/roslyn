@@ -6,15 +6,18 @@ using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     [ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>), ServiceLayer.Default), Shared]
-    internal sealed class DefaultTypeImportCompletionCacheServiceFactory : AbstractImportCompletionCacheServiceFactory<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>
+    internal sealed class DefaultTypeImportCompletionCacheServiceFactory
+        : AbstractImportCompletionCacheServiceFactory<TypeImportCompletionCacheEntry, TypeImportCompletionCacheEntry>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultTypeImportCompletionCacheServiceFactory() : base(AbstractTypeImportCompletionService.BatchUpdateCacheAsync, CancellationToken.None)
+        public DefaultTypeImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider, AbstractTypeImportCompletionService.BatchUpdateCacheAsync, CancellationToken.None)
         {
         }
     }
