@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.Options
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -683,9 +684,8 @@ class C
                               </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 ' disable implicit sig help then type a trigger character -> no session should be available
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "C#", False)))
+                state.Workspace.GetService(Of IGlobalOptionService).SetGlobalOption(New OptionKey(SignatureHelpViewOptions.ShowSignatureHelp, LanguageNames.CSharp), False)
+
                 state.SendTypeChars("(")
                 Await state.AssertNoSignatureHelpSession()
 

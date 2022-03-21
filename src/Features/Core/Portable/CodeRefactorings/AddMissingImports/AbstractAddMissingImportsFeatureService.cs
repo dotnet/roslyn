@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-            var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingOptions.AllowDisjointSpanMerging);
+            var shouldUseFormattingSpanCollapse = optionSet.GetOption(FormattingBehaviorOptions.AllowDisjointSpanMerging);
             var options = optionSet.AsAnalyzerConfigOptions(optionService, root.Language);
 
             var textChanges = languageFormatter.Format(root, new[] { insertSpan }, shouldUseFormattingSpanCollapse, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges(cancellationToken);

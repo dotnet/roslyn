@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             throw ExceptionUtilities.UnexpectedValue(node.Kind());
         }
 
-        internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, SyntaxTrivia lastWhitespaceTrivia, string endOfLineString)
+        internal override SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, string endOfLineString)
         {
             var docTrivia = SyntaxFactory.DocumentationCommentTrivia(
                 SyntaxKind.MultiLineDocumentationCommentTrivia,
@@ -90,12 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             docTrivia = docTrivia.WithLeadingTrivia(SyntaxFactory.DocumentationCommentExterior("/// "))
                 .WithTrailingTrivia(trailingTrivia);
 
-            if (lastWhitespaceTrivia == default)
-                return docTrivia.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString));
-
-            return docTrivia.WithTrailingTrivia(
-                SyntaxFactory.EndOfLine(endOfLineString),
-                lastWhitespaceTrivia);
+            return docTrivia.WithTrailingTrivia(SyntaxFactory.EndOfLine(endOfLineString));
         }
 
         internal override SyntaxNode DocumentationCommentTriviaWithUpdatedContent(SyntaxTrivia trivia, IEnumerable<SyntaxNode> content)
@@ -2017,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 currentList = declaration.IsKind(SyntaxKind.IndexerDeclaration)
                     ? SyntaxFactory.BracketedParameterList()
-                    : (BaseParameterListSyntax)SyntaxFactory.ParameterList();
+                    : SyntaxFactory.ParameterList();
             }
 
             var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));

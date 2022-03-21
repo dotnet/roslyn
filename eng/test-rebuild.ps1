@@ -36,6 +36,8 @@ try {
     Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
+  Subst-TempDir
+
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
   $rebuildArgs = ("--verbose" +
   " --assembliesPath `"$ArtifactsDir/obj/`"" +
@@ -76,5 +78,6 @@ catch [exception] {
   exit 1
 }
 finally {
+  Unsubst-TempDir
   Pop-Location
 }

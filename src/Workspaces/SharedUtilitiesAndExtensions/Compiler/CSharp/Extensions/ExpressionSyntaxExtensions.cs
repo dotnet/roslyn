@@ -197,8 +197,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsInRefContext(this ExpressionSyntax expression)
-            => expression.IsParentKind(SyntaxKind.RefExpression) ||
-               (expression?.Parent as ArgumentSyntax)?.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword;
+            => IsInRefContext(expression, out _);
+
+        /// <summary>
+        /// Returns true if this expression is in some <c>ref</c> keyword context.  If <see langword="true"/> then
+        /// <paramref name="refParent"/> will be the node containing the <see langword="ref"/> keyword.
+        /// </summary>
+        public static bool IsInRefContext([NotNullWhen(true)] this ExpressionSyntax? expression, [NotNullWhen(true)] out SyntaxNode? refParent)
+        {
+            while (expression?.Parent is ParenthesizedExpressionSyntax or PostfixUnaryExpressionSyntax(SyntaxKind.SuppressNullableWarningExpression))
+                expression = (ExpressionSyntax)expression.Parent;
+
+            if (expression?.Parent is RefExpressionSyntax or
+                                      ArgumentSyntax { RefOrOutKeyword.RawKind: (int)SyntaxKind.RefKeyword })
+            {
+                refParent = expression.Parent;
+                return true;
+            }
+
+            refParent = null;
+            return false;
+        }
 
         public static bool IsInInContext(this ExpressionSyntax expression)
             => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
@@ -311,12 +330,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (expression.IsOnlyWrittenTo())
                 return true;
 
-            if (expression.IsInRefContext())
+            if (expression.IsInRefContext(out var refParent))
             {
                 // most cases of `ref x` will count as a potential write of `x`.  An important exception is:
                 // `ref readonly y = ref x`.  In that case, because 'y' can't be written to, this would not 
                 // be a write of 'x'.
-                if (expression is { Parent: { RawKind: (int)SyntaxKind.RefExpression, Parent: EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type: RefTypeSyntax refType } } } } }
+                if (refParent.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type: RefTypeSyntax refType } } }
                     && refType.ReadOnlyKeyword != default)
                 {
                     return false;

@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -46,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
         public HighlighterViewTaggerProvider(
             IThreadingContext threadingContext,
             IHighlightingService highlightingService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
+            : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
         {
             _highlightingService = highlightingService;
         }
@@ -62,9 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 TaggerEventSources.OnParseOptionChanged(subjectBuffer));
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<KeywordHighlightTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
         {
-            var cancellationToken = context.CancellationToken;
             var document = documentSnapshotSpan.Document;
 
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/763988
@@ -78,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 return;
             }
 
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!documentOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting))
+            if (!GlobalOptions.GetOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language))
             {
                 return;
             }

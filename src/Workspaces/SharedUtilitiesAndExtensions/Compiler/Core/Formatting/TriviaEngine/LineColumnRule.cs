@@ -120,14 +120,14 @@ namespace Microsoft.CodeAnalysis.Formatting
                 spaces,
                 indentation: -1);
 
-        public static LineColumnRule ForceSpacesOrUseAbsoluteIndentation(int spacesOrIndentation)
+        public static LineColumnRule ForceSpacesOrUseFollowIndentation(int indentation)
             => new(
                 SpaceOperations.Force,
                 LineOperations.Preserve,
-                IndentationOperations.Absolute,
+                IndentationOperations.Follow,
                 lines: 0,
-                spacesOrIndentation,
-                spacesOrIndentation);
+                spaces: 1,
+                indentation);
 
         public enum SpaceOperations
         {

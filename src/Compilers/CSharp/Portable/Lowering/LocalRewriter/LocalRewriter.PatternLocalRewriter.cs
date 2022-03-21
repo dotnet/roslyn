@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             PropertySymbol property = p.Property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Property(input, property));
+                            return _factory.AssignmentExpression(output, _localRewriter.MakePropertyAccess(_factory.Syntax, input, property, LookupResultKind.Viable, property.Type, isLeftOfAssignment: false));
                         }
 
                     case BoundDagDeconstructEvaluation d:
@@ -242,11 +242,88 @@ namespace Microsoft.CodeAnalysis.CSharp
                             TypeSymbol type = e.Property.GetMethod.ReturnType;
                             var outputTemp = new BoundDagTemp(e.Syntax, type, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, _factory.Call(input, e.Property.GetMethod, _factory.Literal(e.Index)));
+                            return _factory.AssignmentExpression(output, _factory.Indexer(input, e.Property, _factory.Literal(e.Index)));
+                        }
+
+                    case BoundDagIndexerEvaluation e:
+                        {
+                            // this[Index]
+                            // this[int]
+                            // array[Index]
+
+                            var indexerAccess = e.IndexerAccess;
+                            if (indexerAccess is BoundImplicitIndexerAccess implicitAccess)
+                            {
+                                indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
+                            }
+
+                            var placeholderValues = PooledDictionary<BoundEarlyValuePlaceholderBase, BoundExpression>.GetInstance();
+                            placeholderValues.Add(e.ReceiverPlaceholder, input);
+                            placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredIndexArgument(e.Index));
+                            indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);
+                            placeholderValues.Free();
+
+                            var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.IndexerType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
+                        }
+
+                    case BoundDagSliceEvaluation e:
+                        {
+                            // this[Range]
+                            // Slice(int, int)
+                            // string.Substring(int, int)
+                            // array[Range]
+
+                            var indexerAccess = e.IndexerAccess;
+                            if (indexerAccess is BoundImplicitIndexerAccess implicitAccess)
+                            {
+                                indexerAccess = implicitAccess.WithLengthOrCountAccess(_tempAllocator.GetTemp(e.LengthTemp));
+                            }
+
+                            var placeholderValues = PooledDictionary<BoundEarlyValuePlaceholderBase, BoundExpression>.GetInstance();
+                            placeholderValues.Add(e.ReceiverPlaceholder, input);
+                            placeholderValues.Add(e.ArgumentPlaceholder, makeUnloweredRangeArgument(e));
+                            indexerAccess = PlaceholderReplacer.Replace(placeholderValues, indexerAccess);
+                            placeholderValues.Free();
+
+                            var access = (BoundExpression)_localRewriter.Visit(indexerAccess);
+
+                            var outputTemp = new BoundDagTemp(e.Syntax, e.SliceType, e);
+                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            return _factory.AssignmentExpression(output, access);
                         }
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);
+                }
+
+                BoundExpression makeUnloweredIndexArgument(int index)
+                {
+                    // LocalRewriter.MakePatternIndexOffsetExpression understands this format
+                    var ctor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
+
+                    if (index < 0)
+                    {
+                        return new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-index),
+                            methodOpt: ctor, _factory.WellKnownType(WellKnownType.System_Index));
+                    }
+
+                    return _factory.New(ctor, _factory.Literal(index), _factory.Literal(false));
+                }
+
+                BoundExpression makeUnloweredRangeArgument(BoundDagSliceEvaluation e)
+                {
+                    // LocalRewriter.VisitRangeImplicitIndexerAccess understands this format
+                    var indexCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
+                    var end = new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-e.EndIndex),
+                        methodOpt: indexCtor, _factory.WellKnownType(WellKnownType.System_Index));
+
+                    var rangeCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Range__ctor);
+                    return new BoundRangeExpression(e.Syntax, makeUnloweredIndexArgument(e.StartIndex), end,
+                        methodOpt: rangeCtor, _factory.WellKnownType(WellKnownType.System_Range));
                 }
             }
 
@@ -547,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                BoundDecisionDagNode makeReplacement(BoundDecisionDagNode node, Func<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
+                static BoundDecisionDagNode makeReplacement(BoundDecisionDagNode node, IReadOnlyDictionary<BoundDecisionDagNode, BoundDecisionDagNode> replacement)
                 {
                     switch (node)
                     {
@@ -559,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 field.TupleElementIndex is int i)
                             {
                                 // The elements of an input tuple were evaluated beforehand, so don't need to be evaluated now.
-                                return replacement(evalNode.Next);
+                                return replacement[evalNode.Next];
                             }
 
                             // Since we are performing an optimization whose precondition is that the original

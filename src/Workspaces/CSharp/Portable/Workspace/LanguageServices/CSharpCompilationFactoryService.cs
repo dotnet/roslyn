@@ -43,6 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         CompilationOptions ICompilationFactoryService.GetDefaultCompilationOptions()
             => s_defaultOptions;
 
+        CompilationOptions? ICompilationFactoryService.TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata)
+        {
+            if (!compilationOptionsMetadata.TryGetValue("output-kind", out var outputKindString) ||
+                !Enum.TryParse<OutputKind>(outputKindString, out var outputKind))
+            {
+                return null;
+            }
+
+            return new CSharpCompilationOptions(outputKind: outputKind);
+        }
+
         GeneratorDriver ICompilationFactoryService.CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
             return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, optionsProvider);

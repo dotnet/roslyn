@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => null
             };
 
-        private string RemoveAttributeSufficeIfNecessary(INamedTypeSymbol symbol, string symbolName)
+        private string RemoveAttributeSuffixIfNecessary(INamedTypeSymbol symbol, string symbolName)
         {
             if (this.IsMinimizing &&
                 format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix) &&

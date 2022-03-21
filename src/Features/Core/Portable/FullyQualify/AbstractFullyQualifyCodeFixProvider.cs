@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers);
+            var hideAdvancedMembers = options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers);
             var editorBrowserInfo = new EditorBrowsableInfo(semanticModel.Compilation);
 
             var validSymbols = symbols

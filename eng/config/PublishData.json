@@ -198,26 +198,39 @@
       "channels": [],
       "vsBranch": "rel/d17.0",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17p4]"
+      "insertionTitlePrefix": "[d17.0]"
+    },
+    "release/dev17.1-vs-deps": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "version": "4.1.*",
+      "packageFeeds": "default",
+      "channels": [],
+      "vsBranch": "rel/d17.1",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.1p2]"
     },
     "main-vs-deps": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.0.*",
+      "version": "4.1.*",
       "packageFeeds": "default",
       "channels": [],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.1p3]"
     },
     "main": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "version": "4.0.*",
+      "version": "4.1.*",
       "packageFeeds": "arcade",
       "channels": [],
       "vsBranch": "main",

@@ -28,6 +28,18 @@
                                               x:Name="Background_analysis_scope_full_solution"
                                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Background_Analysis_Scope_Full_Solution}"/>
                     </StackPanel>
+                    <StackPanel>
+                        <CheckBox x:Name="DisplayDiagnosticsInline"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="at_the_end_of_the_line_of_code"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_at_the_end_of_the_line_of_code}"/>
+                            <RadioButton GroupName="Inline_diagnostic_location"
+                                     x:Name="on_the_right_edge_of_the_editor_window"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
+                        </StackPanel>
+                    </StackPanel>
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
@@ -252,6 +264,10 @@
                         <CheckBox x:Uid="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   x:Name="SuppressHintsWhenParameterNamesDifferOnlyBySuffix"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_parameter_names_differ_only_by_suffix}" />
+                        
+                        <CheckBox x:Uid="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  x:Name="SuppressHintsWhenParameterNamesMatchArgumentNames"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Suppress_hints_when_argument_matches_parameter_name}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

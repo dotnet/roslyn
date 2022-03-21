@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.TodoComments;
@@ -29,5 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor
             Solution = solution;
             TodoItems = todoItems;
         }
+
+        /// <summary>
+        /// <see cref="DocumentId"/> this update is associated with.
+        /// </summary>
+        public new DocumentId DocumentId => base.DocumentId!;
     }
 }

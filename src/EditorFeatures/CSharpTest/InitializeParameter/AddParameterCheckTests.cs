@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -30,6 +31,77 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestSimpleReferenceType()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(string s!!)
+    {
+    }
+}"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_AlreadyNullChecked1()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public C([||]string s!!)
+    {
+    }
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = testCode,
+                FixedCode = testCode
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_AlreadyNullChecked2()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = testCode,
+                FixedCode = testCode
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType_CSharp8()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -204,8 +276,11 @@ class C
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethodDefinition1()
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp8)]
+        public async Task TestNotOnPartialMethodDefinition1(LanguageVersion languageVersion)
         {
             var code = @"
 using System;
@@ -218,7 +293,12 @@ partial class C
     {
     }
 }";
-            await VerifyCS.VerifyRefactoringAsync(code, code);
+            await new VerifyCS.Test
+            {
+                LanguageVersion = languageVersion,
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -243,8 +323,11 @@ partial class C
             }.RunAsync();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethodDefinition2()
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [InlineData(LanguageVersionExtensions.CSharpNext)]
+        [InlineData(LanguageVersion.CSharp8)]
+        public async Task TestNotOnPartialMethodDefinition2(LanguageVersion languageVersion)
         {
             var code = @"
 using System;
@@ -257,7 +340,12 @@ partial class C
 
     partial void M([||]string s);
 }";
-            await VerifyCS.VerifyRefactoringAsync(code, code);
+            await new VerifyCS.Test
+            {
+                LanguageVersion = languageVersion,
+                TestCode = code,
+                FixedCode = code
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -284,6 +372,37 @@ partial class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnPartialMethodImplementation1()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+partial class C
+{
+    partial void M(string s);
+
+    partial void M([||]string s)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+partial class C
+{
+    partial void M(string s);
+
+    partial void M(string s!!)
+    {
+    }
+}"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation1_CSharp8()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"
@@ -351,6 +470,37 @@ partial class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnPartialMethodImplementation2()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+partial class C
+{
+    partial void M([||]string s)
+    {
+    }
+
+    partial void M(string s);
+}",
+                FixedCode = @"
+using System;
+
+partial class C
+{
+    partial void M(string s!!)
+    {
+    }
+
+    partial void M(string s);
+}"
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation2_CSharp9()
         {
             await VerifyCS.VerifyRefactoringAsync(
 @"

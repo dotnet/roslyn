@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             => symbol.IsAnonymousType() && !symbol.IsDelegateType();
 
         public static bool IsAnonymousDelegateType([NotNullWhen(returnValue: true)] this ISymbol? symbol)
-            => symbol.IsDelegateType() && (symbol.IsAnonymousType() || !symbol.CanBeReferencedByName);
+            => symbol.IsAnonymousType() && symbol.IsDelegateType();
 
         public static bool IsAnonymousTypeProperty([NotNullWhen(returnValue: true)] this ISymbol? symbol)
             => symbol is IPropertySymbol && symbol.ContainingType.IsNormalAnonymousType();

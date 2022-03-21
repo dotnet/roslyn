@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -38,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         /// Return the RCW for the native IComWrapperFixed instance aggregating "managedObject"
         /// if there is one. Return "null" if "managedObject" is not aggregated.
         /// </summary>
-        internal static IComWrapperFixed TryGetWrapper(object managedObject)
+        internal static IComWrapperFixed? TryGetWrapper(object managedObject)
             => WrapperPolicy.TryGetWrapper(managedObject);
 
         internal static T GetManagedObject<T>(object value) where T : class
@@ -58,7 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         {
             Contract.ThrowIfNull(comWrapper, "comWrapper");
 
-            var handle = GCHandle.FromIntPtr((IntPtr)comWrapper.GCHandlePtr);
+            var handle = GCHandle.FromIntPtr(comWrapper.GCHandlePtr);
             var target = handle.Target;
 
             Contract.ThrowIfNull(target, "target");
@@ -66,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             return (T)target;
         }
 
-        internal static T TryGetManagedObject<T>(object value) where T : class
+        internal static T? TryGetManagedObject<T>(object? value) where T : class
         {
             if (value is IComWrapperFixed wrapper)
             {
@@ -76,14 +74,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             return value as T;
         }
 
-        internal static T TryGetManagedObject<T>(IComWrapperFixed comWrapper) where T : class
+        internal static T? TryGetManagedObject<T>(IComWrapperFixed comWrapper) where T : class
         {
             if (comWrapper == null)
             {
                 return null;
             }
 
-            var handle = GCHandle.FromIntPtr((IntPtr)comWrapper.GCHandlePtr);
+            var handle = GCHandle.FromIntPtr(comWrapper.GCHandlePtr);
             return handle.Target as T;
         }
     }

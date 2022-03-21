@@ -383,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             // Remove all document errors
-            foreach (var documentId in project.DocumentIds)
+            foreach (var documentId in project.DocumentIds.Concat(project.AdditionalDocumentIds).Concat(project.AnalyzerConfigDocumentIds))
             {
                 ClearBuildOnlyDocumentErrors(solution, projectId, documentId);
             }

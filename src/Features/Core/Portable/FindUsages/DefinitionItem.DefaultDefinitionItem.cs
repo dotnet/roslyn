@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return false;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return CanNavigateToMetadataSymbol(workspace, symbolKey);
+                    return await CanNavigateToMetadataSymbolAsync(workspace, symbolKey).ConfigureAwait(false);
 
                 return await this.SourceSpans[0].CanNavigateToAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     return false;
 
                 if (Properties.TryGetValue(MetadataSymbolKey, out var symbolKey))
-                    return TryNavigateToMetadataSymbol(workspace, symbolKey);
+                    return await TryNavigateToMetadataSymbolAsync(workspace, symbolKey).ConfigureAwait(false);
 
                 return await this.SourceSpans[0].TryNavigateToAsync(showInPreviewTab, activateTab, cancellationToken).ConfigureAwait(false);
             }
@@ -70,12 +70,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
             public DetachedDefinitionItem Detach()
                 => new(Tags, DisplayParts, NameDisplayParts, OriginationParts, SourceSpans, Properties, DisplayableProperties, DisplayIfNoReferences);
 
-            private bool CanNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
-                => TryNavigateToMetadataSymbol(workspace, symbolKey, action: (symbol, project, service) => true);
+            private Task<bool> CanNavigateToMetadataSymbolAsync(Workspace workspace, string symbolKey)
+                => TryNavigateToMetadataSymbolAsync(workspace, symbolKey, action: (symbol, project, service) => true);
 
-            private bool TryNavigateToMetadataSymbol(Workspace workspace, string symbolKey)
+            private Task<bool> TryNavigateToMetadataSymbolAsync(Workspace workspace, string symbolKey)
             {
-                return TryNavigateToMetadataSymbol(
+                return TryNavigateToMetadataSymbolAsync(
                     workspace, symbolKey,
                     action: (symbol, project, service) =>
                     {
@@ -84,19 +84,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     });
             }
 
-            private bool TryNavigateToMetadataSymbol(
+            private async Task<bool> TryNavigateToMetadataSymbolAsync(
                 Workspace workspace, string symbolKey, Func<ISymbol, Project, ISymbolNavigationService, bool> action)
             {
-                var projectAndSymbol = TryResolveSymbolInCurrentSolution(workspace, symbolKey);
-
-                var project = projectAndSymbol.project;
-                var symbol = projectAndSymbol.symbol;
-                if (symbol == null || project == null)
-                {
-                    return false;
-                }
-
-                if (symbol.Kind == SymbolKind.Namespace)
+                var projectAndSymbol = await TryResolveSymbolInCurrentSolutionAsync(workspace, symbolKey).ConfigureAwait(false);
+                if (projectAndSymbol is not (var project, { Kind: not SymbolKind.Namespace } symbol))
                 {
                     return false;
                 }
@@ -105,21 +97,19 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 return action(symbol, project, navigationService);
             }
 
-            private (Project? project, ISymbol? symbol) TryResolveSymbolInCurrentSolution(Workspace workspace, string symbolKey)
+            private async ValueTask<(Project project, ISymbol? symbol)?> TryResolveSymbolInCurrentSolutionAsync(Workspace workspace, string symbolKey)
             {
                 if (!Properties.TryGetValue(MetadataSymbolOriginatingProjectIdGuid, out var projectIdGuid) ||
                     !Properties.TryGetValue(MetadataSymbolOriginatingProjectIdDebugName, out var projectDebugName))
                 {
-                    return default;
+                    return null;
                 }
 
                 var project = workspace.CurrentSolution.GetProject(ProjectId.CreateFromSerialized(Guid.Parse(projectIdGuid), projectDebugName));
                 if (project == null)
-                    return default;
+                    return null;
 
-                var compilation = project.GetRequiredCompilationAsync(CancellationToken.None)
-                                         .WaitAndGetResult(CancellationToken.None);
-
+                var compilation = await project.GetRequiredCompilationAsync(CancellationToken.None).ConfigureAwait(false);
                 var symbol = SymbolKey.ResolveString(symbolKey, compilation).Symbol;
                 return (project, symbol);
             }

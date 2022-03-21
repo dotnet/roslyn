@@ -70,39 +70,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return triviaList
         End Function
 
-        Protected Overrides Function GetAdjustedTokenForPragmaDisable(token As SyntaxToken, root As SyntaxNode, lines As TextLineCollection, indexOfLine As Integer) As SyntaxToken
-            Dim containingStatement = token.GetAncestor(Of StatementSyntax)
-            If containingStatement IsNot Nothing AndAlso
-                containingStatement.GetFirstToken() <> token Then
-                indexOfLine = lines.IndexOf(containingStatement.GetFirstToken().SpanStart)
-                Dim line = lines(indexOfLine)
-                token = root.FindToken(line.Start)
-            End If
-
-            Return token
+        Protected Overrides Function GetContainingStatement(token As SyntaxToken) As SyntaxNode
+            Return token.GetAncestor(Of StatementSyntax)()
         End Function
 
-        Protected Overrides Function GetAdjustedTokenForPragmaRestore(token As SyntaxToken, root As SyntaxNode, lines As TextLineCollection, indexOfLine As Integer) As SyntaxToken
-            Dim containingStatement = token.GetAncestor(Of StatementSyntax)
-            While True
-                If TokenHasTrailingLineContinuationChar(token) Then
-                    indexOfLine = indexOfLine + 1
-                ElseIf containingStatement IsNot Nothing AndAlso
-                        containingStatement.GetLastToken() <> token Then
-                    indexOfLine = lines.IndexOf(containingStatement.GetLastToken().SpanStart)
-                    containingStatement = Nothing
-                Else
-                    Exit While
-                End If
-
-                Dim line = lines(indexOfLine)
-                token = root.FindToken(line.End)
-            End While
-
-            Return token
-        End Function
-
-        Private Shared Function TokenHasTrailingLineContinuationChar(token As SyntaxToken) As Boolean
+        Protected Overrides Function TokenHasTrailingLineContinuationChar(token As SyntaxToken) As Boolean
             Return token.TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.LineContinuationTrivia)
         End Function
 

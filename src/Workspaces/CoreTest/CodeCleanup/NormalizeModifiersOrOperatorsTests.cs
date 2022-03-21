@@ -684,7 +684,7 @@ End Class|]";
             var expected = @"Class A
     Sub Method( _
         ByVal _
- _
+              _
             t As String, ByRef t1 As String)
     End Sub
 End Class";
@@ -721,7 +721,7 @@ End Class|]";
             var expected = @"Class A
     Private _
         Shared _
- _
+               _
             a As Integer = 1
 End Class";
 

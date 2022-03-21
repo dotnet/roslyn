@@ -48,8 +48,10 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         /// <summary>
-        /// A service for storing information across that can be retrieved in a separate process.
+        /// Obsolete.  Roslyn no longer supports a mechanism to perform arbitrary persistence of data.  If such functionality
+        /// is needed, consumers are resonsible for providing it themselves with whatever semantics are needed.
         /// </summary>
+        [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
         public virtual IPersistentStorageService PersistentStorage
         {
             get { return this.GetRequiredService<IPersistentStorageService>(); }

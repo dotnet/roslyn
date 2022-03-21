@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void ClearAnalyzerReferenceDiagnostics(AnalyzerFileReference analyzerReference, string language, ProjectId projectId)
         {
+            // Perf: if we don't have any diagnostics at all, just return right away; this avoids loading the analyzers
+            // which may have not been loaded if you didn't do too much in your session.
+            if (_analyzerHostDiagnosticsMap.Count == 0)
+                return;
+
             var analyzers = analyzerReference.GetAnalyzers(language);
             ClearAnalyzerDiagnostics(analyzers, projectId);
         }

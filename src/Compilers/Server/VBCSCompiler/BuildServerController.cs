@@ -13,6 +13,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
 using System.Collections.Specialized;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
-                FatalError.Handler = FailFast.OnFatalException;
+                FatalError.Handler = FailFast.Handler;
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);

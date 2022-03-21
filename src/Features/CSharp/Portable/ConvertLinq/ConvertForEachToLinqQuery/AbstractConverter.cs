@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         {
             return convertToQuery
                 ? CreateQueryExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect)
-                : (ExpressionSyntax)CreateLinqInvocationOrSimpleExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
+                : CreateLinqInvocationOrSimpleExpression(selectExpression, leadingTokensForSelect, trailingTokensForSelect);
         }
 
         /// <summary>

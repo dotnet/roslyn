@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     LogWorkspaceAnalyzerCount(references.Length);
                     setter.SetAnalyzerReferences(references);
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagate(e))
+                catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

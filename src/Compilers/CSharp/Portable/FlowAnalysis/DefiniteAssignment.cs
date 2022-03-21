@@ -1288,25 +1288,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (node.Kind)
             {
+                case BoundKind.ListPattern:
+                case BoundKind.RecursivePattern:
                 case BoundKind.DeclarationPattern:
                     {
-                        var pattern = (BoundDeclarationPattern)node;
-                        var symbol = pattern.Variable as LocalSymbol;
-                        if ((object)symbol != null)
-                        {
-                            // we do not track definite assignment for pattern variables when they are
-                            // promoted to fields for top-level code in scripts and interactive
-                            int slot = GetOrCreateSlot(symbol);
-                            SetSlotState(slot, assigned: written || !this.State.Reachable);
-                        }
-
-                        if (written) NoteWrite(pattern.VariableAccess, value, read);
-                        break;
-                    }
-
-                case BoundKind.RecursivePattern:
-                    {
-                        var pattern = (BoundRecursivePattern)node;
+                        var pattern = (BoundObjectPattern)node;
                         var symbol = pattern.Variable as LocalSymbol;
                         if ((object)symbol != null)
                         {
@@ -1599,7 +1585,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
                     case BoundKind.DiscardPattern:
+                    case BoundKind.TypePattern:
                         break;
+                    case BoundKind.SlicePattern:
+                        {
+                            var pat = (BoundSlicePattern)pattern;
+                            if (pat.Pattern != null)
+                            {
+                                assignPatternVariablesAndMarkReadFields(pat.Pattern, definitely);
+                            }
+                            break;
+                        }
                     case BoundKind.ConstantPattern:
                         {
                             var pat = (BoundConstantPattern)pattern;
@@ -1618,11 +1614,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             if (!pat.Properties.IsDefaultOrEmpty)
                             {
-                                foreach (BoundSubpattern sub in pat.Properties)
+                                foreach (BoundPropertySubpattern sub in pat.Properties)
                                 {
-                                    if (sub is BoundPropertySubpattern { Member: var member }
-                                        && _sourceAssembly is not null)
+                                    if (_sourceAssembly is not null)
                                     {
+                                        BoundPropertySubpatternMember member = sub.Member;
                                         while (member is not null)
                                         {
                                             if (member.Symbol is FieldSymbol field)
@@ -1649,8 +1645,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             break;
                         }
-                    case BoundKind.TypePattern:
-                        break;
+                    case BoundKind.ListPattern:
+                        {
+                            var pat = (BoundListPattern)pattern;
+                            foreach (BoundPattern p in pat.Subpatterns)
+                            {
+                                assignPatternVariablesAndMarkReadFields(p, definitely);
+                            }
+                            if (definitely)
+                                Assign(pat, null, false, false);
+                            break;
+                        }
                     case BoundKind.RelationalPattern:
                         {
                             var pat = (BoundRelationalPattern)pattern;

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.InvertConditional
             var conditional = await FindConditionalAsync(document, span, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(conditional);
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);

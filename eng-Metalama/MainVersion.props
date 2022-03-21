@@ -2,14 +2,14 @@
     <PropertyGroup>
         <!-- The major and minor version must match Roslyn's ones.  -->
         <MajorVersion>4</MajorVersion>
-        <MinorVersion>0</MinorVersion>
-        <RoslynPatchVersion>1</RoslynPatchVersion>
+        <MinorVersion>1</MinorVersion>
+        <RoslynPatchVersion>0</RoslynPatchVersion>
         <RoslynVersion>$(MajorVersion).$(MinorVersion).$(RoslynPatchVersion)</RoslynVersion>
-        <OurPatchVersion>6</OurPatchVersion>
+        <OurPatchVersion>0</OurPatchVersion>
         <!--
              The patch version must be over 1000.
              If Roslyn has a patch version `p`, our patch version will be `(p + 1) * 1000 + OUR`
-             where OUR is our own patch version. -->
+             where OUR is the value of OurPatchVersion. -->
         <PatchVersion>$([MSBuild]::Add($(OurPatchVersion), $([MSBuild]::Multiply($([MSBuild]::Add($(RoslynPatchVersion),1)),1000))  ))</PatchVersion>
         <MainVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)</MainVersion>
         <PackageVersionSuffix>-preview</PackageVersionSuffix>

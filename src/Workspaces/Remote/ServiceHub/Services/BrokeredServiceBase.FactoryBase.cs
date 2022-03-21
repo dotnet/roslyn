@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 GlobalServiceBroker.RegisterServiceBroker(serviceBroker);
 
                 var descriptor = ServiceDescriptors.Instance.GetServiceDescriptorForServiceFactory(typeof(TService));
-                var serviceHubTraceSource = (TraceSource)hostProvidedServices.GetService(typeof(TraceSource));
+                var serviceHubTraceSource = (TraceSource?)hostProvidedServices.GetService(typeof(TraceSource));
                 var serverConnection = descriptor.WithTraceSource(serviceHubTraceSource).ConstructRpcConnection(pipe);
 
                 var args = new ServiceConstructionArguments(hostProvidedServices, serviceBroker);

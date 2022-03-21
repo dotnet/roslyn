@@ -65,6 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsRecordStruct(ParseOptions options)
             => ((CSharpParseOptions)options).LanguageVersion.IsCSharp10OrAbove();
 
+        public bool SupportsTargetTypedConditionalExpression(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp9;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -229,6 +232,28 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node)
             => node is StatementSyntax;
+
+        public bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node)
+           => node is GlobalStatementSyntax;
+
+        public bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement)
+        {
+            Debug.Assert(IsStatement(firstStatement));
+            Debug.Assert(IsStatement(secondStatement));
+
+            if (firstStatement.Parent == secondStatement.Parent)
+                return true;
+
+            if (IsGlobalStatement(firstStatement.Parent)
+                && IsGlobalStatement(secondStatement.Parent)
+                && firstStatement.Parent.Parent == secondStatement.Parent.Parent)
+            {
+                return true;
+            }
+
+            return false;
+
+        }
 
         public bool IsMethodBody([NotNullWhen(true)] SyntaxNode? node)
         {
@@ -499,6 +524,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => simpleName.IsKind(SyntaxKind.GenericName) ||
                simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
 
+        public SeparatedSyntaxList<SyntaxNode> GetTypeArgumentsOfGenericName(SyntaxNode? genericName)
+            => (genericName as GenericNameSyntax)?.TypeArgumentList.Arguments ?? default;
+
         public SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
@@ -530,11 +558,17 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).Expression;
 
+        public SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node)
+            => ((AttributeArgumentSyntax)node).Expression;
+
         public RefKind GetRefKindOfArgument(SyntaxNode node)
             => ((ArgumentSyntax)node).GetRefKind();
 
         public bool IsArgument([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.Argument);
+
+        public bool IsAttributeArgument([NotNullWhen(true)] SyntaxNode? node)
+            => node.IsKind(SyntaxKind.AttributeArgument);
 
         public bool IsSimpleArgument([NotNullWhen(true)] SyntaxNode? node)
         {

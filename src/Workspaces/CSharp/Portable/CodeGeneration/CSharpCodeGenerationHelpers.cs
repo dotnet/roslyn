@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static SyntaxNode GetContextNode(
             Location location, CancellationToken cancellationToken)
         {
-            var contextLocation = location as Location;
+            var contextLocation = location;
 
             var contextTree = contextLocation != null && contextLocation.IsInSource
                 ? contextLocation.SourceTree

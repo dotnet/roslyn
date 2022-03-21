@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 foreach (var (document, invocations) in projectCallSites)
                 {
                     var newRoot = await rewriter.RewriteDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
-                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, newRoot);
+                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
                 }
             }
 
