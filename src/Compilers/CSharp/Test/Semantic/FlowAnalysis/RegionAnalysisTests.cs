@@ -9210,9 +9210,9 @@ unsafe class C
 ", options: TestOptions.UnsafeDebugDll);
 
             comp.VerifyDiagnostics(
-                // (7,49): error CS0165: Use of unassigned local variable 'x'
+                // (8,49): error CS0165: Use of unassigned local variable 'x'
                 // 		var c = stackalloc int[] { b ? M(out var x) : x };
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 49)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(8, 49)
                 );
         }
 
