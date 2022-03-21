@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
         }
 
-        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, string tempPath, CancellationToken cancellationToken)
+        public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(Workspace workspace, Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, CancellationToken cancellationToken)
         {
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location? navigateLocation = null;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // If we've been asked for signatures only, then we never want to use the decompiler
-            var useDecompiler = !signaturesOnly && allowDecompilation;
+            var useDecompiler = !signaturesOnly && options.NavigateToDecompiledSources;
             if (useDecompiler)
             {
                 useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(SuppressIldasmAttribute)
