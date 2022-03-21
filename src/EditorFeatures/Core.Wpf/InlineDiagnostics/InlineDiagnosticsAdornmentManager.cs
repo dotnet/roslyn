@@ -117,6 +117,89 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         }
 
         /// <summary>
+        /// Iterates through the mapping of line number to span and draws the diagnostic in the appropriate position on the screen,
+        /// as well as adding the tag to the adornment layer.
+        /// </summary>
+        protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
+        {
+            // this method should only run on UI thread as we do WPF here.
+            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
+            if (changedSpanCollection.IsEmpty())
+            {
+                return;
+            }
+
+            var viewLines = TextView.TextViewLines;
+            using var _ = PooledDictionary<int, IMappingTagSpan<InlineDiagnosticsTag>>.GetInstance(out var map);
+            AddSpansOnEachLine(changedSpanCollection, map);
+            foreach (var (lineNum, tagMappingSpan) in map)
+            {
+                // Mapping the IMappingTagSpan back up to the TextView's visual snapshot to ensure there will
+                // be no adornments drawn on disjoint spans.
+                if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
+                {
+                    continue;
+                }
+
+                var geometry = viewLines.GetMarkerGeometry(span);
+                if (geometry is null)
+                {
+                    continue;
+                }
+
+                // Need to get the SnapshotPoint to be able to get the IWpfTextViewLine
+                var point = tagMappingSpan.Span.End.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
+                if (point == null)
+                {
+                    continue;
+                }
+
+                var lineView = viewLines.GetTextViewLineContainingBufferPosition(point.Value);
+
+                if (lineView is null)
+                {
+                    continue;
+                }
+
+                // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
+                // diagnostic would be drawn. If they are the same, then we do not want to draw
+                // the diagnostic.
+
+                var obstructingTags = _endLineTagAggregator.GetTags(lineView.Extent);
+                if (obstructingTags.Where(tag => tag.Tag.Type is not "Inline Diagnostics").Any())
+                {
+                    continue;
+                }
+
+                var tag = tagMappingSpan.Tag;
+                var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
+                var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
+
+                var visualElement = graphicsResult.VisualElement;
+                // Only place the diagnostics if the diagnostic would not intersect with the editor window
+                if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
+                {
+                    graphicsResult.Dispose();
+                    continue;
+                }
+
+                Canvas.SetLeft(visualElement,
+                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfCode ? lineView.Right :
+                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor ? TextView.ViewportRight - visualElement.DesiredSize.Width :
+                    throw ExceptionUtilities.UnexpectedValue(tag.Location));
+
+                Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
+
+                AdornmentLayer.AddAdornment(
+                    behavior: AdornmentPositioningBehavior.TextRelative,
+                    visualSpan: lineView.Extent,
+                    tag: tag,
+                    adornment: visualElement,
+                    removedCallback: delegate { graphicsResult.Dispose(); });
+            }
+        }
+
+        /// <summary>
         /// Get the spans located on each line so that it can only display the first one that appears on the line
         /// </summary>
         private void AddSpansOnEachLine(NormalizedSnapshotSpanCollection changedSpanCollection,
@@ -154,88 +237,6 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                         map[lineNum] = tagMappingSpan;
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Iterates through the mapping of line number to span and draws the diagnostic in the appropriate position on the screen,
-        /// as well as adding the tag to the adornment layer.
-        /// </summary>
-        protected override void AddAdornmentsToAdornmentLayer_CallOnlyOnUIThread(NormalizedSnapshotSpanCollection changedSpanCollection)
-        {
-            // this method should only run on UI thread as we do WPF here.
-            Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
-            if (changedSpanCollection.IsEmpty())
-            {
-                return;
-            }
-
-            var viewLines = TextView.TextViewLines;
-            using var _ = PooledDictionary<int, IMappingTagSpan<InlineDiagnosticsTag>>.GetInstance(out var map);
-            AddSpansOnEachLine(changedSpanCollection, map);
-            foreach (var (lineNum, tagMappingSpan) in map)
-            {
-                // Mapping the IMappingTagSpan back up to the TextView's visual snapshot to ensure there will
-                // be no adornments drawn on disjoint spans.
-                if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
-                {
-                    continue;
-                }
-
-                var geometry = viewLines.GetMarkerGeometry(span);
-                if (geometry is null)
-                {
-                    continue;
-                }
-
-                // Need to get the SnapshotPoint to be able to get the IWpfTextViewLine
-                var point = tagMappingSpan.Span.Start.GetPoint(TextView.TextSnapshot, PositionAffinity.Predecessor);
-                if (point == null)
-                {
-                    continue;
-                }
-
-                var lineView = viewLines.GetTextViewLineContainingBufferPosition(point.Value);
-
-                if (lineView is null)
-                {
-                    continue;
-                }
-
-                // Looking for IEndOfLineTags and seeing if they exist on the same line as where the
-                // diagnostic would be drawn. If they are the same, then we do not want to draw
-                // the diagnostic.
-
-                var obstructingTags = _endLineTagAggregator.GetTags(lineView.Extent);
-                if (obstructingTags.Where(tag => tag.Tag.Type is not "Inline Diagnostics").Any())
-                {
-                    continue;
-                }
-
-                var tag = tagMappingSpan.Tag;
-                var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
-                var graphicsResult = tag.GetGraphics(TextView, geometry, GetFormat(classificationType));
-
-                var visualElement = graphicsResult.VisualElement;
-                // Only place the diagnostics if the diagnostic would not intersect with the editor window
-                if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
-                {
-                    continue;
-                }
-
-                Canvas.SetLeft(visualElement,
-                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfCode ? lineView.Right :
-                    tag.Location == InlineDiagnosticsLocations.PlacedAtEndOfEditor ? TextView.ViewportRight - visualElement.DesiredSize.Width :
-                    throw ExceptionUtilities.UnexpectedValue(tag.Location));
-
-                Canvas.SetTop(visualElement, geometry.Bounds.Bottom - visualElement.DesiredSize.Height);
-
-                AdornmentLayer.AddAdornment(
-                    behavior: AdornmentPositioningBehavior.TextRelative,
-                    visualSpan: lineView.Extent,
-                    tag: tag,
-                    adornment: visualElement,
-                    removedCallback: delegate { graphicsResult.Dispose(); });
             }
         }
     }

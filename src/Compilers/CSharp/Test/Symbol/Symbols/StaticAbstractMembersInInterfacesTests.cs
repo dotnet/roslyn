@@ -12152,18 +12152,24 @@ class Test
             verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
-  // Code size       24 (0x18)
+  // Code size       39 (0x27)
   .maxstack  2
   .locals init (System.Action V_0)
   IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  constrained. ""T""
-  IL_0008:  ldftn      ""void I1.M01()""
-  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0016
-  IL_0016:  ldloc.0
-  IL_0017:  ret
+  IL_0001:  ldsfld     ""System.Action Test.<M02>O__0_0<T, U>.<0>__M01""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0022
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  constrained. ""T""
+  IL_0011:  ldftn      ""void I1.M01()""
+  IL_0017:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""System.Action Test.<M02>O__0_0<T, U>.<0>__M01""
+  IL_0022:  stloc.0
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.0
+  IL_0026:  ret
 }
 ");
 
@@ -12176,13 +12182,19 @@ class Test
             verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldnull
-  IL_0001:  constrained. ""T""
-  IL_0007:  ldftn      ""void I1.M01()""
-  IL_000d:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0012:  ret
+  IL_0000:  ldsfld     ""System.Action Test.<M02>O__0_0<T, U>.<0>__M01""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0021
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  constrained. ""T""
+  IL_0010:  ldftn      ""void I1.M01()""
+  IL_0016:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001b:  dup
+  IL_001c:  stsfld     ""System.Action Test.<M02>O__0_0<T, U>.<0>__M01""
+  IL_0021:  ret
 }
 ");
 
@@ -12295,6 +12307,132 @@ class Test
                 //     abstract static void M01();
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M01").WithArguments("abstract", "9.0", "preview").WithLocation(12, 26)
                 );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
+        public void DelegateCaching_01()
+        {
+            var source1 =
+@"
+using System;
+
+class TestStaticInterfaceMethods
+{
+    static Func<string> TestSimpleInterface<T>() where T : ISimple
+    {
+        return T.GetCookie;
+    }
+
+    static void Main()
+    {
+        Func<string> d1 = TestSimpleInterface<SimpleClass>();
+        Func<string> d2 = TestSimpleInterface<SimpleStruct>();
+
+        System.Console.WriteLine(d1());
+        System.Console.WriteLine(d2());
+
+        for (int i = 0; i < 5; i++)
+        {
+            if (d1 != (object)TestSimpleInterface<SimpleClass>())    
+            {
+                System.Console.WriteLine(""d1 is not cached!!!"");
+            }
+
+            if (d2 != (object)TestSimpleInterface<SimpleStruct>())    
+            {
+                System.Console.WriteLine(""d2 is not cached!!!"");
+            }
+        }
+    }
+}
+
+interface ISimple
+{
+    static abstract string GetCookie();
+}
+
+class SimpleClass : ISimple
+{
+    public static string GetCookie() => ""SimpleClass"";
+}
+
+struct SimpleStruct : ISimple
+{
+    public static string GetCookie() => ""SimpleStruct"";
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: @"
+SimpleClass
+SimpleStruct
+").VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(60069, "https://github.com/dotnet/roslyn/issues/60069")]
+        public void DelegateCaching_02()
+        {
+            var source1 =
+@"
+using System;
+
+class TestStaticInterfaceMethods
+{
+    static (Func<string>, Func<string>) TestSimpleInterface<T, U>() where T : ISimple where U : ISimple
+    {
+        return (T.GetCookie, U.GetCookie);
+    }
+
+    static void Main()
+    {
+        (Func<string> d1, Func<string> d2) = TestSimpleInterface<SimpleClass, SimpleStruct>();
+
+        System.Console.WriteLine(d1());
+        System.Console.WriteLine(d2());
+
+        for (int i = 0; i < 5; i++)
+        {
+            (Func<string> d21, Func<string> d22) = TestSimpleInterface<SimpleClass, SimpleStruct>();
+            if (d1 != (object)d21)    
+            {
+                System.Console.WriteLine(""d1 is not cached!!!"");
+            }
+
+            if (d2 != (object)d22)    
+            {
+                System.Console.WriteLine(""d2 is not cached!!!"");
+            }
+        }
+    }
+}
+
+interface ISimple
+{
+    static abstract string GetCookie();
+}
+
+class SimpleClass : ISimple
+{
+    public static string GetCookie() => ""SimpleClass"";
+}
+
+struct SimpleStruct : ISimple
+{
+    public static string GetCookie() => ""SimpleStruct"";
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.ReleaseExe,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            CompileAndVerify(compilation1, verify: Verification.Skipped, expectedOutput: @"
+SimpleClass
+SimpleStruct
+").VerifyDiagnostics();
         }
 
         [Fact]

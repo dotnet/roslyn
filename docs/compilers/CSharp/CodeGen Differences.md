@@ -19,15 +19,15 @@ When efficiency and debuggability are at conflict, Release and Debug make differ
 
 **== Release (optimized)**
 
-ï	The async codegen was for the most part redone in Roslyn.
+‚Ä¢	The async codegen was for the most part redone in Roslyn.
  - The capturing is smarter now when optimizations are enabled since it relies on precise data flow analysis. Basically only locals that cross awaits need to be lifted. Old compiler used more conservative approach and would often capture locals unnecessarily.
  - The stack spilling is completely different. Instead of always present object array slot, we generate strongly typed reusable slots, but only if needed.
 
-ï	Iterators - the genral principle is the same, but there were some minor refinements in the state machine.
+‚Ä¢	Iterators - the genral principle is the same, but there were some minor refinements in the state machine.
  - Local capturing is based on precise data flow analysis and may result in fewer local lifted into iterator class. Generally only locals whose values are alive across yield statements need to be captured.
  - Valid states are now all positive and invalid states are negative. The common path in the  iterator body switches on valid states and there are benefits from the set of those states being contiguous.
  
-ï	Lambdas had some minor changes in caching strategy and a change in representation of non-lifting lambdas.
+‚Ä¢	Lambdas had some minor changes in caching strategy and a change in representation of non-lifting lambdas.
 - The caching strategy has changed to a more compact pattern that also results in fewer accesses to the caching field (in case JIT does not optimize multiple reads). 
 Instead of an equivalent of 
  
@@ -47,25 +47,25 @@ return cacheField ?? (cacheFiled = {allocate new lambdaDelegate});
 - non-lifting Lambda expressions are now implemented as an instance methods on singleton display classes. Since the entry point to the delegate is the instance "Invoke" method, it is cheaper at runtime to dispatch delegate invocations to the underlying implementing method if such method is also an instance method with exactly same formal signature as "Invoke".
 - delegates for non-lifting Lambdas in generic methods can now be cached by Roslyn. That is mostly a welcome sideeffect of the change above.
 
-ï	The string switch codegen in Rolsyn is completely new. Roslyn does not use dictionaries to avoid allocations and a potentially huge penalty when a string switch is execute for the first time. Roslyn uses a private function that maps strings to hash codes and a numeric switch. In some sense this is a partial inlining of the former technic that used static dictionaries.
+‚Ä¢	The string switch codegen in Roslyn is completely new. Roslyn does not use dictionaries to avoid allocations and a potentially huge penalty when a string switch is execute for the first time. Roslyn uses a private function that maps strings to hash codes and a numeric switch. In some sense this is a partial inlining of the former technic that used static dictionaries.
 
-ï	Array initializers are slightly more compact ñ in most cases extra temporary for the array instance is avoided and dup is used instead. (I think VB always did this, but this is new for C#)
+‚Ä¢	Array initializers are slightly more compact ‚Äì in most cases extra temporary for the array instance is avoided and dup is used instead. (I think VB always did this, but this is new for C#)
 
-ï	Leaves from nested try in many cases would not cascade through outer regions and just leave directly to the outmost region. (VB was doing that always, now C# does this too since this part of codegen is in shared library and it is also more compact)
+‚Ä¢	Leaves from nested try in many cases would not cascade through outer regions and just leave directly to the outmost region. (VB was doing that always, now C# does this too since this part of codegen is in shared library and it is also more compact)
 Branch threading in general may handle few more cases compared to the old compiler. Leave-to-leave case is probably the most noticeable.
 
-ï	Numeric switches ñ 
+‚Ä¢	Numeric switches ‚Äì 
 - some minor changes in re-biasing and range checking in switches with nonzero smallest key. 
 - Slightly different strategy in choosing between binary search and computed switch buckets. 
 At high level switch codegen follows the same pattern as with old compiler, but we fixed some off-by-one errors that could result in unbalanced decision trees in some cases. 
 The end result is that overall IL could be different. Hopefully better.
 
-ï	Some unnecessary locals could be eliminated or used on the stack when compiled with /o+.
+‚Ä¢	Some unnecessary locals could be eliminated or used on the stack when compiled with /o+.
 This is not new, old compiled did this as well, but implementation of this optimization has changed.
-There are few cases where old compiler was ìsmarterî since it did this optimization earlier (and caused numerous inconveniences to later stages). 
+There are few cases where old compiler was ‚Äúsmarter‚Äù since it did this optimization earlier (and caused numerous inconveniences to later stages). 
 Generally the new approach handles more scenarios, so you may notice in some cases more dups used and fewer locals.
 
-**Cascading optimizations** ñ note that it is possible for one optimization to enable another that may not be by itself new. 
+**Cascading optimizations** ‚Äì note that it is possible for one optimization to enable another that may not be by itself new. 
 
 
 

@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function CreateDeterministicKeyBuilder() As DeterministicKeyBuilder
-            Return New VisualBasicDeterministicKeyBuilder()
+            Return VisualBasicDeterministicKeyBuilder.Instance
         End Function
 
         ''' <summary>

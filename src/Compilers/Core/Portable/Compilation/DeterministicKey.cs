@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -10,9 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    public abstract class SyntaxTreeKey
+    internal abstract class SyntaxTreeKey
     {
-        public abstract string? FilePath { get; }
+        public abstract string FilePath { get; }
         public abstract ParseOptions Options { get; }
 
         protected SyntaxTreeKey()
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis
                 _tree = tree;
             }
 
-            public override string? FilePath
+            public override string FilePath
                 => _tree.FilePath;
 
             public override ParseOptions Options
@@ -44,17 +45,17 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    public static class DeterministicKey
+    internal static class DeterministicKey
     {
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string GetDeterministicKey(
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             CompilationOptions compilationOptions,
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey = default,
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
@@ -63,23 +64,25 @@ namespace Microsoft.CodeAnalysis
                 compilationOptions,
                 syntaxTrees.SelectAsArray(static t => SyntaxTreeKey.Create(t)),
                 references,
+                publicKey,
                 additionalTexts,
                 analyzers,
                 generators,
+                pathMap,
                 emitOptions,
                 options,
                 cancellationToken);
         }
 
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string GetDeterministicKey(
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             CompilationOptions compilationOptions,
-            ImmutableArray<SyntaxTreeKey> syntaxTreeKeys,
+            ImmutableArray<SyntaxTreeKey> syntaxTrees,
             ImmutableArray<MetadataReference> references,
+            ImmutableArray<byte> publicKey,
             ImmutableArray<AdditionalText> additionalTexts = default,
             ImmutableArray<DiagnosticAnalyzer> analyzers = default,
             ImmutableArray<ISourceGenerator> generators = default,
+            ImmutableArray<KeyValuePair<string, string>> pathMap = default,
             EmitOptions? emitOptions = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
@@ -87,11 +90,13 @@ namespace Microsoft.CodeAnalysis
             var keyBuilder = compilationOptions.CreateDeterministicKeyBuilder();
             return keyBuilder.GetKey(
                 compilationOptions,
-                syntaxTreeKeys,
+                syntaxTrees,
                 references,
+                publicKey,
                 additionalTexts.NullToEmpty(),
                 analyzers.NullToEmpty(),
                 generators.NullToEmpty(),
+                pathMap.NullToEmpty(),
                 emitOptions,
                 options,
                 cancellationToken);

@@ -4,21 +4,20 @@
 
 using System;
 using System.ComponentModel.Design;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.View;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -69,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             base.Initialize();
 
             // Create and initialize the editor
-            if (_componentId == default && this.TryGetService<SOleComponentManager, IOleComponentManager>(out var componentManager))
+            if (_componentId == default && this.TryGetService<SOleComponentManager, IOleComponentManager>(_threadingContext.JoinableTaskFactory, out var componentManager))
             {
                 var componentRegistrationInfo = new[]
                 {
@@ -86,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 _ = ErrorHandler.Succeeded(hr);
             }
 
-            if (this.TryGetService<SOleUndoManager, IOleUndoManager>(out _undoManager))
+            if (this.TryGetService<SOleUndoManager, IOleUndoManager>(_threadingContext.JoinableTaskFactory, out _undoManager))
             {
                 var linkCapableUndoMgr = (IVsLinkCapableUndoManager)_undoManager;
                 if (linkCapableUndoMgr is not null)
@@ -95,26 +94,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 }
             }
 
-            var statusService = _workspace.Services.GetService<IWorkspaceStatusService>();
-            if (statusService is not null)
-            {
-                // This will show the 'Waiting for Intellisense to initalize' message until the workspace is loaded.
-                _threadingContext.JoinableTaskFactory.Run(async () =>
-                {
-                    if (!await statusService.IsFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false))
-                    {
-                        await statusService.WaitUntilFullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
-                    }
-                });
-            }
-
             var whitespaceView = GetWhitespaceView();
             var codeStyleView = GetCodeStyleView();
+            var namingStyleView = GetNamingStyleView();
             var analyzerView = GetAnalyzerView();
 
             _control = new SettingsEditorControl(
                  whitespaceView,
                  codeStyleView,
+                 namingStyleView,
                  analyzerView,
                  _workspace,
                  _fileName,
@@ -127,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             Content = _control;
 
             RegisterIndependentView(true);
-            if (this.TryGetService<IMenuCommandService>(out var menuCommandService))
+            if (this.TryGetService<IMenuCommandService>(_threadingContext.JoinableTaskFactory, out var menuCommandService))
             {
                 AddCommand(menuCommandService, GUID_VSStandardCommandSet97, (int)VSStd97CmdID.NewWindow,
                                 new EventHandler(OnNewWindow), new EventHandler(OnQueryNewWindow));
@@ -151,6 +139,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                     static viewModel => new CodeStyleSettingsView(viewModel));
             }
 
+            ISettingsEditorView GetNamingStyleView()
+            {
+                return GetView<NamingStyleSetting>(
+                    static (dataProvider, controlProvider, tableMangerProvider) => new NamingStyleSettingsViewModel(dataProvider, controlProvider, tableMangerProvider),
+                    static viewModel => new NamingStyleSettingsView(viewModel));
+            }
+
             ISettingsEditorView GetAnalyzerView()
             {
                 return GetView<AnalyzerSetting>(
@@ -171,7 +166,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
             void RegisterForSearch(SettingsEditorControl control)
             {
-                var windowSearchHostFactory = this.GetService<SVsWindowSearchHostFactory, IVsWindowSearchHostFactory>();
+                var windowSearchHostFactory = this.GetService<SVsWindowSearchHostFactory, IVsWindowSearchHostFactory>(_threadingContext.JoinableTaskFactory);
                 var minWidth = (int)control.SearchControlParent.MinWidth;
                 var maxWidth = (int)control.SearchControlParent.MaxWidth;
                 var searchHandler = new SearchHandler(_threadingContext, minWidth, maxWidth, control.GetTableControls());
@@ -207,8 +202,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
         private void NewWindow()
         {
-            if (this.TryGetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(out var uishellOpenDocument) &&
-                this.TryGetService<SVsWindowFrame, IVsWindowFrame>(out var windowFrameOrig))
+            if (this.TryGetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_threadingContext.JoinableTaskFactory, out var uishellOpenDocument) &&
+                this.TryGetService<SVsWindowFrame, IVsWindowFrame>(_threadingContext.JoinableTaskFactory, out var windowFrameOrig))
             {
                 var logicalView = Guid.Empty;
                 var hr = uishellOpenDocument.OpenCopyOfStandardEditor(windowFrameOrig, ref logicalView, out var windowFrameNew);
@@ -255,7 +250,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 _undoManager = null;
             }
 
-            if (this.TryGetService<SOleComponentManager, IOleComponentManager>(out var componentManager))
+            if (this.TryGetService<SOleComponentManager, IOleComponentManager>(_threadingContext.JoinableTaskFactory, out var componentManager))
             {
                 _ = componentManager.FRevokeComponent(_componentId);
             }
@@ -286,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         /// <param name="subscribe">True to subscribe, false to unsubscribe</param>
         private void RegisterIndependentView(bool subscribe)
         {
-            if (this.TryGetService<SVsTextManager, IVsTextManager>(out var textManager))
+            if (this.TryGetService<SVsTextManager, IVsTextManager>(_threadingContext.JoinableTaskFactory, out var textManager))
             {
                 _ = subscribe
                     ? textManager.RegisterIndependentView(this, _textBuffer)

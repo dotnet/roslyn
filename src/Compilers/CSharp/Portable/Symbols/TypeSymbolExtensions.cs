@@ -637,7 +637,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this TypeSymbol type,
             Func<TypeSymbol, T, bool, bool> predicate,
             T arg,
-            bool canDigThroughNullable = false)
+            bool canDigThroughNullable = false,
+            bool visitCustomModifiers = false)
         {
             return VisitType(
                 typeWithAnnotationsOpt: default,
@@ -645,7 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeWithAnnotationsPredicate: null,
                 typePredicate: predicate,
                 arg,
-                canDigThroughNullable);
+                canDigThroughNullable,
+                visitCustomModifiers: visitCustomModifiers);
         }
 
         /// <summary>
@@ -666,10 +668,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Func<TypeSymbol, T, bool, bool>? typePredicate,
             T arg,
             bool canDigThroughNullable = false,
-            bool useDefaultType = false)
+            bool useDefaultType = false,
+            bool visitCustomModifiers = false)
         {
             RoslynDebug.Assert(typeWithAnnotationsOpt.HasType == (type is null));
             RoslynDebug.Assert(canDigThroughNullable == false || useDefaultType == false, "digging through nullable will cause early resolution of nullable types");
+            RoslynDebug.Assert(canDigThroughNullable == false || visitCustomModifiers == false);
+            RoslynDebug.Assert(visitCustomModifiers == false || typePredicate is { });
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -693,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if ((object)containingType != null)
                             {
                                 isNestedNamedType = true;
-                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType);
+                                var result = VisitType(default, containingType, typeWithAnnotationsPredicate, typePredicate, arg, canDigThroughNullable, useDefaultType, visitCustomModifiers);
                                 if (result is object)
                                 {
                                     return result;
@@ -722,6 +727,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
+                if (visitCustomModifiers && typeWithAnnotationsOpt.HasType)
+                {
+                    foreach (var customModifier in typeWithAnnotationsOpt.CustomModifiers)
+                    {
+                        var result = VisitType(
+                            typeWithAnnotationsOpt: default, type: ((CSharpCustomModifier)customModifier).ModifierSymbol,
+                            typeWithAnnotationsPredicate, typePredicate, arg,
+                            canDigThroughNullable, useDefaultType, visitCustomModifiers);
+                        if (result is object)
+                        {
+                            return result;
+                        }
+                    }
+                }
+
                 TypeWithAnnotations next;
 
                 switch (current.TypeKind)
@@ -737,32 +757,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Struct:
                     case TypeKind.Interface:
                     case TypeKind.Delegate:
-                        var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-                        if (typeArguments.IsEmpty)
-                        {
-                            return null;
-                        }
 
-                        int i;
-                        for (i = 0; i < typeArguments.Length - 1; i++)
+                        if (current.IsAnonymousType)
                         {
-                            // Let's try to avoid early resolution of nullable types
-                            (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
-                            var result = VisitType(
-                                typeWithAnnotationsOpt: nextTypeWithAnnotations,
-                                type: nextType,
-                                typeWithAnnotationsPredicate,
-                                typePredicate,
-                                arg,
-                                canDigThroughNullable,
-                                useDefaultType);
-                            if (result is object)
+                            var anonymous = (AnonymousTypeManager.AnonymousTypeOrDelegatePublicSymbol)current;
+                            var fields = anonymous.TypeDescriptor.Fields;
+
+                            if (fields.IsEmpty)
                             {
-                                return result;
+                                return null;
                             }
+
+                            int i;
+                            for (i = 0; i < fields.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(fields[i].TypeWithAnnotations, canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = fields[i].TypeWithAnnotations;
+                        }
+                        else
+                        {
+                            var typeArguments = ((NamedTypeSymbol)current).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+
+                            if (typeArguments.IsEmpty)
+                            {
+                                return null;
+                            }
+
+                            int i;
+                            for (i = 0; i < typeArguments.Length - 1; i++)
+                            {
+                                // Let's try to avoid early resolution of nullable types
+                                (TypeWithAnnotations nextTypeWithAnnotations, TypeSymbol? nextType) = getNextIterationElements(typeArguments[i], canDigThroughNullable);
+                                var result = VisitType(
+                                    typeWithAnnotationsOpt: nextTypeWithAnnotations,
+                                    type: nextType,
+                                    typeWithAnnotationsPredicate,
+                                    typePredicate,
+                                    arg,
+                                    canDigThroughNullable,
+                                    useDefaultType,
+                                    visitCustomModifiers);
+                                if (result is object)
+                                {
+                                    return result;
+                                }
+                            }
+
+                            next = typeArguments[i];
                         }
 
-                        next = typeArguments[i];
                         break;
 
                     case TypeKind.Array:
@@ -775,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case TypeKind.FunctionPointer:
                         {
-                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, out next);
+                            var result = visitFunctionPointerType((FunctionPointerTypeSymbol)current, typeWithAnnotationsPredicate, typePredicate, arg, useDefaultType, canDigThroughNullable, visitCustomModifiers, out next);
                             if (result is object)
                             {
                                 return result;
@@ -796,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static (TypeWithAnnotations, TypeSymbol?) getNextIterationElements(TypeWithAnnotations type, bool canDigThroughNullable)
                 => canDigThroughNullable ? (default(TypeWithAnnotations), type.NullableUnderlyingTypeOrSelf) : (type, null);
 
-            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, out TypeWithAnnotations next)
+            static TypeSymbol? visitFunctionPointerType(FunctionPointerTypeSymbol type, Func<TypeWithAnnotations, T, bool, bool>? typeWithAnnotationsPredicate, Func<TypeSymbol, T, bool, bool>? typePredicate, T arg, bool useDefaultType, bool canDigThroughNullable, bool visitCustomModifiers, out TypeWithAnnotations next)
             {
                 MethodSymbol currentPointer = type.Signature;
                 if (currentPointer.ParameterCount == 0)
@@ -812,7 +871,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typePredicate,
                     arg,
                     canDigThroughNullable,
-                    useDefaultType);
+                    useDefaultType,
+                    visitCustomModifiers);
                 if (result is object)
                 {
                     next = default;
@@ -830,7 +890,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         typePredicate,
                         arg,
                         canDigThroughNullable,
-                        useDefaultType);
+                        useDefaultType,
+                        visitCustomModifiers);
                     if (result is object)
                     {
                         next = default;

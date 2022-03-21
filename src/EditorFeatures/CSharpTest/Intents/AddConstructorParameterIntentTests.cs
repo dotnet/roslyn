@@ -162,5 +162,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                     { CodeStyleOptions2.QualifyFieldAccess, true }
                 }).ConfigureAwait(false);
         }
+
+        [Fact]
+        public async Task AddConstructorParameterUsesExistingAccessibility()
+        {
+            var initialText =
+@"class C
+{
+    private readonly int _someInt;{|priorSelection:|}
+
+    protected C({|typed:int som|})
+    {
+    }
+}";
+            var expectedText =
+@"class C
+{
+    private readonly int _someInt;
+
+    protected C(int someInt)
+    {
+        _someInt = someInt;
+    }
+}";
+
+            await VerifyExpectedTextAsync(WellKnownIntents.AddConstructorParameter, initialText, expectedText).ConfigureAwait(false);
+        }
     }
 }

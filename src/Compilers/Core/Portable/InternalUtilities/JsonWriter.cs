@@ -112,6 +112,19 @@ namespace Roslyn.Utilities
             Write(value.ToString());
         }
 
+        public void WriteInvariant<T>(T value)
+            where T : struct, IFormattable
+        {
+            Write(value.ToString(null, CultureInfo.InvariantCulture));
+        }
+
+        public void WriteInvariant<T>(string key, T value)
+            where T : struct, IFormattable
+        {
+            WriteKey(key);
+            WriteInvariant(value);
+        }
+
         public void WriteNull(string key)
         {
             WriteKey(key);

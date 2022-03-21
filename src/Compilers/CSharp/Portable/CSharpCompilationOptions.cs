@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<string> GetImports() => Usings;
 
-        internal override DeterministicKeyBuilder CreateDeterministicKeyBuilder() => new CSharpDeterministicKeyBuilder();
+        internal override DeterministicKeyBuilder CreateDeterministicKeyBuilder() => CSharpDeterministicKeyBuilder.Instance;
 
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)
         {

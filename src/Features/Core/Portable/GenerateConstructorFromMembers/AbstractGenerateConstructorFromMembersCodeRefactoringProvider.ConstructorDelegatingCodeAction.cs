@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var project = _document.Project;
                 var languageServices = project.Solution.Workspace.Services.GetLanguageServices(_state.ContainingType.Language);
 
-                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var factory = languageServices.GetRequiredService<SyntaxGenerator>();
                 var codeGenerationService = languageServices.GetRequiredService<ICodeGenerationService>();
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         parameters: _state.Parameters,
                         statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);

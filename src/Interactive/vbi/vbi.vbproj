@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
     <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">

@@ -25,29 +25,33 @@
         </Grid.RowDefinitions>
         <TabControl x:Name="SettingsEditorTabs"
                     Grid.Row="0"
-                    Margin="0,20,0,12"
+                    Margin="0,20,0,0"
                     IsSynchronizedWithCurrentItem="False"
                     TabStripPlacement="Top"
-                    SelectionChanged="tabsSettingsEditor_SelectionChanged">
+                    SelectionChanged="TabsSettingsEditor_SelectionChanged">
             <TabItem x:Name="WhitespaceTab" IsSelected="True"
                      Header="{Binding WhitespaceTabTitle}"
                      Tag="{Binding WhitespaceControl}"/>
             <TabItem x:Name="CodeStyleTab"
                      Header="{Binding CodeStyleTabTitle}"
                      Tag="{Binding CodeStyleControl}" />
+            <TabItem x:Name="NamingStyleTab"
+                     Header="{Binding NamingStyleTabTitle}"
+                     Tag="{Binding NamingStyleControl}" />
             <TabItem x:Name="AnalyzersTab"
                      Header="{Binding AnalyzersTabTitle}"
                      Tag="{Binding AnalyzersControl}" />
         </TabControl>
         <StackPanel x:Name="SettingsEditorSearch" Grid.Row="1" Margin="20,8,0,0" Orientation="Horizontal">
             <Border x:Name="SearchControl"
-                    MinWidth="290"
-                    MaxWidth="290"
+                    MinWidth="424"
+                    MaxWidth="424"
                     VerticalAlignment="Center"/>
         </StackPanel>
         <Grid x:Name="SettingDisplayArea" Grid.Row="2" Margin="5,0,0,0">
             <ContentPresenter x:Name="WhitespaceFrame" Grid.Row="3" Content="{Binding WhitespaceControl}" Visibility="Visible"/>
             <ContentPresenter x:Name="CodeStyleFrame" Grid.Row="3" Content="{Binding CodeStyleControl}" Visibility="Hidden"/>
+            <ContentPresenter x:Name="NamingStyleFrame" Grid.Row="3" Content="{Binding NamingStyleControl}" Visibility="Hidden"/>
             <ContentPresenter x:Name="AnalyzersFrame" Grid.Row="3" Content="{Binding AnalyzersControl}" Visibility="Hidden"/>
         </Grid>
     </Grid>

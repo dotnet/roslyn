@@ -235,9 +235,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureFileScopedNamespace = MessageBase + 12809,
         IDS_FeatureParameterlessStructConstructors = MessageBase + 12810,
         IDS_FeatureStructFieldInitializers = MessageBase + 12811,
+
         IDS_FeatureGenericAttributes = MessageBase + 12812,
 
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
+        IDS_FeatureListPattern = MessageBase + 12814,
+        IDS_ParameterNullChecking = MessageBase + 12815,
+
+        IDS_FeatureCacheStaticMethodGroupConversion = MessageBase + 12816,
+        IDS_FeatureRawStringLiterals = MessageBase + 12817,
+        IDS_FeatureDisposalPattern = MessageBase + 12818,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -344,10 +351,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
+
                 // C# preview features.
+                case MessageID.IDS_FeatureRawStringLiterals:
                 case MessageID.IDS_FeatureStaticAbstractMembersInInterfaces: // semantic check
                 case MessageID.IDS_FeatureGenericAttributes: // semantic check
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
+                case MessageID.IDS_FeatureListPattern: // semantic check
+                case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
+                case MessageID.IDS_ParameterNullChecking: // syntax check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.
@@ -407,9 +420,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNullableReferenceTypes: // syntax and semantic check
                 case MessageID.IDS_FeatureIndexOperator: // semantic check
                 case MessageID.IDS_FeatureRangeOperator: // semantic check
-                case MessageID.IDS_FeatureAsyncStreams:
+                case MessageID.IDS_FeatureAsyncStreams: // semantic check
                 case MessageID.IDS_FeatureRecursivePatterns:
-                case MessageID.IDS_FeatureUsingDeclarations:
+                case MessageID.IDS_FeatureUsingDeclarations: // semantic check
+                case MessageID.IDS_FeatureDisposalPattern: //semantic check
                 case MessageID.IDS_FeatureStaticLocalFunctions:
                 case MessageID.IDS_FeatureNameShadowingInNestedFunctions:
                 case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check
@@ -482,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNameof:
                 case MessageID.IDS_FeatureDictionaryInitializer:
                 case MessageID.IDS_FeatureUsingStatic:
-                case MessageID.IDS_FeatureInterpolatedStrings:
+                case MessageID.IDS_FeatureInterpolatedStrings: // semantic check
                 case MessageID.IDS_AwaitInCatchAndFinally:
                 case MessageID.IDS_FeatureReadonlyAutoImplementedProperties:
                     return LanguageVersion.CSharp6;

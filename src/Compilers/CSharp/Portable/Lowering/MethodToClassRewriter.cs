@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             method = VisitMethodSymbol(method);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(rewrittenArgument, method, node.IsExtensionMethod, type);
+            return node.Update(rewrittenArgument, method, node.IsExtensionMethod, node.WasTargetTyped, type);
         }
 
         public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
@@ -577,7 +577,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (method.ContainingType.IsAnonymousType)
+            if (method.ContainingType is null)
+            {
+                Debug.Assert(method is SynthesizedGlobalMethodSymbol);
+                return method;
+            }
+            else if (method.ContainingType.IsAnonymousType)
             {
                 //  Method of an anonymous type
                 var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();

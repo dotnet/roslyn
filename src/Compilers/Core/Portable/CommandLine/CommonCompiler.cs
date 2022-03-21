@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis
         internal string ClientDirectory { get; }
 
         /// <summary>
-        /// The path in which the compilation takes place.
+        /// The path in which the compilation takes place. This is also referred to as "baseDirectory" in 
+        /// the code base.
         /// </summary>
         internal string WorkingDirectory { get; }
 
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The <see cref="ICommonCompilerFileSystem"/> used to access the file system inside this instance.
         /// </summary>
-        internal ICommonCompilerFileSystem FileSystem { get; set; } = StandardFileSystem.Instance;
+        internal ICommonCompilerFileSystem FileSystem { get; set; }
 
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators);
 
-        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache)
+        public CommonCompiler(CommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache, ICommonCompilerFileSystem? fileSystem)
         {
             IEnumerable<string> allArgs = args;
 
@@ -133,6 +134,7 @@ namespace Microsoft.CodeAnalysis
             this.AssemblyLoader = assemblyLoader;
             this.GeneratorDriverCache = driverCache;
             this.EmbeddedSourcePaths = GetEmbeddedSourcePaths(Arguments);
+            this.FileSystem = fileSystem ?? StandardFileSystem.Instance;
         }
 
         internal abstract bool SuppressDefaultResponseFile(IEnumerable<string> args);
@@ -740,7 +742,10 @@ namespace Microsoft.CodeAnalysis
             if (this.GeneratorDriverCache is object && !disableCache)
             {
                 cacheKey = deriveCacheKey();
-                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey);
+                driver = this.GeneratorDriverCache.TryGetDriver(cacheKey)?
+                                                  .WithUpdatedParseOptions(parseOptions)
+                                                  .WithUpdatedAnalyzerConfigOptions(analyzerConfigOptionsProvider)
+                                                  .ReplaceAdditionalTexts(additionalTexts);
             }
 
             driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
@@ -926,8 +931,8 @@ namespace Microsoft.CodeAnalysis
                 // Optimization: don't create a bunch of entries pointing to a no-op
                 if (options.Count > 0)
                 {
-                    Debug.Assert(existing.GetOptions(syntaxTree) == CompilerAnalyzerConfigOptions.Empty);
-                    builder.Add(syntaxTree, new CompilerAnalyzerConfigOptions(options));
+                    Debug.Assert(existing.GetOptions(syntaxTree) == DictionaryAnalyzerConfigOptions.Empty);
+                    builder.Add(syntaxTree, new DictionaryAnalyzerConfigOptions(options));
                 }
                 i++;
             }
@@ -941,8 +946,8 @@ namespace Microsoft.CodeAnalysis
                     // Optimization: don't create a bunch of entries pointing to a no-op
                     if (options.Count > 0)
                     {
-                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == CompilerAnalyzerConfigOptions.Empty);
-                        builder.Add(additionalFiles[i], new CompilerAnalyzerConfigOptions(options));
+                        Debug.Assert(existing.GetOptions(additionalFiles[i]) == DictionaryAnalyzerConfigOptions.Empty);
+                        builder.Add(additionalFiles[i], new DictionaryAnalyzerConfigOptions(options));
                     }
                 }
             }
@@ -988,7 +993,7 @@ namespace Microsoft.CodeAnalysis
                 if (Arguments.AnalyzerConfigPaths.Length > 0)
                 {
                     Debug.Assert(analyzerConfigSet is object);
-                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
+                    analyzerConfigProvider = analyzerConfigProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(analyzerConfigSet.GetOptionsForSourcePath(string.Empty).AnalyzerOptions));
 
                     // TODO(https://github.com/dotnet/roslyn/issues/31916): The compiler currently doesn't support
                     // configuring diagnostic reporting on additional text files individually.
@@ -1076,11 +1081,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
-                {
-                    EmitDeterminismKey(compilation, additionalTextFiles, analyzers, generators, Arguments.EmitOptions);
-                }
-
                 AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
                       additionalTextFiles, analyzerConfigProvider);
 
@@ -1142,6 +1142,11 @@ namespace Microsoft.CodeAnalysis
                 if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
                 {
                     emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
+                }
+
+                if (Arguments.ParseOptions.Features.ContainsKey("debug-determinism"))
+                {
+                    EmitDeterminismKey(compilation, FileSystem, additionalTextFiles, analyzers, generators, Arguments.PathMap, emitOptions);
                 }
 
                 if (Arguments.SourceLink != null)
@@ -1259,7 +1264,7 @@ namespace Microsoft.CodeAnalysis
 
                                     success =
                                         compilation.GenerateResources(moduleBeingBuilt, win32ResourceStreamOpt, useRawWin32Resources: false, diagnostics, cancellationToken) &&
-                                        compilation.GenerateDocumentationComments(moduleBeingBuilt, xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnostics, cancellationToken);
+                                        compilation.GenerateDocumentationComments(xmlStreamDisposerOpt?.Stream, emitOptions.OutputNameOverride, diagnostics, cancellationToken);
                                 }
                             }
 
@@ -1441,14 +1446,19 @@ namespace Microsoft.CodeAnalysis
 
         protected virtual ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger? touchedFilesLogger)
         {
-            var builder = ImmutableArray.CreateBuilder<AdditionalTextFile>();
+            var builder = ArrayBuilder<AdditionalTextFile>.GetInstance();
+            var filePaths = new HashSet<string>(PathUtilities.Comparer);
 
             foreach (var file in Arguments.AdditionalFiles)
             {
-                builder.Add(new AdditionalTextFile(file, this));
+                Debug.Assert(PathUtilities.IsAbsolute(file.Path));
+                if (filePaths.Add(PathUtilities.ExpandAbsolutePathWithRelativeParts(file.Path)))
+                {
+                    builder.Add(new AdditionalTextFile(file, this));
+                }
             }
 
-            return builder.ToImmutableArray();
+            return builder.ToImmutableAndFree();
         }
 
         private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)
@@ -1647,18 +1657,18 @@ namespace Microsoft.CodeAnalysis
 
         private void EmitDeterminismKey(
             Compilation compilation,
+            ICommonCompilerFileSystem fileSystem,
             ImmutableArray<AdditionalText> additionalTexts,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions)
         {
-            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, emitOptions);
+            var key = compilation.GetDeterministicKey(additionalTexts, analyzers, generators, pathMap, emitOptions);
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
-            using (var stream = File.Create(filePath))
-            {
-                var bytes = Encoding.UTF8.GetBytes(key);
-                stream.Write(bytes, 0, bytes.Length);
-            }
+            using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            var bytes = Encoding.UTF8.GetBytes(key);
+            stream.Write(bytes, 0, bytes.Length);
         }
     }
 }

@@ -47,6 +47,36 @@ class C : IAsyncEnumerable<int>
         }
 
         [Fact]
+        public void TestDeconstructionWithCSharp7_3()
+        {
+            string source = @"
+using System.Collections.Generic;
+class C : IAsyncEnumerable<(int, int)>
+{
+    public static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (var (i, j) in new C())
+        {
+        }
+    }
+    IAsyncEnumerator<(int, int)> IAsyncEnumerable<(int, int)>.GetAsyncEnumerator(System.Threading.CancellationToken token)
+        => throw null;
+}";
+            var expected = new[]
+            {
+                // (7,9): error CS8652: The feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         await foreach (int i in new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
+            };
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void TestWithMissingValueTask()
         {
             string lib_cs = @"
@@ -4852,7 +4882,7 @@ public static class Extension2
 
         [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
-        public void PatternBasedDisposal_InterfacePreferredToInstanceMethod()
+        public void PatternBasedDisposal_InstanceMethodPreferredOverInterface()
         {
             string source = @"
 using System.Threading.Tasks;
@@ -4881,12 +4911,12 @@ class C
         {
             get => throw null;
         }
-        async ValueTask System.IAsyncDisposable.DisposeAsync()
+        ValueTask System.IAsyncDisposable.DisposeAsync() => throw null;
+        public async ValueTask DisposeAsync()
         {
             System.Console.Write(""DisposeAsync "");
             await Task.Yield();
         }
-        public ValueTask DisposeAsync() => throw null;
     }
 }";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
@@ -6161,7 +6191,7 @@ public static class Extensions
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123");
+            CompileAndVerify(comp, expectedOutput: "123", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -8022,6 +8052,372 @@ public static class Extensions
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "123123");
+        }
+
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void DisposePatternPreferredOverIAsyncDisposable(bool withCSharp8)
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new AsyncEnumerable())
+        {
+        }
+    }
+}
+
+struct AsyncEnumerable : IAsyncEnumerable<int>
+{
+    public AsyncEnumerator GetAsyncEnumerator(CancellationToken token = default) => new AsyncEnumerator();
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => throw null;
+}
+
+struct AsyncEnumerator : IAsyncEnumerator<int>
+{
+    public int Current => 0;
+    public async ValueTask<bool> MoveNextAsync()
+    {
+        await Task.Yield();
+        return false;
+    }
+    public async ValueTask DisposeAsync()
+    {
+        Console.WriteLine(""RAN"");
+        await Task.Yield();
+    }
+
+    int IAsyncEnumerator<int>.Current => throw null;
+    ValueTask<bool> IAsyncEnumerator<int>.MoveNextAsync() => throw null;
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe,
+                parseOptions: withCSharp8 ? TestOptions.Regular8 : TestOptions.Regular7_3);
+
+            if (withCSharp8)
+            {
+                comp.VerifyDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "RAN");
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (11,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         await foreach (var i in new AsyncEnumerable())
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(11, 9)
+                    );
+            }
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            Assert.Equal("AsyncEnumerator AsyncEnumerable.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
+                info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> AsyncEnumerator.MoveNextAsync()",
+                info.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 AsyncEnumerator.Current { get; }",
+                info.CurrentProperty.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync()",
+                info.DisposeMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void DisposePatternPreferredOverIAsyncDisposable_NoIAsyncEnumerable(bool withCSharp8)
+        {
+            var source = @"
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new AsyncEnumerable())
+        {
+        }
+    }
+}
+
+struct AsyncEnumerable
+{
+    public AsyncEnumerator GetAsyncEnumerator(CancellationToken token = default) => new AsyncEnumerator();
+}
+
+struct AsyncEnumerator : IAsyncDisposable
+{
+    public int Current => 0;
+    public async ValueTask<bool> MoveNextAsync()
+    {
+        await Task.Yield();
+        return false;
+    }
+    public async ValueTask DisposeAsync()
+    {
+        Console.WriteLine(""RAN"");
+        await Task.Yield();
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe,
+                parseOptions: withCSharp8 ? TestOptions.Regular8 : TestOptions.Regular7_3);
+
+            if (withCSharp8)
+            {
+                comp.VerifyDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "RAN");
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (10,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         await foreach (var i in new AsyncEnumerable())
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(10, 9)
+                    );
+            }
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            Assert.Equal("AsyncEnumerator AsyncEnumerable.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
+                info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> AsyncEnumerator.MoveNextAsync()",
+                info.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 AsyncEnumerator.Current { get; }",
+                info.CurrentProperty.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync()",
+                info.DisposeMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+        }
+
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AsyncEnumerationViaInterfaceUsesIAsyncDisposable(bool withCSharp8)
+        {
+            // The enumerator type is IAsyncEnumerator<int> so disposal uses IAsyncDisposable.DisposeAsync()
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new AsyncEnumerable())
+        {
+        }
+    }
+}
+
+struct AsyncEnumerable : IAsyncEnumerable<int>
+{
+    IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(CancellationToken token) => new AsyncEnumerator();
+}
+
+struct AsyncEnumerator : IAsyncEnumerator<int>
+{
+    public ValueTask DisposeAsync() => throw null;
+
+    int IAsyncEnumerator<int>.Current => 0;
+    async ValueTask<bool> IAsyncEnumerator<int>.MoveNextAsync()
+    {
+        await Task.Yield();
+        return false;
+    }
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        Console.WriteLine(""RAN"");
+        await Task.Yield();
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe,
+                parseOptions: withCSharp8 ? TestOptions.Regular8 : TestOptions.Regular7_3);
+
+            if (withCSharp8)
+            {
+                comp.VerifyDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "RAN");
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (11,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         await foreach (var i in new AsyncEnumerable())
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(11, 9)
+                    );
+            }
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
+               info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync()",
+                info.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.Current { get; }",
+                info.CurrentProperty.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()",
+                info.DisposeMethod.ToTestDisplayString());
+            Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
+        public void EnumerationViaInterfaceUsesIDisposable()
+        {
+            var source = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+class C
+{
+    public static void Main()
+    {
+        foreach (var i in new Enumerable())
+        {
+        }
+    }
+}
+
+struct Enumerable : IEnumerable<int>
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => new Enumerator();
+}
+
+struct Enumerator : IEnumerator<int>
+{
+    public void Dispose() => throw null;
+
+    int IEnumerator<int>.Current => 0;
+    object IEnumerator.Current => throw null;
+    void IEnumerator.Reset() => throw null;
+    bool IEnumerator.MoveNext() => false;
+
+    void IDisposable.Dispose()
+    {
+        Console.WriteLine(""RAN"");
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.Equal("void System.IDisposable.Dispose()", info.DisposeMethod.ToTestDisplayString());
+        }
+
+        [Theory, WorkItem(59955, "https://github.com/dotnet/roslyn/issues/59955")]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void DisposePatternPreferredOverIAsyncDisposable_Deconstruction(bool withCSharp8)
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async Task Main()
+    {
+        await foreach (var (i, j) in new AsyncEnumerable())
+        {
+        }
+    }
+}
+
+struct AsyncEnumerable : IAsyncEnumerable<(int, int)>
+{
+    public AsyncEnumerator GetAsyncEnumerator(CancellationToken token = default) => new AsyncEnumerator();
+    IAsyncEnumerator<(int, int)> IAsyncEnumerable<(int, int)>.GetAsyncEnumerator(CancellationToken token) => throw null;
+}
+
+struct AsyncEnumerator : IAsyncEnumerator<(int, int)>
+{
+    public (int, int) Current => (0, 0);
+    public async ValueTask<bool> MoveNextAsync()
+    {
+        await Task.Yield();
+        return false;
+    }
+    public async ValueTask DisposeAsync()
+    {
+        Console.WriteLine(""RAN"");
+        await Task.Yield();
+    }
+
+    (int, int) IAsyncEnumerator<(int, int)>.Current => throw null;
+    ValueTask<bool> IAsyncEnumerator<(int, int)>.MoveNextAsync() => throw null;
+    ValueTask IAsyncDisposable.DisposeAsync() => throw null;
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, options: TestOptions.DebugExe,
+                parseOptions: withCSharp8 ? TestOptions.Regular8 : TestOptions.Regular7_3);
+
+            if (withCSharp8)
+            {
+                comp.VerifyDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "RAN");
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (11,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //         await foreach (var i in new AsyncEnumerable())
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(11, 9)
+                    );
+            }
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var foreachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(foreachSyntax);
+
+            Assert.True(info.IsAsynchronous);
+            Assert.Equal("AsyncEnumerator AsyncEnumerable.GetAsyncEnumerator([System.Threading.CancellationToken token = default(System.Threading.CancellationToken)])",
+                info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> AsyncEnumerator.MoveNextAsync()",
+                info.MoveNextMethod.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32) AsyncEnumerator.Current { get; }",
+                info.CurrentProperty.ToTestDisplayString());
+            Assert.Equal("System.Threading.Tasks.ValueTask AsyncEnumerator.DisposeAsync()",
+                info.DisposeMethod.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", info.ElementType.ToTestDisplayString());
         }
     }
 }

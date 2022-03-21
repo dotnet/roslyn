@@ -311,7 +311,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>)
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -329,7 +329,19 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+"﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -345,7 +357,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>)
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -363,7 +375,19 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -379,7 +403,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -400,7 +424,19 @@ End Namespace
                 Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("'>' expected.").WithLocation(4, 40))
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -416,7 +452,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -435,7 +471,22 @@ End Namespace
                 Diagnostic(ERRID.WRN_XMLDocCrefAttributeNotFound1, "cref=""T""").WithArguments("T").WithLocation(4, 23))
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary><see cref=""!:T""/></summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -451,7 +502,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -469,7 +520,22 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -485,7 +551,7 @@ Namespace Goo.Bar
     End Class
 End Namespace
     </file>
-</compilation>, parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse))
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse))
 
             Dim emitResult As EmitResult
             Dim mdOnlyImage As Byte()
@@ -503,7 +569,22 @@ End Namespace
             emitResult.Diagnostics.Verify()
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -609,7 +690,8 @@ End Class"
 
             Dim comp = CreateEmptyCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
+            ' ILVerify: Failed to load type 'System.String' from assembly ...
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.FailsILVerify, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -2694,7 +2776,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2706,7 +2788,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2755,7 +2837,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2767,7 +2849,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                      ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -3767,7 +3849,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
+            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.FailsPEVerify Or Verification.FailsILVerify)
         End Sub
 
         <Fact>

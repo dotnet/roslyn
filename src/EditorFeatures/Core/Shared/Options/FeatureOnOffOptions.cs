@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> PrettyListing = new(FeatureName, "PrettyListing", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
 
+        public static readonly PerLanguageOption2<bool> StringIdentation = new(FeatureName, "StringIdentation", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.StringIdentation"));
+
         public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new(FeatureName, "RenameTrackingPreview", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
@@ -100,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.OfferRemoveUnusedReferences"));
 
-        public static readonly Option<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
+        public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
             FeatureName, "OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.RemoveUnusedReferences"));
 
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
 
         public static readonly Option2<bool> InheritanceMarginCombinedWithIndicatorMargin = new(
-            FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: true,
+            FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false,
             new RoamingProfileStorageLocation("TextEditor.InheritanceMarginCombinedWithIndicatorMargin"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(

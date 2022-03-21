@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json;
+using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
 {
@@ -24,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageEditorFeatures(info),
+                new JsonEmbeddedLanguageEditorFeatures(info),
                 new RegexEmbeddedLanguageEditorFeatures(this, info),
                 new FallbackEmbeddedLanguage(info));
         }

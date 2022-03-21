@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             => _implementation.DocumentResetAsync(document, cancellationToken);
 
+        public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => _implementation.NeedsReanalysisOnOptionChanged(sender, new UnitTestingOptionChangedEventArgsWrapper(e));
 
@@ -54,6 +57,27 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
             _implementation.RemoveProject(projectId);
             return Task.CompletedTask;
         }
+
+        public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public void LogAnalyzerCountSummary()
+        {
+        }
+
+        /// <summary>
+        /// Order all incremental analyzers below DiagnosticIncrementalAnalyzer
+        /// </summary>
+        public int Priority => 1;
 
         // Unit testing incremental analyzer only supports full solution analysis scope.
         // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.

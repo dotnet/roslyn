@@ -919,6 +919,42 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="<default>
 value").VerifyDiagnostics()
         End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentExpression_OnByRefParameter01()
+            Dim source As String = "
+Imports System.Runtime.CompilerServices
+Module Program
+    Private Const p As String = NameOf(p)
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> ByRef arg As String)
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.RegularLatest)
+            compilation.AssertTheseDiagnostics()
+        End Sub
+
+        <ConditionalFact(GetType(CoreClrOnly))>
+        Public Sub TestCallerArgumentExpression_OnByRefParameter02()
+            Dim source As String = "
+Imports System
+Imports System.Runtime.CompilerServices
+Module Program
+    Sub Main()
+        Log(1 + 1)
+    End Sub
+
+    Private Const p As String = NameOf(p)
+    Sub Log(p As Integer, <CallerArgumentExpression(p)> Optional ByRef arg As String = ""<default-value>"")
+        Console.WriteLine(arg)
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp, references:={Net451.MicrosoftVisualBasic}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.RegularLatest)
+            CompileAndVerify(compilation, expectedOutput:="1 + 1").VerifyDiagnostics()
+        End Sub
 #End Region
 
 #Region "CallerArgumentExpression - Attributes"

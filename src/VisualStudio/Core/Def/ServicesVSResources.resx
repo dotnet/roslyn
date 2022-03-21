@@ -975,6 +975,15 @@ Additional information: {1}</value>
   <data name="Report_invalid_regular_expressions" xml:space="preserve">
     <value>Report invalid regular expressions</value>
   </data>
+  <data name="Colorize_JSON_strings" xml:space="preserve">
+    <value>Colorize JSON strings</value>
+  </data>
+  <data name="JSON_strings" xml:space="preserve">
+    <value>JSON strings</value>
+  </data>
+  <data name="Report_invalid_JSON_strings" xml:space="preserve">
+    <value>Report invalid JSON strings</value>
+  </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
   </data>
@@ -1312,8 +1321,8 @@ Additional information: {1}</value>
   <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
     <value>Code analysis terminated before completion for Solution.</value>
   </data>
-  <data name="Background_analysis_scope_colon" xml:space="preserve">
-    <value>Background analysis scope:</value>
+  <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
+    <value>Run background code analysis for:</value>
   </data>
   <data name="Current_document" xml:space="preserve">
     <value>Current document</value>
@@ -1802,6 +1811,12 @@ Additional information: {1}</value>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
+  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
+    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
+  </data>
+  <data name="Quick_Actions" xml:space="preserve">
+    <value>Quick Actions</value>
+  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>
@@ -1815,6 +1830,10 @@ Additional information: {1}</value>
   </data>
   <data name="Default_Open_Documents" xml:space="preserve">
     <value>Default (Open Documents)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_None" xml:space="preserve">
+    <value>Default (None)</value>
     <comment>This text is a menu command</comment>
   </data>
   <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
@@ -1880,5 +1899,27 @@ Additional information: {1}</value>
   <data name="Stack_trace_0" xml:space="preserve">
     <value>Stack Trace {0}</value>
     <comment>Header for numbered stack trace view tabs</comment>
+  </data>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
+  </data>
+  <data name="Sort_usings" xml:space="preserve">
+    <value>Sort usings</value>
+  </data>
+  <data name="Navigate_to_external_sources" xml:space="preserve">
+    <value>Navigate to External Sources</value>
+  </data>
+  <data name="Automatically_open_stack_trace_explorer_on_focus" xml:space="preserve">
+    <value>Automatically open Stack Trace Explorer on focus</value>
+    <comment>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</comment>
+  </data>
+  <data name="Prefer_method_group_conversion" xml:space="preserve">
+    <value>Prefer method group conversion</value>
+  </data>
+  <data name="Entire_solution_and_external_sources" xml:space="preserve">
+    <value>Entire Solution and External Sources</value>
+  </data>
+  <data name="External_sources" xml:space="preserve">
+    <value>External Sources</value>
   </data>
 </root>

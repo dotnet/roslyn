@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface IRemoteExtensionMethodImportCompletionService
     {
-        ValueTask<SerializableUnimportedExtensionMethods> GetUnimportedExtensionMethodsAsync(
+        ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             int position,

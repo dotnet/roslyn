@@ -61,6 +61,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             public bool IsComplete() => _queue._queue.IsCompleted && _queue._queue.IsEmpty;
 
+            public async Task WaitForProcessingToStopAsync()
+            {
+                await _queue._queueProcessingTask.ConfigureAwait(false);
+            }
+
             /// <summary>
             /// Test only method to validate that remaining items in the queue are cancelled.
             /// This directly mutates the queue in an unsafe way, so ensure that all relevant queue operations

@@ -34,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override string Language => LanguageNames.CSharp;
         public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
+        protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
+            => base.IsAwaitKeywordContext(syntaxContext) || syntaxContext.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
+
         /// <summary>
         /// Gets the span start where async keyword should go.
         /// </summary>
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 parent = localFunction;
             }
 
-            return parent.Ancestors().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
+            return parent.AncestorsAndSelf().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
         }
 
         protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

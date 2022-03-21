@@ -11,9 +11,9 @@ namespace Roslyn.Test.Utilities
 {
     public sealed class TestAdditionalText : AdditionalText
     {
-        private readonly SourceText _text;
+        private readonly SourceText? _text;
 
-        public TestAdditionalText(string path, SourceText text)
+        public TestAdditionalText(string path, SourceText? text)
         {
             Path = path;
             _text = text;
@@ -26,6 +26,6 @@ namespace Roslyn.Test.Utilities
 
         public override string Path { get; }
 
-        public override SourceText GetText(CancellationToken cancellationToken = default) => _text;
+        public override SourceText? GetText(CancellationToken cancellationToken = default) => _text;
     }
 }

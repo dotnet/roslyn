@@ -3084,7 +3084,7 @@ using System;
 using System.Linq;
 class Program
 {
-    static void M<x>()
+    static void M<@x>()
     {
         Action a1 = () => { object x = 0; }; // local
         Action<string> a2 = x => { }; // parameter
@@ -3238,7 +3238,7 @@ using System;
 using System.Linq;
 class Program
 {
-    static void M<x>()
+    static void M<@x>()
     {
         Action a1 = delegate() { object x = 0; }; // local
         Action<string> a2 = delegate(string x) { }; // parameter
@@ -3858,10 +3858,23 @@ class Program
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>();
-            var actualAttributes = attributeSyntaxes.Select(a => model.GetSymbolInfo(a).Symbol.GetSymbol<MethodSymbol>()).ToImmutableArray();
-            var expectedAttributes = new[] { "AAttribute", "BAttribute", "CAttribute", "DAttribute" }.Select(a => comp.GetTypeByMetadataName(a).InstanceConstructors.Single()).ToImmutableArray();
-            AssertEx.Equal(expectedAttributes, actualAttributes);
+            var attributeSyntaxes = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().ToImmutableArray();
+            Assert.Equal(4, attributeSyntaxes.Length);
+            verify(attributeSyntaxes[0], "AAttribute");
+            verify(attributeSyntaxes[1], "BAttribute");
+            verify(attributeSyntaxes[2], "CAttribute");
+            verify(attributeSyntaxes[3], "DAttribute");
+
+            void verify(AttributeSyntax attributeSyntax, string expectedAttributeName)
+            {
+                var expectedAttributeConstructor = comp.GetTypeByMetadataName(expectedAttributeName).InstanceConstructors.Single().GetPublicSymbol();
+                var expectedAttributeType = expectedAttributeConstructor.ContainingType;
+                var typeInfo = model.GetTypeInfo(attributeSyntax);
+                Assert.Equal(expectedAttributeType, typeInfo.Type);
+                Assert.Equal(expectedAttributeType, typeInfo.ConvertedType);
+                var symbol = model.GetSymbolInfo(attributeSyntax).Symbol;
+                Assert.Equal(expectedAttributeConstructor, symbol);
+            }
         }
 
         [Theory]
@@ -5250,21 +5263,12 @@ class Program
                 // (7,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //         d = TypedReference () => throw null;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(7, 13),
-                // (7,13): error CS8917: The delegate type could not be inferred.
-                //         d = TypedReference () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "TypedReference () => throw null").WithLocation(7, 13),
                 // (8,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
                 //         d = RuntimeArgumentHandle () => throw null;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 13),
-                // (8,13): error CS8917: The delegate type could not be inferred.
-                //         d = RuntimeArgumentHandle () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "RuntimeArgumentHandle () => throw null").WithLocation(8, 13),
                 // (9,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
                 //         d = ArgIterator () => throw null;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13),
-                // (9,13): error CS8917: The delegate type could not be inferred.
-                //         d = ArgIterator () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ArgIterator () => throw null").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13));
         }
 
         [Fact]
@@ -5387,6 +5391,138 @@ class Program
                 // (8,27): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<string>' (possibly because of nullability attributes).
                 //         Func<string> f2 = string? () => { if (x is not null) return x; return y; };
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "string? () =>").WithArguments("lambda expression", "System.Func<string>").WithLocation(8, 27));
+        }
+
+        [Fact]
+        public void LambdaReturnType_18()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U, V>(T t, U u, V v) where U : T
+    {
+        Func<T> f1 = T () => u;
+        Func<T> f2 = T () => v;
+        Func<U> f3 = U () => t;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,30): error CS0029: Cannot implicitly convert type 'V' to 'T'
+                //         Func<T> f2 = T () => v;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "T").WithLocation(7, 30),
+                // (7,30): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<T> f2 = T () => v;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "v").WithArguments("lambda expression").WithLocation(7, 30),
+                // (8,30): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                //         Func<U> f3 = U () => t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "U").WithLocation(8, 30),
+                // (8,30): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<U> f3 = U () => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(8, 30));
+        }
+
+        [Fact]
+        public void LambdaReturnType_19()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U, V>(T t, U u, V v) where U : T
+    {
+        Delegate d;
+        d = T () => u;
+        d = T () => v;
+        d = U () => t;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,21): error CS0029: Cannot implicitly convert type 'V' to 'T'
+                //         d = T () => v;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "T").WithLocation(8, 21),
+                // (8,21): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         d = T () => v;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "v").WithArguments("lambda expression").WithLocation(8, 21),
+                // (9,21): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                //         d = U () => t;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "U").WithLocation(9, 21),
+                // (9,21): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         d = U () => t;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(9, 21));
+        }
+
+        [Fact]
+        public void LambdaReturnType_20()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T, U, V>(T t, U u, V v) where U : T
+    {
+        Func<T> f1 = T () => { if (t is null) return t; return u; };
+        Func<U> f2 = U () => { if (t is null) return t; return u; };
+        Func<T> f3 = T () => { if (t is null) return t; return v; };
+        Func<V> f4 = V () => { if (t is null) return t; return v; };
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,54): error CS0266: Cannot implicitly convert type 'T' to 'U'. An explicit conversion exists (are you missing a cast?)
+                //         Func<U> f2 = U () => { if (t is null) return t; return u; };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "t").WithArguments("T", "U").WithLocation(7, 54),
+                // (7,54): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<U> f2 = U () => { if (t is null) return t; return u; };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(7, 54),
+                // (8,64): error CS0029: Cannot implicitly convert type 'V' to 'T'
+                //         Func<T> f3 = T () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "v").WithArguments("V", "T").WithLocation(8, 64),
+                // (8,64): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<T> f3 = T () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "v").WithArguments("lambda expression").WithLocation(8, 64),
+                // (9,54): error CS0029: Cannot implicitly convert type 'T' to 'V'
+                //         Func<V> f4 = V () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "t").WithArguments("T", "V").WithLocation(9, 54),
+                // (9,54): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Func<V> f4 = V () => { if (t is null) return t; return v; };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "t").WithArguments("lambda expression").WithLocation(9, 54));
+        }
+
+        [Fact]
+        public void LambdaReturnType_SemanticModel()
+        {
+            var source =
+@"class Program
+{
+    static void F<T>()
+    {
+        var x = T () => default;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambdaSyntax = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+
+            var expectedType = comp.GetMember<MethodSymbol>("Program.F").TypeParameters.Single().GetPublicSymbol();
+            Assert.Equal(TypeKind.TypeParameter, expectedType.TypeKind);
+            Assert.Equal("T", expectedType.ToTestDisplayString());
+
+            var method = (IMethodSymbol)model.GetSymbolInfo(lambdaSyntax).Symbol;
+            Assert.Equal(MethodKind.LambdaMethod, method.MethodKind);
+
+            var returnTypeSyntax = lambdaSyntax.ReturnType;
+            var typeInfo = model.GetTypeInfo(returnTypeSyntax);
+            Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, typeInfo.ConvertedType);
+
+            var symbolInfo = model.GetSymbolInfo(returnTypeSyntax);
+            Assert.Equal(expectedType, symbolInfo.Symbol);
         }
 
         [Fact]
@@ -5538,6 +5674,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'var' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class var { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "var").WithArguments("var").WithLocation(2, 7),
                 // (8,13): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
                 //         d = var () => default;
                 Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(8, 13),
@@ -5551,7 +5690,7 @@ class Program
         {
             var source =
 @"using System;
-class var { }
+class @var { }
 class Program
 {
     static void Main()
@@ -5580,9 +5719,9 @@ class Program
         {
             var source =
 @"using System;
-struct var
+struct @var
 {
-    internal class other { }
+    internal class @other { }
     internal other o;
 }
 class Program
@@ -5613,7 +5752,7 @@ class Program
         {
             var source =
 @"using System;
-using var = System.Int32;
+using @var = System.Int32;
 class Program
 {
     static void Main()
@@ -5639,7 +5778,7 @@ class Program
 @"using System;
 class Program
 {
-    static void M<var>()
+    static void M<@var>()
     {
         F(var (var v) => v);
         F(@var (var v) => v);
@@ -5660,7 +5799,7 @@ class Program
         {
             var source =
 @"using System;
-static class var { }
+static class @var { }
 class Program
 {
     static void Main()

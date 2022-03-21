@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
@@ -328,6 +329,8 @@ End Class
                                                                              Optional systemImportsFirst As Boolean = True,
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
+                Dim options = CodeActionOptions.Default
+
                 Dim solution = workspace.CurrentSolution _
                     .WithOptions(workspace.Options _
                     .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
@@ -355,10 +358,12 @@ End Class
 
                 Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
-                Dim newDoc = Await codeCleanupService.CleanupAsync(document,
-                                                               enabledDiagnostics,
-                                                               New ProgressTracker,
-                                                               CancellationToken.None)
+                Dim newDoc = Await codeCleanupService.CleanupAsync(
+                    document,
+                    enabledDiagnostics,
+                    New ProgressTracker,
+                    options,
+                    CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()
 

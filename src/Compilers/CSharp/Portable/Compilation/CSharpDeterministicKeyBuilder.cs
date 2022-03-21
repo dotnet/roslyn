@@ -11,55 +11,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class CSharpDeterministicKeyBuilder : DeterministicKeyBuilder
     {
-        public CSharpDeterministicKeyBuilder()
-        {
+        internal static readonly CSharpDeterministicKeyBuilder Instance = new();
 
+        private CSharpDeterministicKeyBuilder()
+        {
         }
 
         protected override void WriteCompilationOptionsCore(JsonWriter writer, CompilationOptions options)
         {
             if (options is not CSharpCompilationOptions csharpOptions)
             {
-                throw new InvalidOperationException();
+                throw new ArgumentException(null, nameof(options));
             }
 
             base.WriteCompilationOptionsCore(writer, options);
 
             writer.Write("unsafe", csharpOptions.AllowUnsafe);
             writer.Write("topLevelBinderFlags", csharpOptions.TopLevelBinderFlags);
-
-            if (csharpOptions.Usings.Length > 0)
+            writer.WriteKey("usings");
+            writer.WriteArrayStart();
+            foreach (var name in csharpOptions.Usings)
             {
-                writer.WriteKey("globalUsings");
-                writer.WriteArrayStart();
-                foreach (var name in csharpOptions.Usings)
-                {
-                    writer.Write(name);
-                }
-                writer.WriteArrayEnd();
+                writer.Write(name);
             }
+            writer.WriteArrayEnd();
         }
 
         protected override void WriteParseOptionsCore(JsonWriter writer, ParseOptions parseOptions)
         {
             if (parseOptions is not CSharpParseOptions csharpOptions)
             {
-                throw new InvalidOperationException();
+                throw new ArgumentException(null, nameof(parseOptions));
             }
+
+            base.WriteParseOptionsCore(writer, parseOptions);
 
             writer.Write("languageVersion", csharpOptions.LanguageVersion);
             writer.Write("specifiedLanguageVersion", csharpOptions.SpecifiedLanguageVersion);
 
-            if (csharpOptions.PreprocessorSymbols is { Length: > 0 } symbols)
+            writer.WriteKey("preprocessorSymbols");
+            writer.WriteArrayStart();
+
+            // Even though tools like the command line parser don't explicitly order the symbols 
+            // here the order doesn't actually impact determinism.
+            foreach (var symbol in csharpOptions.PreprocessorSymbols.OrderBy(StringComparer.Ordinal))
             {
-                writer.WriteKey("preprocessorSymbols");
-                writer.WriteArrayStart();
-                foreach (var symbol in symbols)
-                {
-                    writer.Write(symbol);
-                }
-                writer.WriteArrayEnd();
+                writer.Write(symbol);
             }
+
+            writer.WriteArrayEnd();
         }
     }
 }

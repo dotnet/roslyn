@@ -6,7 +6,9 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.SymbolSearch
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public MustInherit Class AbstractWrappingTests
@@ -16,17 +18,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return FlattenActions(actions)
         End Function
 
-        Private Protected Function GetIndentionColumn(column As Integer) As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {
-                   {FormattingBehaviorOptions.PreferredWrappingColumn, column}
-               }
+        Private Protected Shared Function GetIndentionColumn(column As Integer) As CodeActionOptions
+            Return New CodeActionOptions(
+                SymbolSearchOptions.Default,
+                ImplementTypeOptions.Default,
+                ExtractMethodOptions.Default,
+                WrappingColumn:=column)
         End Function
 
         Protected Function TestAllWrappingCasesAsync(
             input As String,
             ParamArray outputs As String()) As Task
 
-            Return TestAllWrappingCasesAsync(input, options:=Nothing, outputs)
+            Return TestAllWrappingCasesAsync(input, options:=CodeActionOptions.Default, outputs)
+        End Function
+
+        Private Protected Function TestAllWrappingCasesAsync(
+            input As String,
+            options As CodeActionOptions,
+            ParamArray outputs As String()) As Task
+
+            Dim parameters = New TestParameters(codeActionOptions:=options)
+            Return TestAllInRegularAndScriptAsync(input, parameters, outputs)
         End Function
 
         Private Protected Function TestAllWrappingCasesAsync(

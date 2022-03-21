@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.CodeAnalysis
 {
-    public enum DeterministicKeyOptions
+    [Flags]
+    internal enum DeterministicKeyOptions
     {
         /// <summary>
         /// The default is to include all inputs to the compilation which impact the output of the 

@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -260,7 +261,7 @@ namespace Goo.Bar
         }
     }  
 }     
-");
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -277,7 +278,17 @@ namespace Goo.Bar
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -295,7 +306,7 @@ namespace Goo.Bar
         }
     }  
 }     
-");
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -313,7 +324,17 @@ namespace Goo.Bar
             emitResult.Diagnostics.Verify();
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                @"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -331,7 +352,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -356,7 +377,18 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""T:Goo.Bar.Test1"" -->
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -374,7 +406,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -399,7 +431,20 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary><see cref=""!:T""/></summary>
+        </member>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -417,7 +462,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -439,7 +484,20 @@ namespace Goo.Bar
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
 
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary>This should emit</summary>
+        </member>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -457,7 +515,7 @@ namespace Goo.Bar
         }
     }  
 }     
-", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
 
             EmitResult emitResult;
             byte[] mdOnlyImage;
@@ -471,13 +529,24 @@ namespace Goo.Bar
                 xmlDocBytes = xmlStream.ToArray();
             }
 
-            // This should not fail the emit (as it's a warning).
             Assert.True(emitResult.Success);
             emitResult.Diagnostics.Verify();
 
-            // Even though docs failed, we should still produce the peStream.
             Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
-            Assert.True(xmlDocBytes.Length > 0, "no xml emitted");
+            Assert.Equal(
+                @"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary>This should emit</summary>
+        </member>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
         }
 
         [Fact]
@@ -4958,6 +5027,8 @@ public interface IUsePlatform
         {
             var comp = CreateEmptyCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
+            // PEVerify: [HRESULT 0x8007000B] - An attempt was made to load a program with an incorrect format.
+            // ILVerify: Internal.IL.VerifierException : No system module specified
             CompileAndVerify(comp, verify: Verification.Fails);
             Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
             comp.GetSpecialType(SpecialType.System_Int32);
@@ -5463,7 +5534,8 @@ public class DerivingClass<T> : BaseClass<T>
             var modRef = CreateCompilation("public class A { }", options: TestOptions.ReleaseModule, assemblyName: "refMod").EmitToImageReference();
             var comp = CreateCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
 
-            CompileAndVerify(comp, symbolValidator: module =>
+            // ILVerify: Assembly or module not found: refMod
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, symbolValidator: module =>
             {
                 var b = module.GlobalNamespace.GetTypeMember("B");
                 Assert.Equal("B", b.Name);

@@ -465,6 +465,8 @@ function TestUsingRunTests() {
       Remove-Item env:\ROSLYN_TEST_CI
     }
 
+    # Note: remember to update TestRunner when using new environment variables
+    # (they need to be transferred over to the Helix machines that run the tests)
     if ($testIOperation) {
       Remove-Item env:\ROSLYN_TEST_IOPERATION
     }
@@ -579,12 +581,16 @@ function Deploy-VsixViaTool() {
   # Disable IntelliCode line completions to avoid interference with argument completion testing
   &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
 
+  # Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" repositoryAttachedModels string "0*System.Int32*2"
+
   # Disable background download UI to avoid toasts
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
 
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword $lspRegistryValue
 
   # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
   # custom handler or fail silently and continue testing.
@@ -670,10 +676,6 @@ function Setup-IntegrationTestRun() {
 }
 
 function Prepare-TempDir() {
-  $env:TEMP=$TempDir
-  $env:TMP=$TempDir
-
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -709,6 +711,8 @@ try {
   }
 
   Push-Location $RepoRoot
+
+  Subst-TempDir
 
   if ($ci) {
     List-Processes
@@ -779,5 +783,7 @@ finally {
   if ($ci) {
     Stop-Processes
   }
+
+  Unsubst-TempDir
   Pop-Location
 }
