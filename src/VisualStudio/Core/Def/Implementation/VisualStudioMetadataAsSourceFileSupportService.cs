@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             var solution = await serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Intentionally ignore the event-cookie we get back out.  We never stop listening to solution events.
             ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _));
         }
 
