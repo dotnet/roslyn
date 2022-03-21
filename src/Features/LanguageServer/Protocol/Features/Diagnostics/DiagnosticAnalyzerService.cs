@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
+        public IGlobalOptionService GlobalOptions { get; }
 
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
@@ -41,10 +43,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+            GlobalOptions = globalOptions;
 
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
@@ -53,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _eventQueue = new TaskQueue(Listener, TaskScheduler.Default);
 
             registrationService.Register(this);
+            GlobalOptions = globalOptions;
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
@@ -64,16 +69,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, ArrayBuilder<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
+        public Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
+            Document document,
+            TextSpan range,
+            Func<string, bool>? shouldIncludeDiagnostic,
+            bool includeSuppressedDiagnostics = false,
+            CodeActionRequestPriority priority = CodeActionRequestPriority.None,
+            CancellationToken cancellationToken = default)
         {
             if (_map.TryGetValue(document.Project.Solution.Workspace, out var analyzer))
             {
                 // always make sure that analyzer is called on background thread.
-                return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(
-                    document, range, diagnostics, shouldIncludeDiagnostic: null, includeSuppressedDiagnostics, CodeActionRequestPriority.None, blockForData: false, addOperationScope: null, cancellationToken), cancellationToken);
+                return Task.Run(async () =>
+                {
+                    using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
+                    var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
+                        document, range, diagnostics, shouldIncludeDiagnostic,
+                        includeSuppressedDiagnostics, priority, blockForData: false,
+                        addOperationScope: null, cancellationToken).ConfigureAwait(false);
+                    return (diagnostics.ToImmutable(), upToDate);
+                }, cancellationToken);
             }
 
-            return SpecializedTasks.False;
+            return Task.FromResult((ImmutableArray<DiagnosticData>.Empty, upToDate: false));
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(

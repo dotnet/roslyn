@@ -173,6 +173,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
+            var ideOptions = ((WorkspaceAnalyzerOptions)compilationWithAnalyzers.AnalysisOptions.Options!).IdeOptions;
+
             var argument = new DiagnosticArguments(
                 compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
                 logPerformanceInfo,
@@ -181,7 +183,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 documentAnalysisScope?.Span,
                 documentAnalysisScope?.Kind,
                 project.Id,
-                analyzerMap.Keys.ToArray());
+                analyzerMap.Keys.ToArray(),
+                ideOptions);
 
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
                 solution,

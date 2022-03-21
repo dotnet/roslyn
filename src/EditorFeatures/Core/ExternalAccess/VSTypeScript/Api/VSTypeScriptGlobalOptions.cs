@@ -7,7 +7,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
@@ -30,21 +29,22 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             set => _globalOptions.SetGlobalOption(new OptionKey(CompletionViewOptions.BlockForCompletionItems, InternalLanguageNames.TypeScript), value);
         }
 
-#pragma warning disable CA1822 // Mark members as static - TODO: will set global options in future
-        public void SetBackgroundAnalysisScope(Workspace workspace, bool openFilesOnly)
-#pragma warning restore
+        public void SetBackgroundAnalysisScope(bool openFilesOnly)
         {
-            var solution = workspace.CurrentSolution;
-            workspace.TryApplyChanges(solution.WithOptions(solution.Options
-                .WithChangedOption(
-                    SolutionCrawlerOptions.BackgroundAnalysisScopeOption,
-                    InternalLanguageNames.TypeScript,
-                    openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution)
-                .WithChangedOption(
-                    ServiceFeatureOnOffOptions.RemoveDocumentDiagnosticsOnDocumentClose,
-                    InternalLanguageNames.TypeScript,
-                    openFilesOnly)));
+            _globalOptions.SetGlobalOption(
+                new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript),
+                openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
+
+            _globalOptions.SetGlobalOption(
+                new OptionKey(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript),
+                openFilesOnly);
         }
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        [Obsolete("Do not pass workspace")]
+        public void SetBackgroundAnalysisScope(Workspace workspace, bool openFilesOnly)
+            => SetBackgroundAnalysisScope(openFilesOnly);
+#pragma warning restore
 
         internal IGlobalOptionService Service => _globalOptions;
     }

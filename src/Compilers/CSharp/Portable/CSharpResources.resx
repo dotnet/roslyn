@@ -6070,6 +6070,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
     <value>using declarations</value>
   </data>
+  <data name="IDS_FeatureDisposalPattern" xml:space="preserve">
+    <value>pattern-based disposal</value>
+  </data>
   <data name="ERR_FeatureInPreview" xml:space="preserve">
     <value>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</value>
   </data>
@@ -6330,6 +6333,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RelationalPatternWithNaN" xml:space="preserve">
     <value>Relational patterns may not be used for a floating-point NaN.</value>
+  </data>
+  <data name="IDS_FeatureSpanCharConstantPattern" xml:space="preserve">
+    <value>pattern matching ReadOnly/Span&lt;char&gt; on constant string</value>
   </data>
   <data name="IDS_FeatureExtendedPartialMethods" xml:space="preserve">
     <value>extended partial methods</value>
@@ -6958,6 +6964,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_StructHasInitializersAndNoDeclaredConstructor" xml:space="preserve">
     <value>A 'struct' with field initializers must include an explicitly declared constructor.</value>
+  </data>
+  <data name="ERR_PatternSpanCharCannotBeStringNull" xml:space="preserve">
+    <value>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</value>
   </data>
   <data name="ERR_EncUpdateFailedDelegateTypeChanged" xml:space="preserve">
     <value>Cannot update because an inferred delegate type has changed.</value>

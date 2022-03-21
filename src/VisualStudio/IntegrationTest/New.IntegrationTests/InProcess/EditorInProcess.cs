@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -617,8 +618,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task InvokeCodeActionListAsync(CancellationToken cancellationToken)
         {
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.SolutionCrawler, cancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.DiagnosticService, cancellationToken);
+            await TestServices.Workarounds.WaitForLightBulbAsync(cancellationToken);
 
             await InvokeCodeActionListWithoutWaitingAsync(cancellationToken);
 
@@ -627,10 +627,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task InvokeCodeActionListWithoutWaitingAsync(CancellationToken cancellationToken)
         {
-            if (Version.Parse("17.1.31916.450") > await TestServices.Shell.GetVersionAsync(cancellationToken))
+            if (Version.Parse("17.2.32210.308") > await TestServices.Shell.GetVersionAsync(cancellationToken))
             {
-                // Workaround for extremely unstable async lightbulb prior to:
-                // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform/pullrequest/361759
+                // Workaround for extremely unstable async lightbulb (can dismiss itself when SuggestedActionsChanged
+                // fires while expanding the light bulb).
                 await TestServices.Input.SendAsync(new KeyPress(VirtualKey.Period, ShiftState.Ctrl));
                 await Task.Delay(5000, cancellationToken);
 
@@ -955,7 +955,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.GotoDefn, cancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo },
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo, FeatureAttribute.GoToDefinition },
                 cancellationToken);
         }
 
@@ -963,7 +963,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await TestServices.Shell.ExecuteCommandAsync(EditorConstants.EditorCommandID.GoToBase, cancellationToken);
+            Debug.Assert(new Version("17.2.32210.308") >= await TestServices.Shell.GetVersionAsync(cancellationToken), "After updating CI to 17.2 Preview 2, the following call to ExecuteCommandAsync should has its first parameter, and uint cast, removed leaving just EditorConstants.EditorCommandID.GoToBase instead of an explicit CommandID and Guid.");
+            await TestServices.Shell.ExecuteCommandAsync(EditorConstants.EditorCommandSet, (uint)EditorConstants.EditorCommandID.GoToBase, cancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
 

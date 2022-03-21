@@ -6,9 +6,13 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes
@@ -20,11 +24,16 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
             private const string ColorSchemeApplierKey = @"Roslyn\ColorSchemeApplier";
             private const string AppliedColorSchemeName = "AppliedColorScheme";
 
+            private readonly IThreadingContext _threadingContext;
             private readonly IServiceProvider _serviceProvider;
             private readonly IGlobalOptionService _globalOptions;
 
-            public ColorSchemeSettings(IServiceProvider serviceProvider, IGlobalOptionService globalOptions)
+            public ColorSchemeSettings(
+                IThreadingContext threadingContext,
+                IServiceProvider serviceProvider,
+                IGlobalOptionService globalOptions)
             {
+                _threadingContext = threadingContext;
                 _serviceProvider = serviceProvider;
                 _globalOptions = globalOptions;
             }
@@ -50,8 +59,11 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 return assembly.GetManifestResourceStream($"Microsoft.VisualStudio.LanguageServices.ColorSchemes.{schemeName}.xml");
             }
 
-            public void ApplyColorScheme(ColorSchemeName schemeName, ImmutableArray<RegistryItem> registryItems)
+            public async Task ApplyColorSchemeAsync(
+                ColorSchemeName schemeName, ImmutableArray<RegistryItem> registryItems, CancellationToken cancellationToken)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);
 
                 foreach (var item in registryItems)
@@ -73,8 +85,10 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
             /// <summary>
             /// Get the color scheme that is applied to the configuration registry.
             /// </summary>
-            public ColorSchemeName GetAppliedColorScheme()
+            public async Task<ColorSchemeName> GetAppliedColorSchemeAsync(CancellationToken cancellationToken)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 // The applied color scheme is stored in the configuration registry with the color theme information because
                 // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: false);
@@ -86,6 +100,8 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 
             private void SetAppliedColorScheme(ColorSchemeName schemeName)
             {
+                Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+
                 // The applied color scheme is stored in the configuration registry with the color theme information because
                 // when the hive gets rebuilt during upgrades, we need to reapply the color scheme information.
                 using var registryRoot = VSRegistry.RegistryRoot(_serviceProvider, __VsLocalRegistryType.RegType_Configuration, writable: true);

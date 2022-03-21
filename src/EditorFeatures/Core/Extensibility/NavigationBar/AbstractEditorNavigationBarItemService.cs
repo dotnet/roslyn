@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
 
         protected abstract Task<bool> TryNavigateToItemAsync(Document document, WrappedNavigationBarItem item, ITextView textView, ITextVersion textVersion, CancellationToken cancellationToken);
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<CodeAnalysis.NavigationBar.INavigationBarItemService>();
             var workspaceSupportsDocumentChanges = document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument);
-            var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, cancellationToken).ConfigureAwait(false);
+            var items = await service.GetItemsAsync(document, workspaceSupportsDocumentChanges, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken).ConfigureAwait(false);
             return items.SelectAsArray(v => (NavigationBarItem)new WrappedNavigationBarItem(textVersion, v));
         }
 
@@ -50,12 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         protected async Task NavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            if (await navigationService.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false))
-            {
-                await navigationService.TryNavigateToPositionAsync(
-                    workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
-            }
-            else
+
+            if (!await navigationService.TryNavigateToPositionAsync(
+                    ThreadingContext, workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken).ConfigureAwait(false))
             {
                 // Ensure we're back on the UI thread before showing a failure message.
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

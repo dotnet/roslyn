@@ -1107,7 +1107,7 @@ oneMoreTime:
         {
             // Switch expression must have a valid switch governing type
             Debug.Assert((object)dispatch.Expression.Type != null);
-            Debug.Assert(dispatch.Expression.Type.IsValidV6SwitchGoverningType());
+            Debug.Assert(dispatch.Expression.Type.IsValidV6SwitchGoverningType() || dispatch.Expression.Type.IsSpanOrReadOnlySpanChar());
 
             // We must have rewritten nullable switch expression into non-nullable constructs.
             Debug.Assert(!dispatch.Expression.Type.IsNullableType());
@@ -1118,19 +1118,17 @@ oneMoreTime:
             EmitSwitchHeader(
                 dispatch.Expression,
                 dispatch.Cases.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
-                dispatch.DefaultLabel,
-                dispatch.EqualityMethod);
+                dispatch.DefaultLabel);
         }
 
         private void EmitSwitchHeader(
             BoundExpression expression,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
-            LabelSymbol fallThroughLabel,
-            MethodSymbol equalityMethod)
+            LabelSymbol fallThroughLabel)
         {
             Debug.Assert(expression.ConstantValue == null);
             Debug.Assert((object)expression.Type != null &&
-                expression.Type.IsValidV6SwitchGoverningType());
+                (expression.Type.IsValidV6SwitchGoverningType() || expression.Type.IsSpanOrReadOnlySpanChar()));
             Debug.Assert(switchCaseLabels.Length > 0);
 
             Debug.Assert(switchCaseLabels != null);
@@ -1183,13 +1181,13 @@ oneMoreTime:
             }
 
             // Emit switch jump table
-            if (expression.Type.SpecialType != SpecialType.System_String)
+            if (expression.Type.SpecialType == SpecialType.System_String || expression.Type.IsSpanOrReadOnlySpanChar())
             {
-                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
+                this.EmitStringSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Syntax, expression.Type);
             }
             else
             {
-                this.EmitStringSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Syntax, equalityMethod);
+                _builder.EmitIntegerSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Type.EnumUnderlyingTypeOrSelf().PrimitiveTypeCode);
             }
 
             if (temp != null)
@@ -1209,8 +1207,12 @@ oneMoreTime:
             LabelSymbol fallThroughLabel,
             LocalOrParameter key,
             SyntaxNode syntaxNode,
-            MethodSymbol equalityMethod)
+            TypeSymbol keyType)
         {
+            var isSpan = keyType.IsSpanChar();
+            var isReadOnlySpan = keyType.IsReadOnlySpanChar();
+            var isSpanOrReadOnlySpan = isSpan || isReadOnlySpan;
+
             LocalDefinition keyHash = null;
 
             // Condition is necessary, but not sufficient (e.g. might be missing a special or well-known member).
@@ -1219,7 +1221,12 @@ oneMoreTime:
                 Debug.Assert(_module.SupportsPrivateImplClass);
 
                 var privateImplClass = _module.GetPrivateImplClass(syntaxNode, _diagnostics);
-                Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName);
+                Cci.IReference stringHashMethodRef = privateImplClass.GetMethod(
+                    isSpanOrReadOnlySpan
+                        ? isReadOnlySpan
+                            ? PrivateImplementationDetails.SynthesizedReadOnlySpanHashFunctionName
+                            : PrivateImplementationDetails.SynthesizedSpanHashFunctionName
+                        : PrivateImplementationDetails.SynthesizedStringHashFunctionName);
 
                 // Heuristics and well-known member availability determine the existence
                 // of this helper.  Rather than reproduce that (language-specific) logic here,
@@ -1243,13 +1250,44 @@ oneMoreTime:
                 }
             }
 
-            Cci.IReference stringEqualityMethodRef = _module.Translate(equalityMethod, syntaxNode, _diagnostics);
+            Cci.IMethodReference stringEqualityMethodRef = null;
+            Cci.IMethodReference lengthMethodRef = null;
 
-            Cci.IMethodReference stringLengthRef = null;
-            var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
-            if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
+            Cci.IMethodReference sequenceEqualsMethodRef = null;
+            Cci.IMethodReference asSpanMethodRef = null;
+
+            if (isSpanOrReadOnlySpan)
             {
-                stringLengthRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
+                // Binder.ConvertPatternExpression() has checked for these well-known members.
+                var sequenceEqualsTMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                    ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
+                    : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T);
+                Debug.Assert(sequenceEqualsTMethod != null && !sequenceEqualsTMethod.HasUseSiteError);
+                var sequenceEqualsCharMethod = sequenceEqualsTMethod.Construct(_module.Compilation.GetSpecialType(SpecialType.System_Char));
+                sequenceEqualsMethodRef = _module.Translate(sequenceEqualsCharMethod, null, _diagnostics);
+
+                var asSpanMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpan_String);
+                Debug.Assert(asSpanMethod != null && !asSpanMethod.HasUseSiteError);
+                asSpanMethodRef = _module.Translate(asSpanMethod, null, _diagnostics);
+
+                var spanTLengthMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                    ? WellKnownMember.System_ReadOnlySpan_T__get_Length
+                    : WellKnownMember.System_Span_T__get_Length);
+                Debug.Assert(spanTLengthMethod != null && !spanTLengthMethod.HasUseSiteError);
+                var spanCharLengthMethod = spanTLengthMethod.AsMember((NamedTypeSymbol)keyType);
+                lengthMethodRef = _module.Translate(spanCharLengthMethod, null, _diagnostics);
+            }
+            else
+            {
+                var stringEqualityMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Equality) as MethodSymbol;
+                Debug.Assert(stringEqualityMethod != null && !stringEqualityMethod.HasUseSiteError);
+                stringEqualityMethodRef = _module.Translate(stringEqualityMethod, syntaxNode, _diagnostics);
+
+                var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
+                if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
+                {
+                    lengthMethodRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
+                }
             }
 
             SwitchStringJumpTableEmitter.EmitStringCompareAndBranch emitStringCondBranchDelegate =
@@ -1257,25 +1295,43 @@ oneMoreTime:
                 {
                     if (stringConstant == ConstantValue.Null)
                     {
+                        Debug.Assert(!isSpanOrReadOnlySpan);
+
                         // if (key == null)
                         //      goto targetLabel
                         _builder.EmitLoad(keyArg);
                         _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
                     }
-                    else if (stringConstant.StringValue.Length == 0 && stringLengthRef != null)
+                    else if (stringConstant.StringValue.Length == 0 && lengthMethodRef != null)
                     {
                         // if (key != null && key.Length == 0)
                         //      goto targetLabel
 
                         object skipToNext = new object();
-                        _builder.EmitLoad(keyArg);
-                        _builder.EmitBranch(ILOpCode.Brfalse, skipToNext, ILOpCode.Brtrue);
+                        if (isSpanOrReadOnlySpan)
+                        {
+                            // The caller ensures that the key is not byref, and is not a stack local
+                            if (keyArg.Local is { } local)
+                            {
+                                _builder.EmitLocalAddress(local);
+                            }
+                            else
+                            {
+                                _builder.EmitLoadArgumentAddrOpcode(keyArg.ParameterIndex);
+                            }
+                        }
+                        else
+                        {
+                            _builder.EmitLoad(keyArg);
+                            _builder.EmitBranch(ILOpCode.Brfalse, skipToNext, ILOpCode.Brtrue);
 
-                        _builder.EmitLoad(keyArg);
+                            _builder.EmitLoad(keyArg);
+                        }
+
                         // Stack: key --> length
                         _builder.EmitOpCode(ILOpCode.Call, 0);
                         var diag = DiagnosticBag.GetInstance();
-                        _builder.EmitToken(stringLengthRef, null, diag);
+                        _builder.EmitToken(lengthMethodRef, null, diag);
                         Debug.Assert(diag.IsEmptyWithoutResolution);
                         diag.Free();
 
@@ -1284,7 +1340,14 @@ oneMoreTime:
                     }
                     else
                     {
-                        this.EmitStringCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, stringEqualityMethodRef);
+                        if (isSpanOrReadOnlySpan)
+                        {
+                            this.EmitCharCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, sequenceEqualsMethodRef, asSpanMethodRef);
+                        }
+                        else
+                        {
+                            this.EmitStringCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, stringEqualityMethodRef);
+                        }
                     }
                 };
 
@@ -1337,6 +1400,35 @@ oneMoreTime:
             _builder.EmitToken(stringEqualityMethodRef, syntaxNode, _diagnostics);
 
             // Branch to targetLabel if String.Equals returned true.
+            _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
+        }
+
+        /// <summary>
+        /// Delegate to emit ReadOnlySpanChar compare with string and conditional branch based on the compare result.
+        /// </summary>
+        /// <param name="key">Key to compare</param>
+        /// <param name="syntaxNode">Node for diagnostics.</param>
+        /// <param name="stringConstant">Case constant to compare the key against</param>
+        /// <param name="targetLabel">Target label to branch to if key = stringConstant</param>
+        /// <param name="sequenceEqualsRef">String equality method</param>
+        private void EmitCharCompareAndBranch(LocalOrParameter key, SyntaxNode syntaxNode, ConstantValue stringConstant, object targetLabel, Cci.IReference sequenceEqualsRef, Cci.IReference asSpanRef)
+        {
+            // Emit compare and branch:
+
+            // if (key.SequenceEqual(stringConstant.AsSpan()))
+            //      goto targetLabel;
+
+            Debug.Assert(sequenceEqualsRef != null);
+            Debug.Assert(asSpanRef != null);
+
+            _builder.EmitLoad(key);
+            _builder.EmitConstantValue(stringConstant);
+            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+            _builder.EmitToken(asSpanRef, syntaxNode, _diagnostics);
+            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -1);
+            _builder.EmitToken(sequenceEqualsRef, syntaxNode, _diagnostics);
+
+            // Branch to targetLabel if SequenceEquals returned true.
             _builder.EmitBranch(ILOpCode.Brtrue, targetLabel, ILOpCode.Brfalse);
         }
 
@@ -1584,7 +1676,7 @@ oneMoreTime:
                     casesBuilder.Add((value, GetLabelClone(label)));
                 }
 
-                return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone, node.EqualityMethod);
+                return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone);
             }
 
             public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
