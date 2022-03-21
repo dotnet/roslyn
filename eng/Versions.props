@@ -63,7 +63,7 @@
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <!-- <Metalama> -->
     <MetalamaBackstageVersion Condition="'$(MetalamaBackstageVersion)'==''">branch:master</MetalamaBackstageVersion>
-    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.52-preview</PostSharpEngineeringVersion>
+    <PostSharpEngineeringVersion Condition="'$(PostSharpEngineeringVersion)'==''">1.0.54-preview</PostSharpEngineeringVersion>
     <!-- </Metalama> -->
   </PropertyGroup>
   <!--
