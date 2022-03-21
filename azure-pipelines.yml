@@ -48,12 +48,21 @@ jobs:
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
-    testRunName: 'Test Windows Desktop Debug 64'
-    jobName: Test_Windows_Desktop_Debug_64
+    testRunName: 'Test Windows Desktop Debug Amd64'
+    jobName: Test_Windows_Desktop_Debug_Amd64
     buildJobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testDesktop -testArch x64
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Debug Arm64'
+    jobName: Test_Windows_Desktop_Debug_Arm64
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testDesktop -test64 --helixQueueName Windows.10.Arm64.Open
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -85,8 +94,8 @@ jobs:
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
-    testRunName: 'Test Windows Desktop Spanish Release 64'
-    jobName: Test_Windows_Desktop_Spanish_Release_64
+    testRunName: 'Test Windows Desktop Spanish Release Amd64'
+    jobName: Test_Windows_Desktop_Spanish_Release_Amd64
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
@@ -95,8 +104,8 @@ jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
-      testRunName: 'Test Windows Desktop Release 64'
-      jobName: Test_Windows_Desktop_Release_64
+      testRunName: 'Test Windows Desktop Release Amd64'
+      jobName: Test_Windows_Desktop_Release_Amd64
       buildJobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
