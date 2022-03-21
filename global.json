@@ -1,5 +1,6 @@
 {
   "sdk": {
+    // when updating SDK version, please ensure that code and documentation references to the current SDK version are also updated.
     "version": "6.0.200",
     "allowPrerelease": true,
     "rollForward": "latestPatch"
