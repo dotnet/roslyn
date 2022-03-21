@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ForEachCast
         SyntaxKind,
         CommonForEachStatementSyntax>
     {
-        public CSharpForEachCastDiagnosticAnalyzer() : base(LanguageNames.CSharp)
-        {
-        }
-
         protected override ISyntaxFacts SyntaxFacts
             => CSharpSyntaxFacts.Instance;
 

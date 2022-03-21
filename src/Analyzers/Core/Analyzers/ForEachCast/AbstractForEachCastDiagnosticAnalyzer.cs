@@ -26,12 +26,11 @@ namespace Microsoft.CodeAnalysis.ForEachCast
         public static readonly ImmutableDictionary<string, string?> s_isFixableProperties =
             ImmutableDictionary<string, string?>.Empty.Add(ForEachCastHelpers.IsFixable, ForEachCastHelpers.IsFixable);
 
-        protected AbstractForEachCastDiagnosticAnalyzer(string language)
+        protected AbstractForEachCastDiagnosticAnalyzer()
             : base(
                   diagnosticId: IDEDiagnosticIds.ForEachCastDiagnosticId,
                   EnforceOnBuildValues.ForEachCast,
-                  option: null,
-                  language: language,
+                  CodeStyleOptions2.ForEachExplicitCastInSource,
                   title: new LocalizableResourceString(nameof(AnalyzersResources.Add_explicit_cast), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                   messageFormat: new LocalizableResourceString(nameof(AnalyzersResources._0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
