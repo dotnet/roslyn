@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 foundParameterlessCtor = true;
-                result = constructor.IsDefaultValueTypeConstructor(requireZeroInit: true);
+                result = constructor.IsDefaultValueTypeConstructor();
             }
 
             return result;
@@ -442,33 +442,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         /// <summary>
-        /// Returns true if the method is the default constructor synthesized for struct types, and
-        /// if <paramref name="requireZeroInit"/> is true, the constructor simply zero-inits the instance.
+        /// Returns true if the method is the default constructor synthesized for struct types.
         /// If the containing struct type is from metadata, the default constructor is synthesized when there
         /// is no accessible parameterless constructor. (That synthesized constructor from metadata zero-inits
         /// the instance.) If the containing struct type is from source, the parameterless constructor is synthesized
-        /// if there is no explicit parameterless constructor. And if the source type has no field initializers, or
-        /// the type has field initializers and at least one explicit constructor with parameters, the synthesized
+        /// if there is no explicit parameterless constructor, and the synthesized
         /// parameterless constructor simply zero-inits the instance (and is not emitted).
         /// </summary>
-        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method, bool requireZeroInit)
+        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method)
         {
-            if (method.IsImplicitlyDeclared &&
+            return method.IsImplicitlyDeclared &&
                 method.ContainingType?.IsValueType == true &&
-                method.IsParameterlessConstructor())
-            {
-                if (!requireZeroInit)
-                {
-                    return true;
-                }
-                var containingType = method.ContainingType.OriginalDefinition;
-                var constructors = containingType.InstanceConstructors;
-                // If there are field initializers and an explicit constructor with parameters
-                // (that is, more than one constructor), the implicit parameterless constructor
-                // is treated as the zero-init constructor and does not execute field initializers.
-                return constructors.Length > 1 || !containingType.HasFieldInitializers();
-            }
-            return false;
+                method.IsParameterlessConstructor();
         }
 #nullable disable
 
@@ -478,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool ShouldEmit(this MethodSymbol method)
         {
             // Don't emit the default value type constructor - the runtime handles that
-            if (method.IsDefaultValueTypeConstructor(requireZeroInit: true))
+            if (method.IsDefaultValueTypeConstructor())
             {
                 return false;
             }

@@ -37,6 +37,16 @@
         <target state="translated">Aplicar las preferencias de calificación Me</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Apply_isnot_preferences">
+        <source>Apply IsNot preferences</source>
+        <target state="new">Apply IsNot preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_creation_preferences">
+        <source>Apply object creation preferences</source>
+        <target state="new">Apply object creation preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_DirectCast">
         <source>Change to 'DirectCast'</source>
         <target state="translated">Cambiar a "DirectCast"</target>
@@ -1469,7 +1479,7 @@ Function(&lt;listaDeParámetros&gt;) &lt;expresión&gt;</target>
         <source>Defines a lambda expression that can execute statements and does not return a value. Can be used wherever a delegate type is expected.
 Sub(&lt;parameterList&gt;) &lt;statement&gt;</source>
         <target state="translated">Define una expresión lambda que puede ejecutar instrucciones y no devuelve un valor. Se puede usar dondequiera que se espere un tipo de delegado.
-Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
+Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;wo laopo fuke</target>
         <note />
       </trans-unit>
       <trans-unit id="Disables_reporting_of_specified_warnings_in_the_portion_of_the_source_file_below_the_current_line">
@@ -1719,7 +1729,7 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nombre del espacio de nombres&gt;</target>
+        <target state="translated">&lt;nombre de espacio de nombres&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
@@ -1734,12 +1744,12 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nombre de clase&gt;</target>
+        <target state="translated">&lt;nombre de la clase&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;nombre de interfaz&gt;</target>
+        <target state="translated">&lt;nombre de la interfaz&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

@@ -37,6 +37,16 @@
         <target state="translated">套用 Me 資格喜好設定</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Apply_isnot_preferences">
+        <source>Apply IsNot preferences</source>
+        <target state="new">Apply IsNot preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_creation_preferences">
+        <source>Apply object creation preferences</source>
+        <target state="new">Apply object creation preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_DirectCast">
         <source>Change to 'DirectCast'</source>
         <target state="translated">變更為 'DirectCast'</target>
@@ -1369,8 +1379,8 @@ Option Strict {On | Off}</target>
       <trans-unit id="Ensures_that_multiple_threads_do_not_execute_the_statement_block_at_the_same_time_SyncLock_object_End_Synclock">
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
-        <target state="translated">確定不會有多個執行緒同時執行此陳述式區塊。
-SyncLock &lt;object&gt;...End Synclock</target>
+        <target state="translated">確保多個執行緒不會同時執行語句區塊。
+SyncLock &lt;object&gt;...結束同步鎖定</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1442,8 +1452,8 @@ New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</targ
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
-        <target state="translated">執行一系列參考單一物件或結構的陳述式。
-With &lt;object&gt;...End With</target>
+        <target state="translated">執行一系列參照單一物件或結構的語句。
+物件&lt;object&gt;...結尾為</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1739,7 +1749,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;介面名稱&gt;</target>
+        <target state="translated">&lt;interface name&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

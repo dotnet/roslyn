@@ -54,6 +54,7 @@ Public Class C
 End Class")
         End Function
 
+        <WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestMissingOnRegularStringWithBracesAssignedToConst() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -62,6 +63,18 @@ Public Class C
     Sub M()
         Const v = [||]""string {""
     End Sub
+End Class")
+        End Function
+
+        <WorkItem(52243, "https://github.com/dotnet/roslyn/issues/52243")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestMissingOnAttributeStringParameterWithBraces() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+<System.Diagnostics.DebuggerDisplay([||]""FirstName={FirstName}, LastName={LastName}"")>
+Public Class C
+    Public Property FirstName As String
+    Public Property LastName As String
 End Class")
         End Function
     End Class

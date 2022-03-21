@@ -189,7 +189,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
     private static async Task<LSP.Hover> RunGetHoverAsync(TestLspServer testLspServer, LSP.Location caret)
     {
         var result = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
-            CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            CreateTextDocumentPositionParams(caret), CancellationToken.None);
         Contract.ThrowIfNull(result);
         return result;
     }

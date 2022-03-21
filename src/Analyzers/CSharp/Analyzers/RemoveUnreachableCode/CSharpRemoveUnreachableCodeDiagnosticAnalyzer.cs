@@ -40,11 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-#if CODE_STYLE
-            var fadeCode = true;
-#else
-            var fadeCode = context.GetOption(Fading.FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
-#endif
+            var fadeCode = context.Options.GetIdeOptions().FadeOutUnreachableCode;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 

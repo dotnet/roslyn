@@ -14,9 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Structure;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
@@ -52,7 +49,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return generator;
         }
 
-        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, HostLanguageServices languageServices, OptionSet options)
+        public async Task GenerateForCompilationAsync(Compilation compilation, string projectPath, HostLanguageServices languageServices, GeneratorOptions options)
         {
             var projectVertex = new Graph.LsifProject(kind: GetLanguageKind(compilation.Language), new Uri(projectPath), _idFactory);
             _lsifJsonWriter.Write(projectVertex);
@@ -68,9 +65,16 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             // Disable navigation hints in quick info as computing them both takes too long, and they're never
             // even emitted in the final lsif hover information.
-            var workspace = languageServices.WorkspaceServices.Workspace;
-            workspace.SetOptions(workspace.Options.WithChangedOption(
-                QuickInfoOptions.Metadata.IncludeNavigationHintsInQuickInfo, false));
+            options = options with
+            {
+                SymbolDescriptionOptions = options.SymbolDescriptionOptions with
+                {
+                    QuickInfoOptions = options.SymbolDescriptionOptions.QuickInfoOptions with
+                    {
+                        IncludeNavigationHintsInQuickInfo = false
+                    }
+                }
+            };
 
             var tasks = new List<Task>();
             foreach (var syntaxTree in compilation.SyntaxTrees)
@@ -115,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         private static async Task<Id<Graph.LsifDocument>> GenerateForDocumentAsync(
             SemanticModel semanticModel,
             HostLanguageServices languageServices,
-            OptionSet options,
+            GeneratorOptions options,
             IResultSetTracker topLevelSymbolsResultSetTracker,
             ILsifJsonWriter lsifJsonWriter,
             IdFactory idFactory)
@@ -127,6 +131,8 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             string? contentBase64Encoded = null;
 
+            var uri = syntaxTree.FilePath;
+
             // TODO: move to checking the enum member mentioned in https://github.com/dotnet/roslyn/issues/49326 when that
             // is implemented. In the mean time, we'll use a heuristic of the path being a relative path as a way to indicate
             // this is a source generated file.
@@ -137,9 +143,13 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?
                 contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
+
+                // There is a triple slash here, so the "host" portion of the URI is empty, similar to
+                // how file URIs work.
+                uri = "source-generated:///" + syntaxTree.FilePath.Replace('\\', '/');
             }
 
-            var documentVertex = new Graph.LsifDocument(new Uri(syntaxTree.FilePath, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+            var documentVertex = new Graph.LsifDocument(new Uri(uri, UriKind.RelativeOrAbsolute), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
 
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
@@ -235,8 +245,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     // See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#resultset for an example.
                     if (symbolResultsTracker.ResultSetNeedsInformationalEdgeAdded(symbolForLinkedResultSet, Methods.TextDocumentHoverName))
                     {
-                        var displayOptions = SymbolDescriptionOptions.From(options, languageServices.Language);
-                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, displayOptions, languageServices, CancellationToken.None);
+                        var hover = await HoverHandler.GetHoverAsync(semanticModel, syntaxToken.SpanStart, options.SymbolDescriptionOptions, languageServices, CancellationToken.None);
                         if (hover != null)
                         {
                             var hoverResult = new HoverResult(hover, idFactory);
@@ -250,8 +259,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             lsifJsonWriter.Write(Edge.Create("contains", documentVertex.GetId(), rangeVertices, idFactory));
 
             // Write the folding ranges for the document.
-            var blockStructureOptions = BlockStructureOptions.From(options, languageServices.Language, isMetadataAsSource: false);
-            var foldingRanges = FoldingRangesHandler.GetFoldingRanges(syntaxTree, languageServices, blockStructureOptions, CancellationToken.None);
+            var foldingRanges = FoldingRangesHandler.GetFoldingRanges(syntaxTree, languageServices, options.BlockStructureOptions, CancellationToken.None);
             var foldingRangeResult = new FoldingRangeResult(foldingRanges, idFactory);
             lsifJsonWriter.Write(foldingRangeResult);
             lsifJsonWriter.Write(Edge.Create(Methods.TextDocumentFoldingRangeName, documentVertex.GetId(), foldingRangeResult.GetId(), idFactory));

@@ -1742,7 +1742,7 @@ class C
     static void M2() { }
     static void M2(int i) { }
 }";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(
@@ -1756,7 +1756,12 @@ class C
                     error: out error,
                     testData: testData);
                 Assert.Equal("error CS8917: The delegate type could not be inferred.", error);
+
                 testData = new CompilationTestData();
+
+                // If you see this failing, please fix https://github.com/dotnet/roslyn/issues/58449
+                Assert.Equal(compilation0.LanguageVersion, context.Compilation.LanguageVersion);
+
                 context.CompileAssignment(
                     target: "o",
                     expr: "M1",
@@ -2299,7 +2304,7 @@ class C
         /// normally be allowed.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void Await()
         {
             var source = @"
@@ -2335,7 +2340,7 @@ class C
         /// This would be illegal in any non-debugger context.
         /// </remarks>
         [WorkItem(1075258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void AwaitInUnsafeContext()
         {
             var source = @"
@@ -4170,13 +4175,20 @@ class C
     {
     }
 }";
-            var testData = Evaluate(
-                source,
-                OutputKind.DynamicallyLinkedLibrary,
-                methodName: "C.M",
-                expr: "G(F)");
-            testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular10, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(
+                    runtime,
+                    methodName: "C.M");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("G(F)", out var error, testData);
+
+                // If you see this failing, please fix https://github.com/dotnet/roslyn/issues/58449
+                Assert.Equal(compilation.LanguageVersion, context.Compilation.LanguageVersion);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"
+{
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldnull
@@ -4184,7 +4196,9 @@ class C
   IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
   IL_000c:  call       ""void C.G(D)""
   IL_0011:  ret
-}");
+}
+");
+            });
         }
 
         [Fact]
@@ -6073,7 +6087,7 @@ class C
         /// <summary>
         /// Ignore accessibility in async rewriter.
         /// </summary>
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/58198")]
+        [Fact]
         public void AsyncRewriterIgnoreAccessibility()
         {
             var source =

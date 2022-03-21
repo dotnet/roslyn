@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             DisableCrashingExtensions);
 
-        public static readonly Option<bool> DisableCrashingExtensions = new(
+        public static readonly Option2<bool> DisableCrashingExtensions = new(
             nameof(ExtensionManagerOptions), nameof(DisableCrashingExtensions), defaultValue: true);
     }
 }

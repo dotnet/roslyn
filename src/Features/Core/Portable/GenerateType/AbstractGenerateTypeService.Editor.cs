@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     newSolution,
                     enclosingNamespace,
                     rootNamespaceOrType,
-                    new CodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
+                    new CodeGenerationContext(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
                     _cancellationToken).ConfigureAwait(false);
 
                 // containers is determined to be
@@ -387,9 +387,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     enclosingNamespace,
                     namedType,
-                    new CodeGenerationOptions(
-                        afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span),
-                        options: await _semanticDocument.Document.GetOptionsAsync(_cancellationToken).ConfigureAwait(false)),
+                    new CodeGenerationContext(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span)),
                     _cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[] { new ApplyChangesOperation(codeGenResult.Project.Solution) };
@@ -434,7 +432,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item1,
                     enclosingNamespaceGeneratedTypeToAddAndLocation.Item2,
-                    new CodeGenerationOptions(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
+                    new CodeGenerationContext(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
                     _cancellationToken).ConfigureAwait(false);
                 var newRoot = await codeGenResult.GetSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                 var updatedSolution = solution.WithDocumentSyntaxRoot(generateTypeOptionsResult.ExistingDocument.Id, newRoot, PreservationMode.PreserveIdentity);
@@ -548,7 +546,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     solution,
                     _state.TypeToGenerateInOpt,
                     namedType,
-                    new CodeGenerationOptions(contextLocation: _state.SimpleName.GetLocation()),
+                    new CodeGenerationContext(contextLocation: _state.SimpleName.GetLocation()),
                     _cancellationToken)
                     .ConfigureAwait(false);
 

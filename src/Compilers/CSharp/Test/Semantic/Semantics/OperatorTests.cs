@@ -4766,7 +4766,7 @@ unsafe struct A
             // add better verification once this is implemented
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_Dynamic()
         {
             var source = @"
@@ -11189,7 +11189,7 @@ class M
             {
                 numChildren++;
                 Assert.NotNull(iop);
-                foreach (var child in iop.Children)
+                foreach (var child in iop.ChildOperations)
                 {
                     enumerateChildren(child);
                 }

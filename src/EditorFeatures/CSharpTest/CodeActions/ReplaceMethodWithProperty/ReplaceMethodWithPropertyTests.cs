@@ -1937,7 +1937,7 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         get
         {
             throw e +
-   e;
+        e;
         }
     }
 }", options: new OptionsCollection(GetLanguage())

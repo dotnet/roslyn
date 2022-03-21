@@ -15,7 +15,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
+
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class AdditionalSourcesCollectionTests
@@ -24,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [Theory]
         [InlineData("abc")] // abc.cs
         [InlineData("abc.cs")] //abc.cs
+        [InlineData("abc+nested.cs")] //abc+nested.cs
+        [InlineData("abc`1.cs")] //abc`1.cs
         [InlineData("abc.vb")] // abc.vb.cs
         [InlineData("abc.generated.cs")]
         [InlineData("abc_-_")]
@@ -32,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         [InlineData("abc(1).cs")]
         [InlineData("abc[1].cs")]
         [InlineData("abc{1}.cs")]
+        [WorkItem(58476, "https://github.com/dotnet/roslyn/issues/58476")]
         public void HintName_ValidValues(string hintName)
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
@@ -138,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
         }
 
         [Fact]
-        public void Hint_Name_Must_Be_Unique_When_Combining_Soruces()
+        public void Hint_Name_Must_Be_Unique_When_Combining_Sources()
         {
             AdditionalSourcesCollection asc = new AdditionalSourcesCollection(".cs");
             asc.Add("hintName1", SourceText.From("", Encoding.UTF8));

@@ -741,6 +741,73 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task ChangingLanguageVersionReparses()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                            .AddDocument(documentId, "Test.cs", "// File")
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, oldTree.Options);
+
+            document = document.Project.WithParseOptions(new CSharpParseOptions(languageVersion: CS.LanguageVersion.CSharp1)).GetRequiredDocument(documentId);
+
+            var newTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, newTree.Options);
+
+            Assert.False(oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Theory]
+        [InlineData("#if DEBUG", false, LanguageNames.CSharp, false)]
+        [InlineData("#if DEBUG", false, LanguageNames.CSharp, true)]
+        [InlineData("// File", true, LanguageNames.CSharp, false)]
+        [InlineData("// File", true, LanguageNames.CSharp, true)]
+        [InlineData("#if DEBUG", false, LanguageNames.VisualBasic, false)]
+        [InlineData("#if DEBUG", false, LanguageNames.VisualBasic, true)]
+        [InlineData("' File", true, LanguageNames.VisualBasic, false)]
+        [InlineData("' File", true, LanguageNames.VisualBasic, true)]
+        public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName, bool useRecoverableTrees)
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", languageName)
+                            .AddDocument(documentId, "Test", source)
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            // Hold onto the old root, so we don't actually release the root; if the root were to fall away
+            // we're unable to use IsIncrementallyIdenticalTo to see if we didn't reparse, since asking for
+            // the old root will recover the tree and produce a new green node.
+            var oldRoot = oldTree.GetRoot();
+
+            Assert.Equal(document.Project.ParseOptions, oldTree.Options);
+
+            ParseOptions newOptions =
+                languageName == LanguageNames.CSharp ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
+                                                     : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+
+            document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
+
+            var newTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, newTree.Options);
+
+            Assert.Equal(expectReuse, oldRoot.IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Fact]
         public void WithProjectReferences()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
@@ -1855,7 +1922,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            using var workspace = CreateWorkspaceWithRecoverableTextAndSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -1872,7 +1939,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text2, textOnDisk);
 
             // stop observing it and let GC reclaim it
-            observedText.AssertReleased();
+            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
+            {
+                Assert.IsType<TemporaryStorageServiceFactory.TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                observedText.AssertReleased();
+            }
+            else
+            {
+                // If this assertion fails, it means a new target supports the true temporary storage service, and the
+                // condition above should be updated to ensure 'AssertReleased' is called for this target.
+                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+            }
 
             // if we ask for the same text again we should get the original content
             var observedText2 = sol.GetDocument(did).GetTextAsync().Result;
@@ -2661,22 +2738,30 @@ public class C : A {
             Assert.True(transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync().Result);
         }
 
+        private class TestSmallFileTextLoader : FileTextLoader
+        {
+            public TestSmallFileTextLoader(string path, Encoding encoding)
+                : base(path, encoding)
+            {
+            }
+
+            // set max file length to 1 byte
+            internal override int MaxFileLength => 1;
+        }
+
         [Fact]
         public async Task TestMassiveFileSize()
         {
-            // set max file length to 1 bytes
-            var maxLength = 1;
             var workspace = new AdhocWorkspace();
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
 
-            var loader = new FileTextLoader(file.Path, Encoding.UTF8);
+            var loader = new TestSmallFileTextLoader(file.Path, Encoding.UTF8);
+
             var textLength = FileUtilities.GetFileLength(file.Path);
 
-            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
+            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, 1);
             var exceptionThrown = false;
 
             try

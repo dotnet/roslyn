@@ -799,10 +799,10 @@ End Class",
     End Sub
 End Class
 Class A
-    Private p As Object
+    Private value As Object
 
-    Public Sub New(p As Object)
-        Me.p = p
+    Public Sub New(value As Object)
+        Me.value = value
     End Sub
 End Class")
         End Function
@@ -1434,7 +1434,7 @@ End Enum
 Public Class MyAttribute
     Inherits System.Attribute
 
-    Private vs As Short()
+    Private shorts As Short()
     Private a1 As A
     Private v1 As Boolean
     Private v2 As Integer
@@ -1446,8 +1446,8 @@ Public Class MyAttribute
     Private v8 As Single
     Private v9 As String
 
-    Public Sub New(vs() As Short, a1 As A, v1 As Boolean, v2 As Integer, v3 As Char, v4 As Short, v5 As Integer, v6 As Long, v7 As Double, v8 As Single, v9 As String)
-        Me.vs = vs
+    Public Sub New(shorts() As Short, a1 As A, v1 As Boolean, v2 As Integer, v3 As Char, v4 As Short, v5 As Integer, v6 As Long, v7 As Double, v8 As Single, v9 As String)
+        Me.shorts = shorts
         Me.a1 = a1
         Me.v1 = v1
         Me.v2 = v2
@@ -2283,15 +2283,15 @@ End Class
 ",
 "Class C
     Private _a As Integer
-    Private p As Object
+    Private value As Object
 
     Public Sub New(Optional a As Integer = 1)
         Me._a = a
     End Sub
 
-    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+    Public Sub New(Optional a As Integer = 1, Optional value As Object = Nothing)
         Me.New(a)
-        Me.p = p
+        Me.value = value
     End Sub
 
     Public Function M() As C
@@ -2320,15 +2320,15 @@ End Class
 ",
 "Class C
     Private _a As Integer
-    Private p As Object
+    Private value As Object
 
     Public Sub New(Optional a As Integer = 1)
         Me._a = a
     End Sub
 
-    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+    Public Sub New(Optional a As Integer = 1, Optional value As Object = Nothing)
         Me.New(a)
-        Me.p = p
+        Me.value = value
     End Sub
 
     Public Function M() As C

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
                         options, semanticModel, currentRoot, t.declarator,
-                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace,
+                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace.Services,
                         cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
@@ -122,13 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             OptionSet options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,
-            HashSet<StatementSyntax> declarationsToRemove, Workspace workspace,
+            HashSet<StatementSyntax> declarationsToRemove,
+            HostWorkspaceServices services,
             CancellationToken cancellationToken)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
 
-            var editor = new SyntaxEditor(currentRoot, workspace);
+            var editor = new SyntaxEditor(currentRoot, services);
             var sourceText = currentRoot.GetText();
 
             var declaration = (VariableDeclarationSyntax)declarator.Parent;

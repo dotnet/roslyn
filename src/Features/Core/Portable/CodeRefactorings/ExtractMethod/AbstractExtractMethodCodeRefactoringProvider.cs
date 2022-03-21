@@ -56,32 +56,36 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var actions = await GetCodeActionsAsync(document, textSpan, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var options = context.Options.ExtractMethodOptions;
+            var actions = await GetCodeActionsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
 
         private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
+            ExtractMethodOptions options,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
-            var methodAction = await ExtractMethodAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var methodAction = await ExtractMethodAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(methodAction);
 
-            var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             actions.AddIfNotNull(localFunctionAction);
 
             return actions.ToImmutable();
         }
 
-        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractMethodAsync(Document document, TextSpan textSpan, ExtractMethodOptions options, CancellationToken cancellationToken)
         {
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
                 localFunction: false,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                options,
+                cancellationToken).ConfigureAwait(false);
+
             Contract.ThrowIfNull(result);
 
             if (!result.Succeeded && !result.SucceededWithSuggestion)
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 nameof(FeaturesResources.Extract_method));
         }
 
-        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private static async Task<CodeAction> ExtractLocalFunctionAsync(Document document, TextSpan textSpan, ExtractMethodOptions options, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -110,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 document,
                 textSpan,
                 localFunction: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                options,
+                cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(localFunctionResult);
 
             if (localFunctionResult.Succeeded || localFunctionResult.SucceededWithSuggestion)

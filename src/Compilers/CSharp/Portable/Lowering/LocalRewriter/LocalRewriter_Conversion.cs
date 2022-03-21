@@ -31,10 +31,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     InterpolationHandlerResult interpolationResult = RewriteToInterpolatedStringHandlerPattern(data, parts, node.Operand.Syntax);
                     return interpolationResult.WithFinalResult(interpolationResult.HandlerTemp);
-                case ConversionKind.SwitchExpression or ConversionKind.ConditionalExpression:
-                    // Skip through target-typed conditionals and switches
-                    Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true } or BoundConvertedSwitchExpression { WasTargetTyped: true });
+                case ConversionKind.SwitchExpression:
+                    // Skip through target-typed switches
+                    Debug.Assert(node.Operand is BoundConvertedSwitchExpression { WasTargetTyped: true });
                     return Visit(node.Operand)!;
+                case ConversionKind.ConditionalExpression:
+                    // Skip through target-typed conditionals
+                    Debug.Assert(node.Operand is BoundConditionalOperator { WasTargetTyped: true });
+                    return Visit(node.Operand)!;
+                case ConversionKind.ObjectCreation:
+                    // Skip through target-typed new
+                    Debug.Assert(node.Operand is not null);
+                    var objectCreation = VisitExpression(node.Operand);
+
+                    if (node.Type.IsNullableType())
+                    {
+                        Debug.Assert(node.Operand is BoundObjectCreationExpressionBase { WasTargetTyped: true });
+                        return ConvertToNullable(node.Syntax, node.Type, objectCreation);
+                    }
+
+                    Debug.Assert(node.Operand is BoundObjectCreationExpressionBase { WasTargetTyped: true } or
+                                                 BoundDelegateCreationExpression { WasTargetTyped: true });
+
+                    return objectCreation;
             }
 
             var rewrittenType = VisitType(node.Type);
@@ -406,9 +425,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
-                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
-                                                                   isExtensionMethod: oldNodeOpt.IsExtensionMethod, type: rewrittenType);
+
+                        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
+                                                                                        isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
+
+                        Debug.Assert(_factory.TopLevelMethod is { });
+
+                        if (_factory.Compilation.LanguageVersion >= MessageID.IDS_FeatureCacheStaticMethodGroupConversion.RequiredVersion()
+                            && !_inExpressionLambda // The tree structure / meaning for expression trees should remain untouched.
+                            && _factory.TopLevelMethod.MethodKind != MethodKind.StaticConstructor // Avoid caching twice if people do it manually.
+                            && DelegateCacheRewriter.CanRewrite(boundDelegateCreation))
+                        {
+                            var rewriter = _lazyDelegateCacheRewriter ??= new DelegateCacheRewriter(_factory, _topLevelMethodOrdinal);
+                            return rewriter.Rewrite(boundDelegateCreation);
+                        }
+                        else
+                        {
+                            return boundDelegateCreation;
+                        }
                     }
+
                 default:
                     break;
             }

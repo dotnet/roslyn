@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory]
         [CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
-            bool fetchCompilationBeforeAddingGenerator,
+            bool fetchCompilationBeforeAddingAdditionalFile,
             bool useRecoverableTrees)
         {
             // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // when the file already exists, and when it is added incrementally.
             Compilation? originalCompilation = null;
 
-            if (fetchCompilationBeforeAddingGenerator)
+            if (fetchCompilationBeforeAddingAdditionalFile)
             {
                 originalCompilation = await project.GetRequiredCompilationAsync(CancellationToken.None);
             }
@@ -67,6 +66,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
+        }
+
+        [Fact]
+        public async Task WithReferencesMethodCorrectlyUpdatesRunningGenerators()
+        {
+            using var workspace = CreateWorkspace();
+
+            // We always have a single generator in this test, and we add or remove a second one. This is critical
+            // to ensuring we correctly update our existing GeneratorDriver we may have from a prior run with the new
+            // generators passed to WithAnalyzerReferences. If we only swap from zero generators to one generator,
+            // we don't have a prior GeneratorDriver to update, since we don't make a GeneratorDriver if we have no generators.
+            // Similarly, once we go from one back to zero, we end up getting rid of our GeneratorDriver entirely since
+            // we have no need for it, as an optimization.
+            var generatorReferenceToKeep = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent", hintName: "generatorReferenceToKeep"));
+            var analyzerReferenceToAddAndRemove = new TestGeneratorReference(new SingleFileTestGenerator2("// More Static Content", hintName: "analyzerReferenceToAddAndRemove"));
+
+            var project = WithPreviewLanguageVersion(AddEmptyProject(workspace.CurrentSolution))
+                .AddAnalyzerReference(generatorReferenceToKeep);
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+
+            // Go from one generator to two.
+            project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep, analyzerReferenceToAddAndRemove });
+
+            Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
+
+            // And go back to one
+            project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep });
+
+            Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
 
         [Fact]
@@ -508,14 +537,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
-            var generatedDocumentIdentity = Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).Identity;
+            var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
 
-            workspace.OnSourceGeneratedDocumentOpened(generatedDocumentIdentity, differentOpenTextContainer);
+            workspace.OnSourceGeneratedDocumentOpened(differentOpenTextContainer, generatedDocument);
 
-            var generatedDocument = differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges();
-            Assert.IsType<SourceGeneratedDocument>(generatedDocument);
-            Assert.Same(differentOpenTextContainer.CurrentText, await generatedDocument!.GetTextAsync());
+            generatedDocument = Assert.IsType<SourceGeneratedDocument>(differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges());
+            Assert.Same(differentOpenTextContainer.CurrentText, await generatedDocument.GetTextAsync());
             Assert.NotSame(workspace.CurrentSolution, generatedDocument.Project.Solution);
 
             var generatedTree = await generatedDocument.GetSyntaxTreeAsync();
@@ -533,12 +561,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
-            var generatedDocumentIdentity = Assert.Single(await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync()).Identity;
+            var generatedDocument = Assert.Single(await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// StaticContent", Encoding.UTF8).Container;
 
-            workspace.OnSourceGeneratedDocumentOpened(generatedDocumentIdentity, differentOpenTextContainer);
+            workspace.OnSourceGeneratedDocumentOpened(differentOpenTextContainer, generatedDocument);
 
-            var generatedDocument = differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges();
+            generatedDocument = Assert.IsType<SourceGeneratedDocument>(differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges());
             Assert.Same(workspace.CurrentSolution, generatedDocument!.Project.Solution);
         }
 
@@ -553,18 +581,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.SetCurrentSolution(_ => originalAdditionalFile.Project.Solution, WorkspaceChangeKind.SolutionChanged));
 
-            var generatedDocumentIdentity = Assert.Single(await originalAdditionalFile.Project.GetSourceGeneratedDocumentsAsync()).Identity;
+            var generatedDocument = Assert.Single(await originalAdditionalFile.Project.GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
 
-            workspace.OnSourceGeneratedDocumentOpened(generatedDocumentIdentity, differentOpenTextContainer);
+            workspace.OnSourceGeneratedDocumentOpened(differentOpenTextContainer, generatedDocument);
             workspace.OnAdditionalDocumentRemoved(originalAdditionalFile.Id);
 
             // At this point there should be no generated documents, even though our file is still open
             Assert.Empty(await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync());
 
-            var generatedDocument = differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges();
-            Assert.IsType<SourceGeneratedDocument>(generatedDocument);
-            Assert.Same(differentOpenTextContainer.CurrentText, await generatedDocument!.GetTextAsync());
+            generatedDocument = Assert.IsType<SourceGeneratedDocument>(differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges());
+            Assert.Same(differentOpenTextContainer.CurrentText, await generatedDocument.GetTextAsync());
 
             var generatedTree = await generatedDocument.GetSyntaxTreeAsync();
             var compilation = await generatedDocument.Project.GetRequiredCompilationAsync(CancellationToken.None);
@@ -585,13 +612,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionChanged));
 
-            var generatedDocumentIdentity = Assert.Single(await workspace.CurrentSolution.GetRequiredProject(projectIdWithGenerator).GetSourceGeneratedDocumentsAsync()).Identity;
+            var generatedDocument = Assert.Single(await workspace.CurrentSolution.GetRequiredProject(projectIdWithGenerator).GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
 
-            workspace.OnSourceGeneratedDocumentOpened(generatedDocumentIdentity, differentOpenTextContainer);
+            workspace.OnSourceGeneratedDocumentOpened(differentOpenTextContainer, generatedDocument);
 
-            var generatedDocument = differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges();
-            AssertEx.NotNull(generatedDocument);
+            generatedDocument = Assert.IsType<SourceGeneratedDocument>(differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges());
             var generatedTree = await generatedDocument.GetSyntaxTreeAsync();
 
             // Fetch the compilation from the other project, it should have a compilation reference that
@@ -613,16 +639,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.SetCurrentSolution(_ => project.Solution, WorkspaceChangeKind.SolutionChanged));
 
-            var generatedDocumentIdentity = Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).Identity;
+            var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             var differentOpenTextContainer = SourceText.From("// Open Text").Container;
 
-            workspace.OnSourceGeneratedDocumentOpened(generatedDocumentIdentity, differentOpenTextContainer);
+            workspace.OnSourceGeneratedDocumentOpened(differentOpenTextContainer, generatedDocument);
 
-            Assert.True(workspace.IsDocumentOpen(generatedDocumentIdentity.DocumentId));
+            Assert.True(workspace.IsDocumentOpen(generatedDocument.Identity.DocumentId));
 
-            workspace.OnSourceGeneratedDocumentClosed(generatedDocumentIdentity.DocumentId);
+            var document = await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(generatedDocument.Identity.DocumentId, CancellationToken.None);
+            Contract.ThrowIfNull(document);
+            workspace.OnSourceGeneratedDocumentClosed(document);
 
-            Assert.False(workspace.IsDocumentOpen(generatedDocumentIdentity.DocumentId));
+            Assert.False(workspace.IsDocumentOpen(generatedDocument.Identity.DocumentId));
             Assert.Null(differentOpenTextContainer.CurrentText.GetOpenDocumentInCurrentContextWithChanges());
         }
 

@@ -53,15 +53,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
 
-        public bool IsInitializing
-        {
-            get
-            {
-                Contract.ThrowIfNull(_interactiveWindow);
-                return InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
-            }
-        }
-
         public string GetReplText()
         {
             Contract.ThrowIfNull(_interactiveWindow);
@@ -165,9 +156,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var interactiveWindow = AcquireInteractiveWindow();
                 var operations = (IInteractiveWindowOperations)interactiveWindow;
@@ -235,7 +226,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void WaitForLastReplInputContains(string outputText)
             => WaitForPredicate(GetLastReplInput, outputText, s_contains, "contain");
 
-        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer, string verb)
+        private static void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer, string verb)
         {
             var beginTime = DateTime.UtcNow;
 

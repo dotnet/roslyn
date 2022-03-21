@@ -2145,8 +2145,7 @@ class MyClass
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)))
+                workspace.GlobalOptions.SetGlobalOption(New OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), BackgroundAnalysisScope.FullSolution)
 
                 Dim solution = workspace.CurrentSolution
                 Dim project = solution.Projects.Single()
@@ -2329,6 +2328,23 @@ class MyClass
                 Assert.Equal(isSpanBasedAnalyzer, analyzer.ReceivedOperationCallback)
             End Using
         End Function
+
+        <WpfFact>
+        Public Sub ReanalysisScopeExcludesMissingDocuments()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                Dim missingDocumentId = DocumentId.CreateNewId(project.Id, "Missing ID")
+                Dim reanalysisScope = New SolutionCrawlerRegistrationService.ReanalyzeScope(documentIds:={missingDocumentId})
+                Assert.Empty(reanalysisScope.GetDocumentIds(solution))
+            End Using
+        End Sub
 
         <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
         Private NotInheritable Class AnalyzerWithCustomDiagnosticCategory

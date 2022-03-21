@@ -136,7 +136,6 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
             INamedTypeSymbol comparableType,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var containingType = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(typeDeclaration, cancellationToken);
@@ -149,14 +148,9 @@ namespace Microsoft.CodeAnalysis.GenerateComparisonOperators
                 generator, semanticModel.Compilation, containingType, comparableType,
                 GenerateLeftExpression(generator, comparableType, compareMethod));
 
-            return await codeGenService.AddMembersAsync(
-                document.Project.Solution,
-                containingType,
-                operators,
-                new CodeGenerationOptions(
-                    contextLocation: typeDeclaration.GetLocation(),
-                    options: options,
-                    parseOptions: typeDeclaration.SyntaxTree.Options), cancellationToken).ConfigureAwait(false);
+            var context = new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation());
+
+            return await codeGenService.AddMembersAsync(document.Project.Solution, containingType, operators, context, cancellationToken).ConfigureAwait(false);
         }
 
         private static SyntaxNode GenerateLeftExpression(

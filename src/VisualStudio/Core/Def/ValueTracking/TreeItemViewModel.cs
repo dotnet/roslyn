@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -57,8 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IThreadingContext threadingContext,
             Workspace workspace,
-            ImmutableArray<TreeItemViewModel> children = default)
-            : base()
+            ImmutableArray<TreeItemViewModel> children)
         {
             FileName = fileName;
             TextSpan = textSpan;
@@ -112,11 +112,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             // While navigating do not activate the tab, which will change focus from the tool window
-            var options = Workspace.CurrentSolution.Options
-                .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-
-            navigationService.TryNavigateToLineAndOffset(Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken);
+            var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
+            this.ThreadingContext.JoinableTaskFactory.Run(() => navigationService.TryNavigateToLineAndOffsetAsync(
+                Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken));
         }
 
         private ImmutableArray<Inline> CalculateInlines()

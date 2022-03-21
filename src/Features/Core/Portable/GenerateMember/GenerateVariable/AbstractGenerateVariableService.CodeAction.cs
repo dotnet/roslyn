@@ -52,22 +52,21 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
                                      !_state.IsContainedInUnsafeType;
 
-                var options = new CodeGenerationOptions(
+                var context = new CodeGenerationContext(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation(),
-                    options: await _semanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+                    contextLocation: _state.IdentifierToken.GetLocation());
 
                 if (_generateProperty)
                 {
-                    var getAccessor = CreateAccessor(DetermineMaximalAccessibility(_state));
+                    var getAccessor = CreateAccessor(_state.DetermineMaximalAccessibility());
                     var setAccessor = _isReadonly || _refKind != RefKind.None
                         ? null
                         : CreateAccessor(DetermineMinimalAccessibility(_state));
 
                     var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
                         attributes: default,
-                        accessibility: DetermineMaximalAccessibility(_state),
+                        accessibility: _state.DetermineMaximalAccessibility(),
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
                         refKind: _refKind,
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         setMethod: setAccessor);
 
                     return await CodeGenerator.AddPropertyDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, propertySymbol, options, cancellationToken).ConfigureAwait(false);
+                        solution, _state.TypeToGenerateIn, propertySymbol, context, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         name: _state.IdentifierToken.ValueText);
 
                     return await CodeGenerator.AddFieldDeclarationAsync(
-                        solution, _state.TypeToGenerateIn, fieldSymbol, options, cancellationToken).ConfigureAwait(false);
+                        solution, _state.TypeToGenerateIn, fieldSymbol, context, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -115,31 +114,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return _state.TypeToGenerateIn.TypeKind != TypeKind.Interface && _refKind != RefKind.None
                     ? ImmutableArray.Create(throwStatement)
                     : default;
-            }
-
-            private static Accessibility DetermineMaximalAccessibility(State state)
-            {
-                if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface)
-                {
-                    return Accessibility.NotApplicable;
-                }
-
-                var accessibility = Accessibility.Public;
-
-                // Ensure that we're not overly exposing a type.
-                var containingTypeAccessibility = state.TypeToGenerateIn.DetermineMinimalAccessibility();
-                var effectiveAccessibility = AccessibilityUtilities.Minimum(
-                    containingTypeAccessibility, accessibility);
-
-                var returnTypeAccessibility = state.TypeMemberType.DetermineMinimalAccessibility();
-
-                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
-                    effectiveAccessibility)
-                {
-                    return returnTypeAccessibility;
-                }
-
-                return accessibility;
             }
 
             private Accessibility DetermineMinimalAccessibility(State state)

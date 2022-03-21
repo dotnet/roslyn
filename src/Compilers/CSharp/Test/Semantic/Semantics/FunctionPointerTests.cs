@@ -469,7 +469,7 @@ struct S {}");
         }
 
         [Fact]
-        public void UserDefinedConversion()
+        public void UserDefinedConversion_01()
         {
             var comp = CreateCompilationWithFunctionPointers(@"
 unsafe class C
@@ -511,6 +511,192 @@ unsafe class C
                 var classifiedConversion = comp.ClassifyConversion(typeInfo.Type!, typeInfo.ConvertedType!);
                 Assert.Equal(conversion, classifiedConversion);
             }
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_02()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static implicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/_ = (delegate*<int*, void>)new S()/*</bind>*/;
+    }
+}");
+
+            var verifier = CompileAndVerifyFunctionPointers(comp);
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""delegate*<void*, void> S.op_Implicit(S)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            VerifyOperationTreeForTest<AssignmentExpressionSyntax>(comp, @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_ = (delega ... id>)new S()')
+  Left:
+    IDiscardOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.Discard, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_')
+  Right:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Implicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Implicit(S _))
+          Operand:
+            IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+              Arguments(0)
+              Initializer:
+                null
+");
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_03()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static explicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/_ = (delegate*<int*, void>)new S()/*</bind>*/;
+    }
+}");
+
+            var verifier = CompileAndVerifyFunctionPointers(comp);
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""delegate*<void*, void> S.op_Explicit(S)""
+  IL_000e:  pop
+  IL_000f:  ret
+}
+");
+
+            VerifyOperationTreeForTest<AssignmentExpressionSyntax>(comp, @"
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_ = (delega ... id>)new S()')
+  Left:
+    IDiscardOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.Discard, Type: delegate*<System.Int32*, System.Void>) (Syntax: '_')
+  Right:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Explicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsImplicit) (Syntax: '(delegate*< ... id>)new S()')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Explicit(S _))
+          Operand:
+            IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+              Arguments(0)
+              Initializer:
+                null
+");
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_04()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static implicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/delegate*<int*, void> _ = new S()/*</bind>*/;
+    }
+}");
+
+            var verifier = CompileAndVerifyFunctionPointers(comp);
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (delegate*<int*, void> V_0, //_
+                S V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    ""S""
+  IL_0008:  ldloc.1
+  IL_0009:  call       ""delegate*<void*, void> S.op_Implicit(S)""
+  IL_000e:  stloc.0
+  IL_000f:  ret
+}
+");
+
+            VerifyOperationTreeForTest<VariableDeclarationSyntax>(comp, @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'delegate*<i ... _ = new S()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.VariableDeclarator, Type: null) (Syntax: '_ = new S()')
+        Initializer:
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new S()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsImplicit) (Syntax: 'new S()')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand:
+                IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Implicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsImplicit) (Syntax: 'new S()')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Implicit(S _))
+                  Operand:
+                    IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S) (Syntax: 'new S()')
+                      Arguments(0)
+                      Initializer:
+                        null
+  Initializer:
+    null
+");
+        }
+
+        [Fact, WorkItem(57994, "https://github.com/dotnet/roslyn/issues/57994")]
+        public void UserDefinedConversion_05()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+unsafe readonly struct S
+{
+    public static explicit operator delegate*<void*, void>(S _) => null;
+    void M()
+    {
+        // S -> delegate*<void*, void> -> delegate*<int*, void>
+        /*<bind>*/delegate*<int*, void> _ = new S()/*</bind>*/;
+    }
+}");
+
+            comp.VerifyDiagnostics(
+                // (8,45): error CS0266: Cannot implicitly convert type 'S' to 'delegate*<int*, void>'. An explicit conversion exists (are you missing a cast?)
+                //         /*<bind>*/delegate*<int*, void> _ = new S()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new S()").WithArguments("S", "delegate*<int*, void>").WithLocation(8, 45)
+            );
+
+            VerifyOperationTreeForTest<VariableDeclarationSyntax>(comp, @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<i ... _ = new S()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: delegate*<System.Int32*, System.Void> _) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: '_ = new S()')
+        Initializer:
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new S()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: delegate*<System.Int32*, System.Void>, IsInvalid, IsImplicit) (Syntax: 'new S()')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand:
+                IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: delegate*<System.Void*, System.Void> S.op_Explicit(S _)) (OperationKind.Conversion, Type: delegate*<System.Void*, System.Void>, IsInvalid, IsImplicit) (Syntax: 'new S()')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: delegate*<System.Void*, System.Void> S.op_Explicit(S _))
+                  Operand:
+                    IObjectCreationOperation (Constructor: S..ctor()) (OperationKind.ObjectCreation, Type: S, IsInvalid) (Syntax: 'new S()')
+                      Arguments(0)
+                      Initializer:
+                        null
+  Initializer:
+    null
+");
         }
 
         [Fact]
@@ -2646,6 +2832,7 @@ unsafe
         [Fact, WorkItem(50096, "https://github.com/dotnet/roslyn/issues/50096")]
         public void FunctionPointerInference_ExactInferenceThroughArray_RefKindMatch()
         {
+            // ILVerify: Unexpected type on the stack. ImportCalli not implemented
             var verifier = CompileAndVerify(@"
 unsafe
 {
@@ -2659,7 +2846,7 @@ unsafe
         System.Console.Write(t);
     }
 }
-", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
