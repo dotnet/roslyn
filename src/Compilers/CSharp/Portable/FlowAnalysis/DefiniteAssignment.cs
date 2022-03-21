@@ -88,15 +88,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddImplicitlyInitializedField(FieldSymbol field)
         {
-            Debug.Assert(TrackImplicitlyInitializedFields);
-            (_implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance()).Add(field);
+            if (TrackImplicitlyInitializedFields)
+            {
+                (_implicitlyInitializedFieldsOpt ??= PooledHashSet<FieldSymbol>.GetInstance()).Add(field);
+            }
         }
 
         private bool TrackImplicitlyInitializedFields
         {
             get
             {
-                return _requireOutParamsAssigned && !this._emptyStructTypeCache._dev12CompilerCompatibility;
+                return _requireOutParamsAssigned
+                    && !this._emptyStructTypeCache._dev12CompilerCompatibility
+                    && CurrentSymbol is MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct };
             }
         }
 
@@ -468,10 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAutoDefaultStructs.RequiredVersion()));
                                 }
 
-                                if (TrackImplicitlyInitializedFields)
-                                {
-                                    this.AddImplicitlyInitializedField(field);
-                                }
+                                this.AddImplicitlyInitializedField(field);
                             }
                         }
                         reported = true;
@@ -501,11 +502,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Run the strongest version of analysis
             (DiagnosticBag strictDiagnostics, implicitlyInitializedFieldsOpt) = analyze(strictAnalysis: true);
-            if (strictDiagnostics.IsEmptyWithoutResolution)
+            if (!strictDiagnostics.HasAnyErrors())
             {
-                // If it reports nothing, there is nothing to report and we are done.
-                strictDiagnostics.Free();
-                Debug.Assert(implicitlyInitializedFieldsOpt.IsDefault);
+                // if we have no diagnostics or only warning-level diagnostics, we know we don't need to run the compat analysis.
+                diagnostics.AddRangeAndFree(strictDiagnostics);
                 return;
             }
 
@@ -1254,11 +1254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (containingSlot == thisSlot)
                     {
-                        if (TrackImplicitlyInitializedFields)
-                        {
-                            // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
-                            AddImplicitlyInitializedField((FieldSymbol)variableBySlot[fieldSlot].Symbol);
-                        }
+                        // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
+                        AddImplicitlyInitializedField((FieldSymbol)variableBySlot[fieldSlot].Symbol);
 
                         if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                         {

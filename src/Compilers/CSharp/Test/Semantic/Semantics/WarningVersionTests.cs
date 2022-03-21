@@ -455,7 +455,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,21): warning CS9015: Use of possibly unassigned auto-implemented property 'Property'. Consider updating to language version 'preview' to automatically default the property.
+                // (6,21): warning CS9015: Use of possibly unassigned auto-implemented property 'Property'. Consider updating to language version 'preview' to auto-default the property.
                 //         Struct v2 = Property;
                 Diagnostic(ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion, "Property").WithArguments("Property", "preview").WithLocation(6, 21));
             verifier.VerifyIL("Program..ctor", expectedIL);
@@ -542,7 +542,7 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,21): warning CS9016: Use of possibly unassigned field 'Field'. Consider updating to language version 'preview' to automatically default the field.
+                // (6,21): warning CS9016: Use of possibly unassigned field 'Field'. Consider updating to language version 'preview' to auto-default the field.
                 //         Struct v2 = Field;
                 Diagnostic(ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion, "Field").WithArguments("Field", "preview").WithLocation(6, 21));
             verifier.VerifyIL("Program..ctor", expectedIL);

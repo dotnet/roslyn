@@ -1383,13 +1383,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationFieldUnsupportedVersion">
-        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to automatically default the field.</source>
-        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to automatically default the field.</target>
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationPropertyUnsupportedVersion">
-        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to automatically default the property.</source>
-        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to automatically default the property.</target>
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThisUnsupportedVersion">
@@ -3712,13 +3712,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion">
-        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to automatically default the field.</source>
-        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to automatically default the field.</target>
+        <source>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationFieldUnsupportedVersion_Title">
-        <source>Use of possibly unassigned field. Consider updating the language version to automatically default the field.</source>
-        <target state="new">Use of possibly unassigned field. Consider updating the language version to automatically default the field.</target>
+        <source>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</source>
+        <target state="new">Use of possibly unassigned field. Consider updating the language version to auto-default the field.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationField_Title">
@@ -3752,13 +3752,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion">
-        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to automatically default the property.</source>
-        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to automatically default the property.</target>
+        <source>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationPropertyUnsupportedVersion_Title">
-        <source>Use of possibly unassigned auto-implemented property. Consider updating the language version to automatically default the property.</source>
-        <target state="new">Use of possibly unassigned auto-implemented property. Consider updating the language version to automatically default the property.</target>
+        <source>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</source>
+        <target state="new">Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationProperty_Title">

@@ -6809,24 +6809,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
 
   <data name="ERR_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
-    <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to automatically default the field.</value>
+    <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="ERR_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
-    <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to automatically default the property.</value>
+    <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
 
   <data name="WRN_UseDefViolationFieldUnsupportedVersion" xml:space="preserve">
-    <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to automatically default the field.</value>
+    <value>Use of possibly unassigned field '{0}'. Consider updating to language version '{1}' to auto-default the field.</value>
   </data>
   <data name="WRN_UseDefViolationFieldUnsupportedVersion_Title" xml:space="preserve">
-    <value>Use of possibly unassigned field. Consider updating the language version to automatically default the field.</value>
+    <value>Use of possibly unassigned field. Consider updating the language version to auto-default the field.</value>
   </data>
 
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion" xml:space="preserve">
-    <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to automatically default the property.</value>
+    <value>Use of possibly unassigned auto-implemented property '{0}'. Consider updating to language version '{1}' to auto-default the property.</value>
   </data>
   <data name="WRN_UseDefViolationPropertyUnsupportedVersion_Title" xml:space="preserve">
-    <value>Use of possibly unassigned auto-implemented property. Consider updating the language version to automatically default the property.</value>
+    <value>Use of possibly unassigned auto-implemented property. Consider updating the language version to auto-default the property.</value>
   </data>
 
   <data name="ERR_UnsupportedTypeForSlicePattern" xml:space="preserve">

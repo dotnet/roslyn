@@ -1377,10 +1377,10 @@ struct Program
     // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-    // (16,9): error CS9014: Use of possibly unassigned field 'i'. Consider updating to language version 'preview' to automatically default the field.
+    // (16,9): error CS9014: Use of possibly unassigned field 'i'. Consider updating to language version 'preview' to auto-default the field.
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "x.i").WithArguments("i", "preview").WithLocation(16, 9),
-    // (17,34): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to automatically default the property.
+    // (17,34): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
     //         System.Console.WriteLine(x2.ii);
     Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 34),
     // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
@@ -1434,10 +1434,10 @@ struct Program
     // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_ReturnNotLValue, "x").WithArguments("Program.x").WithLocation(16, 9),
-    // (16,9): error CS9014: Use of possibly unassigned field 'i'. Consider updating to language version 'preview' to automatically default the field.
+    // (16,9): error CS9014: Use of possibly unassigned field 'i'. Consider updating to language version 'preview' to auto-default the field.
     //         x.i = 1;
     Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "x.i").WithArguments("i", "preview").WithLocation(16, 9),
-    // (17,34): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to automatically default the property.
+    // (17,34): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
     //         System.Console.WriteLine(x2.ii);
     Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 34),
     // (14,12): error CS0843: Auto-implemented property 'Program.x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
@@ -1754,13 +1754,13 @@ struct Program
     // (20,17): error CS1620: Argument 1 must be passed with the 'out' keyword
     //         Goo(ref x3);
     Diagnostic(ErrorCode.ERR_BadArgRef, "x3").WithArguments("1", "out").WithLocation(20, 17),
-    // (15,17): error CS9013: Use of possibly unassigned auto-implemented property 'x1'. Consider updating to language version 'preview' to automatically default the property.
+    // (15,17): error CS9013: Use of possibly unassigned auto-implemented property 'x1'. Consider updating to language version 'preview' to auto-default the property.
     //         Goo(out x1);
     Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x1").WithArguments("x1", "preview").WithLocation(15, 17),
     // (16,9): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
     //         Goo(ref x1);
     Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "Goo").WithArguments("this", "preview").WithLocation(16, 9),
-    // (17,17): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to automatically default the property.
+    // (17,17): error CS9013: Use of possibly unassigned auto-implemented property 'x2'. Consider updating to language version 'preview' to auto-default the property.
     //         Goo(out x2);
     Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "x2").WithArguments("x2", "preview").WithLocation(17, 17),
     // (6,20): warning CS0649: Field 'Program.S1.x' is never assigned to, and will always have its default value 0

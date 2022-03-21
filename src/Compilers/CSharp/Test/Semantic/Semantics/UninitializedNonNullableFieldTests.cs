@@ -861,7 +861,7 @@ struct S1
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
-                // (7,9): error CS9013: Use of possibly unassigned auto-implemented property 'Prop'. Consider updating to language version 'preview' to automatically default the property.
+                // (7,9): error CS9013: Use of possibly unassigned auto-implemented property 'Prop'. Consider updating to language version 'preview' to auto-default the property.
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "Prop").WithArguments("Prop", "preview").WithLocation(7, 9),
                 // (12,9): warning CS8602: Dereference of a possibly null reference.
@@ -1057,7 +1057,7 @@ struct S1
                 // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S1(string s) // 1, 2
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.field", "preview").WithLocation(13, 12),
-                // (15,30): error CS9014: Use of possibly unassigned field 'field'. Consider updating to language version 'preview' to automatically default the field.
+                // (15,30): error CS9014: Use of possibly unassigned field 'field'. Consider updating to language version 'preview' to auto-default the field.
                 //         System.Console.Write(field); // 3
                 Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "field").WithArguments("field", "preview").WithLocation(15, 30)
                 );

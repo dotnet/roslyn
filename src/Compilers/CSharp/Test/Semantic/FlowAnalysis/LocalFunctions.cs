@@ -727,7 +727,7 @@ struct S
                 // (7,17): error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
                 //         var s = this;
                 Diagnostic(ErrorCode.ERR_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this", "preview").WithLocation(7, 17),
-                // (12,9): error CS9014: Use of possibly unassigned field '_x'. Consider updating to language version 'preview' to automatically default the field.
+                // (12,9): error CS9014: Use of possibly unassigned field '_x'. Consider updating to language version 'preview' to auto-default the field.
                 //         Local();
                 Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "preview").WithLocation(12, 9),
                 // (5,12): error CS0171: Field 'S._x' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
@@ -1500,7 +1500,7 @@ struct S
                 // (12,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             S s2 = this;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),
-                // (14,9): error CS9014: Use of possibly unassigned field '_x'. Consider updating to language version 'preview' to automatically default the field.
+                // (14,9): error CS9014: Use of possibly unassigned field '_x'. Consider updating to language version 'preview' to auto-default the field.
                 //         Local();
                 Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "Local()").WithArguments("_x", "preview").WithLocation(14, 9));
 

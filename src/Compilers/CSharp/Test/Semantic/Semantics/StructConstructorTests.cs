@@ -2662,7 +2662,7 @@ public struct S
                 // (7,12): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
                 //     public S()
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.E", "preview").WithLocation(7, 12),
-                // (9,9): error CS9014: Use of possibly unassigned field 'E'. Consider updating to language version 'preview' to automatically default the field.
+                // (9,9): error CS9014: Use of possibly unassigned field 'E'. Consider updating to language version 'preview' to auto-default the field.
                 //         E?.Invoke();
                 Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "E").WithArguments("E", "preview").WithLocation(9, 9));
 
