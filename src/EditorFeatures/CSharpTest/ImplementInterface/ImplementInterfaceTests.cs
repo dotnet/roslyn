@@ -8294,6 +8294,102 @@ abstract class Class : IInterface
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Property()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Foo {}
+
+internal interface I
+{
+    Foo MyProperty { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Foo {}
+
+internal interface I
+{
+    Foo MyProperty { get; }
+}
+
+public class C : {|CS0535:I|}
+{
+    Foo I.MyProperty
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Method_InaccessibleReturnType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Foo {}
+
+internal interface I
+{
+    Foo M();
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Foo {}
+
+internal interface I
+{
+    Foo M();
+}
+
+public class C : {|CS0535:I|}
+{
+    Foo I.M()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_Method_InaccessibleParameterType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Foo {}
+
+internal interface I
+{
+    void M(Foo foo);
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Foo {}
+
+internal interface I
+{
+    void M(Foo foo);
+}
+
+public class C : {|CS0535:I|}
+{
+    void I.M(Foo foo)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestInaccessibleAccessor_01()
         {
             await new VerifyCS.Test

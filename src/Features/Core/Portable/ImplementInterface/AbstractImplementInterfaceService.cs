@@ -72,7 +72,54 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
             {
-                yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+                var hasInaccessibleMembers = false;
+
+                foreach (var (_, members) in state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented)
+                {
+                    foreach (var member in members)
+                    {
+                        switch (member)
+                        {
+                            case IPropertySymbol propertySymbol:
+
+                                if (propertySymbol.Type.DeclaredAccessibility > Accessibility.NotApplicable &&
+                                    propertySymbol.Type.DeclaredAccessibility < state.ClassOrStructType.DeclaredAccessibility)
+                                {
+                                    hasInaccessibleMembers = true;
+                                    goto AccessibilityChecked;
+                                }
+
+                                break;
+                            case IMethodSymbol methodSymbol:
+
+                                if (methodSymbol.ReturnType.DeclaredAccessibility > Accessibility.NotApplicable &&
+                                    methodSymbol.ReturnType.DeclaredAccessibility < state.ClassOrStructType.DeclaredAccessibility)
+                                {
+                                    hasInaccessibleMembers = true;
+                                    goto AccessibilityChecked;
+                                }
+
+                                foreach (var parameter in methodSymbol.Parameters)
+                                {
+                                    if (parameter.Type.DeclaredAccessibility > Accessibility.NotApplicable &&
+                                        parameter.Type.DeclaredAccessibility < state.ClassOrStructType.DeclaredAccessibility)
+                                    {
+                                        hasInaccessibleMembers = true;
+                                        goto AccessibilityChecked;
+                                    }
+                                }
+
+                                break;
+                        }
+                    }
+                }
+
+AccessibilityChecked:
+
+                if (!hasInaccessibleMembers)
+                {
+                    yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
+                }
 
                 if (ShouldImplementDisposePattern(state, explicitly: false))
                 {
