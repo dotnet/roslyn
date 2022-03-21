@@ -23,9 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Export]
     internal class AnalyzerItemsTracker : IVsSelectionEvents
     {
+        private readonly IThreadingContext _threadingContext;
+
         private IVsMonitorSelection? _vsMonitorSelection = null;
         private uint _selectionEventsCookie = 0;
-        private readonly IThreadingContext _threadingContext;
 
         public event EventHandler? SelectedHierarchyItemChanged;
 
