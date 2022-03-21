@@ -790,7 +790,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (!suppressError)
                         {
-                            diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                            if ((overridingMember as SourceOrdinaryMethodSymbol)?.GetTypeParameterUsedAsInvalidNullableTypeArgumentIfAny() is { } typeParameter)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_OverrideNotExpected_MayRequireConstraint, overridingMemberLocation, overridingMember, typeParameter.Name);
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_OverrideNotExpected, overridingMemberLocation, overridingMember);
+                            }
                         }
                     }
                     else if (associatedPropertyOrEvent.Kind == SymbolKind.Property) //no specific errors for event accessors
@@ -995,17 +1002,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else
                                 {
-                                    if (getInvalidNullableTypeArgument(overridingMethod.ReturnType) is { } typeParameter &&
-                                        (overridingMember as SourceOrdinaryMethodSymbol)?.GetSyntax().ConstraintClauses.Count == 0)
+                                    if ((overridingMethod as SourceOrdinaryMethodSymbol)?.GetTypeParameterUsedAsInvalidNullableTypeArgumentIfAny() is { } typeParameter)
                                     {
-                                        // error CS8971: '{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.
-                                        diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride_AddConstraint,
-                                            overridingMemberLocation,
-                                            overridingMember,
-                                            overriddenMember,
-                                            overriddenMethod.ReturnType,
-                                            typeParameter.Name,
-                                            typeParameter.IsReferenceType ? "class" : "default");
+                                        // error CS9013: '{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.
+                                        diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType, typeParameter.Name);
                                     }
                                     else
                                     {
@@ -1163,15 +1163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                  checkReturnType ? ReportBadReturn : null,
                                                  checkParameters ? ReportBadParameter : null,
                                                  overridingMemberLocation);
-            }
-
-            // Returns the first type parameter T that is not a value type but is included in an (invalid) Nullable<T>.
-            static TypeParameterSymbol getInvalidNullableTypeArgument(TypeSymbol type)
-            {
-                var nullableType = type.VisitType(
-                    static (t, _, _) => t.IsNullableType() && t.GetNullableUnderlyingType() is { } underlyingType && underlyingType.IsTypeParameter() && !underlyingType.IsValueType,
-                    arg: (object)null);
-                return (TypeParameterSymbol)nullableType?.GetNullableUnderlyingType();
             }
         }
 

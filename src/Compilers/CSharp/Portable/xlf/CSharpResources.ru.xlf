@@ -277,9 +277,9 @@
         <target state="translated">"{0}" и переопределяемый элемент "{1}" должны соответствовать по методу доступа, вызываемому только во время инициализации.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_AddConstraint">
-        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</source>
-        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</target>
+      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint">
+        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</source>
+        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
@@ -672,6 +672,11 @@
         <target state="translated">"{0}" не может реализовать член интерфейса "{1}" в типе "{2}" из-за наличия параметра __arglist</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberNotFound_MayRequireConstraint">
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">Внутренняя ошибка в компиляторе C#.</target>
@@ -1030,6 +1035,11 @@
       <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
         <target state="translated">Метод "{0}" задает ограничение "default" для параметра типа "{1}", но соответствующий параметр типа "{2}" переопределенного или явно реализованного метода "{3}" ограничен и может представлять собой только тип ссылки или тип значения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideNotExpected_MayRequireConstraint">
+        <source>'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">

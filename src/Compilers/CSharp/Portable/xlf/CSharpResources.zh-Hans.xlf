@@ -277,9 +277,9 @@
         <target state="translated">“{0}”必须与重写成员“{1}”的“仅 init”匹配</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_AddConstraint">
-        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</source>
-        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</target>
+      <trans-unit id="ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint">
+        <source>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</source>
+        <target state="new">'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturnType">
@@ -672,6 +672,11 @@
         <target state="translated">“{0}”无法在类型“{2}”中实现接口成员“{1}”，因为它具有 __arglist 参数</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberNotFound_MayRequireConstraint">
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InternalError">
         <source>Internal error in the C# compiler.</source>
         <target state="translated">C# 编译器中出现内部错误。</target>
@@ -1030,6 +1035,11 @@
       <trans-unit id="ERR_OverrideDefaultConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'default' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is constrained to a reference type or a value type.</source>
         <target state="translated">方法“{0}”为类型参数“{1}”指定了 "default" 约束，但被替代的或显式实现的方法“{3}”的对应类型参数“{2}” 仅限于引用类型或值类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OverrideNotExpected_MayRequireConstraint">
+        <source>'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</source>
+        <target state="new">'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">

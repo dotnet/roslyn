@@ -779,5 +779,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+
+        /// <summary>
+        /// If the method is a generic method with no constraint clauses, returns the first type parameter
+        /// that is used (incorrectly) as the type argument in Nullable&lt;T&gt;; otherwise returns null.
+        /// This method is a best effort, and a return value of null does not guarantee no such type parameter.
+        /// </summary>
+        internal TypeParameterSymbol GetTypeParameterUsedAsInvalidNullableTypeArgumentIfAny()
+        {
+            // We check ConstraintClauses from syntax rather than checking constraints on the TypeParameterSymbols
+            // because this method is used to refine the errors reported for overridden or explicitly implemented methods
+            // and the constraints on the TypeParameterSymbols may depend on the overridden or explicitly implemented
+            // method that the caller is attempting to find.
+            if (IsGenericMethod && GetSyntax().ConstraintClauses.Count == 0)
+            {
+                foreach (var typeParameter in TypeParameters)
+                {
+                    if (containsTypeParameterAsNullableTypeArgument(ReturnType, typeParameter) ||
+                        Parameters.Any(static (parameter, typeParameter) => containsTypeParameterAsNullableTypeArgument(parameter.Type, typeParameter), typeParameter))
+                    {
+                        return typeParameter;
+                    }
+                }
+            }
+            return null;
+
+            // Returns true if the type contains a reference to Nullable<T> where T is the type argument.
+            static bool containsTypeParameterAsNullableTypeArgument(TypeSymbol type, TypeParameterSymbol typeParameter)
+            {
+                var value = type.VisitType(
+                    static (t, typeParameter, _) => t.IsNullableType() && TypeSymbol.Equals(t.GetNullableUnderlyingType(), typeParameter, TypeCompareKind.AllIgnoreOptions), arg: typeParameter);
+                return value is { };
+            }
+        }
     }
 }

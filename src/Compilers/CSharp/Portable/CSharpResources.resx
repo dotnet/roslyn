@@ -1556,8 +1556,14 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_CantChangeReturnTypeOnOverride" xml:space="preserve">
     <value>'{0}': return type must be '{2}' to match overridden member '{1}'</value>
   </data>
-  <data name="ERR_CantChangeReturnTypeOnOverride_AddConstraint" xml:space="preserve">
-    <value>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : {4}' constraint to the overridden member type parameter.</value>
+  <data name="ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint" xml:space="preserve">
+    <value>'{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.</value>
+  </data>
+  <data name="ERR_OverrideNotExpected_MayRequireConstraint" xml:space="preserve">
+    <value>'{0}': no suitable method found to override. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</value>
+  </data>
+  <data name="ERR_InterfaceMemberNotFound_MayRequireConstraint" xml:space="preserve">
+    <value>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented. Consider adding a 'where {1} : class' or 'where {1} : default' constraint.</value>
   </data>
   <data name="ERR_CantDeriveFromSealedType" xml:space="preserve">
     <value>'{0}': cannot derive from sealed type '{1}'</value>

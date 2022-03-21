@@ -300,7 +300,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CONSIDER: we may wish to suppress this error in the event that another error
                 // has been reported about the signature.
-                diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+                if ((implementingMember as SourceOrdinaryMethodSymbol)?.GetTypeParameterUsedAsInvalidNullableTypeArgumentIfAny() is { } typeParameter)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound_MayRequireConstraint, memberLocation, implementingMember, typeParameter.Name);
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+                }
             }
 
             // Make sure implemented member is accessible
