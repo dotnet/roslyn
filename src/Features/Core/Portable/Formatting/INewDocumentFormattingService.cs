@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="document">The document to format.</param>
         /// <param name="hintDocument">An optional additional document that can be used to inform the formatting operation.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
-        Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, SyntaxFormattingOptions options, CancellationToken cancellationToken);
+        Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken);
     }
 }

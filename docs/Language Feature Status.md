@@ -29,6 +29,7 @@ efforts behind them.
 | [Utf8 String Literals](https://github.com/dotnet/csharplang/issues/184) | [Utf8StringLiterals](https://github.com/dotnet/roslyn/tree/features/Utf8StringLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/58848) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [RikkiGibson](https://github.com/RikkiGibson) | [MadsTorgersen](https://github.com/MadsTorgersen) |
 | [ref fields](https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md) | [ref-fields](https://github.com/dotnet/roslyn/tree/features/ref-fields) | [In Progress](https://github.com/dotnet/roslyn/issues/59194) | [cston](https://github.com/cston) | [RikkiGibson](https://github.com/RikkiGibson), [AlekseyTs](https://github.com/AlekseyTs) | [jaredpar](https://github.com/jaredpar) | 
 | [checked operators](https://github.com/dotnet/csharplang/issues/4665) | [CheckedUserDefinedOperators](https://github.com/dotnet/roslyn/tree/features/CheckedUserDefinedOperators) | [In Progress](https://github.com/dotnet/roslyn/issues/59458) | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [chsienki](https://github.com/chsienki) | [AlekseyTs](https://github.com/AlekseyTs) | 
+| [auto-default structs](https://github.com/dotnet/csharplang/issues/5737) | main | [In Progress](https://github.com/dotnet/roslyn/issues/60167) | [RikkiGibson](https://github.com/RikkiGibson) | [cston](https://github.com/cston), [jcouv](https://github.com/jcouv) | 
   
 # C# 10.0
 

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
@@ -3014,10 +3013,8 @@ return;
                 using var workspace = TestWorkspace.CreateCSharp(markup, parseOptions: option, composition: s_compositionWithTestFormattingRules);
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
                     .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
-
-                workspace.GlobalOptions.SetGlobalOption(new OptionKey(AutoFormattingOptionsStorage.SmartIndent, LanguageNames.CSharp), indentStyle);
-
                 var subjectDocument = workspace.Documents.Single();
 
                 var projectedDocument =
@@ -3032,11 +3029,11 @@ return;
 
                 TestIndentation(
                     point.Value, expectedIndentation,
-                    projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions);
+                    projectedDocument.GetTextView(), subjectDocument);
             }
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -3047,7 +3044,7 @@ return;
             AssertSmartIndent(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -3063,11 +3060,14 @@ return;
             {
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
-                TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs);
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
+                TestIndentation(workspace, indentationLine, expectedIndentation);
             }
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             CSharpParseOptions options = null,
@@ -3077,7 +3077,7 @@ return;
             AssertSmartIndent(code.Replace("    ", "\t"), expectedIndentation, useTabs: true, options, indentStyle);
         }
 
-        private void AssertSmartIndent(
+        private static void AssertSmartIndent(
             string code,
             int? expectedIndentation,
             bool useTabs,
@@ -3092,9 +3092,12 @@ return;
             {
                 using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: option);
 
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                    .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
+                    .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
                 var wpfTextView = workspace.Documents.First().GetTextView();
                 var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
-                TestIndentation(workspace, line, expectedIndentation, indentStyle, useTabs);
+                TestIndentation(workspace, line, expectedIndentation);
             }
         }
     }
