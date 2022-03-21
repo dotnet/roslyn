@@ -34,8 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
-            var solution = await serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>(
-                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var solution = await serviceProvider.GetServiceAsync<SVsSolution, IVsSolution>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             ErrorHandler.ThrowOnFailure(solution.AdviseSolutionEvents(this, out _));
         }

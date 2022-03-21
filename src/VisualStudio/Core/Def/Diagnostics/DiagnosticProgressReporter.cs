@@ -96,8 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
-            _taskCenterService = await serviceProvider.GetServiceAsync<SVsTaskStatusCenterService, IVsTaskStatusCenterService>(
-                _threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            _taskCenterService = await serviceProvider.GetServiceAsync<SVsTaskStatusCenterService, IVsTaskStatusCenterService>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
             var crawlerService = _workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(_workspace);

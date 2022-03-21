@@ -36,8 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             await _analyzerTracker.RegisterAsync(serviceProvider, cancellationToken).ConfigureAwait(false);
             await _analyzerCommandHandler.InitializeAsync(
-                await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(
-                    _threadingContext.JoinableTaskFactory).ConfigureAwait(false),
+                await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
         }
 
