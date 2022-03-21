@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
                 if (_fontAndColorStorage is null)
                 {
                     await TaskScheduler.Default;
-                    _fontAndColorStorage = await _asyncServiceProvider.GetServiceAsync<SVsFontAndColorStorage, IVsFontAndColorStorage>().ConfigureAwait(false);
+                    _fontAndColorStorage = await _asyncServiceProvider.GetServiceAsync<SVsFontAndColorStorage, IVsFontAndColorStorage>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
                 }
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

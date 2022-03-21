@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
 
             // We need to update the theme whenever the Editor Color Scheme setting changes or the VS Theme changes.
             await TaskScheduler.Default;
-            var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(false);
+            var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             settingsManager.GetSubset(ColorSchemeOptions.ColorSchemeSettingKey).SettingChangedAsync += ColorSchemeChangedAsync;
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.ColorSchemes
         private async Task<Guid> GetThemeIdAsync(CancellationToken cancellationToken)
         {
             await TaskScheduler.Default;
-            var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>().ConfigureAwait(false);
+            var settingsManager = await _asyncServiceProvider.GetServiceAsync<SVsSettingsPersistenceManager, ISettingsManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             //  Look up the value from the new roamed theme property first

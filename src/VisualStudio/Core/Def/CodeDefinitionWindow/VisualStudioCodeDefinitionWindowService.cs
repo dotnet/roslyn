@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeDefinitionW
                 return _lazyCodeDefView;
             }
 
-            _lazyCodeDefView = await _asyncServiceProvider.GetServiceAsync<SVsCodeDefView, IVsCodeDefView>().ConfigureAwait(true);
+            _lazyCodeDefView = await _asyncServiceProvider.GetServiceAsync<SVsCodeDefView, IVsCodeDefView>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
 
             return _lazyCodeDefView;
         }
