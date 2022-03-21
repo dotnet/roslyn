@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+        protected override SyntaxNode? GetAsyncSupportingDeclaration(SemanticModel? semanticModel, SyntaxToken token)
         {
             // In a case like
             //   someTask.$$
@@ -74,6 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var functionSyntax = parent.AncestorsAndSelf().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
+            if (semanticModel is null)
+                return functionSyntax;
+
             var returnType = functionSyntax?.GetFunctionReturnTypeSyntax();
 
             // We don't automatically add async modifier to a void returning method,

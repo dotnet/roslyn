@@ -98,7 +98,8 @@ End Class
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_SubDeclaration() As Task
+        <WorkItem(55975, "https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function AwaitCompletionDoesNotAddAsync_SubDeclaration() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Public Class C
@@ -114,7 +115,7 @@ End Class
                 state.SendTab()
                 Assert.Equal("
 Public Class C
-    Public Shared Async Sub Main()
+    Public Shared Sub Main()
         Await
     End Sub
 End Class
@@ -156,7 +157,8 @@ End Class
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_MultiLineSubLambdaExpression() As Task
+        <WorkItem(55975, "https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function AwaitCompletionDoesNotAddAsync_MultiLineSubLambdaExpression() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System
@@ -179,7 +181,7 @@ Imports System
 
 Public Class C
     Public Shared Sub Main()
-        Dim x As Action = Async Sub()
+        Dim x As Action = Sub()
                               Await
                           End Sub
     End Sub
@@ -218,7 +220,8 @@ End Class
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_SingleLineSubLambdaExpression() As Task
+        <WorkItem(55975, "https://github.com/dotnet/roslyn/issues/55975")>
+        Public Async Function AwaitCompletionDoesNotAddAsync_SingleLineSubLambdaExpression() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Imports System.Threading.Tasks
@@ -239,7 +242,7 @@ Imports System.Threading.Tasks
 
 Public Class C
     Public Shared Sub Main()
-        Dim x As Action = Async Sub() Await
+        Dim x As Action = Sub() Await
     End Sub
 End Class
 ", state.GetDocumentText())

@@ -47,8 +47,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode
-            Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
+        Protected Overrides Function GetAsyncSupportingDeclaration(semanticModel As SemanticModel, token As SyntaxToken) As SyntaxNode
+            Dim functionSyntax = token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
+            If functionSyntax Is Nothing Then
+                Return Nothing
+            End If
+
+            If semanticModel Is Nothing Then
+                Return functionSyntax
+            End If
+
+            Dim declaredMethod = TryCast(semanticModel.GetDeclaredSymbol(functionSyntax), IMethodSymbol)
+            If declaredMethod Is Nothing Then
+                Dim typeInfo = semanticModel.GetTypeInfo(functionSyntax)
+                If typeInfo.ConvertedType IsNot Nothing AndAlso typeInfo.ConvertedType.IsDelegateType() Then
+                    declaredMethod = DirectCast(typeInfo.ConvertedType, INamedTypeSymbol).DelegateInvokeMethod
+                End If
+            End If
+
+            If declaredMethod Is Nothing OrElse declaredMethod.ReturnsVoid Then
+                ' We don't automatically add async modifier to a void returning method,
+                ' so user need to fix the error And make an explicit decision of whether
+                ' to change return type to Task.
+                Return Nothing
+            End If
+
+            Return functionSyntax
         End Function
 
         Protected Overrides Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol

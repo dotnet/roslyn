@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// </summary>
         protected abstract int GetSpanStart(SyntaxNode declaration);
 
-        protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
+        /// <param name="semanticModel">A semantic model to use for validating the declaration return type; otherwise, <see langword="null"/> to ignore semantics in determining validity of the declaration.</param>
+        protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SemanticModel? semanticModel, SyntaxToken token);
 
         protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
         protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
 
             var token = syntaxContext.TargetToken;
-            var declaration = GetAsyncSupportingDeclaration(token);
+            var declaration = GetAsyncSupportingDeclaration(semanticModel, token);
 
             var properties = ImmutableDictionary<string, string>.Empty
                 .Add(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString());
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
                 var tokenPosition = int.Parse(properties[AwaitCompletionTargetTokenPosition]);
-                var declaration = GetAsyncSupportingDeclaration(root.FindToken(tokenPosition));
+                var declaration = GetAsyncSupportingDeclaration(null, root.FindToken(tokenPosition));
                 if (declaration is null)
                 {
                     // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.
