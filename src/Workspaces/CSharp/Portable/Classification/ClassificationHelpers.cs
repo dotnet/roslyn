@@ -46,15 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (IsStringToken(token))
             {
-                if (IsVerbatimStringToken(token))
-                {
-                    return token.IsKind(SyntaxKind.UTF8StringLiteralToken) ? ClassificationTypeNames.UTF8VerbatimStringLiteral : ClassificationTypeNames.VerbatimStringLiteral;
-                }
-                else
-                {
-                    return token.Kind() is (SyntaxKind.UTF8StringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken) ?
-                        ClassificationTypeNames.UTF8StringLiteral : ClassificationTypeNames.StringLiteral;
-                }
+                return IsVerbatimStringToken(token)
+                    ? ClassificationTypeNames.VerbatimStringLiteral
+                    : ClassificationTypeNames.StringLiteral;
             }
             else if (token.Kind() == SyntaxKind.NumericLiteralToken)
             {

@@ -32,16 +32,6 @@ namespace Microsoft.CodeAnalysis.Classification
         internal readonly ClassificationTypeDefinition StringVerbatimTypeDefinition;
 
         [Export]
-        [Name(ClassificationTypeNames.UTF8StringLiteral)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition UTF8StringTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.UTF8VerbatimStringLiteral)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition UTF8StringVerbatimTypeDefinition;
-
-        [Export]
         [Name(ClassificationTypeNames.StringEscapeCharacter)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition StringEscapeCharacterTypeDefinition;

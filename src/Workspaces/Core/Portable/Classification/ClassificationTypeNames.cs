@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string OperatorOverloaded = "operator - overloaded";
         public const string PreprocessorKeyword = "preprocessor keyword";
         public const string StringLiteral = "string";
-        public const string UTF8StringLiteral = "UTF8 string";
         public const string WhiteSpace = "whitespace";
         public const string Text = "text";
 
@@ -37,7 +36,6 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string PreprocessorText = "preprocessor text";
         public const string Punctuation = "punctuation";
         public const string VerbatimStringLiteral = "string - verbatim";
-        public const string UTF8VerbatimStringLiteral = "UTF8 string - verbatim";
         public const string StringEscapeCharacter = "string - escape character";
 
         public const string ClassName = "class name";

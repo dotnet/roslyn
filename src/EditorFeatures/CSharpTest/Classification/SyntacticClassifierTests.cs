@@ -355,7 +355,7 @@ partial interface T3
         {
             await TestInMethodAsync(@"@""goo""u8",
                 testHost,
-                UTF8Verbatim(@"@""goo""u8"));
+                Verbatim(@"@""goo""u8"));
         }
 
         [Theory]
@@ -364,7 +364,7 @@ partial interface T3
         {
             await TestInMethodAsync(@"@""goo""U8",
                 testHost,
-                UTF8Verbatim(@"@""goo""U8"));
+                Verbatim(@"@""goo""U8"));
         }
 
         /// <summary>
@@ -442,7 +442,7 @@ on a new line ""u8
 more stuff";
             await TestInMethodAsync(code,
                 testHost,
-                UTF8Verbatim(@"@"" goo bar
+                Verbatim(@"@"" goo bar
 and 
 on a new line ""u8"),
                 Identifier("more"),
@@ -461,7 +461,7 @@ on a new line ""U8
 more stuff";
             await TestInMethodAsync(code,
                 testHost,
-                UTF8Verbatim(@"@"" goo bar
+                Verbatim(@"@"" goo bar
 and 
 on a new line ""U8"),
                 Identifier("more"),
@@ -505,7 +505,7 @@ on a new line ""U8"),
                 Keyword("string"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
-                UTF8Verbatim(@"@""""""/*""u8"),
+                Verbatim(@"@""""""/*""u8"),
                 Punctuation.Semicolon);
         }
 
@@ -525,7 +525,7 @@ on a new line ""U8"),
                 Keyword("string"),
                 script ? Field("s") : Local("s"),
                 Operators.Equals,
-                UTF8Verbatim(@"@""""""/*""u8"),
+                Verbatim(@"@""""""/*""u8"),
                 Punctuation.Semicolon);
         }
 
@@ -544,7 +544,7 @@ on a new line ""U8"),
         {
             await TestAsync(@"""goo""u8",
                 testHost,
-                UTF8String(@"""goo""u8"));
+                String(@"""goo""u8"));
         }
 
         [Theory]
@@ -553,7 +553,7 @@ on a new line ""U8"),
         {
             await TestAsync(@"""goo""U8",
                 testHost,
-                UTF8String(@"""goo""U8"));
+                String(@"""goo""U8"));
         }
 
         [Theory]
@@ -571,7 +571,7 @@ on a new line ""U8"),
         {
             await TestAsync(@"""""u8",
                 testHost,
-                UTF8String(@"""""u8"));
+                String(@"""""u8"));
         }
 
         [Theory]
@@ -580,7 +580,7 @@ on a new line ""U8"),
         {
             await TestAsync(@"""""U8",
                 testHost,
-                UTF8String(@"""""U8"));
+                String(@"""""U8"));
         }
 
         [Theory]
@@ -5908,7 +5908,7 @@ class C
                 Keyword("var"),
                 Local("s"),
                 Operators.Equals,
-                UTF8String("\"\"\"Hello world\"\"\"u8"),
+                String("\"\"\"Hello world\"\"\"u8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -5945,7 +5945,7 @@ class C
                 Keyword("var"),
                 Local("s"),
                 Operators.Equals,
-                UTF8String("\"\"\"Hello world\"\"\"U8"),
+                String("\"\"\"Hello world\"\"\"U8"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
@@ -6025,7 +6025,7 @@ class C
                 Keyword("var"),
                 Local("s"),
                 Operators.Equals,
-                UTF8String(@"""""""
+                String(@"""""""
       Hello world
    """"""u8"),
                 Punctuation.Semicolon,
@@ -6066,7 +6066,7 @@ class C
                 Keyword("var"),
                 Local("s"),
                 Operators.Equals,
-                UTF8String(@"""""""
+                String(@"""""""
       Hello world
    """"""U8"),
                 Punctuation.Semicolon,
