@@ -39,9 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
 
-        private IVsTextManager _textManager;
-        private RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
-
         private readonly Dictionary<Guid, LanguageInformation> _languageInformationByLanguageGuid = new();
 
         /// <summary>
@@ -59,6 +56,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ImmutableArray<MetadataReference> _metadataReferences;
 
         private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
+
+        private IVsTextManager _textManager;
+        private RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
