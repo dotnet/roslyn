@@ -3132,6 +3132,30 @@ public class Bar
 }");
         }
 
+        [WpfFact]
+        public void TestCheckedStatement()
+        {
+            Test(@"
+public class Bar
+{
+    public void Bar2()
+    {
+        checked
+        {
+            $$
+        }
+    }
+}",
+@"
+public class Bar
+{
+    public void Bar2()
+    {
+        checked$$
+    }
+}");
+        }
+
         protected override string Language => LanguageNames.CSharp;
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
