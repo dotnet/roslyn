@@ -2734,5 +2734,42 @@ class C
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestExplicitCastInConstantPattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (c == (char)128 || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            var fixedSource =
+                @"class C
+{
+    void M(char c)
+    {
+        switch (c)
+        {
+            case (char)128:
+            case 'a':
+                System.Console.WriteLine(c);
+                break;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
     }
 }
