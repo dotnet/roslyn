@@ -44,13 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
-        protected override void Activate_OffUIThread()
-        {
-            // Ensure we let the default capabilities provider initialize off the UI thread to avoid
-            // unnecessary MEF part loading during the GetCapabilities call, which is done on the UI thread
-            _defaultCapabilitiesProvider.Initialize();
-        }
-
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
