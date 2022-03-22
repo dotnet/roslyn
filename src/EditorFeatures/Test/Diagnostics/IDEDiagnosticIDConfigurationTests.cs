@@ -1040,8 +1040,8 @@ csharp_style_prefer_parameter_null_checking = true
 # IDE0200, PreferMethodGroupConversion
 csharp_style_prefer_method_group_conversion = true
 
-# IDE0210
-No editorconfig based code style option
+# IDE0210, ForEachExplicitCastInSource
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
