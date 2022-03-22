@@ -359,7 +359,7 @@
       </trans-unit>
       <trans-unit id="ERR_DiscardCannotBeNullChecked">
         <source>Discard parameter cannot be null-checked.</source>
-        <target state="new">Discard parameter cannot be null-checked.</target>
+        <target state="translated">Atma parametresi için null denetimi yapılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -414,7 +414,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
         <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="new">Cannot update because an inferred delegate type has changed.</target>
+        <target state="translated">Çıkarsanan bir temsilci türü değiştiğinden güncelleştirilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -604,7 +604,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalAtSequence">
         <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
-        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <target state="translated">'@' karakterleri dizesine izin verilmiyor. Düz metin dizesi veya tanımlayıcı dizede yalnızca bir '@' karakteri olabilir, ham dizede hiç olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
@@ -789,12 +789,12 @@
       </trans-unit>
       <trans-unit id="ERR_LineContainsDifferentWhitespace">
         <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
-        <target state="new">Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</target>
+        <target state="translated">Satır, ham dize sabit değerinin kapanış satırından farklı boşluk içeriyor: '{0}' şuna karşı: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
         <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
-        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
+        <target state="translated">Satır, sabit değerli ham dizenin kapanış satırındaki aynı boşlukla başlamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -809,7 +809,7 @@
       </trans-unit>
       <trans-unit id="ERR_ListPatternRequiresLength">
         <source>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</target>
+        <target state="translated">Liste desenleri, '{0}' türündeki bir değer için kullanılamaz. Uygun 'Length' veya 'Count' özelliği bulunamadı.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
@@ -819,7 +819,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
-        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
+        <target state="translated">Beklenmeyen 'record' anahtar sözcüğü. 'record struct' veya 'record class' mi demek istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
@@ -919,12 +919,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoDelegateConstraint">
         <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
-        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <target state="translated">'delegate' anahtar sözcüğü kısıtlama olarak kullanılamaz. 'System.Delegate' mi demek istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoEnumConstraint">
         <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</source>
-        <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?</target>
+        <target state="translated">'enum' anahtar sözcüğü kısıtlama olarak kullanılamaz. 'struct, System.Enum' mu demek istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
@@ -964,12 +964,12 @@
       </trans-unit>
       <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
         <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
-        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <target state="translated">İlişkilendirme, ham dize sabit değerinin başlatılmış olduğu '$' karakter sayısıyla aynı sayıda kapatma küme ayracı ile bitmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotEnoughQuotesForRawString">
         <source>Not enough quotes for raw string literal.</source>
-        <target state="new">Not enough quotes for raw string literal.</target>
+        <target state="translated">Ham dize sabit değeri için yeterli tırnak işareti yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
@@ -984,7 +984,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullCheckingOnOutParameter">
         <source>'out' parameter '{0}' cannot be null-checked.</source>
-        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
+        <target state="translated">'out' parametresi '{0}' için null denetimi yapılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1104,22 +1104,22 @@
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
-        <target state="new">Raw string literal delimiter must be on its own line.</target>
+        <target state="translated">Ham dize sabit değer sınırlayıcısı kendi satırında olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
         <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
-        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
+        <target state="translated">Çok satırlı ham dize sabit değerlerine yalnızca düz metin arasına kod eklenmiş dizeler içinde izin verilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringMustContainContent">
         <source>Multi-line raw string literals must contain at least one line of content.</source>
-        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
+        <target state="translated">Çok satırlı ham dize sabit değerleri en az bir satır içerik içermelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringNotInDirectives">
         <source>Raw string literals are not allowed in preprocessor directives.</source>
-        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
+        <target state="translated">Önişlemci yönergelerinde ham dize sabit değerlerine izin verilmez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
@@ -1264,7 +1264,7 @@
       </trans-unit>
       <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
         <source>String must start with quote character: "</source>
-        <target state="new">String must start with quote character: "</target>
+        <target state="translated">Dize şu tırnak işaretiyle başlamalıdır: "</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
@@ -1294,17 +1294,17 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <target state="translated">Düz metin arasına kod ekli ham dize sabit değeri, bu kadar çok ardışık kapatma küme ayracı içerik olarak izin vermek için yeterli '$' karakterle başlamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyOpenBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
-        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <target state="translated">Düz metin arasına kod ekli ham dize sabit değeri, bu kadar çok ardışık açma küme ayracı içerik olarak izin vermek için yeterli '$' karakterle başlamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyQuotesForRawString">
         <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
-        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
+        <target state="translated">Ham dize sabit değeri, içerik olarak bu kadar çok ardışık tırnak işareti karakterine izin vermek için yeterli sayıda tırnak işareti karakteriyle başlamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1364,7 +1364,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnterminatedRawString">
         <source>Unterminated raw string literal.</source>
-        <target state="new">Unterminated raw string literal.</target>
+        <target state="translated">Sonlandırılmamış ham dize sabit değeri.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1469,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRawStringLiterals">
         <source>raw string literals</source>
-        <target state="new">raw string literals</target>
+        <target state="translated">ham dize sabit değerleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
