@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -76,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
 
+            var renameLocationsMap = await GetRenameLocationsMapAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
             var formatAnnotatedSnippetDocument = await AddFormatAnnotationAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Snippets
                 mainTextChange: mainChange,
                 textChanges: changes.ToImmutableArray(),
                 cursorPosition: GetTargetCaretPosition(syntaxFacts, caretTarget),
-                );
+                renameLocationsMap: renameLocationsMap);
         }
 
         private async Task<Document> CleanupDocumentAsync(
@@ -126,6 +129,11 @@ namespace Microsoft.CodeAnalysis.Snippets
             var annotatedSnippetRoot = await AnnotateNodesToReformatAsync(document, _findSnippetAnnotation, _cursorAnnotation, position, cancellationToken).ConfigureAwait(false);
             document = document.WithSyntaxRoot(annotatedSnippetRoot);
             return document;
+        }
+
+        protected virtual Task<Dictionary<int, List<TextSpan>>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<Dictionary<int, List<TextSpan>>?>(null);
         }
     }
 }

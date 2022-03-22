@@ -38,6 +38,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             return CompletionChange.Create(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
 
+        private string? GenerateLSPSnippet(SnippetChange snippetChange)
+        {
+            var mainChangeText = snippetChange.MainTextChange!.Value.NewText;
+            var renameLocationsMap = snippetChange.RenameLocationsMap;
+            if (renameLocationsMap is null)
+            {
+                return mainChangeText;
+            }
+
+            for (var i = 1; i < renameLocationsMap.Count; i++)
+            {
+                var value = renameLocationsMap[i];
+
+                foreach 
+                newText += 
+            }
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;

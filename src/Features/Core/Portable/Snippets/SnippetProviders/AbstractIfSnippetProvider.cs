@@ -67,7 +67,34 @@ namespace Microsoft.CodeAnalysis.Snippets
             return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
-        protected override async 
+        protected override async Task<Dictionary<int, List<TextSpan>>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var snippetExpressionNode = GetIfExpressionStatement(syntaxFacts, root, position);
+            if (snippetExpressionNode is null)
+            {
+                return null;
+            }
+
+            var renameLocationsMap = new Dictionary<int, List<TextSpan>>();
+            syntaxFacts.GetPartsOfIfStatement(snippetExpressionNode, out _, out var condition, out _, out var statement);
+            var list1 = new List<TextSpan>
+            {
+                new TextSpan(condition.SpanStart - snippetExpressionNode.SpanStart, condition.Span.Length)
+            };
+
+            renameLocationsMap.Add(1, list1);
+
+            var list2 = new List<TextSpan>
+            {
+                new TextSpan(statement.SpanStart - snippetExpressionNode.SpanStart, statement.Span.Length)
+            };
+
+            renameLocationsMap.Add(0, list2);
+
+            return renameLocationsMap;
+        }
 
         private static SyntaxNode? GetIfExpressionStatement(ISyntaxFactsService syntaxFacts, SyntaxNode root, int position)
         {
