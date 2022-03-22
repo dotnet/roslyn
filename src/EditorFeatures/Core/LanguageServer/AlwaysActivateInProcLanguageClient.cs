@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [Export(typeof(AlwaysActivateInProcLanguageClient))]
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
@@ -41,8 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, defaultCapabilitiesProvider, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);
 
             var serverCapabilities = isLspEditorEnabled
-                ? (VSInternalServerCapabilities)DefaultCapabilitiesProvider.GetCapabilities(clientCapabilities)
+                ? (VSInternalServerCapabilities)_defaultCapabilitiesProvider.GetCapabilities(clientCapabilities)
                 : new VSInternalServerCapabilities()
                 {
                     // Even if the flag is off, we want to include text sync capabilities.

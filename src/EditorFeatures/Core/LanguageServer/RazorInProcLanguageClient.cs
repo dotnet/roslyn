@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     {
         public const string ClientName = ProtocolConstants.RazorCSharp;
 
+        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
         [ImportingConstructor]
@@ -53,13 +55,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             ILspLoggerFactory lspLoggerFactory)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, defaultCapabilitiesProvider, ClientName)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
         {
+            _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var capabilities = DefaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+            var capabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
 
             // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
             capabilities.WorkspaceSymbolProvider = false;
