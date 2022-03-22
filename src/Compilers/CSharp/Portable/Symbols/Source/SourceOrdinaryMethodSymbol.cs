@@ -783,33 +783,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If the method is a generic method with no constraint clauses, returns the first type parameter
         /// that is used (incorrectly) as the type argument in Nullable&lt;T&gt;; otherwise returns null.
-        /// This method is a best effort, and a return value of null does not guarantee no such type parameter.
+        /// This method is a best effort, and may return false positives or negatives in edge cases.
         /// </summary>
-        internal TypeParameterSymbol GetTypeParameterUsedAsInvalidNullableTypeArgumentIfAny()
+        internal TypeParameterSymbol MayUseUnconstrainedTypeParameterAsAnnotatedType()
         {
-            // We check ConstraintClauses from syntax rather than checking constraints on the TypeParameterSymbols
-            // because this method is used to refine the errors reported for overridden or explicitly implemented methods
-            // and the constraints on the TypeParameterSymbols may depend on the overridden or explicitly implemented
-            // method that the caller is attempting to find.
-            if (IsGenericMethod && GetSyntax().ConstraintClauses.Count == 0)
+            if (IsGenericMethod)
             {
-                foreach (var typeParameter in TypeParameters)
+                var decl = GetSyntax();
+                // All checks are against syntax rather than symbols. That is because this method is used to refine
+                // the errors reported for overridden or explicitly implemented methods, and the constraints
+                // on the TypeParameterSymbols in particular may depend on the overridden or explicitly
+                // implemented method that the caller is trying to find.
+                if (decl.ConstraintClauses.Count == 0)
                 {
-                    if (containsTypeParameterAsNullableTypeArgument(ReturnType, typeParameter) ||
-                        Parameters.Any(static (parameter, typeParameter) => containsTypeParameterAsNullableTypeArgument(parameter.Type, typeParameter), typeParameter))
+                    foreach (var typeParameter in TypeParameters)
                     {
-                        return typeParameter;
+                        if (containsAnnotatedTypeParameterReference(decl.ReturnType, typeParameter.Name))
+                        {
+                            return typeParameter;
+                        }
+                        foreach (var parameter in decl.ParameterList.Parameters)
+                        {
+                            if (parameter.Type is { } parameterType && containsAnnotatedTypeParameterReference(parameterType, typeParameter.Name))
+                            {
+                                return typeParameter;
+                            }
+                        }
                     }
                 }
             }
             return null;
 
             // Returns true if the type contains a reference to Nullable<T> where T is the type argument.
-            static bool containsTypeParameterAsNullableTypeArgument(TypeSymbol type, TypeParameterSymbol typeParameter)
+            static bool containsAnnotatedTypeParameterReference(TypeSyntax typeSyntax, string typeParameterName)
             {
-                var value = type.VisitType(
-                    static (t, typeParameter, _) => t.IsNullableType() && TypeSymbol.Equals(t.GetNullableUnderlyingType(), typeParameter, TypeCompareKind.AllIgnoreOptions), arg: typeParameter);
-                return value is { };
+                foreach (var syntax in typeSyntax.DescendantNodesAndSelf())
+                {
+                    if (((syntax as NullableTypeSyntax)?.ElementType as IdentifierNameSyntax)?.Identifier.Text == typeParameterName)
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
     }

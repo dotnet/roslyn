@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (!suppressError)
                         {
-                            if ((overridingMember as SourceOrdinaryMethodSymbol)?.GetTypeParameterUsedAsInvalidNullableTypeArgumentIfAny() is { } typeParameter)
+                            if ((overridingMember as SourceOrdinaryMethodSymbol)?.MayUseUnconstrainedTypeParameterAsAnnotatedType() is { } typeParameter)
                             {
                                 diagnostics.Add(ErrorCode.ERR_OverrideNotExpected_MayRequireConstraint, overridingMemberLocation, overridingMember, typeParameter.Name);
                             }
@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
                                 else
                                 {
-                                    if ((overridingMethod as SourceOrdinaryMethodSymbol)?.GetTypeParameterUsedAsInvalidNullableTypeArgumentIfAny() is { } typeParameter)
+                                    if ((overridingMethod as SourceOrdinaryMethodSymbol)?.MayUseUnconstrainedTypeParameterAsAnnotatedType() is { } typeParameter)
                                     {
                                         // error CS9013: '{0}': return type must be '{2}' to match overridden member '{1}'. Consider adding a 'where {3} : class' or 'where {3} : default' constraint.
                                         diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnTypeWithAnnotations, typeParameter.Name);
