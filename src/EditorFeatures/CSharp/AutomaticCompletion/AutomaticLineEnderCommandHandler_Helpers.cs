@@ -645,8 +645,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         private static bool ShouldAddBraceForCheckedStatement(CheckedStatementSyntax checkedStatementNode, int caretPosition)
             => checkedStatementNode.Block.OpenBraceToken.IsMissing
-                && checkedStatementNode.Block.Statements.IsEmpty()
-                && !checkedStatementNode.Block.Span.Contains(caretPosition);
+               && !checkedStatementNode.Block.Span.Contains(caretPosition);
 
         // For all the embeddedStatementOwners,
         // if the embeddedStatement is not block, insert the the braces if its statement is not block.

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 using Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -3132,28 +3133,54 @@ public class Bar
 }");
         }
 
-        [WpfFact]
-        public void TestCheckedStatement()
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TestCheckedStatement(string keywordToken)
         {
-            Test(@"
+            Test($@"
 public class Bar
-{
+{{
     public void Bar2()
-    {
-        checked
-        {
+    {{
+        {keywordToken}
+        {{
             $$
-        }
-    }
-}",
-@"
+        }}
+    }}
+}}",
+$@"
 public class Bar
-{
+{{
     public void Bar2()
-    {
-        checked$$
-    }
-}");
+    {{
+        {keywordToken}$$
+    }}
+}}");
+        }
+
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TextCheckedExpression(string keywordToken)
+        {
+            Test($@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}(1 + 1);
+        $$
+    }}
+}}",
+$@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}$$(1 +$$ 1)$$
+    }}
+}}");
         }
 
         protected override string Language => LanguageNames.CSharp;
