@@ -256,8 +256,8 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_matches_folder_preferences">
-        <source>Apply namespace matches folder preferences</source>
-        <target state="new">Apply namespace matches folder preferences</target>
+        <source>Apply namespace matches folde preferences</source>
+        <target state="new">Apply namespace matches folde preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">
