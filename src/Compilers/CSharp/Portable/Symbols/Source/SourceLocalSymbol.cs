@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Symbol containingSymbol,
                 Binder scopeBinder,
                 string name,
-                IReadOnlyCollection<LocalSymbol> variablesToMerge)
+                IEnumerable<LocalSymbol> variablesToMerge)
                 : base(containingSymbol, scopeBinder, allowRefKind: false, typeSyntax: null, identifierToken: default, LocalDeclarationKind.PatternVariable)
             {
                 Name = name;

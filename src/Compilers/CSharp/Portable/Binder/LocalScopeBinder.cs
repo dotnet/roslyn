@@ -67,11 +67,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_locals.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _locals, BuildLocals(), default(ImmutableArray<LocalSymbol>));
+                    ImmutableInterlocked.InterlockedCompareExchange(ref _locals, MergePatternVariables(BuildLocals()), default(ImmutableArray<LocalSymbol>));
                 }
 
                 return _locals;
             }
+        }
+
+        private ImmutableArray<LocalSymbol> MergePatternVariables(ImmutableArray<LocalSymbol> locals)
+        {
+            var variablesByName = PooledDictionary<string, ArrayBuilder<LocalSymbol>>.GetInstance();
+            foreach (LocalSymbol local in locals)
+            {
+                if (local.DeclarationKind == LocalDeclarationKind.PatternVariable)
+                {
+                    variablesByName.MultiAdd(local.Name, local);
+                }
+            }
+
+            ArrayBuilder<LocalSymbol> builder = null;
+            foreach ((string variableName, ArrayBuilder<LocalSymbol> variablesToMerge) in variablesByName)
+            {
+                if (variablesToMerge.Count != 1)
+                {
+                    builder ??= ArrayBuilder<LocalSymbol>.GetInstance(locals);
+                    builder.RemoveRange(variablesToMerge);
+                    builder.Add(new SourceLocalSymbol.Merged(
+                        containingSymbol: ContainingMember(),
+                        scopeBinder: this,
+                        name: variableName,
+                        variablesToMerge: variablesToMerge));
+                }
+                variablesToMerge.Free();
+            }
+
+            variablesByName.Free();
+            return builder?.ToImmutableAndFree() ?? locals;
         }
 
         protected virtual ImmutableArray<LocalSymbol> BuildLocals()

@@ -1315,8 +1315,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // we do not track definite assignment for pattern variables when they are
                             // promoted to fields for top-level code in scripts and interactive
-                            int slot = GetOrCreateSlot(symbol);
-                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                            if (!IsAssigned(pattern.VariableAccess, out int unassignedSlot))
+                            {
+                                SetSlotState(unassignedSlot, assigned: written || !this.State.Reachable);
+                            }
+                            else
+                            {
+                                Diagnostics.Add(ErrorCode.ERR_LocalDuplicate, node.Syntax.Location, symbol.Name);
+                            }
                         }
 
                         if (written) NoteWrite(pattern.VariableAccess, value, read);
@@ -1705,20 +1711,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.BinaryPattern:
                         {
                             var pat = (BoundBinaryPattern)pattern;
-                            var savedState = State.Clone();
                             VisitPattern(pat.Left);
                             var leftWhenTrue = StateWhenTrue;
                             var leftWhenFalse = StateWhenFalse;
-                            SetState(savedState);
-                            VisitPattern(pat.Right);
                             if (pat.Disjunction)
                             {
+                                SetState(leftWhenFalse);
+                                VisitPattern(pat.Right);
                                 Join(ref this.StateWhenTrue, ref leftWhenTrue);
-                                Join(ref this.StateWhenFalse, ref leftWhenFalse);
                             }
                             else
                             {
-                                Meet(ref this.StateWhenTrue, ref leftWhenTrue);
+                                SetState(leftWhenTrue);
+                                VisitPattern(pat.Right);
                                 Join(ref this.StateWhenFalse, ref leftWhenFalse);
                             }
                             break;

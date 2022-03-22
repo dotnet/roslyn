@@ -51,19 +51,19 @@ object o = null;
         c.ToString(); // 04
 }
 {
-    if (o is not C(1) c or not C(2) c) // duplicate 1
+    if (o is not C(1) c or not C(2) c) // duplicate 1, always-true 4
         c.ToString(); // 05
     else
         c.ToString();
 }
 {
-    if (o is not C(1) c and C(2) c) // duplicate 2
-        c.ToString(); // 06
-    else
+    if (o is not C(1) c and C(2) c)
         c.ToString();
+    else
+        c.ToString(); // 06
 }
 {
-    if (o is C(1) c and not C(2) c) // duplicate 3
+    if (o is C(1) c and not C(2) c) // duplicate 2
         c.ToString();
     else
         c.ToString(); // 07
@@ -102,31 +102,31 @@ object o = null;
 }
 {
     if (!(o is 1 or not C(1) c))
-        c.ToString(); // 14
+        c.ToString();
 }
 {
     if (o is not (not C c, not C c))
-        c.ToString(); // 15
+        c.ToString(); // 14
 }
 {
     if (o is not ((not C c, _) and (_, not C c)))
-        c.ToString(); // 16
+        c.ToString(); // 15
 }
 {
     if (!(o is not ((not C c, _) and (_, not C c))))
-        c.ToString(); // 17
+        c.ToString(); // 16
 }
 {
     if (o is not ((not C c, _) or (_, not C c)))
+        c.ToString(); // 17
+}
+{
+    if (o is ((not C c, _) or (_, not C c)))
         c.ToString(); // 18
 }
 {
-    if (o is ((not C c, _) or (_, not C c))) // duplicate 4
-        c.ToString(); // 19
-}
-{
     if (!(o is ((not C c, _) and (_, not C c))))
-        c.ToString(); // 20
+        c.ToString(); // 19
 }
 {
     if (!(o is not ((C c, _) or (_, C c))))
@@ -172,21 +172,21 @@ interface I
                 // (51,9): error CS0165: Use of unassigned local variable 'c'
                 //         c.ToString(); // 04
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(51, 9),
-                // (54,37): error CS0128: A local variable or function named 'c' is already defined in this scope
-                //     if (o is not C(1) c or not C(2) c) // duplicate 1
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(54, 37),
+                // (54,9): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                //     if (o is not C(1) c or not C(2) c) // duplicate 1, always-true 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is not C(1) c or not C(2) c").WithArguments("object").WithLocation(54, 9),
+                // (54,32): error CS0128: A local variable or function named 'c' is already defined in this scope
+                //     if (o is not C(1) c or not C(2) c) // duplicate 1, always-true 4
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "C(2) c").WithArguments("c").WithLocation(54, 32),
                 // (55,9): error CS0165: Use of unassigned local variable 'c'
                 //         c.ToString(); // 05
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(55, 9),
-                // (60,34): error CS0128: A local variable or function named 'c' is already defined in this scope
-                //     if (o is not C(1) c and C(2) c) // duplicate 2
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(60, 34),
-                // (61,9): error CS0165: Use of unassigned local variable 'c'
+                // (63,9): error CS0165: Use of unassigned local variable 'c'
                 //         c.ToString(); // 06
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(61, 9),
-                // (66,34): error CS0128: A local variable or function named 'c' is already defined in this scope
-                //     if (o is C(1) c and not C(2) c) // duplicate 3
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(66, 34),
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(63, 9),
+                // (66,29): error CS0128: A local variable or function named 'c' is already defined in this scope
+                //     if (o is C(1) c and not C(2) c) // duplicate 2
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "C(2) c").WithArguments("c").WithLocation(66, 29),
                 // (69,9): error CS0165: Use of unassigned local variable 'c'
                 //         c.ToString(); // 07
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(69, 9),
@@ -208,29 +208,23 @@ interface I
                 // (101,9): error CS0165: Use of unassigned local variable 'c'
                 //         c.ToString(); // 13
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(101, 9),
-                // (105,9): error CS0165: Use of unassigned local variable 'c'
-                //         c.ToString(); // 14
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(105, 9),
                 // (109,9): error CS0165: Use of unassigned local variable 'c'
-                //         c.ToString(); // 15
+                //         c.ToString(); // 14
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(109, 9),
                 // (113,9): error CS0165: Use of unassigned local variable 'c'
-                //         c.ToString(); // 16
+                //         c.ToString(); // 15
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(113, 9),
                 // (117,9): error CS0165: Use of unassigned local variable 'c'
-                //         c.ToString(); // 17
+                //         c.ToString(); // 16
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(117, 9),
                 // (121,9): error CS0165: Use of unassigned local variable 'c'
-                //         c.ToString(); // 18
+                //         c.ToString(); // 17
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(121, 9),
-                // (124,41): error CS0128: A local variable or function named 'c' is already defined in this scope
-                //     if (o is ((not C c, _) or (_, not C c))) // duplicate 4
-                Diagnostic(ErrorCode.ERR_LocalDuplicate, "c").WithArguments("c").WithLocation(124, 41),
                 // (125,9): error CS0165: Use of unassigned local variable 'c'
-                //         c.ToString(); // 19
+                //         c.ToString(); // 18
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(125, 9),
                 // (129,9): error CS0165: Use of unassigned local variable 'c'
-                //         c.ToString(); // 20
+                //         c.ToString(); // 19
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(129, 9)
                 );
     }

@@ -649,5 +649,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             set.Free();
             return result.ToImmutableAndFree();
         }
+
+        public static ArrayBuilder<T> GetInstance(ImmutableArray<T> items)
+        {
+            var builder = GetInstance(items.Length);
+            builder.AddRange(items);
+            return builder;
+        }
     }
 }
