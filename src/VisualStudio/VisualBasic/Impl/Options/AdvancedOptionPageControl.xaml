@@ -67,6 +67,13 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="GoToDefinitionGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
+                <StackPanel>
+                    <CheckBox x:Name="Navigate_asynchronously_exerimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Import_Directives}">
                 <StackPanel>

@@ -84,10 +84,13 @@ public class Test
 
             await TestServices.Input.SendAsync(VirtualKey.Tab);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null$$, null)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(VirtualKey.Tab);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null)$$", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null, null$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
+
+            await TestServices.Input.SendAsync(VirtualKey.Tab);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null, null)$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
         [IdeFact]
@@ -327,10 +330,13 @@ public class Test
 
             await TestServices.Input.SendAsync(VirtualKey.Tab);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null$$, null)", assertCaretPosition: true, HangMitigatingCancellationToken);
+
+            await TestServices.Input.SendAsync(VirtualKey.Tab);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null, null$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(';');
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null);$$", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null, null);$$", assertCaretPosition: true, HangMitigatingCancellationToken);
         }
 
         /// <summary>
@@ -429,7 +435,10 @@ public class Test
 
             await TestServices.Input.SendAsync(VirtualKey.Tab);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SignatureHelp }, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null$$, null)", assertCaretPosition: true, HangMitigatingCancellationToken);
+
+            await TestServices.Input.SendAsync(VirtualKey.Tab);
+            await TestServices.EditorVerifier.CurrentLineTextAsync("        object.Equals(null, null$$)", assertCaretPosition: true, HangMitigatingCancellationToken);
 
             await TestServices.Input.SendAsync(new KeyPress(VirtualKey.Enter, ShiftState.Shift));
             await TestServices.EditorVerifier.TextContainsAsync(@"
@@ -439,7 +448,7 @@ public class Test
 
     public void Method()
     {
-        object.Equals(null);
+        object.Equals(null, null);
 $$
     }
 }

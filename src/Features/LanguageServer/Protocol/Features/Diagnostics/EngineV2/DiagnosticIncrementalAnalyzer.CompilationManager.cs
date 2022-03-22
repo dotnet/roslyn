@@ -24,7 +24,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return null;
             }
 
-            if (_projectCompilationsWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzers))
+            var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project.Language);
+
+            if (_projectCompilationsWithAnalyzers.TryGetValue(project, out var compilationWithAnalyzers) &&
+                ((WorkspaceAnalyzerOptions)compilationWithAnalyzers!.AnalysisOptions.Options!).IdeOptions == ideOptions)
             {
                 // we have cached one, return that.
                 AssertAnalyzers(compilationWithAnalyzers, stateSets);
@@ -32,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             // Create driver that holds onto compilation and associated analyzers
-            var crashOnAnalyzerException = GlobalOptions.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException);
-            var newCompilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, stateSets, includeSuppressedDiagnostics: true, crashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+            var newCompilationWithAnalyzers = await CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
             // Add new analyzer driver to the map
             compilationWithAnalyzers = _projectCompilationsWithAnalyzers.GetValue(project, _ => newCompilationWithAnalyzers);
@@ -47,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return compilationWithAnalyzers;
         }
 
-        private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, bool crashOnAnalyzerException, CancellationToken cancellationToken)
-            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, crashOnAnalyzerException, cancellationToken);
+        private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IdeAnalyzerOptions ideOptions, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
 
         private void ClearCompilationsWithAnalyzersCache(Project project)
             => _projectCompilationsWithAnalyzers.Remove(project);

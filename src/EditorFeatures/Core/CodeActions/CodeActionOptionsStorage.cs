@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.ExtractMethod;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => new(
                 SearchOptions: globalOptions.GetSymbolSearchOptions(language),
                 ImplementTypeOptions: globalOptions.GetImplementTypeOptions(language),
+                ExtractMethodOptions: globalOptions.GetExtractMethodOptions(language),
                 HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language),
                 IsBlocking: isBlocking);
 

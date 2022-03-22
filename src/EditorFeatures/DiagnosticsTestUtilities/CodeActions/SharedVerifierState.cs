@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.CodeActions;
@@ -47,7 +48,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         internal OptionsCollection Options { get; }
 
 #if !CODE_STYLE
-        internal CodeActionOptions CodeActionOptions { get; set; }
+        internal CodeActionOptions CodeActionOptions { get; set; } = CodeActionOptions.Default;
+        internal IdeAnalyzerOptions IdeAnalyzerOptions { get; set; } = IdeAnalyzerOptions.Default;
 #endif
         internal void Apply()
         {

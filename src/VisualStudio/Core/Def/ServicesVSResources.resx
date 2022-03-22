@@ -1931,4 +1931,10 @@ Additional information: {1}</value>
   <data name="Fix_text_pasted_into_string_literals" xml:space="preserve">
     <value>Fix text pasted into string literals</value>
   </data>
+  <data name="Go_To_Definition" xml:space="preserve">
+    <value>Go To Definition</value>
+  </data>
+  <data name="Navigate_asynchronously_exerimental" xml:space="preserve">
+    <value>Navigate asynchronously (experimental)</value>
+  </data>
 </root>

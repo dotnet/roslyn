@@ -8822,7 +8822,7 @@ struct Goo
             var code = @"int i; [|i = 2|]; i = 3;";
             var expected = @"int i; i = NewMethod();
 
-int NewMethod()
+static int NewMethod()
 {
     return 2;
 }
@@ -9199,7 +9199,7 @@ public static void GetNonVirtualMethod<TDelegate>( Type type, string name)
     var invoke = GetDelegateType(delegateType).GetMethod(""Invoke"");
 }
 
-Type GetDelegateType(Type delegateType)
+static Type GetDelegateType(Type delegateType)
 {
     return delegateType;
 }";
@@ -9553,7 +9553,7 @@ class Program
 }|]";
             var expected = @"NewMethod();
 
-void NewMethod()
+static void NewMethod()
 {
     if (true)
     {
@@ -11248,7 +11248,7 @@ local = [|true|];
             var expected = @"
 bool local;
 
-bool NewMethod()
+static bool NewMethod()
 {
     return true;
 }
@@ -11271,7 +11271,7 @@ System.Console.WriteLine([|""string""|]);
             var expected = @"
 System.Console.WriteLine((string)NewMethod());
 
-string NewMethod()
+static string NewMethod()
 {
     return ""string"";
 }";

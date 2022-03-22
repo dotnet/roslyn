@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
+            GlobalOptions = globalOptions;
 
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
