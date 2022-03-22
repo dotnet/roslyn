@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Newtonsoft.Json.Linq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
@@ -354,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             return new XElement(element.Name, children);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(x86))]
         public void TestDeepRecursion()
         {
             var (token, tree, chars) =
