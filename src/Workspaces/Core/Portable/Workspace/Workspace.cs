@@ -1195,8 +1195,8 @@ namespace Microsoft.CodeAnalysis
                     FunctionId.Workspace_ApplyChanges,
                     static (oldSolution, newSolution) =>
                     {
-                            // 'oldSolution' is the current workspace solution; if we reach this point we know
-                            // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
+                        // 'oldSolution' is the current workspace solution; if we reach this point we know
+                        // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
                         var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
                         var newWorkspaceVersion = newSolution.WorkspaceVersion;
                         return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";

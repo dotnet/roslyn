@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     currentDocument = originalDocument;
                 }
 
-                    currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, options, cancellationToken).ConfigureAwait(false);
+                currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, options, cancellationToken).ConfigureAwait(false);
 
 #if DEBUG
                 if (!originalDocHasErrors && currentDocument != annotatedDocument)
@@ -569,9 +569,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 return originalRoot;
             }
         }
-
-        private string GetCodeCleanerTypeName(ICodeCleanupProvider codeCleaner)
-            => codeCleaner.ToString() ?? "";
 
         private static SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
         {
