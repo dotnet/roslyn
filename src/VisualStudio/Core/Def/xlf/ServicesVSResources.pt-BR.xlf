@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Colorize_JSON_strings">
         <source>Colorize JSON strings</source>
-        <target state="new">Colorize JSON strings</target>
+        <target state="translated">Colorizar cadeias de caracteres JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -294,7 +294,7 @@
       </trans-unit>
       <trans-unit id="Default_None">
         <source>Default (None)</source>
-        <target state="new">Default (None)</target>
+        <target state="translated">Padrão (nenhum)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="Entire_solution_and_external_sources">
         <source>Entire Solution and External Sources</source>
-        <target state="new">Entire Solution and External Sources</target>
+        <target state="translated">Solução Inteira e Fontes Externas</target>
         <note />
       </trans-unit>
       <trans-unit id="Error">
@@ -424,7 +424,7 @@
       </trans-unit>
       <trans-unit id="External_sources">
         <source>External Sources</source>
-        <target state="new">External Sources</target>
+        <target state="translated">Fontes Externas</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -559,7 +559,7 @@
       </trans-unit>
       <trans-unit id="JSON_strings">
         <source>JSON strings</source>
-        <target state="new">JSON strings</target>
+        <target state="translated">Cadeias de caracteres JSON</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -1014,7 +1014,7 @@
       </trans-unit>
       <trans-unit id="Prefer_method_group_conversion">
         <source>Prefer method group conversion</source>
-        <target state="new">Prefer method group conversion</target>
+        <target state="translated">Preferir conversão de grupo de métodos</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
@@ -1109,7 +1109,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
-        <target state="new">Report invalid JSON strings</target>
+        <target state="translated">Notificar cadeias de caracteres JSON inválidas</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
@@ -1159,7 +1159,7 @@
       </trans-unit>
       <trans-unit id="Run_background_code_analysis_for_colon">
         <source>Run background code analysis for:</source>
-        <target state="new">Run background code analysis for:</target>
+        <target state="translated">Executar análise de código em segundo plano para:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">

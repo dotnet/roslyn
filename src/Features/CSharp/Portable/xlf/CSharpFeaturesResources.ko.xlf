@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_required_braces_for_single_line_control_statements">
         <source>Add required braces for single-line control statements</source>
-        <target state="new">Add required braces for single-line control statements</target>
+        <target state="translated">한 줄 컨트롤 문에 필요한 중괄호 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_unsafe_code_in_this_project">
@@ -29,32 +29,32 @@
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
-        <target state="new">Apply blank line after colon in constructor initializer preferences (experimental)</target>
+        <target state="translated">생성자 이니셜라이저에서 콜론 위에 빈 줄 적용 기본 설정(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_lines_between_consecutive_braces_preferences_experimental">
         <source>Apply blank lines between consecutive braces preferences (experimental)</source>
-        <target state="new">Apply blank lines between consecutive braces preferences (experimental)</target>
+        <target state="translated">연속 중괄호 사이에 빈 줄 적용 기본 설정(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
         <source>Apply conditional delegate call preferences</source>
-        <target state="new">Apply conditional delegate call preferences</target>
+        <target state="translated">조건부 대리자 호출 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_deconstruct_preferences">
         <source>Apply deconstruct preferences</source>
-        <target state="new">Apply deconstruct preferences</target>
+        <target state="translated">분해 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_default_T_preferences">
         <source>Apply default(T) preferences</source>
-        <target state="new">Apply default(T) preferences</target>
+        <target state="translated">기본값(T) 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_embedded_statements_on_same_line_preferences_experimental">
         <source>Apply embedded statements on same line preferences (experimental)</source>
-        <target state="new">Apply embedded statements on same line preferences (experimental)</target>
+        <target state="translated">같은 줄에 포함된 문 적용 기본 설정(실험적)</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
@@ -69,47 +69,47 @@
       </trans-unit>
       <trans-unit id="Apply_local_over_anonymous_function_preferences">
         <source>Apply local over anonymous function preferences</source>
-        <target state="new">Apply local over anonymous function preferences</target>
+        <target state="translated">익명 함수에 로컬 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_method_group_conversion_preferences">
         <source>Apply method group conversion preferences</source>
-        <target state="new">Apply method group conversion preferences</target>
+        <target state="translated">메서드 그룹 변환 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_preferences">
         <source>Apply namespace preferences</source>
-        <target state="new">Apply namespace preferences</target>
+        <target state="translated">네임스페이스 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
-        <target state="new">Apply new() preferences</target>
+        <target state="translated">new() 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
         <source>Apply object collection initialization preferences</source>
-        <target state="new">Apply object collection initialization preferences</target>
+        <target state="translated">개체 컬렉션 초기화 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_parameter_null_preferences">
         <source>Apply parameter null preferences</source>
-        <target state="new">Apply parameter null preferences</target>
+        <target state="translated">매개 변수 Null 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
         <source>Apply pattern matching preferences</source>
-        <target state="new">Apply pattern matching preferences</target>
+        <target state="translated">패턴 일치 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_range_preferences">
         <source>Apply range preferences</source>
-        <target state="new">Apply range preferences</target>
+        <target state="translated">범위 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_static_local_function_preferences">
         <source>Apply static local function preferences</source>
-        <target state="new">Apply static local function preferences</target>
+        <target state="translated">정적 로컬 함수 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_this_qualification_preferences">
@@ -119,7 +119,7 @@
       </trans-unit>
       <trans-unit id="Apply_throw_expression_preferences">
         <source>Apply throw expression preferences</source>
-        <target state="new">Apply throw expression preferences</target>
+        <target state="translated">throw 식 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_using_directive_placement_preferences">
@@ -129,12 +129,12 @@
       </trans-unit>
       <trans-unit id="Apply_using_statement_preferences">
         <source>Apply using statement preferences</source>
-        <target state="new">Apply using statement preferences</target>
+        <target state="translated">Using 문 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_var_preferences">
         <source>Apply 'var' preferences</source>
-        <target state="new">Apply 'var' preferences</target>
+        <target state="translated">'var' 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Assign_out_parameters">
@@ -179,12 +179,12 @@
       </trans-unit>
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
-        <target state="new">Convert to raw string</target>
+        <target state="translated">원시 문자열로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_raw_string_no_indent">
         <source>Convert to raw string (no indent)</source>
-        <target state="new">Convert to raw string (no indent)</target>
+        <target state="translated">원시 문자열로 변환(한 수준 내리기 안 함)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">

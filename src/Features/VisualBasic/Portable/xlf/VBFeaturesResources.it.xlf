@@ -39,12 +39,12 @@
       </trans-unit>
       <trans-unit id="Apply_isnot_preferences">
         <source>Apply IsNot preferences</source>
-        <target state="new">Apply IsNot preferences</target>
+        <target state="translated">Applica preferenze IsNot</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_creation_preferences">
         <source>Apply object creation preferences</source>
-        <target state="new">Apply object creation preferences</target>
+        <target state="translated">Applica preferenze di creazione di oggetti</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
