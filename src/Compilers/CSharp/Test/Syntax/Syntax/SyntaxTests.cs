@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public unsafe void TestBitness()
+        {
+            Assert.True(false, $"Here's sizeof(nint): {sizeof(nint)}");
+        }
+
+        [Fact]
         public void TextIsCompleteSubmission()
         {
             Assert.Throws<ArgumentNullException>(() => SyntaxFactory.IsCompleteSubmission(null));
