@@ -12768,5 +12768,56 @@ class C
                 NumberOfFixAllIterations = 2,
             }.RunAsync();
         }
+
+        [WorkItem(60292, "https://github.com/dotnet/roslyn/issues/60292")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task KeepNecessaryExplicitNullableCast()
+        {
+            var code = @"
+using System;
+
+namespace ConsoleApp1
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            for (var i = 0; i < 100; i++)
+            {
+                bool should = Should();
+                Test? test = ShouldTest();
+                int? testId = should ? (int?)test : null; // incorrect IDE0004  
+            }
+        }
+
+        private static bool Should()
+        {
+            return new Random().Next() % 2 == 0;
+        }
+
+        private static Test? ShouldTest()
+        {
+            var value = new Random().Next(3);
+            if (Enum.IsDefined(typeof(Test), value))
+                return (Test)value;
+
+            return null;
+        }
+    }
+
+    public enum Test
+    {
+        Foo = 1,
+        Bar = 2,
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
     }
 }

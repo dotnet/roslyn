@@ -14,8 +14,6 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
@@ -31,22 +29,22 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
         private void OnDump(object sender, RoutedEventArgs e)
         {
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            _ = OnDumpImplAsync();
+
+            async Task OnDumpImplAsync()
             {
                 using (Disable(DumpButton))
                 using (Disable(CopyButton))
                 {
                     GenerationProgresBar.IsIndeterminate = true;
 
-                    await TaskScheduler.Default;
-                    var text = GetTelemetryString();
+                    var text = await Task.Run(GetTelemetryString).ConfigureAwait(true);
 
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     this.Result.Text = text;
 
                     GenerationProgresBar.IsIndeterminate = false;
                 }
-            });
+            }
         }
 
         private void OnCopy(object sender, RoutedEventArgs e)
