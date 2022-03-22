@@ -22,7 +22,9 @@ pr:
   paths:
     exclude:
       - docs/*
+      - .vscode/*
       - .github/*
+      - .devcontainer/*
 
 jobs:
 - job: VS_Integration_CoreHost_Debug

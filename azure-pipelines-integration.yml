@@ -18,7 +18,9 @@ pr:
   paths:
     exclude:
       - docs/*
+      - .vscode/*
       - .github/*
+      - .devcontainer/*
 
 jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:

@@ -18,7 +18,9 @@ pr:
   paths:
     exclude:
       - docs/*
+      - .vscode/*
       - .github/*
+      - .devcontainer/*
 
 # Windows Build and Test Jobs
 jobs:
