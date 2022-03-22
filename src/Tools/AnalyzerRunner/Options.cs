@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace AnalyzerRunner
@@ -38,6 +39,9 @@ namespace AnalyzerRunner
         internal readonly int TestDocumentIterations;
         internal readonly string LogFileName;
         internal readonly string ProfileRoot;
+
+        internal IdeAnalyzerOptions IdeOptions
+            => IdeAnalyzerOptions.Default;
 
         internal BackgroundAnalysisScope AnalysisScope
             => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         protected AbstractJsonDetectionAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    EnforceOnBuildValues.DetectProbableJsonStrings,
-                   JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Probable_JSON_string_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -49,8 +49,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, syntaxTree.Options.Language);
-            if (!option)
+            if (!context.Options.GetIdeOptions().DetectAndOfferEditorFeaturesForProbableJsonStrings)
                 return;
 
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);

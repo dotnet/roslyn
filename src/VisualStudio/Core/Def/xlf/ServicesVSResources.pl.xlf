@@ -462,6 +462,11 @@
         <target state="translated">Wygeneruj plik .editorconfig na podstawie ustawień</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="new">Go To Definition</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">Wyróżnij powiązane składniki pod kursorem</target>
@@ -830,6 +835,11 @@
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Reguły nazewnictwa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="new">Navigate asynchronously (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">

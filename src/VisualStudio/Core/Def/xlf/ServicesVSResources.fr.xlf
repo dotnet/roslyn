@@ -462,6 +462,11 @@
         <target state="translated">Générer le fichier .editorconfig à partir des paramètres</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="new">Go To Definition</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">Surligner les composants liés sous le curseur</target>
@@ -830,6 +835,11 @@
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Règles de nommage</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="new">Navigate asynchronously (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">

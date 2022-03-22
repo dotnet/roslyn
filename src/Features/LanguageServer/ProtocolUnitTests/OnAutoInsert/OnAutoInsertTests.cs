@@ -41,6 +41,54 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         }
 
         [Fact]
+        public async Task OnAutoInsert_CommentCharacter_WithComment()
+        {
+            var markup =
+@"class A
+{
+    ///{|type:|} This is an existing comment
+    void M()
+    {
+    }
+}";
+            var expected =
+@"class A
+{
+    /// <summary>
+    /// $0This is an existing comment
+    /// </summary>
+    void M()
+    {
+    }
+}";
+            await VerifyMarkupAndExpected("/", markup, expected);
+        }
+
+        [Fact]
+        public async Task OnAutoInsert_CommentCharacter_WithComment_NoSpace()
+        {
+            var markup =
+@"class A
+{
+    ///{|type:|}This is an existing comment
+    void M()
+    {
+    }
+}";
+            var expected =
+@"class A
+{
+    /// <summary>
+    /// $0This is an existing comment
+    /// </summary>
+    void M()
+    {
+    }
+}";
+            await VerifyMarkupAndExpected("/", markup, expected);
+        }
+
+        [Fact]
         public async Task OnAutoInsert_CommentCharacter_VB()
         {
             var markup =

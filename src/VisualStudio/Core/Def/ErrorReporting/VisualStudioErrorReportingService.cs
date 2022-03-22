@@ -81,8 +81,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
-                var activityLog = await ((IAsyncServiceProvider)_serviceProvider).GetServiceAsync<SVsActivityLog, IVsActivityLog>().ConfigureAwait(true);
-                Assumes.Present(activityLog);
+                var activityLog = await ((IAsyncServiceProvider)_serviceProvider).GetServiceAsync<SVsActivityLog, IVsActivityLog>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
 
                 activityLog.LogEntry(
                     (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,

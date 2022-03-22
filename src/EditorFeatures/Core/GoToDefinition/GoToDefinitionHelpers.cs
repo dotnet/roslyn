@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -117,7 +115,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }
 
-        public static async Task<INavigableLocation> GetDefinitionLocationAsync(
+        public static async Task<INavigableLocation?> GetDefinitionLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -134,8 +132,6 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
                 threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 
-#nullable enable
-
         public static async Task<IEnumerable<INavigableItem>?> GetDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
@@ -150,7 +146,5 @@ namespace Microsoft.CodeAnalysis.GoToDefinition
             var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
             return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
-
-#nullable restore
     }
 }

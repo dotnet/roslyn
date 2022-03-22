@@ -71,6 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IGlobalOptionService _globalOptions;
         private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
         private readonly IAsyncServiceProvider _vsServiceProvider;
+        private readonly IThreadingContext _threadingContext;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
@@ -85,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _services = services;
             _globalOptions = globalOptions;
             _vsServiceProvider = vsServiceProvider;
+            _threadingContext = threadingContext;
             _listenerProvider = listenerProvider;
             _callbackDispatchers = callbackDispatchers;
 
@@ -97,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             try
             {
-                var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
+                var brokeredServiceContainer = await _vsServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
                 var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
                 var configuration =

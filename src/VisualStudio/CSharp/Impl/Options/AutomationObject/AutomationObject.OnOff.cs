@@ -62,6 +62,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.RenameTrackingPreview, value); }
         }
 
+        public int NavigateAsynchronously
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.NavigateAsynchronously); }
+            set { SetBooleanOption(FeatureOnOffOptions.NavigateAsynchronously, value); }
+        }
+
         public int NavigateToDecompiledSources
         {
             get { return GetBooleanOption(FeatureOnOffOptions.NavigateToDecompiledSources); }
