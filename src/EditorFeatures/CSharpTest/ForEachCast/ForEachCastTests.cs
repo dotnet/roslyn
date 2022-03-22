@@ -1004,5 +1004,44 @@ namespace ConsoleApplication1
             await TestAlwaysAsync(test, test);
             await TestWhenStronglyTypedAsync(test, test);
         }
+
+        [Fact]
+        public async Task TupleToChildTuple2()
+        {
+            var test = @"
+using System;
+using System.Linq;
+
+public static class Program
+{   
+    public static void M((object, object)[] x)
+    {
+        [|foreach|] ((string, string) item in x)
+        {
+            Console.WriteLine(item.Item1);
+            Console.WriteLine(item.Item2);
+        }
+    }
+}";
+
+            var code = @"
+using System;
+using System.Linq;
+
+public static class Program
+{   
+    public static void M((object, object)[] x)
+    {
+        foreach ((string, string) item in x.Select(v => ((string, string))v))
+        {
+            Console.WriteLine(item.Item1);
+            Console.WriteLine(item.Item2);
+        }
+    }
+}";
+
+            await TestAlwaysAsync(test, code);
+            await TestWhenStronglyTypedAsync(test, code);
+        }
     }
 }
