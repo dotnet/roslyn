@@ -12769,7 +12769,6 @@ class C
             }.RunAsync();
         }
 
-
         [WorkItem(60248, "https://github.com/dotnet/roslyn/issues/60248")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveCastInTopLevelPrograms()
