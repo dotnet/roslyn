@@ -8,8 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -23,6 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     {
         public static bool HasNewLine(TextLine line)
             => line.Span.End != line.SpanIncludingLineBreak.End;
+
+        /// <summary>
+        /// Gets the character at the requested position, or <c>\0</c> if out of bounds. 
+        /// </summary>
+        private static char SafeCharAt(SourceText text, int index)
+            => index >= 0 && index < text.Length ? text[index] : '\0';
 
         /// <summary>
         /// True if the string literal contains an error diagnostic that indicates a parsing problem with it. For
@@ -166,16 +174,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         public static ImmutableArray<TextSpan> GetTextContentSpans(
             SourceText text, ExpressionSyntax stringExpression,
-            out int delimiterQuoteCount, out int delimiterDollarCount)
+            out int delimiterQuoteCount, out int delimiterDollarCount,
+            out TextSpan startQuoteSpan, out TextSpan endQuoteSpan)
         {
             if (stringExpression is LiteralExpressionSyntax literal)
             {
                 delimiterDollarCount = 0;
-                return ImmutableArray.Create(GetStringLiteralTextContentSpan(text, literal, out delimiterQuoteCount));
+                return ImmutableArray.Create(GetStringLiteralTextContentSpan(
+                    text, literal, out delimiterQuoteCount, out startQuoteSpan, out endQuoteSpan));
             }
             else if (stringExpression is InterpolatedStringExpressionSyntax interpolatedString)
             {
-                return GetInterpolatedStringTextContentSpans(text, interpolatedString, out delimiterQuoteCount, out delimiterDollarCount);
+                startQuoteSpan = TextSpan.FromBounds(interpolatedString.SpanStart, interpolatedString.StringStartToken.Span.End);
+                endQuoteSpan = TextSpan.FromBounds(interpolatedString.StringEndToken.SpanStart, interpolatedString.Span.End);
+
+                return GetInterpolatedStringTextContentSpans(
+                    text, interpolatedString, out delimiterQuoteCount, out delimiterDollarCount);
             }
             else
             {
@@ -183,11 +197,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
-        private static int SkipU8Suffix(SourceText text, int start, int end)
+        private static int SkipU8Suffix(SourceText text, int end)
         {
-            if (end > start && text[end - 1] == '8')
+            if (SafeCharAt(text, end - 1) == '8')
                 end--;
-            if (end > start && text[end - 1] is 'u' or 'U')
+            if (SafeCharAt(text, end - 1) is 'u' or 'U')
                 end--;
             return end;
         }
@@ -200,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             //
             // Skip past the leading and trailing delimiters.
             var start = interpolatedString.SpanStart;
-            while (start < text.Length && text[start] is '@' or '$')
+            while (SafeCharAt(text, start) is '@' or '$')
                 start++;
             delimiterDollarCount = start - interpolatedString.SpanStart;
 
@@ -211,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var end = interpolatedString.Span.End;
 
-            end = SkipU8Suffix(text, start, end);
+            end = SkipU8Suffix(text, end);
             while (end > interpolatedString.StringEndToken.Span.Start && text[end - 1] == '"')
                 end--;
 
@@ -232,7 +246,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return result.ToImmutableAndClear();
         }
 
-        private static TextSpan GetStringLiteralTextContentSpan(SourceText text, LiteralExpressionSyntax literal, out int delimiterQuoteCount)
+        private static TextSpan GetStringLiteralTextContentSpan(
+            SourceText text,
+            LiteralExpressionSyntax literal,
+            out int delimiterQuoteCount,
+            out TextSpan startQuoteSpan,
+            out TextSpan endQuoteSpan)
         {
             // simple string literal (normal, verbatim or raw).
             //
@@ -241,40 +260,94 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // The two cases look similar but are subtly different.  Ignoring the fact that raw strings don't start with
             // '@', there's also the issue that normal strings just have a single starting/ending quote, where as
             // raw-strings can have an unbounded number of them.
-            if (IsRawStringLiteral(literal))
+            return IsRawStringLiteral(literal)
+                ? GetRawStringLiteralTextContentSpan(text, literal, out delimiterQuoteCount, out startQuoteSpan, out endQuoteSpan)
+                : GetNormalStringLiteralTextContentSpan(text, literal, out delimiterQuoteCount, out startQuoteSpan, out endQuoteSpan);
+        }
+
+        private static TextSpan GetRawStringLiteralTextContentSpan(SourceText text, LiteralExpressionSyntax literal, out int delimiterQuoteCount, out TextSpan startQuoteSpan, out TextSpan endQuoteSpan)
+        {
+            var start = literal.SpanStart;
+            while (SafeCharAt(text, start) == '"')
+                start++;
+            delimiterQuoteCount = start - literal.SpanStart;
+
+            var end = literal.Span.End;
+
+            end = SkipU8Suffix(text, end);
+            while (end > start && text[end - 1] == '"')
+                end--;
+
+            if (literal.Kind() is SyntaxKind.SingleLineRawStringLiteralToken)
             {
-                var start = literal.SpanStart;
-                while (start < text.Length && text[start] == '"')
-                    start++;
-                delimiterQuoteCount = start - literal.SpanStart;
+                startQuoteSpan = TextSpan.FromBounds(literal.SpanStart, start);
+                endQuoteSpan = TextSpan.FromBounds(end, literal.Span.End);
+            }
+            else if (literal.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
+            {
+                // Consume the whitespace and newline after the initial quotes.
+                var rawStart = start;
+                while (SyntaxFacts.IsWhitespace(SafeCharAt(text, rawStart)))
+                    rawStart++;
 
-                var end = literal.Span.End;
+                if (SafeCharAt(text, rawStart) == '\r' && SafeCharAt(text, rawStart + 1) == '\n')
+                {
+                    rawStart += 2;
+                }
+                else
+                {
+                    // Guaranteed by us not having any syntax errors on the node.
+                    Contract.ThrowIfFalse(SyntaxFacts.IsNewLine(text[rawStart]));
+                    rawStart++;
+                }
 
-                end = SkipU8Suffix(text, start, end);
-                while (end > start && text[end - 1] == '"')
-                    end--;
+                // Consume the whitespace and newline preceding the end quote.
+                var rawEnd = end;
+                while (SyntaxFacts.IsWhitespace(SafeCharAt(text, rawEnd - 1)))
+                    rawEnd--;
 
-                return TextSpan.FromBounds(start, end);
+                if (SafeCharAt(text, rawEnd - 2) == '\r' && SafeCharAt(text, rawEnd - 1) == '\n')
+                {
+                    rawEnd -= 2;
+                }
+                else
+                {
+                    Contract.ThrowIfFalse(SyntaxFacts.IsNewLine(text[rawEnd - 1]));
+                    rawEnd--;
+                }
+
+                startQuoteSpan = TextSpan.FromBounds(literal.SpanStart, rawStart);
+                endQuoteSpan = TextSpan.FromBounds(rawEnd, literal.Span.End);
             }
             else
             {
-                var start = literal.SpanStart;
-                if (start < text.Length && text[start] == '@')
-                    start++;
-
-                var position = start;
-                if (start < text.Length && text[start] == '"')
-                    start++;
-                delimiterQuoteCount = start - position;
-
-                var end = literal.Span.End;
-
-                end = SkipU8Suffix(text, start, end);
-                if (end > start && text[end - 1] == '"')
-                    end--;
-
-                return TextSpan.FromBounds(start, end);
+                throw ExceptionUtilities.UnexpectedValue(literal.Kind());
             }
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        private static TextSpan GetNormalStringLiteralTextContentSpan(SourceText text, LiteralExpressionSyntax literal, out int delimiterQuoteCount, out TextSpan startQuoteSpan, out TextSpan endQuoteSpan)
+        {
+            var start = literal.SpanStart;
+            if (SafeCharAt(text, start) == '@')
+                start++;
+
+            var position = start;
+            if (SafeCharAt(text, start) == '"')
+                start++;
+            delimiterQuoteCount = start - position;
+
+            var end = literal.Span.End;
+
+            end = SkipU8Suffix(text, end);
+            if (end > start && text[end - 1] == '"')
+                end--;
+
+            startQuoteSpan = TextSpan.FromBounds(literal.SpanStart, start);
+            endQuoteSpan = TextSpan.FromBounds(end, literal.Span.End);
+
+            return TextSpan.FromBounds(start, end);
         }
 
         /// <summary>

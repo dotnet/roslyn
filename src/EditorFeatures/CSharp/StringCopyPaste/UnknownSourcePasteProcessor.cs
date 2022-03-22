@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         protected readonly bool PasteWasSuccessful;
 
-        /// <summary>
-        /// The set of <see cref="ITextChange"/>'s that produced <see cref="AbstractPasteProcessor.SnapshotAfterPaste"/>
-        /// from <see cref="AbstractPasteProcessor.SnapshotBeforePaste"/>.
-        /// </summary>
-        protected INormalizedTextChangeCollection Changes => SnapshotBeforePaste.Version.Changes;
-
         public UnknownSourcePasteProcessor(
             string newLine,
             ITextSnapshot snapshotBeforePaste,

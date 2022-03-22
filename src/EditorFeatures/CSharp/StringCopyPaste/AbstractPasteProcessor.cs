@@ -94,6 +94,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         protected readonly int DelimiterDollarCount;
 
+        /// <summary>
+        /// The set of <see cref="ITextChange"/>'s that produced <see cref="AbstractPasteProcessor.SnapshotAfterPaste"/>
+        /// from <see cref="AbstractPasteProcessor.SnapshotBeforePaste"/>.
+        /// </summary>
+        protected INormalizedTextChangeCollection Changes => SnapshotBeforePaste.Version.Changes;
+
         protected AbstractPasteProcessor(
             string newLine,
             ITextSnapshot snapshotBeforePaste,

@@ -231,47 +231,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         _lastSelectedSpans, cancellationToken);
                     if (stringExpressionCopiedFrom != null)
                     {
-                        var contentsToAdd = GetContentsToAdd(_lastSelectedSpans, stringExpressionCopiedFrom);
-                        if (!contentsToAdd.IsDefaultOrEmpty)
-                        {
-                            return new KnownSourcePasteProcessor(
-                                newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
-                                stringExpressionBeforePaste, contentsToAdd);
-                        }
+                        return new KnownSourcePasteProcessor(
+                            newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                            stringExpressionBeforePaste, stringExpressionCopiedFrom, _lastSelectedSpans[0].Snapshot);
                     }
                 }
 
                 return new UnknownSourcePasteProcessor(
                     newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste, pasteWasSuccessful);
-            }
-        }
-
-        private ImmutableArray<(VirtualCharSequence virtualChars, InterpolationSyntax? interpolation)> GetContentsToAdd(
-            NormalizedSnapshotSpanCollection lastSelectedSpans,
-            ExpressionSyntax stringExpressionCopiedFrom)
-        {
-            if (stringExpressionCopiedFrom is LiteralExpressionSyntax literalExpression)
-            {
-                // For normal strings, or single-line raw strings, we can just grab their virtual chars and use those.
-                if (literalExpression.Token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.SingleLineRawStringLiteralToken)
-                {
-                    var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(literalExpression.Token);
-                    virtualChars = FilterToSpans(virtualChars, lastSelectedSpans);
-                    return virtualChars.IsDefaultOrEmpty ? default : ImmutableArray.Create((virtualChars, (InterpolationSyntax?)null));
-                }
-                else if (literalExpression.Token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
-                {
-                }
-                return default;
-            }
-            else if (stringExpressionCopiedFrom is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                return default;
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(stringExpressionCopiedFrom);
             }
         }
 
