@@ -185,12 +185,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 if (result.Length > 0)
                 {
                     var functionId = FunctionId.CodeFixes_FixAllOccurrencesComputation_Project_Merge;
-                    using (Logger.LogBlock(functionId, cancellationToken))
-                    {
-                        FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, result.Length);
-                        return await TryGetMergedFixAsync(
-                            result, fixAllState, cancellationToken).ConfigureAwait(false);
-                    }
+                    FixAllLogger.LogFixesToMergeStats(functionId, fixAllState.CorrelationId, result.Length);
+                    return await TryGetMergedFixAsync(
+                        result, fixAllState, cancellationToken).ConfigureAwait(false);
                 }
             }
 

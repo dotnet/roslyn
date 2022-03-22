@@ -58,26 +58,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             DependentTypesKind kind,
             CancellationToken cancellationToken)
         {
-            var functionId = kind switch
+            var task = kind switch
             {
-                DependentTypesKind.DerivedClasses => FunctionId.DependentTypeFinder_FindAndCacheDerivedClassesAsync,
-                DependentTypesKind.DerivedInterfaces => FunctionId.DependentTypeFinder_FindAndCacheDerivedInterfacesAsync,
-                DependentTypesKind.ImplementingTypes => FunctionId.DependentTypeFinder_FindAndCacheImplementingTypesAsync,
+                DependentTypesKind.DerivedClasses => FindDerivedClassesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
+                DependentTypesKind.DerivedInterfaces => FindDerivedInterfacesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
+                DependentTypesKind.ImplementingTypes => FindImplementingTypesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind)
             };
 
-            using (Logger.LogBlock(functionId, cancellationToken))
-            {
-                var task = kind switch
-                {
-                    DependentTypesKind.DerivedClasses => FindDerivedClassesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
-                    DependentTypesKind.DerivedInterfaces => FindDerivedInterfacesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
-                    DependentTypesKind.ImplementingTypes => FindImplementingTypesInCurrentProcessAsync(type, solution, projects, transitive, cancellationToken),
-                    _ => throw ExceptionUtilities.UnexpectedValue(kind)
-                };
-
-                return await task.ConfigureAwait(false);
-            }
+            return await task.ConfigureAwait(false);
         }
 
         private static async Task<ImmutableArray<INamedTypeSymbol>> RehydrateAsync(Solution solution, ImmutableArray<SerializableSymbolAndProjectId> values, CancellationToken cancellationToken)

@@ -232,14 +232,11 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException();
                     }
 
-                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
-                    {
-                        using var stream = _memoryMappedInfo.CreateReadableStream();
-                        using var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length);
+                    using var stream = _memoryMappedInfo.CreateReadableStream();
+                    using var reader = CreateTextReaderFromTemporaryStorage((ISupportDirectMemoryAccess)stream, (int)stream.Length);
 
-                        // we pass in encoding we got from original source text even if it is null.
-                        return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
-                    }
+                    // we pass in encoding we got from original source text even if it is null.
+                    return _service._textFactory.CreateText(reader, _encoding, cancellationToken);
                 }
 
                 public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken)
@@ -264,21 +261,18 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
-                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
-                    {
-                        _checksumAlgorithm = text.ChecksumAlgorithm;
-                        _encoding = text.Encoding;
+                    _checksumAlgorithm = text.ChecksumAlgorithm;
+                    _encoding = text.Encoding;
 
-                        // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
-                        var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                        _memoryMappedInfo = _service.CreateTemporaryStorage(size);
+                    // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
+                    var size = Encoding.Unicode.GetMaxByteCount(text.Length);
+                    _memoryMappedInfo = _service.CreateTemporaryStorage(size);
 
-                        // Write the source text out as Unicode. We expect that to be cheap.
-                        using var stream = _memoryMappedInfo.CreateWritableStream();
-                        using var writer = new StreamWriter(stream, Encoding.Unicode);
+                    // Write the source text out as Unicode. We expect that to be cheap.
+                    using var stream = _memoryMappedInfo.CreateWritableStream();
+                    using var writer = new StreamWriter(stream, Encoding.Unicode);
 
-                        text.Write(writer, cancellationToken);
-                    }
+                    text.Write(writer, cancellationToken);
                 }
 
                 public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
@@ -335,12 +329,9 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException();
                     }
 
-                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadStream, cancellationToken))
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                        return _memoryMappedInfo.CreateReadableStream();
-                    }
+                    return _memoryMappedInfo.CreateReadableStream();
                 }
 
                 public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
@@ -366,39 +357,36 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
                     }
 
-                    using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
+                    var size = stream.Length;
+                    _memoryMappedInfo = _service.CreateTemporaryStorage(size);
+                    using var viewStream = _memoryMappedInfo.CreateWritableStream();
+
+                    var buffer = SharedPools.ByteArray.Allocate();
+                    try
                     {
-                        var size = stream.Length;
-                        _memoryMappedInfo = _service.CreateTemporaryStorage(size);
-                        using var viewStream = _memoryMappedInfo.CreateWritableStream();
-
-                        var buffer = SharedPools.ByteArray.Allocate();
-                        try
+                        while (true)
                         {
-                            while (true)
+                            int count;
+                            if (useAsync)
                             {
-                                int count;
-                                if (useAsync)
-                                {
-                                    count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
-                                }
-                                else
-                                {
-                                    count = stream.Read(buffer, 0, buffer.Length);
-                                }
-
-                                if (count == 0)
-                                {
-                                    break;
-                                }
-
-                                viewStream.Write(buffer, 0, count);
+                                count = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false);
                             }
+                            else
+                            {
+                                count = stream.Read(buffer, 0, buffer.Length);
+                            }
+
+                            if (count == 0)
+                            {
+                                break;
+                            }
+
+                            viewStream.Write(buffer, 0, count);
                         }
-                        finally
-                        {
-                            SharedPools.ByteArray.Free(buffer);
-                        }
+                    }
+                    finally
+                    {
+                        SharedPools.ByteArray.Free(buffer);
                     }
                 }
             }

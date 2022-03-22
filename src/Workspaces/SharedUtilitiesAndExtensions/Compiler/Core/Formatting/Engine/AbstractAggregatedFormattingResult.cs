@@ -66,16 +66,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Formatting_AggregateCreateTextChanges, cancellationToken))
-            {
-                // quick check
-                var changes = CreateTextChangesWorker(cancellationToken);
+            // quick check
+            var changes = CreateTextChangesWorker(cancellationToken);
 
-                // formatted spans and formatting spans are different, filter returns to formatting span
-                return _formattingSpans == null
-                    ? changes
-                    : changes.Where(s => _formattingSpans.HasIntervalThatIntersectsWith(s.Span)).ToList();
-            }
+            // formatted spans and formatting spans are different, filter returns to formatting span
+            return _formattingSpans == null
+                ? changes
+                : changes.Where(s => _formattingSpans.HasIntervalThatIntersectsWith(s.Span)).ToList();
         }
 
         private IList<TextChange> CreateTextChangesWorker(CancellationToken cancellationToken)
@@ -98,15 +95,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private SyntaxNode CreateFormattedRoot(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Formatting_AggregateCreateFormattedRoot, cancellationToken))
-            {
-                // create a map
-                var map = new Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>();
+            // create a map
+            var map = new Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>();
 
-                _formattingResults.Do(result => result.GetChanges(cancellationToken).Do(change => map.Add(change.Item1, change.Item2)));
+            _formattingResults.Do(result => result.GetChanges(cancellationToken).Do(change => map.Add(change.Item1, change.Item2)));
 
-                return Rewriter(map, cancellationToken);
-            }
+            return Rewriter(map, cancellationToken);
         }
 
         #endregion

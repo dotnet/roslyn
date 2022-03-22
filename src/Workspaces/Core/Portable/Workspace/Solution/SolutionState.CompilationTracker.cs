@@ -447,34 +447,30 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    using (Logger.LogBlock(FunctionId.Workspace_Project_CompilationTracker_BuildCompilationAsync,
-                                           s_logBuildCompilationAsync, ProjectState, cancellationToken))
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var state = ReadState();
+
+                    // Try to get the built compilation.  If it exists, then we can just return that.
+                    var finalCompilation = state.FinalCompilationWithGeneratedDocuments;
+                    if (finalCompilation != null)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
+                        return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
+                    }
 
-                        var state = ReadState();
-
-                        // Try to get the built compilation.  If it exists, then we can just return that.
-                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments;
-                        if (finalCompilation != null)
-                        {
-                            RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
-                            return new CompilationInfo(finalCompilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
-                        }
-
-                        // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
-                        // build this compilation at a time.
-                        if (lockGate)
-                        {
-                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            {
-                                return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
-                            }
-                        }
-                        else
+                    // Otherwise, we actually have to build it.  Ensure that only one thread is trying to
+                    // build this compilation at a time.
+                    if (lockGate)
+                    {
+                        using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                         {
                             return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
                         }
+                    }
+                    else
+                    {
+                        return await BuildCompilationInfoAsync(solution, cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))

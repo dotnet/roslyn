@@ -183,17 +183,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private async Task TextDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
-            {
-                var stateSets = _stateManager.GetStateSets(document.Project);
+            var stateSets = _stateManager.GetStateSets(document.Project);
 
-                // let other component knows about this event
-                ClearCompilationsWithAnalyzersCache();
+            // let other component knows about this event
+            ClearCompilationsWithAnalyzersCache();
 
-                // can not be canceled
-                foreach (var stateSet in stateSets)
-                    await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
-            }
+            // can not be canceled
+            foreach (var stateSet in stateSets)
+                await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
         }
 
         public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
@@ -204,20 +201,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private async Task TextDocumentCloseAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentClose, GetResetLogMessage, document, cancellationToken))
-            {
-                var stateSets = _stateManager.GetStateSets(document.Project);
+            var stateSets = _stateManager.GetStateSets(document.Project);
 
-                // let other components knows about this event
-                ClearCompilationsWithAnalyzersCache();
+            // let other components knows about this event
+            ClearCompilationsWithAnalyzersCache();
 
-                // can not be canceled
-                var documentHadDiagnostics = false;
-                foreach (var stateSet in stateSets)
-                    documentHadDiagnostics |= await stateSet.OnDocumentClosedAsync(document, GlobalOptions).ConfigureAwait(false);
+            // can not be canceled
+            var documentHadDiagnostics = false;
+            foreach (var stateSet in stateSets)
+                documentHadDiagnostics |= await stateSet.OnDocumentClosedAsync(document, GlobalOptions).ConfigureAwait(false);
 
-                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
-            }
+            RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
         }
 
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
@@ -228,19 +222,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private Task TextDocumentResetAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
-            {
-                var stateSets = _stateManager.GetStateSets(document.Project);
+            var stateSets = _stateManager.GetStateSets(document.Project);
 
-                // let other components knows about this event
-                ClearCompilationsWithAnalyzersCache();
-                // can not be canceled
-                var documentHadDiagnostics = false;
-                foreach (var stateSet in stateSets)
-                    documentHadDiagnostics |= stateSet.OnDocumentReset(document);
+            // let other components knows about this event
+            ClearCompilationsWithAnalyzersCache();
+            // can not be canceled
+            var documentHadDiagnostics = false;
+            foreach (var stateSet in stateSets)
+                documentHadDiagnostics |= stateSet.OnDocumentReset(document);
 
-                RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
-            }
+            RaiseDiagnosticsRemovedIfRequiredForClosedOrResetDocument(document, stateSets, documentHadDiagnostics);
 
             return Task.CompletedTask;
         }
@@ -289,22 +280,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
-            {
-                var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
+            var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
 
-                // let other components knows about this event
-                ClearCompilationsWithAnalyzersCache();
+            // let other components knows about this event
+            ClearCompilationsWithAnalyzersCache();
 
-                var changed = false;
-                foreach (var stateSet in stateSets)
-                    changed |= stateSet.OnDocumentRemoved(documentId);
+            var changed = false;
+            foreach (var stateSet in stateSets)
+                changed |= stateSet.OnDocumentRemoved(documentId);
 
-                // if there was no diagnostic reported for this document, nothing to clean up
-                // this is Perf to reduce raising events unnecessarily.
-                if (changed)
-                    RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
-            }
+            // if there was no diagnostic reported for this document, nothing to clean up
+            // this is Perf to reduce raising events unnecessarily.
+            if (changed)
+                RaiseDiagnosticsRemovedForDocument(documentId, stateSets);
 
             return Task.CompletedTask;
         }
@@ -326,28 +314,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellation)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
+            var stateSets = _stateManager.GetStateSets(projectId);
+
+            // let other components knows about this event
+            ClearCompilationsWithAnalyzersCache();
+            var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
+
+            // if there was no diagnostic reported for this project, nothing to clean up
+            // this is Perf to reduce raising events unnecessarily.
+            if (changed)
             {
-                var stateSets = _stateManager.GetStateSets(projectId);
-
-                // let other components knows about this event
-                ClearCompilationsWithAnalyzersCache();
-                var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
-
-                // if there was no diagnostic reported for this project, nothing to clean up
-                // this is Perf to reduce raising events unnecessarily.
-                if (changed)
+                // remove all diagnostics for the project
+                AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
                 {
-                    // remove all diagnostics for the project
-                    AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                    foreach (var stateSet in stateSets)
                     {
-                        foreach (var stateSet in stateSets)
-                        {
                             // clear all project diagnostics
-                            RaiseDiagnosticsRemoved(projectId, solution: null, stateSet, raiseEvents);
-                        }
-                    });
-                }
+                        RaiseDiagnosticsRemoved(projectId, solution: null, stateSet, raiseEvents);
+                    }
+                });
             }
 
             return Task.CompletedTask;

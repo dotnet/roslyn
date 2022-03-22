@@ -234,20 +234,17 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
             Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
+            var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+            if (info != null)
             {
-                var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
-                if (info != null)
+                var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
+                if (state != null && state.MatchingConstructor == null)
                 {
-                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
-                    if (state != null && state.MatchingConstructor == null)
-                    {
-                        return GetCodeActions(document, state, addNullChecks);
-                    }
+                    return GetCodeActions(document, state, addNullChecks);
                 }
-
-                return default;
             }
+
+            return default;
         }
 
         private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks)

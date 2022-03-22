@@ -66,75 +66,69 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<ObjectReader, T> tryReadObject,
             CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
         {
-            using (Logger.LogBlock(FunctionId.SymbolTreeInfo_TryLoadOrCreate, cancellationToken))
+            if (checksum == null)
             {
-                if (checksum == null)
-                {
-                    return loadOnly ? null : await CreateWithLoggingAsync().ConfigureAwait(false);
-                }
-
-                // Ok, we can use persistence.  First try to load from the persistence service.
-                var persistentStorageService = services.GetPersistentStorageService(database);
-
-                var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-                await using var _ = storage.ConfigureAwait(false);
-
-                // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
-                using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
-                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
-                {
-                    if (reader != null)
-                    {
-                        // We have some previously persisted data.  Attempt to read it back.  
-                        // If we're able to, and the version of the persisted data matches
-                        // our version, then we can reuse this instance.
-                        var read = tryReadObject(reader);
-                        if (read != null)
-                        {
-                            // If we were able to read something in, it's checksum better
-                            // have matched the checksum we expected.
-                            Debug.Assert(read.Checksum == checksum);
-                            return read;
-                        }
-                    }
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Couldn't read from the persistence service.  If we've been asked to only load
-                // data and not create new instances in their absence, then there's nothing left
-                // to do at this point.
-                if (loadOnly)
-                {
-                    return null;
-                }
-
-                // Now, try to create a new instance and write it to the persistence service.
-                var result = await CreateWithLoggingAsync().ConfigureAwait(false);
-                Contract.ThrowIfNull(result);
-
-                using (var stream = SerializableBytes.CreateWritableStream())
-                {
-                    using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
-                    {
-                        result.WriteTo(writer);
-                    }
-
-                    stream.Position = 0;
-
-                    await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
-                }
-
-                return result;
+                return loadOnly ? null : await CreateWithLoggingAsync().ConfigureAwait(false);
             }
+
+            // Ok, we can use persistence.  First try to load from the persistence service.
+            var persistentStorageService = services.GetPersistentStorageService(database);
+
+            var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
+            await using var _ = storage.ConfigureAwait(false);
+
+            // Get the unique key to identify our data.
+            var key = PrefixMetadataSymbolTreeInfo + keySuffix;
+            using (var stream = await storage.ReadStreamAsync(key, checksum, cancellationToken).ConfigureAwait(false))
+            using (var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken))
+            {
+                if (reader != null)
+                {
+                    // We have some previously persisted data.  Attempt to read it back.  
+                    // If we're able to, and the version of the persisted data matches
+                    // our version, then we can reuse this instance.
+                    var read = tryReadObject(reader);
+                    if (read != null)
+                    {
+                        // If we were able to read something in, it's checksum better
+                        // have matched the checksum we expected.
+                        Debug.Assert(read.Checksum == checksum);
+                        return read;
+                    }
+                }
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Couldn't read from the persistence service.  If we've been asked to only load
+            // data and not create new instances in their absence, then there's nothing left
+            // to do at this point.
+            if (loadOnly)
+            {
+                return null;
+            }
+
+            // Now, try to create a new instance and write it to the persistence service.
+            var result = await CreateWithLoggingAsync().ConfigureAwait(false);
+            Contract.ThrowIfNull(result);
+
+            using (var stream = SerializableBytes.CreateWritableStream())
+            {
+                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                {
+                    result.WriteTo(writer);
+                }
+
+                stream.Position = 0;
+
+                await storage.WriteStreamAsync(key, stream, checksum, cancellationToken).ConfigureAwait(false);
+            }
+
+            return result;
 
             async Task<T> CreateWithLoggingAsync()
             {
-                using (Logger.LogBlock(FunctionId.SymbolTreeInfo_Create, cancellationToken))
-                {
-                    return await createAsync().ConfigureAwait(false);
-                }
+                return await createAsync().ConfigureAwait(false);
             }
         }
 

@@ -42,24 +42,21 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // we are formatting part of document, try to find initial context that formatting will be based on such as
                 // initial indentation and etc.
-                using (Logger.LogBlock(FunctionId.Formatting_ContextInitialization, CancellationToken.None))
+                // first try to set initial indentation information
+                var initialIndentationOperations = this.GetInitialIndentBlockOperations(startToken, endToken);
+
+                // second try to set suppress wrapping regions
+                var initialSuppressOperations = GetInitialSuppressOperations(startToken, endToken);
+                if (initialSuppressOperations != null)
                 {
-                    // first try to set initial indentation information
-                    var initialIndentationOperations = this.GetInitialIndentBlockOperations(startToken, endToken);
-
-                    // second try to set suppress wrapping regions
-                    var initialSuppressOperations = GetInitialSuppressOperations(startToken, endToken);
-                    if (initialSuppressOperations != null)
-                    {
-                        Debug.Assert(
-                            initialSuppressOperations.IsEmpty() ||
-                            initialSuppressOperations.All(
-                                o => o.TextSpan.Contains(startToken.SpanStart) ||
-                                     o.TextSpan.Contains(endToken.SpanStart)));
-                    }
-
-                    return (initialIndentationOperations, initialSuppressOperations);
+                    Debug.Assert(
+                        initialSuppressOperations.IsEmpty() ||
+                        initialSuppressOperations.All(
+                            o => o.TextSpan.Contains(startToken.SpanStart) ||
+                                 o.TextSpan.Contains(endToken.SpanStart)));
                 }
+
+                return (initialIndentationOperations, initialSuppressOperations);
             }
 
             private List<IndentBlockOperation> GetInitialIndentBlockOperations(SyntaxToken startToken, SyntaxToken endToken)

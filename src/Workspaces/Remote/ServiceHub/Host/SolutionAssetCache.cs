@@ -74,20 +74,17 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             UpdateLastActivityTime();
 
-            using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
+            if (!_assets.TryGetValue(checksum, out var entry))
             {
-                if (!_assets.TryGetValue(checksum, out var entry))
-                {
-                    value = default;
-                    return false;
-                }
-
-                // Update timestamp
-                Update(entry);
-
-                value = (T)entry.Object;
-                return true;
+                value = default;
+                return false;
             }
+
+            // Update timestamp
+            Update(entry);
+
+            value = (T)entry.Object;
+            return true;
         }
 
         public void UpdateLastActivityTime()
@@ -127,14 +124,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            using (Logger.LogBlock(FunctionId.AssetStorage_ForceGC, CancellationToken.None))
+            // we didn't have activity for 5 min. spend some time to drop 
+            // unused memory
+            for (var i = 0; i < 3; i++)
             {
-                // we didn't have activity for 5 min. spend some time to drop 
-                // unused memory
-                for (var i = 0; i < 3; i++)
-                {
-                    GC.Collect();
-                }
+                GC.Collect();
             }
 
             // update gc run time
@@ -150,16 +144,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             var current = DateTime.UtcNow;
-            using (Logger.LogBlock(FunctionId.AssetStorage_CleanAssets, CancellationToken.None))
+            foreach (var (checksum, entry) in _assets.ToArray())
             {
-                foreach (var (checksum, entry) in _assets.ToArray())
-                {
-                    if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
-                        continue;
+                if (current - entry.LastAccessed <= _purgeAfterTimeSpan)
+                    continue;
 
-                    // If it fails, we'll just leave it in the asset pool.
-                    _assets.TryRemove(checksum, out var _);
-                }
+                // If it fails, we'll just leave it in the asset pool.
+                _assets.TryRemove(checksum, out var _);
             }
         }
 

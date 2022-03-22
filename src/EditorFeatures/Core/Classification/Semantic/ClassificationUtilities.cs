@@ -160,22 +160,19 @@ namespace Microsoft.CodeAnalysis.Classification
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.Tagger_SemanticClassification_TagProducer_ProduceTags, cancellationToken))
-                {
-                    using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
 
-                    await AddClassificationsAsync(
-                        classificationService, options, document, snapshotSpan, classifiedSpans, type, cancellationToken).ConfigureAwait(false);
+                await AddClassificationsAsync(
+                    classificationService, options, document, snapshotSpan, classifiedSpans, type, cancellationToken).ConfigureAwait(false);
 
-                    foreach (var span in classifiedSpans)
-                        context.AddTag(Convert(typeMap, snapshotSpan.Snapshot, span));
+                foreach (var span in classifiedSpans)
+                    context.AddTag(Convert(typeMap, snapshotSpan.Snapshot, span));
 
-                    var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+                var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
 
-                    // Let the context know that this was the span we actually tried to tag.
-                    context.SetSpansTagged(ImmutableArray.Create(snapshotSpan));
-                    context.State = version;
-                }
+                // Let the context know that this was the span we actually tried to tag.
+                context.SetSpansTagged(ImmutableArray.Create(snapshotSpan));
+                context.State = version;
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

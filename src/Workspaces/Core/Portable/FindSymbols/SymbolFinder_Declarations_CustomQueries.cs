@@ -54,18 +54,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync, cancellationToken))
+            var result = ArrayBuilder<ISymbol>.GetInstance();
+            foreach (var projectId in solution.ProjectIds)
             {
-                var result = ArrayBuilder<ISymbol>.GetInstance();
-                foreach (var projectId in solution.ProjectIds)
-                {
-                    var project = solution.GetProject(projectId);
-                    var symbols = await FindSourceDeclarationsWithCustomQueryAsync(project, query, filter, cancellationToken).ConfigureAwait(false);
-                    result.AddRange(symbols);
-                }
-
-                return result.ToImmutableAndFree();
+                var project = solution.GetProject(projectId);
+                var symbols = await FindSourceDeclarationsWithCustomQueryAsync(project, query, filter, cancellationToken).ConfigureAwait(false);
+                result.AddRange(symbols);
             }
+
+            return result.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -99,17 +96,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
+            if (await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
             {
-                if (await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false))
-                {
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                    var unfiltered = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
-                                                .ToImmutableArray();
+                var unfiltered = compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken)
+                                            .ToImmutableArray();
 
-                    return DeclarationFinder.FilterByCriteria(unfiltered, filter);
-                }
+                return DeclarationFinder.FilterByCriteria(unfiltered, filter);
             }
 
             return ImmutableArray<ISymbol>.Empty;

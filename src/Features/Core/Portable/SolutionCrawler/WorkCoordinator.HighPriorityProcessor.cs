@@ -190,18 +190,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
+                            var document = solution.GetDocument(documentId);
+                            if (document != null)
                             {
-                                var document = solution.GetDocument(documentId);
-                                if (document != null)
-                                {
-                                    await _processor.ProcessDocumentAnalyzersAsync(document, analyzers, workItem, cancellationToken).ConfigureAwait(false);
-                                }
+                                await _processor.ProcessDocumentAnalyzersAsync(document, analyzers, workItem, cancellationToken).ConfigureAwait(false);
+                            }
 
-                                if (!cancellationToken.IsCancellationRequested)
-                                {
-                                    processedEverything = true;
-                                }
+                            if (!cancellationToken.IsCancellationRequested)
+                            {
+                                processedEverything = true;
                             }
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

@@ -28,12 +28,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Name_FindSourceDeclarationsAsync, cancellationToken))
-            {
-                var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
-                    solution, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
-                return declarations;
-            }
+            var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
+                solution, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+            return declarations;
         }
 
         /// <summary>
@@ -48,13 +45,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsAsync(
             Project project, string name, bool ignoreCase, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Name_FindSourceDeclarationsAsync, cancellationToken))
-            {
-                var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
-                    project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
+            var declarations = await DeclarationFinder.FindSourceDeclarationsWithNormalQueryAsync(
+                project, name, ignoreCase, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations;
-            }
+            return declarations;
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -79,12 +73,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsWithPatternAsync(
             Solution solution, string pattern, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Pattern_FindSourceDeclarationsAsync, cancellationToken))
-            {
-                var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
-                    solution, pattern, filter, cancellationToken).ConfigureAwait(false);
-                return declarations;
-            }
+            var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
+                solution, pattern, filter, cancellationToken).ConfigureAwait(false);
+            return declarations;
         }
 
         /// <summary>
@@ -107,13 +98,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsWithPatternAsync(
             Project project, string pattern, SymbolFilter filter, CancellationToken cancellationToken = default)
         {
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Pattern_FindSourceDeclarationsAsync, cancellationToken))
-            {
-                var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
-                    project, pattern, filter, cancellationToken).ConfigureAwait(false);
+            var declarations = await DeclarationFinder.FindSourceDeclarationsWithPatternAsync(
+                project, pattern, filter, cancellationToken).ConfigureAwait(false);
 
-                return declarations;
-            }
+            return declarations;
         }
 
 #pragma warning restore RS0026

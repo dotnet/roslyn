@@ -47,43 +47,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken))
+            if (node is AttributeSyntax or
+                AttributeArgumentSyntax or
+                ConstructorInitializerSyntax or
+                ExpressionSyntax or
+                FieldDeclarationSyntax or
+                StatementSyntax or
+                CrefSyntax or
+                XmlNameAttributeSyntax or
+                TypeConstraintSyntax or
+                BaseTypeSyntax)
             {
-                if (node is AttributeSyntax or
-                    AttributeArgumentSyntax or
-                    ConstructorInitializerSyntax or
-                    ExpressionSyntax or
-                    FieldDeclarationSyntax or
-                    StatementSyntax or
-                    CrefSyntax or
-                    XmlNameAttributeSyntax or
-                    TypeConstraintSyntax or
-                    BaseTypeSyntax)
-                {
-                    var rewriter = new Expander(semanticModel, expandInsideNode, expandParameter, cancellationToken, annotationForReplacedAliasIdentifier);
-                    return rewriter.Visit(node);
-                }
-                else
-                {
-                    throw new ArgumentException(CSharpWorkspaceResources.Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit, nameof(node));
-                }
+                var rewriter = new Expander(semanticModel, expandInsideNode, expandParameter, cancellationToken, annotationForReplacedAliasIdentifier);
+                return rewriter.Visit(node);
+            }
+            else
+            {
+                throw new ArgumentException(CSharpWorkspaceResources.Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit, nameof(node));
             }
         }
 
         public override SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken))
+            var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
+
+            var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent).WithAdditionalAnnotations(Simplifier.Annotation);
+            if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
             {
-                var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
-
-                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent).WithAdditionalAnnotations(Simplifier.Annotation);
-                if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
-                {
-                    return rewrittenTokenWithElasticTrivia;
-                }
-
-                return rewrittenToken;
+                return rewrittenTokenWithElasticTrivia;
             }
+
+            return rewrittenToken;
         }
 
         public static SyntaxToken TryEscapeIdentifierToken(SyntaxToken syntaxToken, SyntaxNode parentOfToken)

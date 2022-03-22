@@ -71,26 +71,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
                 try
                 {
-                    using (Logger.LogBlock(FunctionId.Get_QuickInfo_Async, cancellationToken))
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+                    var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, options, cancellationToken).ConfigureAwait(false);
+                    if (item != null)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        var textVersion = snapshot.Version;
+                        var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+                        var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
 
-                        var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
-                        var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, options, cancellationToken).ConfigureAwait(false);
-                        if (item != null)
-                        {
-                            var textVersion = snapshot.Version;
-                            var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-
-                            return await IntellisenseQuickInfoBuilder.BuildItemAsync(
-                                trackingSpan, item, document, classificationOptions,
-                                _threadingContext, _operationExecutor,
-                                _asyncListener, _streamingPresenter, cancellationToken).ConfigureAwait(false);
-                        }
-
-                        return null;
+                        return await IntellisenseQuickInfoBuilder.BuildItemAsync(
+                            trackingSpan, item, document, classificationOptions,
+                            _threadingContext, _operationExecutor,
+                            _asyncListener, _streamingPresenter, cancellationToken).ConfigureAwait(false);
                     }
+
+                    return null;
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {

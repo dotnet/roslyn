@@ -92,10 +92,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
             }
 
-            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-            {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-            }
+            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
         }
 
         private static bool CanExecuteCommand(ITextBuffer buffer)

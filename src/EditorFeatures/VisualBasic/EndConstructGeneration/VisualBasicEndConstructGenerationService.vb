@@ -167,134 +167,132 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         Friend Overridable Function TryDoEndConstructForEnterKey(textView As ITextView,
                                                                  subjectBuffer As ITextBuffer,
                                                                  cancellationToken As CancellationToken) As Boolean
-            Using Logger.LogBlock(FunctionId.EndConstruct_DoStatement, cancellationToken)
-                Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, textView, _undoHistoryRegistry, _editorOperationsFactoryService)
-                    transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
+            Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, textView, _undoHistoryRegistry, _editorOperationsFactoryService)
+                transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
 
-                    ' The user may have some text selected. In this scenario, we want to guarantee
-                    ' two things:
-                    '
-                    ' 1) the text that was selected is deleted, as a normal pressing of an enter key
-                    '    would do. Since we're not letting the editor do it's own thing during end
-                    '    construct generation, we need to make sure the selection is deleted.
-                    ' 2) that we compute what statements we should spit assuming the selected text
-                    '    is no longer there. Consider a scenario where the user has something like:
-                    '
-                    '        If True Then ~~~~
-                    '
-                    '    and the completely invalid "~~~~" is selected. In VS2010, if you pressed
-                    '    enter, we would still spit enter, since we effectively view that code as
-                    '    "no longer there."
-                    '
-                    ' The fix is simple: as a part of our transaction, we'll just delete anything
-                    ' under our selection. As long as our transaction goes through, the user won't
-                    ' suspect anything was fishy. If we don't spit, we'll cancel the transaction
-                    ' which will roll back this edit.
-                    _editorOperationsFactoryService.GetEditorOperations(textView).ReplaceSelection("")
+                ' The user may have some text selected. In this scenario, we want to guarantee
+                ' two things:
+                '
+                ' 1) the text that was selected is deleted, as a normal pressing of an enter key
+                '    would do. Since we're not letting the editor do it's own thing during end
+                '    construct generation, we need to make sure the selection is deleted.
+                ' 2) that we compute what statements we should spit assuming the selected text
+                '    is no longer there. Consider a scenario where the user has something like:
+                '
+                '        If True Then ~~~~
+                '
+                '    and the completely invalid "~~~~" is selected. In VS2010, if you pressed
+                '    enter, we would still spit enter, since we effectively view that code as
+                '    "no longer there."
+                '
+                ' The fix is simple: as a part of our transaction, we'll just delete anything
+                ' under our selection. As long as our transaction goes through, the user won't
+                ' suspect anything was fishy. If we don't spit, we'll cancel the transaction
+                ' which will roll back this edit.
+                _editorOperationsFactoryService.GetEditorOperations(textView).ReplaceSelection("")
 
-                    Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
-                    If state Is Nothing Then
-                        Return False
-                    End If
+                Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
+                If state Is Nothing Then
+                    Return False
+                End If
 
-                    ' Are we in the middle of XML tags?
-                    If state.TokenToLeft.Kind = SyntaxKind.GreaterThanToken Then
-                        Dim element = state.TokenToLeft.GetAncestor(Of XmlElementSyntax)
-                        If element IsNot Nothing Then
-                            If element.StartTag IsNot Nothing AndAlso element.StartTag.Span.End = state.CaretPosition AndAlso
-                               element.EndTag IsNot Nothing AndAlso element.EndTag.SpanStart = state.CaretPosition Then
-                                InsertBlankLineBetweenXmlTags(state, textView, subjectBuffer)
-                                transaction.Complete()
-                                Return True
-                            End If
+                ' Are we in the middle of XML tags?
+                If state.TokenToLeft.Kind = SyntaxKind.GreaterThanToken Then
+                    Dim element = state.TokenToLeft.GetAncestor(Of XmlElementSyntax)
+                    If element IsNot Nothing Then
+                        If element.StartTag IsNot Nothing AndAlso element.StartTag.Span.End = state.CaretPosition AndAlso
+                           element.EndTag IsNot Nothing AndAlso element.EndTag.SpanStart = state.CaretPosition Then
+                            InsertBlankLineBetweenXmlTags(state, textView, subjectBuffer)
+                            transaction.Complete()
+                            Return True
                         End If
                     End If
+                End If
 
-                    ' Figure out which statement that is to the left of us
-                    Dim statement = state.TokenToLeft.FirstAncestorOrSelf(Function(n) TypeOf n Is StatementSyntax OrElse TypeOf n Is DirectiveTriviaSyntax)
+                ' Figure out which statement that is to the left of us
+                Dim statement = state.TokenToLeft.FirstAncestorOrSelf(Function(n) TypeOf n Is StatementSyntax OrElse TypeOf n Is DirectiveTriviaSyntax)
 
-                    ' Make sure we are after the last token of the statement or
-                    ' if the statement is a single-line If statement that 
-                    ' we're after the "Then" or "Else" token.
-                    If statement Is Nothing Then
+                ' Make sure we are after the last token of the statement or
+                ' if the statement is a single-line If statement that 
+                ' we're after the "Then" or "Else" token.
+                If statement Is Nothing Then
+                    Return False
+                ElseIf statement.Kind = SyntaxKind.SingleLineIfStatement Then
+                    Dim asSingleLine = DirectCast(statement, SingleLineIfStatementSyntax)
+
+                    If state.TokenToLeft <> asSingleLine.ThenKeyword AndAlso
+                       (asSingleLine.ElseClause Is Nothing OrElse
+                        state.TokenToLeft <> asSingleLine.ElseClause.ElseKeyword) Then
                         Return False
-                    ElseIf statement.Kind = SyntaxKind.SingleLineIfStatement Then
+                    End If
+                ElseIf statement.GetLastToken() <> state.TokenToLeft Then
+                    Return False
+                End If
+
+                ' Make sure we were on the same line as the last token.
+                Dim caretLine = subjectBuffer.CurrentSnapshot.GetLineNumberFromPosition(state.CaretPosition)
+                Dim lineOfLastToken = subjectBuffer.CurrentSnapshot.GetLineNumberFromPosition(state.TokenToLeft.SpanStart)
+                If caretLine <> lineOfLastToken Then
+                    Return False
+                End If
+
+                ' Make sure that we don't have any skipped trivia between our target token and
+                ' the end of the line
+                Dim nextToken = state.TokenToLeft.GetNextTokenOrEndOfFile()
+                Dim nextTokenLine = subjectBuffer.CurrentSnapshot.GetLineNumberFromPosition(nextToken.SpanStart)
+
+                If nextToken.IsKind(SyntaxKind.EndOfFileToken) AndAlso nextTokenLine = caretLine Then
+                    If nextToken.LeadingTrivia.Any(Function(trivia) trivia.IsKind(SyntaxKind.SkippedTokensTrivia)) Then
+                        Return False
+                    End If
+                End If
+
+                ' If this is an Imports or Implements declaration, we should use the enclosing type declaration.
+                If TypeOf statement Is InheritsOrImplementsStatementSyntax Then
+                    Dim baseDeclaration = DirectCast(statement, InheritsOrImplementsStatementSyntax)
+
+                    Dim typeBlock = baseDeclaration.GetAncestor(Of TypeBlockSyntax)()
+                    If typeBlock Is Nothing Then
+                        Return False
+                    End If
+
+                    statement = typeBlock.BlockStatement
+                End If
+
+                If statement Is Nothing Then
+                    Return False
+                End If
+
+                Dim errors = state.SyntaxTree.GetDiagnostics(statement)
+                If errors.Any(Function(e) Not IsMissingStatementError(statement, e.Id)) Then
+                    If statement.Kind = SyntaxKind.SingleLineIfStatement Then
                         Dim asSingleLine = DirectCast(statement, SingleLineIfStatementSyntax)
 
-                        If state.TokenToLeft <> asSingleLine.ThenKeyword AndAlso
-                           (asSingleLine.ElseClause Is Nothing OrElse
-                            state.TokenToLeft <> asSingleLine.ElseClause.ElseKeyword) Then
+                        Dim span = TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.Span.End)
+
+                        If errors.Any(Function(e) span.Contains(e.Location.SourceSpan)) Then
                             Return False
                         End If
-                    ElseIf statement.GetLastToken() <> state.TokenToLeft Then
+                    Else
+
                         Return False
                     End If
+                End If
 
-                    ' Make sure we were on the same line as the last token.
-                    Dim caretLine = subjectBuffer.CurrentSnapshot.GetLineNumberFromPosition(state.CaretPosition)
-                    Dim lineOfLastToken = subjectBuffer.CurrentSnapshot.GetLineNumberFromPosition(state.TokenToLeft.SpanStart)
-                    If caretLine <> lineOfLastToken Then
-                        Return False
-                    End If
+                ' Make sure this statement does not end with the line continuation character
+                If statement.GetLastToken(includeZeroWidth:=True).TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.LineContinuationTrivia) Then
+                    Return False
+                End If
 
-                    ' Make sure that we don't have any skipped trivia between our target token and
-                    ' the end of the line
-                    Dim nextToken = state.TokenToLeft.GetNextTokenOrEndOfFile()
-                    Dim nextTokenLine = subjectBuffer.CurrentSnapshot.GetLineNumberFromPosition(nextToken.SpanStart)
+                Dim visitor = New EndConstructStatementVisitor(textView, subjectBuffer, state, cancellationToken)
+                Dim result = visitor.Visit(statement)
 
-                    If nextToken.IsKind(SyntaxKind.EndOfFileToken) AndAlso nextTokenLine = caretLine Then
-                        If nextToken.LeadingTrivia.Any(Function(trivia) trivia.IsKind(SyntaxKind.SkippedTokensTrivia)) Then
-                            Return False
-                        End If
-                    End If
+                If result Is Nothing Then
+                    Return False
+                End If
 
-                    ' If this is an Imports or Implements declaration, we should use the enclosing type declaration.
-                    If TypeOf statement Is InheritsOrImplementsStatementSyntax Then
-                        Dim baseDeclaration = DirectCast(statement, InheritsOrImplementsStatementSyntax)
-
-                        Dim typeBlock = baseDeclaration.GetAncestor(Of TypeBlockSyntax)()
-                        If typeBlock Is Nothing Then
-                            Return False
-                        End If
-
-                        statement = typeBlock.BlockStatement
-                    End If
-
-                    If statement Is Nothing Then
-                        Return False
-                    End If
-
-                    Dim errors = state.SyntaxTree.GetDiagnostics(statement)
-                    If errors.Any(Function(e) Not IsMissingStatementError(statement, e.Id)) Then
-                        If statement.Kind = SyntaxKind.SingleLineIfStatement Then
-                            Dim asSingleLine = DirectCast(statement, SingleLineIfStatementSyntax)
-
-                            Dim span = TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.Span.End)
-
-                            If errors.Any(Function(e) span.Contains(e.Location.SourceSpan)) Then
-                                Return False
-                            End If
-                        Else
-
-                            Return False
-                        End If
-                    End If
-
-                    ' Make sure this statement does not end with the line continuation character
-                    If statement.GetLastToken(includeZeroWidth:=True).TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.LineContinuationTrivia) Then
-                        Return False
-                    End If
-
-                    Dim visitor = New EndConstructStatementVisitor(textView, subjectBuffer, state, cancellationToken)
-                    Dim result = visitor.Visit(statement)
-
-                    If result Is Nothing Then
-                        Return False
-                    End If
-
-                    result.Apply(textView, subjectBuffer, state.CaretPosition, _smartIndentationService, _undoHistoryRegistry, _editorOperationsFactoryService)
-                    transaction.Complete()
-                End Using
+                result.Apply(textView, subjectBuffer, state.CaretPosition, _smartIndentationService, _undoHistoryRegistry, _editorOperationsFactoryService)
+                transaction.Complete()
             End Using
 
             Return True
@@ -346,140 +344,130 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Function
 
         Friend Function TryDoXmlCDataEndConstruct(textView As ITextView, subjectBuffer As ITextBuffer, cancellationToken As CancellationToken) As Boolean
-            Using Logger.LogBlock(FunctionId.EndConstruct_XmlCData, cancellationToken)
-                Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
-                If state Is Nothing Then
-                    Return False
-                End If
+            Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
+            If state Is Nothing Then
+                Return False
+            End If
 
-                Dim xmlCData = GetNodeFromToken(Of XmlCDataSectionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.BeginCDataToken)
-                If xmlCData Is Nothing Then
-                    Return False
-                End If
+            Dim xmlCData = GetNodeFromToken(Of XmlCDataSectionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.BeginCDataToken)
+            If xmlCData Is Nothing Then
+                Return False
+            End If
 
-                Dim errors = state.SyntaxTree.GetDiagnostics(xmlCData)
+            Dim errors = state.SyntaxTree.GetDiagnostics(xmlCData)
 
-                ' Exactly one error is expected: ERRID_ExpectedXmlEndCData
-                If errors.Count <> 1 Then
-                    Return False
-                End If
+            ' Exactly one error is expected: ERRID_ExpectedXmlEndCData
+            If errors.Count <> 1 Then
+                Return False
+            End If
 
-                If Not IsExpectedXmlEndCDataError(errors(0).Id) Then
-                    Return False
-                End If
+            If Not IsExpectedXmlEndCDataError(errors(0).Id) Then
+                Return False
+            End If
 
-                Dim endText = "]]>"
-                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
-            End Using
+            Dim endText = "]]>"
+            Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
         End Function
 
         Friend Function TryDoXmlCommentEndConstruct(textView As ITextView, subjectBuffer As ITextBuffer, cancellationToken As CancellationToken) As Boolean
-            Using Logger.LogBlock(FunctionId.EndConstruct_XmlComment, cancellationToken)
-                Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
-                If state Is Nothing Then
-                    Return False
-                End If
+            Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
+            If state Is Nothing Then
+                Return False
+            End If
 
-                Dim xmlComment = GetNodeFromToken(Of XmlCommentSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanExclamationMinusMinusToken)
-                If xmlComment Is Nothing Then
-                    Return False
-                End If
+            Dim xmlComment = GetNodeFromToken(Of XmlCommentSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanExclamationMinusMinusToken)
+            If xmlComment Is Nothing Then
+                Return False
+            End If
 
-                Dim errors = state.SyntaxTree.GetDiagnostics(xmlComment)
+            Dim errors = state.SyntaxTree.GetDiagnostics(xmlComment)
 
-                ' Exactly one error is expected: ERRID_ExpectedXmlEndComment
-                If errors.Count <> 1 Then
-                    Return False
-                End If
+            ' Exactly one error is expected: ERRID_ExpectedXmlEndComment
+            If errors.Count <> 1 Then
+                Return False
+            End If
 
-                If Not IsExpectedXmlEndCommentError(errors(0).Id) Then
-                    Return False
-                End If
+            If Not IsExpectedXmlEndCommentError(errors(0).Id) Then
+                Return False
+            End If
 
-                Dim endText = "-->"
-                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
-            End Using
+            Dim endText = "-->"
+            Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
         End Function
 
         Friend Function TryDoXmlElementEndConstruct(textView As ITextView, subjectBuffer As ITextBuffer, cancellationToken As CancellationToken) As Boolean
-            Using Logger.LogBlock(FunctionId.EndConstruct_XmlElement, cancellationToken)
-                Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
-                If state Is Nothing Then
-                    Return False
-                End If
+            Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
+            If state Is Nothing Then
+                Return False
+            End If
 
-                Dim xmlStartElement = GetNodeFromToken(Of XmlElementStartTagSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.GreaterThanToken)
-                If xmlStartElement Is Nothing Then
-                    Return False
-                End If
+            Dim xmlStartElement = GetNodeFromToken(Of XmlElementStartTagSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.GreaterThanToken)
+            If xmlStartElement Is Nothing Then
+                Return False
+            End If
 
-                Dim errors = state.SyntaxTree.GetDiagnostics(xmlStartElement)
+            Dim errors = state.SyntaxTree.GetDiagnostics(xmlStartElement)
 
-                ' Exactly one error is expected: ERRID_MissingXmlEndTag
-                If errors.Count <> 1 Then
-                    Return False
-                End If
+            ' Exactly one error is expected: ERRID_MissingXmlEndTag
+            If errors.Count <> 1 Then
+                Return False
+            End If
 
-                If Not IsMissingXmlEndTagError(errors(0).Id) Then
-                    Return False
-                End If
+            If Not IsMissingXmlEndTagError(errors(0).Id) Then
+                Return False
+            End If
 
-                Dim endTagText = "</" & xmlStartElement.Name.ToString & ">"
-                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endTagText, cancellationToken)
-            End Using
+            Dim endTagText = "</" & xmlStartElement.Name.ToString & ">"
+            Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endTagText, cancellationToken)
         End Function
 
         Friend Function TryDoXmlEmbeddedExpressionEndConstruct(textView As ITextView, subjectBuffer As ITextBuffer, cancellationToken As CancellationToken) As Boolean
-            Using Logger.LogBlock(FunctionId.EndConstruct_XmlEmbeddedExpression, cancellationToken)
-                Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
-                If state Is Nothing Then
-                    Return False
-                End If
+            Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
+            If state Is Nothing Then
+                Return False
+            End If
 
-                Dim xmlEmbeddedExpression = GetNodeFromToken(Of XmlEmbeddedExpressionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanPercentEqualsToken)
-                If xmlEmbeddedExpression Is Nothing Then
-                    Return False
-                End If
+            Dim xmlEmbeddedExpression = GetNodeFromToken(Of XmlEmbeddedExpressionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanPercentEqualsToken)
+            If xmlEmbeddedExpression Is Nothing Then
+                Return False
+            End If
 
-                Dim errors = state.SyntaxTree.GetDiagnostics(xmlEmbeddedExpression)
+            Dim errors = state.SyntaxTree.GetDiagnostics(xmlEmbeddedExpression)
 
-                ' Errors should contain ERRID_ExpectedXmlEndEmbedded
-                If Not errors.Any(Function(e) IsExpectedXmlEndEmbeddedError(e.Id)) Then
-                    Return False
-                End If
+            ' Errors should contain ERRID_ExpectedXmlEndEmbedded
+            If Not errors.Any(Function(e) IsExpectedXmlEndEmbeddedError(e.Id)) Then
+                Return False
+            End If
 
-                Dim endText = "  %>" ' NOTE: two spaces are inserted. The caret will be moved between them
-                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End + 1, endText, cancellationToken)
-            End Using
+            Dim endText = "  %>" ' NOTE: two spaces are inserted. The caret will be moved between them
+            Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End + 1, endText, cancellationToken)
         End Function
 
         Friend Function TryDoXmlProcessingInstructionEndConstruct(textView As ITextView, subjectBuffer As ITextBuffer, cancellationToken As CancellationToken) As Boolean
-            Using Logger.LogBlock(FunctionId.EndConstruct_XmlProcessingInstruction, cancellationToken)
-                Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
-                If state Is Nothing Then
-                    Return False
-                End If
+            Dim state = GetEndConstructState(textView, subjectBuffer, cancellationToken)
+            If state Is Nothing Then
+                Return False
+            End If
 
-                Dim xmlProcessingInstruction = GetNodeFromToken(Of XmlProcessingInstructionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanQuestionToken)
-                If xmlProcessingInstruction Is Nothing Then
-                    Return False
-                End If
+            Dim xmlProcessingInstruction = GetNodeFromToken(Of XmlProcessingInstructionSyntax)(state.TokenToLeft, expectedKind:=SyntaxKind.LessThanQuestionToken)
+            If xmlProcessingInstruction Is Nothing Then
+                Return False
+            End If
 
-                Dim errors = state.SyntaxTree.GetDiagnostics(xmlProcessingInstruction)
+            Dim errors = state.SyntaxTree.GetDiagnostics(xmlProcessingInstruction)
 
-                ' Exactly two errors are expected: ERRID_ExpectedXmlName and ERRID_ExpectedXmlEndPI
-                If errors.Count <> 2 Then
-                    Return False
-                End If
+            ' Exactly two errors are expected: ERRID_ExpectedXmlName and ERRID_ExpectedXmlEndPI
+            If errors.Count <> 2 Then
+                Return False
+            End If
 
-                If Not (errors.Any(Function(e) IsExpectedXmlNameError(e.Id)) AndAlso
+            If Not (errors.Any(Function(e) IsExpectedXmlNameError(e.Id)) AndAlso
                         errors.Any(Function(e) IsExpectedXmlEndPIError(e.Id))) Then
-                    Return False
-                End If
+                Return False
+            End If
 
-                Dim endText = "?>"
-                Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
-            End Using
+            Dim endText = "?>"
+            Return InsertEndTextAndUpdateCaretPosition(textView, state.CaretPosition, state.TokenToLeft.Span.End, endText, cancellationToken)
         End Function
 
         Public Function TryDo(textView As ITextView, subjectBuffer As ITextBuffer, typedChar As Char, cancellationToken As CancellationToken) As Boolean Implements IEndConstructGenerationService.TryDo

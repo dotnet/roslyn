@@ -89,28 +89,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             if (!GlobalOptions.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
                 return;
 
-            using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
+            var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+            var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
+            if (lineSeparatorService == null)
+                return;
+
+            var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (lineSeparatorSpans.Length == 0)
+                return;
+
+            LineSeparatorTag tag;
+            lock (_lineSeperatorTagGate)
             {
-                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-                var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
-                if (lineSeparatorService == null)
-                    return;
-
-                var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (lineSeparatorSpans.Length == 0)
-                    return;
-
-                LineSeparatorTag tag;
-                lock (_lineSeperatorTagGate)
-                {
-                    tag = _lineSeparatorTag;
-                }
-
-                foreach (var span in lineSeparatorSpans)
-                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
+                tag = _lineSeparatorTag;
             }
+
+            foreach (var span in lineSeparatorSpans)
+                context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
         }
     }
 }

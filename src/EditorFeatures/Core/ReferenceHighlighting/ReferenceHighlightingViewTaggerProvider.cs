@@ -144,24 +144,21 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         {
             var solution = document.Project.Solution;
 
-            using (Logger.LogBlock(FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags, cancellationToken))
+            if (document != null)
             {
-                if (document != null)
+                var service = document.GetLanguageService<IDocumentHighlightsService>();
+                if (service != null)
                 {
-                    var service = document.GetLanguageService<IDocumentHighlightsService>();
-                    if (service != null)
+                    // We only want to search inside documents that correspond to the snapshots
+                    // we're looking at
+                    var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+                    var documentHighlightsList = await service.GetDocumentHighlightsAsync(
+                        document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
+                    if (documentHighlightsList != null)
                     {
-                        // We only want to search inside documents that correspond to the snapshots
-                        // we're looking at
-                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
-                        var documentHighlightsList = await service.GetDocumentHighlightsAsync(
-                            document, position, documentsToSearch, options, cancellationToken).ConfigureAwait(false);
-                        if (documentHighlightsList != null)
+                        foreach (var documentHighlights in documentHighlightsList)
                         {
-                            foreach (var documentHighlights in documentHighlightsList)
-                            {
-                                AddTagSpans(context, documentHighlights, cancellationToken);
-                            }
+                            AddTagSpans(context, documentHighlights, cancellationToken);
                         }
                     }
                 }

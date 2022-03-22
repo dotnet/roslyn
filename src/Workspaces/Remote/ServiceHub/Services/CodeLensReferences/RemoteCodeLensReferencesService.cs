@@ -41,22 +41,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, cancellationToken))
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
+                if (syntaxNode == null)
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-                    if (syntaxNode == null)
-                    {
-                        return null;
-                    }
-
-                    return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(
-                        solution,
-                        documentId,
-                        syntaxNode,
-                        maxResultCount,
-                        cancellationToken).ConfigureAwait(false);
+                    return null;
                 }
+
+                return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(
+                    solution,
+                    documentId,
+                    syntaxNode,
+                    maxResultCount,
+                    cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -64,18 +61,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
+                if (syntaxNode == null)
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-                    if (syntaxNode == null)
-                    {
-                        return null;
-                    }
-
-                    return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(
-                        solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                    return null;
                 }
+
+                return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(
+                    solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -83,18 +77,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, cancellationToken))
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
+                if (syntaxNode == null)
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-                    if (syntaxNode == null)
-                    {
-                        return null;
-                    }
-
-                    return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(
-                        solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                    return null;
                 }
+
+                return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(
+                    solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -102,18 +93,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, cancellationToken))
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
+                if (syntaxNode == null)
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-                    if (syntaxNode == null)
-                    {
-                        return null;
-                    }
-
-                    return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(
-                        solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                    return null;
                 }
+
+                return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(
+                    solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

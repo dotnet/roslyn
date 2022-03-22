@@ -345,10 +345,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 this.AssertIsForeground();
 
-                using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
-                {
-                    return GetTagsWorker(spans) ?? SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
-                }
+                return GetTagsWorker(spans) ?? SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
             }
 
             private IEnumerable<ITagSpan<IClassificationTag>>? GetTagsWorker(NormalizedSnapshotSpanCollection spans)

@@ -33,19 +33,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             if (line == null)
                 throw new ArgumentNullException(nameof(line));
 
-            using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
-            {
-                var document = line.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                    return null;
+            var document = line.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+                return null;
 
-                var newService = document.GetLanguageService<IIndentationService>();
-                if (newService == null)
-                    return null;
+            var newService = document.GetLanguageService<IIndentationService>();
+            if (newService == null)
+                return null;
 
-                var result = newService.GetIndentation(document, line.LineNumber, cancellationToken);
-                return result.GetIndentation(_textView, line);
-            }
+            var result = newService.GetIndentation(document, line.LineNumber, cancellationToken);
+            return result.GetIndentation(_textView, line);
         }
     }
 }

@@ -430,32 +430,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool NavigateTo(ITextBuffer textBuffer, VsTextSpan vsTextSpan, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.NavigationService_VSDocumentNavigationService_NavigateTo, cancellationToken))
+            var vsTextBuffer = _editorAdaptersFactoryService.GetBufferAdapter(textBuffer);
+            if (vsTextBuffer == null)
             {
-                var vsTextBuffer = _editorAdaptersFactoryService.GetBufferAdapter(textBuffer);
-                if (vsTextBuffer == null)
-                {
-                    Debug.Fail("Could not get IVsTextBuffer for document!");
-                    return false;
-                }
-
-                var textManager = (IVsTextManager2)_serviceProvider.GetService(typeof(SVsTextManager));
-                if (textManager == null)
-                {
-                    Debug.Fail("Could not get IVsTextManager service!");
-                    return false;
-                }
-
-                return ErrorHandler.Succeeded(
-                    textManager.NavigateToLineAndColumn2(
-                        vsTextBuffer,
-                        VSConstants.LOGVIEWID.TextView_guid,
-                        vsTextSpan.iStartLine,
-                        vsTextSpan.iStartIndex,
-                        vsTextSpan.iEndLine,
-                        vsTextSpan.iEndIndex,
-                        (uint)_VIEWFRAMETYPE.vftCodeWindow));
+                Debug.Fail("Could not get IVsTextBuffer for document!");
+                return false;
             }
+
+            var textManager = (IVsTextManager2)_serviceProvider.GetService(typeof(SVsTextManager));
+            if (textManager == null)
+            {
+                Debug.Fail("Could not get IVsTextManager service!");
+                return false;
+            }
+
+            return ErrorHandler.Succeeded(
+                textManager.NavigateToLineAndColumn2(
+                    vsTextBuffer,
+                    VSConstants.LOGVIEWID.TextView_guid,
+                    vsTextSpan.iStartLine,
+                    vsTextSpan.iStartIndex,
+                    vsTextSpan.iEndLine,
+                    vsTextSpan.iEndIndex,
+                    (uint)_VIEWFRAMETYPE.vftCodeWindow));
         }
 
         private static bool IsSecondaryBuffer(Workspace workspace, DocumentId documentId)

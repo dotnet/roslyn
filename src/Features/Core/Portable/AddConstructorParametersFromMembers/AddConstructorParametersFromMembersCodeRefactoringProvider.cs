@@ -55,25 +55,22 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
         private static async Task<AddConstructorParameterResult?> AddConstructorParametersFromMembersAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
+            var info = await GetSelectedMemberInfoAsync(
+                document,
+                textSpan,
+                allowPartialSelection: true,
+                cancellationToken).ConfigureAwait(false);
+
+            if (info != null)
             {
-                var info = await GetSelectedMemberInfoAsync(
-                    document,
-                    textSpan,
-                    allowPartialSelection: true,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (info != null)
+                var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
+                if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                 {
-                    var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
-                    if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
-                    {
-                        return CreateCodeActions(document, state);
-                    }
+                    return CreateCodeActions(document, state);
                 }
-
-                return null;
             }
+
+            return null;
         }
 
         private static ImmutableArray<CodeAction> GetGroupedActions(AddConstructorParameterResult result)

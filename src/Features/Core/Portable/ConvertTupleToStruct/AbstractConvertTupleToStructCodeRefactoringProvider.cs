@@ -205,28 +205,25 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.AbstractConvertTupleToStructCodeRefactoringProvider_ConvertToStructAsync, cancellationToken))
-            {
                 var solution = document.Project.Solution;
                 var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.ConvertToStructAsync(solutionInfo, document.Id, span, scope, isRecord, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!result.HasValue)
                 {
-                    var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
-                        solution,
-                        (service, solutionInfo, cancellationToken) => service.ConvertToStructAsync(solutionInfo, document.Id, span, scope, isRecord, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (!result.HasValue)
-                    {
-                        return solution;
-                    }
-
-                    var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
-                        solution, result.Value.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
-
-                    return await AddRenameTokenAsync(
-                        resultSolution, result.Value.RenamedToken, cancellationToken).ConfigureAwait(false);
+                    return solution;
                 }
+
+                var resultSolution = await RemoteUtilities.UpdateSolutionAsync(
+                    solution, result.Value.DocumentTextChanges, cancellationToken).ConfigureAwait(false);
+
+                return await AddRenameTokenAsync(
+                    resultSolution, result.Value.RenamedToken, cancellationToken).ConfigureAwait(false);
             }
 
             return await ConvertToStructInCurrentProcessAsync(

@@ -134,21 +134,13 @@ namespace Microsoft.CodeAnalysis
             protected override async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(_storage);
-
-                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverTextAsync, _parent._filePath, cancellationToken))
-                {
-                    return await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
-                }
+                return await _storage.ReadTextAsync(cancellationToken).ConfigureAwait(false);
             }
 
             protected override SourceText Recover(CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(_storage);
-
-                using (Logger.LogBlock(FunctionId.Workspace_Recoverable_RecoverText, _parent._filePath, cancellationToken))
-                {
-                    return _storage.ReadText(cancellationToken);
-                }
+                return _storage.ReadText(cancellationToken);
             }
 
             protected override async Task SaveAsync(SourceText text, CancellationToken cancellationToken)

@@ -134,31 +134,28 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessProjectAsync, w => w.ToString(), workItem, cancellationToken))
+                            var project = processingSolution.GetProject(projectId);
+                            if (project != null)
                             {
-                                var project = processingSolution.GetProject(projectId);
-                                if (project != null)
-                                {
-                                    var reasons = workItem.InvocationReasons;
-                                    var semanticsChanged = reasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
-                                                           reasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
+                                var reasons = workItem.InvocationReasons;
+                                var semanticsChanged = reasons.Contains(PredefinedInvocationReasons.SemanticChanged) ||
+                                                       reasons.Contains(PredefinedInvocationReasons.SolutionRemoved);
 
-                                    using (Processor.EnableCaching(project.Id))
-                                    {
-                                        await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
-                                    }
-                                }
-                                else
+                                using (Processor.EnableCaching(project.Id))
                                 {
-                                    SolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
-
-                                    await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
+                                    await Processor.RunAnalyzersAsync(analyzers, project, workItem, (a, p, c) => a.AnalyzeProjectAsync(p, semanticsChanged, reasons, c), cancellationToken).ConfigureAwait(false);
                                 }
+                            }
+                            else
+                            {
+                                SolutionCrawlerLogger.LogProcessProjectNotExist(Processor._logAggregator);
 
-                                if (!cancellationToken.IsCancellationRequested)
-                                {
-                                    processedEverything = true;
-                                }
+                                await RemoveProjectAsync(projectId, cancellationToken).ConfigureAwait(false);
+                            }
+
+                            if (!cancellationToken.IsCancellationRequested)
+                            {
+                                processedEverything = true;
                             }
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

@@ -31,27 +31,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             // Event hookup is current uncancellable.
             var cancellationToken = CancellationToken.None;
-            using (Logger.LogBlock(FunctionId.EventHookup_Type_Char, cancellationToken))
+            if (args.TypedChar == '=')
             {
-                if (args.TypedChar == '=')
+                // They've typed an equals. Cancel existing sessions and potentially start a 
+                // new session.
+
+                EventHookupSessionManager.CancelAndDismissExistingSessions();
+
+                if (IsTextualPlusEquals(args.TextView, args.SubjectBuffer))
                 {
-                    // They've typed an equals. Cancel existing sessions and potentially start a 
-                    // new session.
-
-                    EventHookupSessionManager.CancelAndDismissExistingSessions();
-
-                    if (IsTextualPlusEquals(args.TextView, args.SubjectBuffer))
-                    {
-                        EventHookupSessionManager.BeginSession(this, args.TextView, args.SubjectBuffer, _asyncListener, TESTSessionHookupMutex);
-                    }
+                    EventHookupSessionManager.BeginSession(this, args.TextView, args.SubjectBuffer, _asyncListener, TESTSessionHookupMutex);
                 }
-                else
+            }
+            else
+            {
+                // Spaces are the only non-'=' character that allow the session to continue
+                if (args.TypedChar != ' ')
                 {
-                    // Spaces are the only non-'=' character that allow the session to continue
-                    if (args.TypedChar != ' ')
-                    {
-                        EventHookupSessionManager.CancelAndDismissExistingSessions();
-                    }
+                    EventHookupSessionManager.CancelAndDismissExistingSessions();
                 }
             }
         }

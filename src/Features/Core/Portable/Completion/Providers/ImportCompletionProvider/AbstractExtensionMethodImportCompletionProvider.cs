@@ -38,40 +38,37 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             HashSet<string> namespaceInScope,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Completion_ExtensionMethodImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
+            var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
             {
-                var syntaxFacts = completionContext.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                if (TryGetReceiverTypeSymbol(syntaxContext, syntaxFacts, cancellationToken, out var receiverTypeSymbol))
-                {
-                    var ticks = Environment.TickCount;
-                    var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
-                        ? syntaxContext.InferredTypes
-                        : ImmutableArray<ITypeSymbol>.Empty;
+                var ticks = Environment.TickCount;
+                var inferredTypes = completionContext.CompletionOptions.TargetTypedCompletionFilter
+                    ? syntaxContext.InferredTypes
+                    : ImmutableArray<ITypeSymbol>.Empty;
 
-                    var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
-                        completionContext.Document,
-                        completionContext.Position,
-                        receiverTypeSymbol,
-                        namespaceInScope,
-                        inferredTypes,
-                        forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
-                        hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
-                        cancellationToken).ConfigureAwait(false);
+                var result = await ExtensionMethodImportCompletionHelper.GetUnimportedExtensionMethodsAsync(
+                    completionContext.Document,
+                    completionContext.Position,
+                    receiverTypeSymbol,
+                    namespaceInScope,
+                    inferredTypes,
+                    forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                    hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
+                    cancellationToken).ConfigureAwait(false);
 
-                    if (result is null)
-                        return;
+                if (result is null)
+                    return;
 
-                    var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
+                var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
+                completionContext.AddItems(result.CompletionItems.Select(i => Convert(i, receiverTypeKey)));
 
-                    // report telemetry:
-                    var totalTicks = Environment.TickCount - ticks;
-                    CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
-                        totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, result.IsRemote);
+                // report telemetry:
+                var totalTicks = Environment.TickCount - ticks;
+                CompletionProvidersLogger.LogExtensionMethodCompletionTicksDataPoint(
+                    totalTicks, result.GetSymbolsTicks, result.CreateItemsTicks, result.IsRemote);
 
-                    if (result.IsPartialResult)
-                        CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
-                }
+                if (result.IsPartialResult)
+                    CompletionProvidersLogger.LogExtensionMethodCompletionPartialResultCount();
             }
         }
 

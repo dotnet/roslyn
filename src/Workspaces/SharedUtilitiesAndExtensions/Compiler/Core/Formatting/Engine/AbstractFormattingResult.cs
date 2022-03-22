@@ -53,24 +53,21 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Formatting_CreateTextChanges, cancellationToken))
+            var data = this.TokenStream.GetTriviaDataWithTokenPair(cancellationToken);
+
+            var result = new List<TextChange>();
+            foreach (var f in data)
             {
-                var data = this.TokenStream.GetTriviaDataWithTokenPair(cancellationToken);
-
-                var result = new List<TextChange>();
-                foreach (var f in data)
+                if (!f.Item2.ContainsChanges)
                 {
-                    if (!f.Item2.ContainsChanges)
-                    {
-                        continue;
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                    AddTextChanges(result, f.Item1.Item1, f.Item1.Item2, f.Item2);
+                    continue;
                 }
 
-                return result;
+                cancellationToken.ThrowIfCancellationRequested();
+                AddTextChanges(result, f.Item1.Item1, f.Item1.Item2, f.Item2);
             }
+
+            return result;
         }
 
         private void AddTextChanges(List<TextChange> list, SyntaxToken token1, SyntaxToken token2, TriviaData data)
@@ -87,24 +84,21 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private SyntaxNode CreateFormattedRoot(CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Formatting_CreateFormattedRoot, cancellationToken))
+            var changes = GetChanges(cancellationToken);
+
+            // create a map
+            using var pooledObject = SharedPools.Default<Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>>().GetPooledObject();
+
+            var map = pooledObject.Object;
+            changes.Do(change => map.Add(change.Item1, change.Item2));
+
+            // no changes, return as it is.
+            if (map.Count == 0)
             {
-                var changes = GetChanges(cancellationToken);
-
-                // create a map
-                using var pooledObject = SharedPools.Default<Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>>().GetPooledObject();
-
-                var map = pooledObject.Object;
-                changes.Do(change => map.Add(change.Item1, change.Item2));
-
-                // no changes, return as it is.
-                if (map.Count == 0)
-                {
-                    return this.TreeInfo.Root;
-                }
-
-                return Rewriter(map, cancellationToken);
+                return this.TreeInfo.Root;
             }
+
+            return Rewriter(map, cancellationToken);
         }
 
         internal IEnumerable<ValueTuple<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData>> GetChanges(CancellationToken cancellationToken)

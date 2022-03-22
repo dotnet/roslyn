@@ -204,46 +204,43 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
-                using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
-                {
-                    // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
-                    // thread to do the computation. Finally, once new tags have been computed, then we update our state
-                    // again on the foreground.
-                    var spansToTag = GetSpansAndDocumentsToTag();
-                    var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
-                    var oldTagTrees = this.CachedTagTrees;
-                    var oldState = this.State;
+                // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
+                // thread to do the computation. Finally, once new tags have been computed, then we update our state
+                // again on the foreground.
+                var spansToTag = GetSpansAndDocumentsToTag();
+                var caretPosition = _dataSource.GetCaretPoint(_textViewOpt, _subjectBuffer);
+                var oldTagTrees = this.CachedTagTrees;
+                var oldState = this.State;
 
-                    var textChangeRange = this.AccumulatedTextChanges;
-                    this.AccumulatedTextChanges = null;
+                var textChangeRange = this.AccumulatedTextChanges;
+                this.AccumulatedTextChanges = null;
 
-                    await TaskScheduler.Default;
+                await TaskScheduler.Default;
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    // Create a context to store pass the information along and collect the results.
-                    var context = new TaggerContext<TTag>(
-                        oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
-                    await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
+                // Create a context to store pass the information along and collect the results.
+                var context = new TaggerContext<TTag>(
+                    oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees);
+                await ProduceTagsAsync(context, cancellationToken).ConfigureAwait(false);
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    // Process the result to determine what changed.
-                    var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
-                    var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
+                // Process the result to determine what changed.
+                var newTagTrees = ComputeNewTagTrees(oldTagTrees, context);
+                var bufferToChanges = ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, cancellationToken);
 
-                    // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                // Then switch back to the UI thread to update our state and kick off the work to notify the editor.
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                    // Once we assign our state, we're uncancellable.  We must report the changed information
-                    // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
-                    cancellationToken = CancellationToken.None;
+                // Once we assign our state, we're uncancellable.  We must report the changed information
+                // to the editor.  The only case where it's ok not to is if the tagger itself is disposed.
+                cancellationToken = CancellationToken.None;
 
-                    this.CachedTagTrees = newTagTrees;
-                    this.State = context.State;
+                this.CachedTagTrees = newTagTrees;
+                this.State = context.State;
 
-                    OnTagsChangedForBuffer(bufferToChanges, initialTags);
-                }
+                OnTagsChangedForBuffer(bufferToChanges, initialTags);
             }
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
@@ -390,37 +387,34 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
                 CancellationToken cancellationToken)
             {
-                using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, cancellationToken))
+                var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
+
+                foreach (var (latestBuffer, latestSpans) in newTagTrees)
                 {
-                    var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
+                    var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
 
-                    foreach (var (latestBuffer, latestSpans) in newTagTrees)
+                    if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))
                     {
-                        var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
-
-                        if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))
-                        {
-                            var difference = ComputeDifference(snapshot, latestSpans, previousSpans);
-                            bufferToChanges[latestBuffer] = difference;
-                        }
-                        else
-                        {
-                            // It's a new buffer, so report all spans are changed
-                            bufferToChanges[latestBuffer] = new DiffResult(added: new(latestSpans.GetSpans(snapshot).Select(t => t.Span)), removed: null);
-                        }
+                        var difference = ComputeDifference(snapshot, latestSpans, previousSpans);
+                        bufferToChanges[latestBuffer] = difference;
                     }
-
-                    foreach (var (oldBuffer, previousSpans) in oldTagTrees)
+                    else
                     {
-                        if (!newTagTrees.ContainsKey(oldBuffer))
-                        {
-                            // This buffer disappeared, so let's notify that the old tags are gone
-                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: new(previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span)));
-                        }
+                        // It's a new buffer, so report all spans are changed
+                        bufferToChanges[latestBuffer] = new DiffResult(added: new(latestSpans.GetSpans(snapshot).Select(t => t.Span)), removed: null);
                     }
-
-                    return bufferToChanges;
                 }
+
+                foreach (var (oldBuffer, previousSpans) in oldTagTrees)
+                {
+                    if (!newTagTrees.ContainsKey(oldBuffer))
+                    {
+                        // This buffer disappeared, so let's notify that the old tags are gone
+                        bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: new(previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span)));
+                    }
+                }
+
+                return bufferToChanges;
             }
 
             /// <summary>

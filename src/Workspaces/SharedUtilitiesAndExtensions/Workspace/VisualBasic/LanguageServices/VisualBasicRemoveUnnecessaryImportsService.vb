@@ -33,23 +33,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             predicate = If(predicate, Functions(Of SyntaxNode).True)
-            Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
+            Dim unnecessaryImports = Await GetCommonUnnecessaryImportsOfAllContextAsync(
+                document, predicate, cancellationToken).ConfigureAwait(False)
+            If unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then
+                Return document
+            End If
 
-                Dim unnecessaryImports = Await GetCommonUnnecessaryImportsOfAllContextAsync(
-                    document, predicate, cancellationToken).ConfigureAwait(False)
-                If unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then
-                    Return document
-                End If
+            Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
+            Dim newRoot = New Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot)
+            newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
 
-                Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
-                Dim newRoot = New Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot)
-                newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
-
-                cancellationToken.ThrowIfCancellationRequested()
-                Return document.WithSyntaxRoot(newRoot)
-            End Using
+            cancellationToken.ThrowIfCancellationRequested()
+            Return document.WithSyntaxRoot(newRoot)
         End Function
     End Class
 End Namespace

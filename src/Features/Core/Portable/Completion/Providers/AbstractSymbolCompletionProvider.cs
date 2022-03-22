@@ -258,7 +258,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 completionContext.IsExclusive = IsExclusive();
 
-                using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
                 using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && options.TargetTypedCompletionFilter))
                 {
                     var syntaxContext = await GetOrCreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);

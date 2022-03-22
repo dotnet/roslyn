@@ -64,28 +64,25 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_IntroduceVariable, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var state = await State.GenerateAsync((TService)this, semanticDocument, textSpan, cancellationToken).ConfigureAwait(false);
+            if (state != null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
-                var state = await State.GenerateAsync((TService)this, semanticDocument, textSpan, cancellationToken).ConfigureAwait(false);
-                if (state != null)
+                var (title, actions) = CreateActions(state, cancellationToken);
+                if (actions.Length > 0)
                 {
-                    var (title, actions) = CreateActions(state, cancellationToken);
-                    if (actions.Length > 0)
-                    {
-                        // We may end up creating a lot of viable code actions for the selected
-                        // piece of code.  Create a top level code action so that we don't overwhelm
-                        // the light bulb if there are a lot of other options in the list.  Set 
-                        // the code action as 'inlinable' so that if the lightbulb is not cluttered
-                        // then the nested items can just be lifted into it, giving the user fast
-                        // access to them.
-                        return new CodeActionWithNestedActions(title, actions, isInlinable: true);
-                    }
+                    // We may end up creating a lot of viable code actions for the selected
+                    // piece of code.  Create a top level code action so that we don't overwhelm
+                    // the light bulb if there are a lot of other options in the list.  Set 
+                    // the code action as 'inlinable' so that if the lightbulb is not cluttered
+                    // then the nested items can just be lifted into it, giving the user fast
+                    // access to them.
+                    return new CodeActionWithNestedActions(title, actions, isInlinable: true);
                 }
-
-                return null;
             }
+
+            return null;
         }
 
         private (string title, ImmutableArray<CodeAction>) CreateActions(State state, CancellationToken cancellationToken)

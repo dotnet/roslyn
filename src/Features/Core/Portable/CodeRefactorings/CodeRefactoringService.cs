@@ -114,33 +114,30 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Func<string, IDisposable?> addOperationScope,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
+            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            using var _ = ArrayBuilder<Task<CodeRefactoring?>>.GetInstance(out var tasks);
+
+            foreach (var provider in GetProviders(document))
             {
-                var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
-                using var _ = ArrayBuilder<Task<CodeRefactoring?>>.GetInstance(out var tasks);
+                if (priority != CodeActionRequestPriority.None && priority != provider.RequestPriority)
+                    continue;
 
-                foreach (var provider in GetProviders(document))
-                {
-                    if (priority != CodeActionRequestPriority.None && priority != provider.RequestPriority)
-                        continue;
+                tasks.Add(Task.Run(() =>
+                    {
+                        var providerName = provider.GetType().Name;
+                        RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
-                    tasks.Add(Task.Run(() =>
+                        using (addOperationScope(providerName))
+                        using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                         {
-                            var providerName = provider.GetType().Name;
-                            RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
-
-                            using (addOperationScope(providerName))
-                            using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
-                            {
-                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, options, cancellationToken);
-                            }
-                        },
-                        cancellationToken));
-                }
-
-                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-                return results.WhereNotNull().ToImmutableArray();
+                            return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, options, cancellationToken);
+                        }
+                    },
+                    cancellationToken));
             }
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return results.WhereNotNull().ToImmutableArray();
         }
 
         private static async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(

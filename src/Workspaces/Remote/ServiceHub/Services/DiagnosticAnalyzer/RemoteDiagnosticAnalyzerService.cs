@@ -62,35 +62,32 @@ namespace Microsoft.CodeAnalysis.Remote
 
             return RunServiceAsync(async cancellationToken =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                    var documentId = arguments.DocumentId;
-                    var projectId = arguments.ProjectId;
-                    var project = solution.GetProject(projectId);
-                    var document = arguments.DocumentId != null
-                        ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
-                        : null;
-                    var documentSpan = arguments.DocumentSpan;
-                    var documentAnalysisKind = arguments.DocumentAnalysisKind;
-                    var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache);
+                var documentId = arguments.DocumentId;
+                var projectId = arguments.ProjectId;
+                var project = solution.GetProject(projectId);
+                var document = arguments.DocumentId != null
+                    ? solution.GetTextDocument(arguments.DocumentId) ?? await solution.GetSourceGeneratedDocumentAsync(arguments.DocumentId, cancellationToken).ConfigureAwait(false)
+                    : null;
+                var documentSpan = arguments.DocumentSpan;
+                var documentAnalysisKind = arguments.DocumentAnalysisKind;
+                var diagnosticComputer = new DiagnosticComputer(document, project, arguments.IdeOptions, documentSpan, documentAnalysisKind, _analyzerInfoCache);
 
-                    var result = await diagnosticComputer.GetDiagnosticsAsync(
-                        arguments.AnalyzerIds,
-                        reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
-                        logPerformanceInfo: arguments.LogPerformanceInfo,
-                        getTelemetryInfo: arguments.GetTelemetryInfo,
-                        cancellationToken).ConfigureAwait(false);
+                var result = await diagnosticComputer.GetDiagnosticsAsync(
+                    arguments.AnalyzerIds,
+                    reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
+                    logPerformanceInfo: arguments.LogPerformanceInfo,
+                    getTelemetryInfo: arguments.GetTelemetryInfo,
+                    cancellationToken).ConfigureAwait(false);
 
-                    // save log for debugging
-                    var diagnosticCount = result.Diagnostics.Sum(
-                        entry => entry.diagnosticMap.Syntax.Length + entry.diagnosticMap.Semantic.Length + entry.diagnosticMap.NonLocal.Length + entry.diagnosticMap.Other.Length);
+                // save log for debugging
+                var diagnosticCount = result.Diagnostics.Sum(
+                    entry => entry.diagnosticMap.Syntax.Length + entry.diagnosticMap.Semantic.Length + entry.diagnosticMap.NonLocal.Length + entry.diagnosticMap.Other.Length);
 
-                    Log(TraceEventType.Information, $"diagnostics: {diagnosticCount}, telemetry: {result.Telemetry.Length}");
+                Log(TraceEventType.Information, $"diagnostics: {diagnosticCount}, telemetry: {result.Telemetry.Length}");
 
-                    return result;
-                }
+                return result;
             }, cancellationToken);
         }
 
@@ -98,18 +95,15 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(cancellationToken =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, cancellationToken))
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var service = GetWorkspace().Services.GetService<IPerformanceTrackerService>();
+                if (service == null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var service = GetWorkspace().Services.GetService<IPerformanceTrackerService>();
-                    if (service == null)
-                    {
-                        return default;
-                    }
-
-                    service.AddSnapshot(snapshot, unitCount);
+                    return default;
                 }
+
+                service.AddSnapshot(snapshot, unitCount);
 
                 return default;
             }, cancellationToken);

@@ -29,87 +29,81 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         public async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeCleanup_CleanupAsync, cancellationToken))
+            // If there is no span to format...
+            if (!spans.Any())
             {
-                // If there is no span to format...
-                if (!spans.Any())
-                {
-                    // ... then return the Document unchanged
-                    return document;
-                }
-
-                var codeCleaners = providers.IsDefault ? GetDefaultProviders() : providers;
-
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                var normalizedSpan = spans.ToNormalizedSpans();
-                if (CleanupWholeNode(root.FullSpan, normalizedSpan))
-                {
-                    // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, options, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
-                }
-
-                // We need to track spans between cleaners. Annotate the tree with the provided spans.
-                var (newNode, annotations) = AnnotateNodeForTextSpans(root, normalizedSpan, cancellationToken);
-
-                // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
-                if (newNode == null)
-                {
-                    // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(document, document, options, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
-                }
-
-                // Replace the initial node and document with the annotated node.
-                var annotatedRoot = newNode;
-                var annotatedDocument = document.WithSyntaxRoot(annotatedRoot);
-
-                // Run the actual cleanup.
-                return await IterateAllCodeCleanupProvidersAsync(
-                    document, annotatedDocument, options,
-                    r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
-                    codeCleaners, cancellationToken).ConfigureAwait(false);
+                // ... then return the Document unchanged
+                return document;
             }
+
+            var codeCleaners = providers.IsDefault ? GetDefaultProviders() : providers;
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var normalizedSpan = spans.ToNormalizedSpans();
+            if (CleanupWholeNode(root.FullSpan, normalizedSpan))
+            {
+                // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
+                return await IterateAllCodeCleanupProvidersAsync(document, document, options, r => ImmutableArray.Create(r.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+            }
+
+            // We need to track spans between cleaners. Annotate the tree with the provided spans.
+            var (newNode, annotations) = AnnotateNodeForTextSpans(root, normalizedSpan, cancellationToken);
+
+            // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
+            if (newNode == null)
+            {
+                // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
+                return await IterateAllCodeCleanupProvidersAsync(document, document, options, n => ImmutableArray.Create(n.FullSpan), codeCleaners, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Replace the initial node and document with the annotated node.
+            var annotatedRoot = newNode;
+            var annotatedDocument = document.WithSyntaxRoot(annotatedRoot);
+
+            // Run the actual cleanup.
+            return await IterateAllCodeCleanupProvidersAsync(
+                document, annotatedDocument, options,
+                r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
+                codeCleaners, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, HostWorkspaceServices services, ImmutableArray<ICodeCleanupProvider> providers, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeCleanup_Cleanup, cancellationToken))
+            // If there is no span to format...
+            if (!spans.Any())
             {
-                // If there is no span to format...
-                if (!spans.Any())
-                {
-                    // ... then return the Document unchanged
-                    return root;
-                }
-
-                var codeCleaners = providers.IsDefault ? GetDefaultProviders() : providers;
-
-                var normalizedSpan = spans.ToNormalizedSpans();
-                if (CleanupWholeNode(root.FullSpan, normalizedSpan))
-                {
-                    // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, options, r => ImmutableArray.Create(r.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
-                }
-
-                // We need to track spans between cleaners. Annotate the tree with the provided spans.
-                var (newNode, annotations) = AnnotateNodeForTextSpans(root, normalizedSpan, cancellationToken);
-
-                // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
-                if (newNode == null)
-                {
-                    // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
-                    return await IterateAllCodeCleanupProvidersAsync(root, root, options, n => ImmutableArray.Create(n.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
-                }
-
-                // Replace the initial node and document with the annotated node.
-                var annotatedRoot = newNode;
-
-                // Run the actual cleanup.
-                return await IterateAllCodeCleanupProvidersAsync(
-                    root, annotatedRoot, options,
-                    r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
-                    services, codeCleaners, cancellationToken).ConfigureAwait(false);
+                // ... then return the Document unchanged
+                return root;
             }
+
+            var codeCleaners = providers.IsDefault ? GetDefaultProviders() : providers;
+
+            var normalizedSpan = spans.ToNormalizedSpans();
+            if (CleanupWholeNode(root.FullSpan, normalizedSpan))
+            {
+                // We are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
+                return await IterateAllCodeCleanupProvidersAsync(root, root, options, r => ImmutableArray.Create(r.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
+            }
+
+            // We need to track spans between cleaners. Annotate the tree with the provided spans.
+            var (newNode, annotations) = AnnotateNodeForTextSpans(root, normalizedSpan, cancellationToken);
+
+            // If it urns out we don't need to annotate anything since all spans are merged to one span that covers the whole node...
+            if (newNode == null)
+            {
+                // ... then we are cleaning up the whole document, so there is no need to do expansive span tracking between cleaners.
+                return await IterateAllCodeCleanupProvidersAsync(root, root, options, n => ImmutableArray.Create(n.FullSpan), services, codeCleaners, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Replace the initial node and document with the annotated node.
+            var annotatedRoot = newNode;
+
+            // Run the actual cleanup.
+            return await IterateAllCodeCleanupProvidersAsync(
+                root, annotatedRoot, options,
+                r => GetTextSpansFromAnnotation(r, annotations, cancellationToken),
+                services, codeCleaners, cancellationToken).ConfigureAwait(false);
         }
 
         private static ImmutableArray<TextSpan> GetTextSpansFromAnnotation(
@@ -460,61 +454,55 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
+            var currentDocument = annotatedDocument;
+            Document? previousDocument = null;
+            var spans = ImmutableArray<TextSpan>.Empty;
+
+#if DEBUG
+            var originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+            var current = 0;
+            var count = codeCleaners.Length;
+
+            foreach (var codeCleaner in codeCleaners)
             {
-                var currentDocument = annotatedDocument;
-                Document? previousDocument = null;
-                var spans = ImmutableArray<TextSpan>.Empty;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                current++;
+                if (previousDocument != currentDocument)
+                {
+                    // Document was changed by the previous code cleaner, compute new spans.
+                    var root = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    previousDocument = currentDocument;
+                    spans = GetSpans(root, spanGetter);
+                }
+
+                // If we are at the end and there were no changes to the document, use the original document for the cleanup.
+                if (current == count && currentDocument == annotatedDocument)
+                {
+                    currentDocument = originalDocument;
+                }
+
+                    currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, options, cancellationToken).ConfigureAwait(false);
 
 #if DEBUG
-                var originalDocHasErrors = await annotatedDocument.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
+                if (!originalDocHasErrors && currentDocument != annotatedDocument)
+                {
+                    await currentDocument.VerifyNoErrorsAsync("Pretty-listing introduced errors in error-free code", cancellationToken).ConfigureAwait(false);
+                }
 #endif
+            }
 
-                var current = 0;
-                var count = codeCleaners.Length;
-
-                foreach (var codeCleaner in codeCleaners)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    current++;
-                    if (previousDocument != currentDocument)
-                    {
-                        // Document was changed by the previous code cleaner, compute new spans.
-                        var root = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        previousDocument = currentDocument;
-                        spans = GetSpans(root, spanGetter);
-                    }
-
-                    // If we are at the end and there were no changes to the document, use the original document for the cleanup.
-                    if (current == count && currentDocument == annotatedDocument)
-                    {
-                        currentDocument = originalDocument;
-                    }
-
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
-                    {
-                        currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, options, cancellationToken).ConfigureAwait(false);
-                    }
-
-#if DEBUG
-                    if (!originalDocHasErrors && currentDocument != annotatedDocument)
-                    {
-                        await currentDocument.VerifyNoErrorsAsync("Pretty-listing introduced errors in error-free code", cancellationToken).ConfigureAwait(false);
-                    }
-#endif
-                }
-
-                // If none of the cleanup operations changed the document, we should return the original document
-                // rather than the one that has our annotations.
-                if (currentDocument != annotatedDocument)
-                {
-                    return currentDocument;
-                }
-                else
-                {
-                    return originalDocument;
-                }
+            // If none of the cleanup operations changed the document, we should return the original document
+            // rather than the one that has our annotations.
+            if (currentDocument != annotatedDocument)
+            {
+                return currentDocument;
+            }
+            else
+            {
+                return originalDocument;
             }
         }
 
@@ -542,49 +530,43 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             ImmutableArray<ICodeCleanupProvider> codeCleaners,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeCleanup_IterateAllCodeCleanupProviders, cancellationToken))
+            var currentRoot = annotatedRoot;
+            SyntaxNode? previousRoot = null;
+            var spans = ImmutableArray<TextSpan>.Empty;
+
+            var current = 0;
+            var count = codeCleaners.Length;
+
+            foreach (var codeCleaner in codeCleaners)
             {
-                var currentRoot = annotatedRoot;
-                SyntaxNode? previousRoot = null;
-                var spans = ImmutableArray<TextSpan>.Empty;
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var current = 0;
-                var count = codeCleaners.Length;
-
-                foreach (var codeCleaner in codeCleaners)
+                current++;
+                if (previousRoot != currentRoot)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    current++;
-                    if (previousRoot != currentRoot)
-                    {
-                        // The root was changed by the previous code cleaner, compute new spans.
-                        previousRoot = currentRoot;
-                        spans = GetSpans(currentRoot, spanGetter);
-                    }
-
-                    // If we are at the end and there were no changes to the document, use the original document for the cleanup.
-                    if (current == count && currentRoot == annotatedRoot)
-                    {
-                        currentRoot = originalRoot;
-                    }
-
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
-                    {
-                        currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, options, services, cancellationToken).ConfigureAwait(false);
-                    }
+                    // The root was changed by the previous code cleaner, compute new spans.
+                    previousRoot = currentRoot;
+                    spans = GetSpans(currentRoot, spanGetter);
                 }
 
-                // If none of the cleanup operations changed the root, we should return the original root
-                // rather than the one that has our annotations.
-                if (currentRoot != annotatedRoot)
+                // If we are at the end and there were no changes to the document, use the original document for the cleanup.
+                if (current == count && currentRoot == annotatedRoot)
                 {
-                    return currentRoot;
+                    currentRoot = originalRoot;
                 }
-                else
-                {
-                    return originalRoot;
-                }
+
+                currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, options, services, cancellationToken).ConfigureAwait(false);
+            }
+
+            // If none of the cleanup operations changed the root, we should return the original root
+            // rather than the one that has our annotations.
+            if (currentRoot != annotatedRoot)
+            {
+                return currentRoot;
+            }
+            else
+            {
+                return originalRoot;
             }
         }
 

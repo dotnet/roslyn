@@ -65,11 +65,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             if (enabledDiagnostics.FormatDocument)
             {
                 progressTracker.Description = FeaturesResources.Formatting_document;
-                using (Logger.LogBlock(FunctionId.CodeCleanup_Format, cancellationToken))
-                {
-                    document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    progressTracker.ItemCompleted();
-                }
+                document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+                progressTracker.ItemCompleted();
             }
 
             return document;
@@ -83,19 +80,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
                 {
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
-                    {
-                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
-                    }
+                    document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             if (organizeUsingsSet.IsSortImportsEnabled)
             {
-                using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
-                {
-                    document = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
-                }
+                document = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
             return document;
@@ -128,11 +119,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         {
             foreach (var diagnosticId in diagnosticIds)
             {
-                using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
-                {
-                    document = await ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                        document, diagnosticId, progressTracker, options, cancellationToken).ConfigureAwait(false);
-                }
+                document = await ApplyCodeFixesForSpecificDiagnosticIdAsync(
+                    document, diagnosticId, progressTracker, options, cancellationToken).ConfigureAwait(false);
             }
 
             return document;

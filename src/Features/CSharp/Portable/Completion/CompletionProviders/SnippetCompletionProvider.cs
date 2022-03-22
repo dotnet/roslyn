@@ -52,21 +52,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                using (Logger.LogBlock(FunctionId.Completion_SnippetCompletionProvider_GetItemsWorker_CSharp, cancellationToken))
+                // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
+                var workspace = document.Project.Solution.Workspace;
+                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                     workspace.Kind == WorkspaceKind.Debugger ||
+                     workspace.Kind == WorkspaceKind.Interactive)
                 {
-                    // TODO (https://github.com/dotnet/roslyn/issues/5107): Enable in Interactive.
-                    var workspace = document.Project.Solution.Workspace;
-                    if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                         workspace.Kind == WorkspaceKind.Debugger ||
-                         workspace.Kind == WorkspaceKind.Interactive)
-                    {
-                        return;
-                    }
-
-                    context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
-                        UnionCompletionItemComparer.Instance,
-                        d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
+                    return;
                 }
+
+                context.AddItems(await document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                    UnionCompletionItemComparer.Instance,
+                    d => GetSnippetsForDocumentAsync(d, position, cancellationToken)).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {

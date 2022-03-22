@@ -167,30 +167,27 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateEqualsAndGetHashCode, cancellationToken))
+            var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: false, cancellationToken).ConfigureAwait(false);
+            if (info != null &&
+                info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
             {
-                var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: false, cancellationToken).ConfigureAwait(false);
-                if (info != null &&
-                    info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
+                if (info.ContainingType != null && info.ContainingType.TypeKind != TypeKind.Interface)
                 {
-                    if (info.ContainingType != null && info.ContainingType.TypeKind != TypeKind.Interface)
-                    {
-                        GetExistingMemberInfo(
-                            info.ContainingType, out var hasEquals, out var hasGetHashCode);
+                    GetExistingMemberInfo(
+                        info.ContainingType, out var hasEquals, out var hasGetHashCode);
 
-                        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                        var typeDeclaration = syntaxFacts.GetContainingTypeDeclaration(root, textSpan.Start);
-                        RoslynDebug.AssertNotNull(typeDeclaration);
+                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var typeDeclaration = syntaxFacts.GetContainingTypeDeclaration(root, textSpan.Start);
+                    RoslynDebug.AssertNotNull(typeDeclaration);
 
-                        return await CreateActionsAsync(
-                            document, typeDeclaration, info.ContainingType, info.SelectedMembers,
-                            hasEquals, hasGetHashCode, withDialog: false, cancellationToken).ConfigureAwait(false);
-                    }
+                    return await CreateActionsAsync(
+                        document, typeDeclaration, info.ContainingType, info.SelectedMembers,
+                        hasEquals, hasGetHashCode, withDialog: false, cancellationToken).ConfigureAwait(false);
                 }
-
-                return default;
             }
+
+            return default;
         }
 
         private async Task<ImmutableArray<CodeAction>> CreateActionsAsync(

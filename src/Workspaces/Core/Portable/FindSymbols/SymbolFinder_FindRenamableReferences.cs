@@ -17,20 +17,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_Rename, cancellationToken))
-            {
-                var streamingProgress = new StreamingProgressCollector();
+            var streamingProgress = new StreamingProgressCollector();
 
-                var engine = new FindReferencesSearchEngine(
-                    solution,
-                    documents: null,
-                    ReferenceFinders.DefaultRenameReferenceFinders,
-                    streamingProgress,
-                    FindReferencesSearchOptions.Default);
+            var engine = new FindReferencesSearchEngine(
+                solution,
+                documents: null,
+                ReferenceFinders.DefaultRenameReferenceFinders,
+                streamingProgress,
+                FindReferencesSearchOptions.Default);
 
-                await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
-                return streamingProgress.GetReferencedSymbols();
-            }
+            await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
+            return streamingProgress.GetReferencedSymbols();
         }
     }
 }

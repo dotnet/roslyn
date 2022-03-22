@@ -366,55 +366,52 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, this.Name, cancellationToken))
+                if (oldDocument == this)
                 {
-                    if (oldDocument == this)
+                    // no changes
+                    return SpecializedCollections.EmptyEnumerable<TextChange>();
+                }
+
+                if (this.Id != oldDocument.Id)
+                {
+                    throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
+                }
+
+                // first try to see if text already knows its changes
+                if (this.TryGetText(out var text) && oldDocument.TryGetText(out var oldText))
+                {
+                    if (text == oldText)
                     {
-                        // no changes
                         return SpecializedCollections.EmptyEnumerable<TextChange>();
                     }
 
-                    if (this.Id != oldDocument.Id)
+                    var container = text.Container;
+                    if (container != null)
                     {
-                        throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
-                    }
+                        var textChanges = text.GetTextChanges(oldText).ToList();
 
-                    // first try to see if text already knows its changes
-                    if (this.TryGetText(out var text) && oldDocument.TryGetText(out var oldText))
-                    {
-                        if (text == oldText)
+                        // if changes are significant (not the whole document being replaced) then use these changes
+                        if (textChanges.Count > 1 || (textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
                         {
-                            return SpecializedCollections.EmptyEnumerable<TextChange>();
-                        }
-
-                        var container = text.Container;
-                        if (container != null)
-                        {
-                            var textChanges = text.GetTextChanges(oldText).ToList();
-
-                            // if changes are significant (not the whole document being replaced) then use these changes
-                            if (textChanges.Count > 1 || (textChanges.Count == 1 && textChanges[0].Span != new TextSpan(0, oldText.Length)))
-                            {
-                                return textChanges;
-                            }
+                            return textChanges;
                         }
                     }
-
-                    // get changes by diffing the trees
-                    if (this.SupportsSyntaxTree)
-                    {
-                        var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
-                        var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-                        RoslynDebug.Assert(oldTree is object);
-                        return tree.GetChanges(oldTree);
-                    }
-
-                    text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    return text.GetTextChanges(oldText).ToList();
                 }
+
+                // get changes by diffing the trees
+                if (this.SupportsSyntaxTree)
+                {
+                    var tree = (await this.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false))!;
+                    var oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                    RoslynDebug.Assert(oldTree is object);
+                    return tree.GetChanges(oldTree);
+                }
+
+                text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                return text.GetTextChanges(oldText).ToList();
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

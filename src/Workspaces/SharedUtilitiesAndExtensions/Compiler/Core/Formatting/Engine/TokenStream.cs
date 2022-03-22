@@ -50,27 +50,24 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public TokenStream(TreeData treeData, SyntaxFormattingOptions options, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
-            using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
-            {
-                // initialize basic info
-                _factory = factory;
-                _treeData = treeData;
-                _options = options;
+            // initialize basic info
+            _factory = factory;
+            _treeData = treeData;
+            _options = options;
 
-                // use some heuristics to get initial size of list rather than blindly start from default size == 4
-                var sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
-                _tokens = new SegmentedList<SyntaxToken>(sizeOfList);
-                _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
+            // use some heuristics to get initial size of list rather than blindly start from default size == 4
+            var sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
+            _tokens = new SegmentedList<SyntaxToken>(sizeOfList);
+            _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
 
-                Debug.Assert(this.TokenCount > 0);
+            Debug.Assert(this.TokenCount > 0);
 
-                // initialize trivia related info
-                _cachedOriginalTriviaInfo = new SegmentedArray<TriviaData>(this.TokenCount - 1);
+            // initialize trivia related info
+            _cachedOriginalTriviaInfo = new SegmentedArray<TriviaData>(this.TokenCount - 1);
 
-                // Func Cache
-                _getTriviaData = this.GetTriviaData;
-                _getOriginalTriviaData = this.GetOriginalTriviaData;
-            }
+            // Func Cache
+            _getTriviaData = this.GetTriviaData;
+            _getOriginalTriviaData = this.GetOriginalTriviaData;
 
             DebugCheckTokenOrder();
         }

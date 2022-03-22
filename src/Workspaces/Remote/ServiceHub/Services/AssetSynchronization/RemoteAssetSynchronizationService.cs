@@ -34,12 +34,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
-                {
-                    var workspace = GetWorkspace();
-                    var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
-                    await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
-                }
+                var workspace = GetWorkspace();
+                var assetProvider = workspace.CreateAssetProvider(solutionInfo, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
+                await workspace.UpdatePrimaryBranchSolutionAsync(assetProvider, checksum, workspaceVersion, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -49,32 +46,31 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var workspace = GetWorkspace();
 
-                using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, cancellationToken))
+                var serializer = workspace.Services.GetRequiredService<ISerializerService>();
+
+                var text = await TryGetSourceTextAsync().ConfigureAwait(false);
+                if (text == null)
                 {
-                    var serializer = workspace.Services.GetRequiredService<ISerializerService>();
-
-                    var text = await TryGetSourceTextAsync().ConfigureAwait(false);
-                    if (text == null)
-                    {
-                        // it won't bring in base text if it is not there already.
-                        // text needed will be pulled in when there is request
-                        return;
-                    }
-
-                    var newText = new SerializableSourceText(text.WithChanges(textChanges));
-                    var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
-
-                    // save new text in the cache so that when asked, the data is most likely already there
-                    //
-                    // this cache is very short live. and new text created above is ChangedText which share
-                    // text data with original text except the changes.
-                    // so memory wise, this doesn't put too much pressure on the cache. it will not duplicates
-                    // same text multiple times.
-                    //
-                    // also, once the changes are picked up and put into Workspace, normal Workspace 
-                    // caching logic will take care of the text
-                    WorkspaceManager.SolutionAssetCache.TryAddAsset(newChecksum, newText);
+                    // it won't bring in base text if it is not there already.
+                    // text needed will be pulled in when there is request
+                    return;
                 }
+
+                var newText = new SerializableSourceText(text.WithChanges(textChanges));
+                var newChecksum = serializer.CreateChecksum(newText, cancellationToken);
+
+                // save new text in the cache so that when asked, the data is most likely already there
+                //
+                // this cache is very short live. and new text created above is ChangedText which share
+                // text data with original text except the changes.
+                // so memory wise, this doesn't put too much pressure on the cache. it will not duplicates
+                // same text multiple times.
+                //
+                // also, once the changes are picked up and put into Workspace, normal Workspace 
+                // caching logic will take care of the text
+                WorkspaceManager.SolutionAssetCache.TryAddAsset(newChecksum, newText);
+
+                return;
 
                 async Task<SourceText?> TryGetSourceTextAsync()
                 {

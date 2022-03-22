@@ -47,10 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var result = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
             var changes = result.GetTextChanges(cancellationToken);
 
-            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-            {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-            }
+            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
         }
 
         /// <summary>

@@ -159,45 +159,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     ThreadingContext.JoinableTaskFactory.Run(() => statusService.WaitUntilFullyLoadedAsync(cancellationToken));
                 }
 
-                using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
+                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        // this is here to fail test and see why it is failed.
-                        Trace.WriteLine("given range is not current");
-                        return null;
-                    }
-
-                    var workspace = document.Project.Solution.Workspace;
-                    var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
-
-                    var selection = TryGetCodeRefactoringSelection(state, range);
-
-                    Func<string, IDisposable?> addOperationScope =
-                        description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
-
-                    var options = GlobalOptions.GetBlockingCodeActionOptions(document.Project.Language);
-
-                    // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
-                    // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
-                    var fixesTask = GetCodeFixesAsync(
-                        state, supportsFeatureService, requestedActionCategories, workspace, document, range,
-                        addOperationScope, CodeActionRequestPriority.None,
-                        options, cancellationToken);
-
-                    var refactoringsTask = GetRefactoringsAsync(
-                        state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
-                        addOperationScope, CodeActionRequestPriority.None, options, cancellationToken);
-
-                    Task.WhenAll(fixesTask, refactoringsTask).WaitAndGetResult(cancellationToken);
-
-                    return ConvertToSuggestedActionSets(
-                        state, selection,
-                        fixesTask.WaitAndGetResult(cancellationToken),
-                        refactoringsTask.WaitAndGetResult(cancellationToken),
-                        currentActionCount: 0);
+                    // this is here to fail test and see why it is failed.
+                    Trace.WriteLine("given range is not current");
+                    return null;
                 }
+
+                var workspace = document.Project.Solution.Workspace;
+                var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
+
+                var selection = TryGetCodeRefactoringSelection(state, range);
+
+                Func<string, IDisposable?> addOperationScope =
+                    description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
+
+                var options = GlobalOptions.GetBlockingCodeActionOptions(document.Project.Language);
+
+                // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
+                // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
+                var fixesTask = GetCodeFixesAsync(
+                    state, supportsFeatureService, requestedActionCategories, workspace, document, range,
+                    addOperationScope, CodeActionRequestPriority.None,
+                    options, cancellationToken);
+
+                var refactoringsTask = GetRefactoringsAsync(
+                    state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
+                    addOperationScope, CodeActionRequestPriority.None, options, cancellationToken);
+
+                Task.WhenAll(fixesTask, refactoringsTask).WaitAndGetResult(cancellationToken);
+
+                return ConvertToSuggestedActionSets(
+                    state, selection,
+                    fixesTask.WaitAndGetResult(cancellationToken),
+                    refactoringsTask.WaitAndGetResult(cancellationToken),
+                    currentActionCount: 0);
             }
 
             protected ImmutableArray<SuggestedActionSet> ConvertToSuggestedActionSets(

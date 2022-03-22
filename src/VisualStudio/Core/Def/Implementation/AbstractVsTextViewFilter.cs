@@ -80,63 +80,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return VSConstants.E_FAIL;
             }
 
-            using (Logger.LogBlock(FunctionId.Debugging_VsLanguageDebugInfo_GetDataTipText, CancellationToken.None))
+            pbstrText = null;
+            if (pSpan == null || pSpan.Length != 1)
             {
-                pbstrText = null;
-                if (pSpan == null || pSpan.Length != 1)
+                return VSConstants.E_INVALIDARG;
+            }
+
+            var result = VSConstants.E_FAIL;
+            string pbstrTextInternal = null;
+
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
+                title: ServicesVSResources.Debugger,
+                defaultDescription: ServicesVSResources.Getting_DataTip_text,
+                allowCancellation: true,
+                showProgress: false,
+                action: context =>
+            {
+                IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
+                var debugger = (IVsDebugger)serviceProvider.GetService(typeof(SVsShellDebugger));
+                var debugMode = new DBGMODE[1];
+
+                var cancellationToken = context.UserCancellationToken;
+                if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
                 {
-                    return VSConstants.E_INVALIDARG;
-                }
+                    var textSpan = pSpan[0];
 
-                var result = VSConstants.E_FAIL;
-                string pbstrTextInternal = null;
+                    var textSnapshot = subjectBuffer.CurrentSnapshot;
+                    var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-                var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
-                uiThreadOperationExecutor.Execute(
-                    title: ServicesVSResources.Debugger,
-                    defaultDescription: ServicesVSResources.Getting_DataTip_text,
-                    allowCancellation: true,
-                    showProgress: false,
-                    action: context =>
-                {
-                    IServiceProvider serviceProvider = ComponentModel.GetService<SVsServiceProvider>();
-                    var debugger = (IVsDebugger)serviceProvider.GetService(typeof(SVsShellDebugger));
-                    var debugMode = new DBGMODE[1];
-
-                    var cancellationToken = context.UserCancellationToken;
-                    if (ErrorHandler.Succeeded(debugger.GetMode(debugMode)) && debugMode[0] != DBGMODE.DBGMODE_Design)
+                    if (document != null)
                     {
-                        var textSpan = pSpan[0];
-
-                        var textSnapshot = subjectBuffer.CurrentSnapshot;
-                        var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                        if (document != null)
+                        var languageDebugInfo = document.Project.LanguageServices.GetService<ILanguageDebugInfoService>();
+                        if (languageDebugInfo != null)
                         {
-                            var languageDebugInfo = document.Project.LanguageServices.GetService<ILanguageDebugInfoService>();
-                            if (languageDebugInfo != null)
+                            var spanOpt = textSnapshot.TryGetSpan(textSpan);
+                            if (spanOpt.HasValue)
                             {
-                                var spanOpt = textSnapshot.TryGetSpan(textSpan);
-                                if (spanOpt.HasValue)
+                                var dataTipInfo = languageDebugInfo.GetDataTipInfoAsync(document, spanOpt.Value.Start, cancellationToken).WaitAndGetResult(cancellationToken);
+                                if (!dataTipInfo.IsDefault)
                                 {
-                                    var dataTipInfo = languageDebugInfo.GetDataTipInfoAsync(document, spanOpt.Value.Start, cancellationToken).WaitAndGetResult(cancellationToken);
-                                    if (!dataTipInfo.IsDefault)
-                                    {
-                                        var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
-                                        var textOpt = dataTipInfo.Text;
+                                    var resultSpan = dataTipInfo.Span.ToSnapshotSpan(textSnapshot);
+                                    var textOpt = dataTipInfo.Text;
 
-                                        pSpan[0] = resultSpan.ToVsTextSpan();
-                                        result = debugger.GetDataTipValue((IVsTextLines)vsBuffer, pSpan, textOpt, out pbstrTextInternal);
-                                    }
+                                    pSpan[0] = resultSpan.ToVsTextSpan();
+                                    result = debugger.GetDataTipValue((IVsTextLines)vsBuffer, pSpan, textOpt, out pbstrTextInternal);
                                 }
                             }
                         }
                     }
-                });
+                }
+            });
 
-                pbstrText = pbstrTextInternal;
-                return result;
-            }
+            pbstrText = pbstrTextInternal;
+            return result;
         }
 
         int IVsTextViewFilter.GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan)

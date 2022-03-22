@@ -43,97 +43,85 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         public async Task<ReferenceCount?> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode, int maxSearchResults,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeLens_GetReferenceCountAsync, cancellationToken))
+            if (syntaxNode == null)
             {
-                if (syntaxNode == null)
-                {
-                    return null;
-                }
-
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ReferenceCount?>(
-                        solution,
-                        (service, solutionInfo, cancellationToken) => service.GetReferenceCountAsync(solutionInfo, documentId, syntaxNode.Span, maxSearchResults, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-
-                    return result.HasValue ? result.Value : null;
-                }
-
-                return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(solution, documentId, syntaxNode, maxSearchResults, cancellationToken).ConfigureAwait(false);
+                return null;
             }
+
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ReferenceCount?>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.GetReferenceCountAsync(solutionInfo, documentId, syntaxNode.Span, maxSearchResults, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                return result.HasValue ? result.Value : null;
+            }
+
+            return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(solution, documentId, syntaxNode, maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeLens_FindReferenceLocationsAsync, cancellationToken))
+            if (syntaxNode == null)
             {
-                if (syntaxNode == null)
-                {
-                    return null;
-                }
-
-                var descriptors = await FindReferenceLocationsWorkerAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
-                if (!descriptors.HasValue)
-                {
-                    return null;
-                }
-
-                // map spans to right locations using SpanMapper for documents such as cshtml and etc
-                return await FixUpDescriptorsAsync(solution, descriptors.Value, cancellationToken).ConfigureAwait(false);
+                return null;
             }
+
+            var descriptors = await FindReferenceLocationsWorkerAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+            if (!descriptors.HasValue)
+            {
+                return null;
+            }
+
+            // map spans to right locations using SpanMapper for documents such as cshtml and etc
+            return await FixUpDescriptorsAsync(solution, descriptors.Value, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeLens_FindReferenceMethodsAsync, cancellationToken))
+            if (syntaxNode == null)
             {
-                if (syntaxNode == null)
-                {
-                    return null;
-                }
-
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceMethodDescriptor>?>(
-                        solution,
-                        (service, solutionInfo, cancellationToken) => service.FindReferenceMethodsAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-
-                    return result.HasValue ? result.Value : null;
-                }
-
-                return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                return null;
             }
+
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, ImmutableArray<ReferenceMethodDescriptor>?>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.FindReferenceMethodsAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                return result.HasValue ? result.Value : null;
+            }
+
+            return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task<string?> GetFullyQualifiedNameAsync(Solution solution, DocumentId documentId, SyntaxNode? syntaxNode,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CodeLens_GetFullyQualifiedName, cancellationToken))
+            if (syntaxNode == null)
             {
-                if (syntaxNode == null)
-                {
-                    return null;
-                }
-
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, string>(
-                        solution,
-                        (service, solutionInfo, cancellationToken) => service.GetFullyQualifiedNameAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-
-                    return result.HasValue ? result.Value : null;
-                }
-
-                return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                return null;
             }
+
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
+            {
+                var result = await client.TryInvokeAsync<IRemoteCodeLensReferencesService, string>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.GetFullyQualifiedNameAsync(solutionInfo, documentId, syntaxNode.Span, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                return result.HasValue ? result.Value : null;
+            }
+
+            return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<ReferenceLocationDescriptor>> FixUpDescriptorsAsync(

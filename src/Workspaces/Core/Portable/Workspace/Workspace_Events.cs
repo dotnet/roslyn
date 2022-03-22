@@ -62,11 +62,8 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.ScheduleTask(() =>
                 {
-                    using (Logger.LogBlock(FunctionId.Workspace_Events, (s, p, d, k) => $"{s.Id} - {p} - {d} {kind.ToString()}", newSolution, projectId, documentId, kind, CancellationToken.None))
-                    {
-                        var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
-                        ev.RaiseEvent(handler => handler(this, args));
-                    }
+                    var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
+                    ev.RaiseEvent(handler => handler(this, args));
                 }, WorkspaceChangeEventName);
             }
             else

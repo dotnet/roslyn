@@ -77,40 +77,37 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateConstructor, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            if (state != null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(state.TypeToGenerateIn);
 
-                var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state != null)
+                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+
+                // If we have any fields we'd like to generate, offer a code action to do that.
+                if (state.ParameterToNewFieldMap.Count > 0)
                 {
-                    Contract.ThrowIfNull(state.TypeToGenerateIn);
-
-                    using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
-
-                    // If we have any fields we'd like to generate, offer a code action to do that.
-                    if (state.ParameterToNewFieldMap.Count > 0)
-                    {
-                        result.Add(new MyCodeAction(
-                            string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, state.TypeToGenerateIn.Name),
-                            c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c)));
-                    }
-
-                    // Same with a version that generates properties instead.
-                    if (state.ParameterToNewPropertyMap.Count > 0)
-                    {
-                        result.Add(new MyCodeAction(
-                            string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, state.TypeToGenerateIn.Name),
-                            c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c)));
-                    }
-
-                    // Always offer to just generate the constructor and nothing else.
                     result.Add(new MyCodeAction(
-                        string.Format(FeaturesResources.Generate_constructor_in_0, state.TypeToGenerateIn.Name),
-                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c)));
-
-                    return result.ToImmutable();
+                        string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, state.TypeToGenerateIn.Name),
+                        c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c)));
                 }
+
+                // Same with a version that generates properties instead.
+                if (state.ParameterToNewPropertyMap.Count > 0)
+                {
+                    result.Add(new MyCodeAction(
+                        string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, state.TypeToGenerateIn.Name),
+                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c)));
+                }
+
+                // Always offer to just generate the constructor and nothing else.
+                result.Add(new MyCodeAction(
+                    string.Format(FeaturesResources.Generate_constructor_in_0, state.TypeToGenerateIn.Name),
+                    c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c)));
+
+                return result.ToImmutable();
             }
 
             return ImmutableArray<CodeAction>.Empty;

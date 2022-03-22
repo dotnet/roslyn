@@ -100,27 +100,24 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            var solution = document.Project.Solution;
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var solution = document.Project.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                var fieldSymbolKeys = fields.SelectAsArray(f => SymbolKey.CreateString(f, cancellationToken));
+
+                var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!result.HasValue)
                 {
-                    var fieldSymbolKeys = fields.SelectAsArray(f => SymbolKey.CreateString(f, cancellationToken));
-
-                    var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
-                        solution,
-                        (service, solutionInfo, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (!result.HasValue)
-                    {
-                        return solution;
-                    }
-
-                    return await RemoteUtilities.UpdateSolutionAsync(
-                        solution, result.Value, cancellationToken).ConfigureAwait(false);
+                    return solution;
                 }
+
+                return await RemoteUtilities.UpdateSolutionAsync(
+                    solution, result.Value, cancellationToken).ConfigureAwait(false);
             }
 
             return await EncapsulateFieldsInCurrentProcessAsync(

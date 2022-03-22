@@ -71,29 +71,26 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            if (state != null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
-                var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state != null)
+                var actions = GetActions(semanticDocument, node, state, cancellationToken);
+                if (actions.Length > 1)
                 {
-                    var actions = GetActions(semanticDocument, node, state, cancellationToken);
-                    if (actions.Length > 1)
-                    {
-                        // Wrap the generate type actions into a single top level suggestion
-                        // so as to not clutter the list.
-                        return ImmutableArray.Create<CodeAction>(new MyCodeAction(
-                            string.Format(FeaturesResources.Generate_type_0, state.Name), actions.AsImmutable()));
-                    }
-                    else
-                    {
-                        return actions;
-                    }
+                    // Wrap the generate type actions into a single top level suggestion
+                    // so as to not clutter the list.
+                    return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                        string.Format(FeaturesResources.Generate_type_0, state.Name), actions.AsImmutable()));
                 }
-
-                return ImmutableArray<CodeAction>.Empty;
+                else
+                {
+                    return actions;
+                }
             }
+
+            return ImmutableArray<CodeAction>.Empty;
         }
 
         private ImmutableArray<CodeAction> GetActions(

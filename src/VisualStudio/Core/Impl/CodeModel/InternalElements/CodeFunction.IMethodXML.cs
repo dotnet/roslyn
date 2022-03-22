@@ -16,10 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
     {
         public string GetXML()
         {
-            using (Logger.LogBlock(FunctionId.WinformDesigner_GenerateXML, CancellationToken.None))
-            {
-                return CodeModelService.GetMethodXml(LookupNode(), GetSemanticModel());
-            }
+            return CodeModelService.GetMethodXml(LookupNode(), GetSemanticModel());
         }
 
         public int SetXML(string bstrXML)

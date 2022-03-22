@@ -69,34 +69,31 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     protected async Task WaitForHigherPriorityOperationsAsync()
                     {
-                        using (Logger.LogBlock(FunctionId.WorkCoordinator_WaitForHigherPriorityOperationsAsync, CancellationToken))
+                        do
                         {
-                            do
+                            // Host is shutting down
+                            if (CancellationToken.IsCancellationRequested)
                             {
-                                // Host is shutting down
-                                if (CancellationToken.IsCancellationRequested)
-                                {
-                                    return;
-                                }
-
-                                // we wait for global operation and higher queue operation if there is anything going on
-                                if (!GlobalOperationTask.IsCompleted || !HigherQueueOperationTask.IsCompleted)
-                                {
-                                    await Task.WhenAll(GlobalOperationTask, HigherQueueOperationTask).ConfigureAwait(false);
-                                }
-
-                                // if there are no more work left for higher queue, then it is our time to go ahead
-                                if (!HigherQueueHasWorkItem)
-                                {
-                                    return;
-                                }
-
-                                // back off and wait for next time slot.
-                                UpdateLastAccessTime();
-                                await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                return;
                             }
-                            while (true);
+
+                            // we wait for global operation and higher queue operation if there is anything going on
+                            if (!GlobalOperationTask.IsCompleted || !HigherQueueOperationTask.IsCompleted)
+                            {
+                                await Task.WhenAll(GlobalOperationTask, HigherQueueOperationTask).ConfigureAwait(false);
+                            }
+
+                            // if there are no more work left for higher queue, then it is our time to go ahead
+                            if (!HigherQueueHasWorkItem)
+                            {
+                                return;
+                            }
+
+                            // back off and wait for next time slot.
+                            UpdateLastAccessTime();
+                            await WaitForIdleAsync(Listener).ConfigureAwait(false);
                         }
+                        while (true);
                     }
 
                     public override void Shutdown()

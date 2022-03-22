@@ -114,25 +114,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (!document.SupportsSyntaxTree)
                 return;
 
-            using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate, cancellationToken))
+            Debug.Assert(document.IsFromPrimaryBranch());
+
+            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Check if we've already created and persisted the index for this document.
+            if (await PrecalculatedAsync(document, checksum, cancellationToken).ConfigureAwait(false))
             {
-                Debug.Assert(document.IsFromPrimaryBranch());
-
-                var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
-
-                // Check if we've already created and persisted the index for this document.
-                if (await PrecalculatedAsync(document, checksum, cancellationToken).ConfigureAwait(false))
-                {
-                    return;
-                }
-
-                using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate_Create, cancellationToken))
-                {
-                    // If not, create and save the index.
-                    var data = await CreateIndexAsync(document, checksum, create, cancellationToken).ConfigureAwait(false);
-                    await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
-                }
+                return;
             }
+
+            // If not, create and save the index.
+            var data = await CreateIndexAsync(document, checksum, create, cancellationToken).ConfigureAwait(false);
+            await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> PrecalculatedAsync(

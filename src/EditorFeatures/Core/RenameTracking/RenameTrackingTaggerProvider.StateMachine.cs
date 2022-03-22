@@ -82,48 +82,45 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     return;
                 }
 
-                using (Logger.LogBlock(FunctionId.Rename_Tracking_BufferChanged, CancellationToken.None))
+                // When the buffer changes, several things might be happening:
+                // 1. If a non-identifier character has been added or deleted, we stop tracking
+                //    completely.
+                // 2. Otherwise, if the changes are completely contained an existing session, then
+                //    continue that session.
+                // 3. Otherwise, we're starting a new tracking session. Find and track the span of
+                //    the relevant word in the foreground, and use a task to figure out whether the
+                //    original word was a renameable identifier or not.
+
+                if (e.Changes.Count != 1 || ShouldClearTrackingSession(e.Changes.Single()))
                 {
-                    // When the buffer changes, several things might be happening:
-                    // 1. If a non-identifier character has been added or deleted, we stop tracking
-                    //    completely.
-                    // 2. Otherwise, if the changes are completely contained an existing session, then
-                    //    continue that session.
-                    // 3. Otherwise, we're starting a new tracking session. Find and track the span of
-                    //    the relevant word in the foreground, and use a task to figure out whether the
-                    //    original word was a renameable identifier or not.
+                    ClearTrackingSession();
+                    return;
+                }
 
-                    if (e.Changes.Count != 1 || ShouldClearTrackingSession(e.Changes.Single()))
-                    {
-                        ClearTrackingSession();
-                        return;
-                    }
+                // The change is trackable. Figure out whether we should continue an existing
+                // session
 
-                    // The change is trackable. Figure out whether we should continue an existing
-                    // session
+                var change = e.Changes.Single();
 
-                    var change = e.Changes.Single();
+                if (this.TrackingSession == null)
+                {
+                    StartTrackingSession(e);
+                    return;
+                }
 
-                    if (this.TrackingSession == null)
-                    {
-                        StartTrackingSession(e);
-                        return;
-                    }
+                // There's an existing session. Continue that session if the current change is
+                // contained inside the tracking span.
 
-                    // There's an existing session. Continue that session if the current change is
-                    // contained inside the tracking span.
-
-                    var trackingSpanInNewSnapshot = this.TrackingSession.TrackingSpan.GetSpan(e.After);
-                    if (trackingSpanInNewSnapshot.Contains(change.NewSpan))
-                    {
-                        // Continuing an existing tracking session. If there may have been a tag
-                        // showing, then update the tags.
-                        UpdateTrackingSessionIfRenamable();
-                    }
-                    else
-                    {
-                        StartTrackingSession(e);
-                    }
+                var trackingSpanInNewSnapshot = this.TrackingSession.TrackingSpan.GetSpan(e.After);
+                if (trackingSpanInNewSnapshot.Contains(change.NewSpan))
+                {
+                    // Continuing an existing tracking session. If there may have been a tag
+                    // showing, then update the tags.
+                    UpdateTrackingSessionIfRenamable();
+                }
+                else
+                {
+                    StartTrackingSession(e);
                 }
             }
 

@@ -29,75 +29,72 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             bool onBuildCompleted,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync, LogSynchronizeWithBuild, buildDiagnostics, cancellationToken))
+            DebugVerifyDiagnosticLocations(buildDiagnostics);
+
+            var solution = Workspace.CurrentSolution;
+
+            foreach (var (projectId, diagnostics) in buildDiagnostics)
             {
-                DebugVerifyDiagnosticLocations(buildDiagnostics);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                var solution = Workspace.CurrentSolution;
+                var project = solution.GetProject(projectId);
+                if (project == null)
+                {
+                    continue;
+                }
 
-                foreach (var (projectId, diagnostics) in buildDiagnostics)
+                var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
+                var newResult = CreateAnalysisResults(project, stateSets, diagnostics);
+
+                // PERF: Save the diagnostics into in-memory cache on the main thread.
+                //       Saving them into persistent storage is expensive, so we invoke that operation on a separate task queue
+                //       to ensure faster error list refresh.
+                foreach (var stateSet in stateSets)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var project = solution.GetProject(projectId);
-                    if (project == null)
-                    {
-                        continue;
-                    }
+                    var state = stateSet.GetOrCreateProjectState(project.Id);
+                    var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
 
-                    var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
-                    var newResult = CreateAnalysisResults(project, stateSets, diagnostics);
-
-                    // PERF: Save the diagnostics into in-memory cache on the main thread.
-                    //       Saving them into persistent storage is expensive, so we invoke that operation on a separate task queue
-                    //       to ensure faster error list refresh.
-                    foreach (var stateSet in stateSets)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        var state = stateSet.GetOrCreateProjectState(project.Id);
-                        var result = GetResultOrEmpty(newResult, stateSet.Analyzer, project.Id, VersionStamp.Default);
-
-                        await state.SaveToInMemoryStorageAsync(project, result).ConfigureAwait(false);
-                    }
-
-                    // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
-                    if (diagnostics.IsEmpty)
-                    {
-                        ClearAllDiagnostics(stateSets, projectId);
-                    }
-                    else
-                    {
-                        RaiseProjectDiagnosticsIfNeeded(project, stateSets, newResult);
-                    }
+                    await state.SaveToInMemoryStorageAsync(project, result).ConfigureAwait(false);
                 }
 
-                // Refresh live diagnostics after solution build completes.
-                if (onBuildCompleted)
+                // Raise diagnostic updated events after the new diagnostics have been stored into the in-memory cache.
+                if (diagnostics.IsEmpty)
                 {
-                    // Enqueue re-analysis of active document with high-priority right away.
-                    if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
-                    {
-                        AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
-                    }
+                    ClearAllDiagnostics(stateSets, projectId);
+                }
+                else
+                {
+                    RaiseProjectDiagnosticsIfNeeded(project, stateSets, newResult);
+                }
+            }
 
-                    // Enqueue remaining re-analysis with normal priority on a separate task queue
-                    // that will execute at the end of all the post build and error list refresh tasks.
-                    _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
-                    {
+            // Refresh live diagnostics after solution build completes.
+            if (onBuildCompleted)
+            {
+                // Enqueue re-analysis of active document with high-priority right away.
+                if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
+                {
+                    AnalyzerService.Reanalyze(Workspace, documentIds: ImmutableArray.Create(activeDocument.Id), highPriority: true);
+                }
+
+                // Enqueue remaining re-analysis with normal priority on a separate task queue
+                // that will execute at the end of all the post build and error list refresh tasks.
+                _ = postBuildAndErrorListRefreshTaskQueue.ScheduleTask(nameof(SynchronizeWithBuildAsync), () =>
+                {
                         // Enqueue re-analysis of open documents.
-                        AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());
+                    AnalyzerService.Reanalyze(Workspace, documentIds: Workspace.GetOpenDocumentIds());
 
                         // Enqueue re-analysis of projects, if required.
-                        foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
+                    foreach (var projectsByLanguage in solution.Projects.GroupBy(p => p.Language))
+                    {
+                        if (GlobalOptions.GetBackgroundAnalysisScope(projectsByLanguage.Key) == BackgroundAnalysisScope.FullSolution)
                         {
-                            if (GlobalOptions.GetBackgroundAnalysisScope(projectsByLanguage.Key) == BackgroundAnalysisScope.FullSolution)
-                            {
-                                AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id));
-                            }
+                            AnalyzerService.Reanalyze(Workspace, projectsByLanguage.Select(p => p.Id));
                         }
-                    }, cancellationToken);
-                }
+                    }
+                }, cancellationToken);
             }
         }
 

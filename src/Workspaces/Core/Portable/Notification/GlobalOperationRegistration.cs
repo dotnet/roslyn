@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Notification
     {
         private readonly AbstractGlobalOperationNotificationService _service;
         private readonly CancellationTokenSource _source;
-        private readonly IDisposable _logging;
 
         private bool _done;
 
@@ -23,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Notification
             this.Operation = operation;
 
             _source = new CancellationTokenSource();
-            _logging = Logger.LogBlock(FunctionId.GlobalOperationRegistration, operation, _source.Token);
         }
 
         public string Operation { get; }
@@ -46,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Notification
             // didn't finish
             if (!_done)
                 _source.Cancel();
-
-            _logging.Dispose();
         }
     }
 }

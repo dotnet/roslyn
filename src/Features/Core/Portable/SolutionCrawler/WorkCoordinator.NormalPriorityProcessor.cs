@@ -332,39 +332,36 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         var solution = Processor._registration.GetSolutionToAnalyze();
                         try
                         {
-                            using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
+                            var textDocument = solution.GetTextDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+
+                            if (textDocument != null)
                             {
-                                var textDocument = solution.GetTextDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-
-                                if (textDocument != null)
+                                // if we are called because a document is opened, we invalidate the document so that
+                                // it can be re-analyzed. otherwise, since newly opened document has same version as before
+                                // analyzer will simply return same data back
+                                if (workItem.MustRefresh && !workItem.IsRetry)
                                 {
-                                    // if we are called because a document is opened, we invalidate the document so that
-                                    // it can be re-analyzed. otherwise, since newly opened document has same version as before
-                                    // analyzer will simply return same data back
-                                    if (workItem.MustRefresh && !workItem.IsRetry)
-                                    {
-                                        var isOpen = textDocument.IsOpen();
+                                    var isOpen = textDocument.IsOpen();
 
-                                        await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
-                                        await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
-                                    }
-
-                                    // check whether we are having special reanalyze request
-                                    await ProcessReanalyzeDocumentAsync(workItem, textDocument, cancellationToken).ConfigureAwait(false);
-
-                                    await Processor.ProcessDocumentAnalyzersAsync(textDocument, analyzers, workItem, cancellationToken).ConfigureAwait(false);
-                                }
-                                else
-                                {
-                                    SolutionCrawlerLogger.LogProcessDocumentNotExist(Processor._logAggregator);
-
-                                    await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                                    await ProcessOpenDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
+                                    await ProcessCloseDocumentIfNeededAsync(analyzers, workItem, textDocument, isOpen, cancellationToken).ConfigureAwait(false);
                                 }
 
-                                if (!cancellationToken.IsCancellationRequested)
-                                {
-                                    processedEverything = true;
-                                }
+                                // check whether we are having special reanalyze request
+                                await ProcessReanalyzeDocumentAsync(workItem, textDocument, cancellationToken).ConfigureAwait(false);
+
+                                await Processor.ProcessDocumentAnalyzersAsync(textDocument, analyzers, workItem, cancellationToken).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                SolutionCrawlerLogger.LogProcessDocumentNotExist(Processor._logAggregator);
+
+                                await RemoveDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                            }
+
+                            if (!cancellationToken.IsCancellationRequested)
+                            {
+                                processedEverything = true;
                             }
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

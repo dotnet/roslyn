@@ -35,27 +35,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected override async Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
-            {
-                var telemetryCounter = new TelemetryCounter();
-                var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
+            var telemetryCounter = new TelemetryCounter();
+            var typeImportCompletionService = completionContext.Document.GetRequiredLanguageService<ITypeImportCompletionService>();
 
-                var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
-                    completionContext.Document.Project,
-                    syntaxContext,
-                    forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
-                    completionContext.CompletionOptions,
-                    cancellationToken).ConfigureAwait(false);
+            var (itemsFromAllAssemblies, isPartialResult) = await typeImportCompletionService.GetAllTopLevelTypesAsync(
+                completionContext.Document.Project,
+                syntaxContext,
+                forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
+                completionContext.CompletionOptions,
+                cancellationToken).ConfigureAwait(false);
 
-                var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
-                foreach (var items in itemsFromAllAssemblies)
-                    AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
+            var aliasTargetNamespaceToTypeNameMap = GetAliasTypeDictionary(completionContext.Document, syntaxContext, cancellationToken);
+            foreach (var items in itemsFromAllAssemblies)
+                AddItems(items, completionContext, namespacesInScope, aliasTargetNamespaceToTypeNameMap, telemetryCounter);
 
-                if (isPartialResult)
-                    telemetryCounter.CacheMiss = true;
+            if (isPartialResult)
+                telemetryCounter.CacheMiss = true;
 
-                telemetryCounter.Report();
-            }
+            telemetryCounter.Report();
         }
 
         /// <summary>

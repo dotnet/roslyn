@@ -27,17 +27,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
 
         public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateEnumMember, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            if (state == null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state == null)
-                {
-                    return ImmutableArray<CodeAction>.Empty;
-                }
-
-                return GetActions(document, state);
+                return ImmutableArray<CodeAction>.Empty;
             }
+
+            return GetActions(document, state);
         }
 
         private static ImmutableArray<CodeAction> GetActions(Document document, State state)

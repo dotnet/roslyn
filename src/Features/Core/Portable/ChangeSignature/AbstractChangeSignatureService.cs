@@ -225,20 +225,17 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             Solution solution,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ChangeSignature, cancellationToken))
-            {
-                var streamingProgress = new StreamingProgressCollector();
+            var streamingProgress = new StreamingProgressCollector();
 
-                var engine = new FindReferencesSearchEngine(
-                    solution,
-                    documents: null,
-                    ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
-                    streamingProgress,
-                    FindReferencesSearchOptions.Default);
+            var engine = new FindReferencesSearchEngine(
+                solution,
+                documents: null,
+                ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
+                streamingProgress,
+                FindReferencesSearchOptions.Default);
 
-                await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
-                return streamingProgress.GetReferencedSymbols();
-            }
+            await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
+            return streamingProgress.GetReferencedSymbols();
         }
 
 #nullable enable

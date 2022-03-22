@@ -21,26 +21,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
            IStreamingFindLiteralReferencesProgress progress,
            CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    // Create a callback that we can pass to the server process to hear about the 
-                    // results as it finds them.  When we hear about results we'll forward them to
-                    // the 'progress' parameter which will then update the UI.
-                    var serverCallback = new FindLiteralsServerCallback(solution, progress);
+                // Create a callback that we can pass to the server process to hear about the 
+                // results as it finds them.  When we hear about results we'll forward them to
+                // the 'progress' parameter which will then update the UI.
+                var serverCallback = new FindLiteralsServerCallback(solution, progress);
 
-                    _ = await client.TryInvokeAsync<IRemoteSymbolFinderService>(
-                        solution,
-                        (service, solutionInfo, callbackId, cancellationToken) => service.FindLiteralReferencesAsync(solutionInfo, callbackId, value, typeCode, cancellationToken),
-                        serverCallback,
-                        cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    await FindLiteralReferencesInCurrentProcessAsync(value, solution, progress, cancellationToken).ConfigureAwait(false);
-                }
+                _ = await client.TryInvokeAsync<IRemoteSymbolFinderService>(
+                    solution,
+                    (service, solutionInfo, callbackId, cancellationToken) => service.FindLiteralReferencesAsync(solutionInfo, callbackId, value, typeCode, cancellationToken),
+                    serverCallback,
+                    cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await FindLiteralReferencesInCurrentProcessAsync(value, solution, progress, cancellationToken).ConfigureAwait(false);
             }
         }
 

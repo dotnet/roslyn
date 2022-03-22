@@ -55,44 +55,41 @@ namespace Microsoft.CodeAnalysis.Simplification
             ImmutableArray<AbstractReducer> reducers = default,
             CancellationToken cancellationToken = default)
         {
-            using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
+            var spanList = spans.NullToEmpty();
+
+            // we have no span
+            if (!spanList.Any())
             {
-                var spanList = spans.NullToEmpty();
-
-                // we have no span
-                if (!spanList.Any())
-                {
-                    return document;
-                }
-
-                optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                // Chaining of the Speculative SemanticModel (i.e. Generating a speculative SemanticModel from an existing Speculative SemanticModel) is not supported
-                // Hence make sure we always start working off of the actual SemanticModel instead of a speculative SemanticModel.
-                Debug.Assert(!semanticModel.IsSpeculativeSemanticModel);
-
-                var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-#if DEBUG
-                var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
-#endif
-
-                var reduced = await this.ReduceCoreAsync(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
-
-                if (reduced != document)
-                {
-#if DEBUG
-                    if (!originalDocHasErrors)
-                    {
-                        await reduced.VerifyNoErrorsAsync("Error introduced by Simplification Service", cancellationToken).ConfigureAwait(false);
-                    }
-#endif
-                }
-
-                return reduced;
+                return document;
             }
+
+            optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // Chaining of the Speculative SemanticModel (i.e. Generating a speculative SemanticModel from an existing Speculative SemanticModel) is not supported
+            // Hence make sure we always start working off of the actual SemanticModel instead of a speculative SemanticModel.
+            Debug.Assert(!semanticModel.IsSpeculativeSemanticModel);
+
+            var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+#if DEBUG
+            var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
+#endif
+
+            var reduced = await this.ReduceCoreAsync(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
+
+            if (reduced != document)
+            {
+#if DEBUG
+                if (!originalDocHasErrors)
+                {
+                    await reduced.VerifyNoErrorsAsync("Error introduced by Simplification Service", cancellationToken).ConfigureAwait(false);
+                }
+#endif
+            }
+
+            return reduced;
         }
 
         private async Task<Document> ReduceCoreAsync(

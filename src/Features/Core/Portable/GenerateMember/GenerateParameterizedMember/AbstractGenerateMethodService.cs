@@ -31,17 +31,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateMethodStateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            if (state == null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                var state = await State.GenerateMethodStateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state == null)
-                {
-                    return ImmutableArray<CodeAction>.Empty;
-                }
-
-                return await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false);
+                return ImmutableArray<CodeAction>.Empty;
             }
+
+            return await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false);
         }
     }
 }

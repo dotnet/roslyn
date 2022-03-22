@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         /// </summary>
         private void OnLayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
         {
-            using (Logger.LogBlock(FunctionId.Tagger_AdornmentManager_OnLayoutChanged, CancellationToken.None))
             using (_asyncListener.BeginAsyncOperation(GetType() + ".OnLayoutChanged"))
             {
                 // Make sure we're on the UI thread.
@@ -196,7 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         protected void UpdateInvalidSpans()
         {
             using (_asyncListener.BeginAsyncOperation(GetType().Name + ".UpdateInvalidSpans.1"))
-            using (Logger.LogBlock(FunctionId.Tagger_AdornmentManager_UpdateInvalidSpans, CancellationToken.None))
             {
                 // this method should only run on UI thread as we do WPF here.
                 Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());

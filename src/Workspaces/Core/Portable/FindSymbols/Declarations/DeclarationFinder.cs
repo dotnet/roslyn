@@ -45,50 +45,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
+            var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
+
+            // If this is an exact query, we can speed things up by just calling into the
+            // compilation entrypoints that take a string directly.
+            //
+            // the search is 'exact' if it's either an exact-case-sensitive search,
+            // or it's an exact-case-insensitive search and we're in a case-insensitive
+            // language.
+            var isExactNameSearch = query.Kind == SearchKind.Exact ||
+                (query.Kind == SearchKind.ExactIgnoreCase && !syntaxFacts.IsCaseSensitive);
+
+            // Do a quick syntactic check first using our cheaply built indices.  That will help us avoid creating
+            // a compilation here if it's not necessary.  In the case of an exact name search we can call a special 
+            // overload that quickly uses the direct bloom-filter identifier maps in the index.  If it's nto an 
+            // exact name search, then we will run the query's predicate over every DeclaredSymbolInfo stored in
+            // the doc.
+            var containsSymbol = isExactNameSearch
+                ? await project.ContainsSymbolsWithNameAsync(query.Name, cancellationToken).ConfigureAwait(false)
+                : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
+
+            if (!containsSymbol)
+                return;
+
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+            var symbols = isExactNameSearch
+                ? compilation.GetSymbolsWithName(query.Name, filter, cancellationToken)
+                : compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken);
+
+            var symbolsWithName = symbols.ToImmutableArray();
+
+            if (startingCompilation != null && startingAssembly != null && !Equals(compilation.Assembly, startingAssembly))
             {
-                var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
-
-                // If this is an exact query, we can speed things up by just calling into the
-                // compilation entrypoints that take a string directly.
-                //
-                // the search is 'exact' if it's either an exact-case-sensitive search,
-                // or it's an exact-case-insensitive search and we're in a case-insensitive
-                // language.
-                var isExactNameSearch = query.Kind == SearchKind.Exact ||
-                    (query.Kind == SearchKind.ExactIgnoreCase && !syntaxFacts.IsCaseSensitive);
-
-                // Do a quick syntactic check first using our cheaply built indices.  That will help us avoid creating
-                // a compilation here if it's not necessary.  In the case of an exact name search we can call a special 
-                // overload that quickly uses the direct bloom-filter identifier maps in the index.  If it's nto an 
-                // exact name search, then we will run the query's predicate over every DeclaredSymbolInfo stored in
-                // the doc.
-                var containsSymbol = isExactNameSearch
-                    ? await project.ContainsSymbolsWithNameAsync(query.Name, cancellationToken).ConfigureAwait(false)
-                    : await project.ContainsSymbolsWithNameAsync(query.GetPredicate(), filter, cancellationToken).ConfigureAwait(false);
-
-                if (!containsSymbol)
-                    return;
-
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                var symbols = isExactNameSearch
-                    ? compilation.GetSymbolsWithName(query.Name, filter, cancellationToken)
-                    : compilation.GetSymbolsWithName(query.GetPredicate(), filter, cancellationToken);
-
-                var symbolsWithName = symbols.ToImmutableArray();
-
-                if (startingCompilation != null && startingAssembly != null && !Equals(compilation.Assembly, startingAssembly))
-                {
-                    // Return symbols from skeleton assembly in this case so that symbols have 
-                    // the same language as startingCompilation.
-                    symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey(cancellationToken).Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
-                                                     .WhereNotNull()
-                                                     .ToImmutableArray();
-                }
-
-                list.AddRange(FilterByCriteria(symbolsWithName, filter));
+                // Return symbols from skeleton assembly in this case so that symbols have 
+                // the same language as startingCompilation.
+                symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey(cancellationToken).Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
+                                                 .WhereNotNull()
+                                                 .ToImmutableArray();
             }
+
+            list.AddRange(FilterByCriteria(symbolsWithName, filter));
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
@@ -100,17 +97,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // for specific strings (i.e. they never do a custom search).
             Contract.ThrowIfTrue(query.Kind == SearchKind.Custom, "Custom queries are not supported in this API");
 
-            using (Logger.LogBlock(FunctionId.SymbolFinder_Assembly_AddDeclarationsAsync, cancellationToken))
+            if (referenceOpt != null)
             {
-                if (referenceOpt != null)
-                {
-                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
-                        project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    var symbols = await info.FindAsync(
-                            query, assembly, filter, cancellationToken).ConfigureAwait(false);
-                    list.AddRange(symbols);
-                }
+                var symbols = await info.FindAsync(
+                        query, assembly, filter, cancellationToken).ConfigureAwait(false);
+                list.AddRange(symbols);
             }
         }
 

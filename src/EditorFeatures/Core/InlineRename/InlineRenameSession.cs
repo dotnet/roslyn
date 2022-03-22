@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly Solution _baseSolution;
         private readonly Document _triggerDocument;
         private readonly ITextView _triggerView;
-        private readonly IDisposable _inlineRenameSessionDurationLogBlock;
 
         public readonly InlineRenameService RenameService;
 
@@ -136,8 +135,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 throw new InvalidOperationException(EditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
             }
 
-            _inlineRenameSessionDurationLogBlock = Logger.LogBlock(FunctionId.Rename_InlineSession, CancellationToken.None);
-
             _workspace = workspace;
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
@@ -197,36 +194,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void InitializeOpenBuffers(SnapshotSpan triggerSpan)
         {
-            using (Logger.LogBlock(FunctionId.Rename_CreateOpenTextBufferManagerForAllOpenDocs, CancellationToken.None))
+            var openBuffers = new HashSet<ITextBuffer>();
+            foreach (var d in _workspace.GetOpenDocumentIds())
             {
-                var openBuffers = new HashSet<ITextBuffer>();
-                foreach (var d in _workspace.GetOpenDocumentIds())
+                var document = _baseSolution.GetDocument(d);
+                if (document == null)
                 {
-                    var document = _baseSolution.GetDocument(d);
-                    if (document == null)
-                    {
-                        continue;
-                    }
-
-                    Contract.ThrowIfFalse(document.TryGetText(out var text));
-                    Contract.ThrowIfNull(text);
-
-                    var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-                    if (textSnapshot == null)
-                    {
-                        FatalError.ReportAndCatch(new NullTextBufferException(document, text));
-                        continue;
-                    }
-
-                    Contract.ThrowIfNull(textSnapshot.TextBuffer);
-
-                    openBuffers.Add(textSnapshot.TextBuffer);
+                    continue;
                 }
 
-                foreach (var buffer in openBuffers)
+                Contract.ThrowIfFalse(document.TryGetText(out var text));
+                Contract.ThrowIfNull(text);
+
+                var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
+                if (textSnapshot == null)
                 {
-                    TryPopulateOpenTextBufferManagerForBuffer(buffer);
+                    FatalError.ReportAndCatch(new NullTextBufferException(document, text));
+                    continue;
                 }
+
+                Contract.ThrowIfNull(textSnapshot.TextBuffer);
+
+                openBuffers.Add(textSnapshot.TextBuffer);
+            }
+
+            foreach (var buffer in openBuffers)
+            {
+                TryPopulateOpenTextBufferManagerForBuffer(buffer);
             }
 
             var startingSpan = triggerSpan.Span;
@@ -480,12 +474,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
 
                 _isApplyingEdit = true;
-                using (Logger.LogBlock(FunctionId.Rename_ApplyReplacementText, replacementText, _cancellationTokenSource.Token))
+                foreach (var openBuffer in _openTextBuffers.Values)
                 {
-                    foreach (var openBuffer in _openTextBuffers.Values)
-                    {
-                        openBuffer.ApplyReplacementText();
-                    }
+                    openBuffer.ApplyReplacementText();
                 }
 
                 _isApplyingEdit = false;
@@ -724,7 +715,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             CancelAllOpenDocumentTrackingTasks();
             RenameTrackingDismisser.DismissRenameTracking(_workspace, _workspace.GetOpenDocumentIds());
-            _inlineRenameSessionDurationLogBlock.Dispose();
         }
 
         private void CancelAllOpenDocumentTrackingTasks()

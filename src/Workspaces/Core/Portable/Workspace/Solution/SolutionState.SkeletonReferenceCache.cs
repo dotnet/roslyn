@@ -179,45 +179,42 @@ internal partial class SolutionState
             {
                 workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
 
-                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
+                using var stream = SerializableBytes.CreateWritableStream();
+                // note: cloning compilation so we don't retain all the generated symbols after its emitted.
+                // * REVIEW * is cloning clone p2p reference compilation as well?
+                var emitResult = compilation.Clone().Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
+
+                if (emitResult.Success)
                 {
-                    using var stream = SerializableBytes.CreateWritableStream();
-                    // note: cloning compilation so we don't retain all the generated symbols after its emitted.
-                    // * REVIEW * is cloning clone p2p reference compilation as well?
-                    var emitResult = compilation.Clone().Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
+                    workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
 
-                    if (emitResult.Success)
+                    var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
+                    var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
+
+                    stream.Position = 0;
+                    storage.WriteStream(stream, cancellationToken);
+
+                    return storage;
+                }
+                else
+                {
+                    workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+
+                    foreach (var diagnostic in emitResult.Diagnostics)
                     {
-                        workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
-
-                        var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
-                        var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
-
-                        stream.Position = 0;
-                        storage.WriteStream(stream, cancellationToken);
-
-                        return storage;
+                        workspace.LogTestMessage("  " + diagnostic.GetMessage());
                     }
-                    else
+
+                    // log emit failures so that we can improve most common cases
+                    Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
                     {
-                        workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
-
-                        foreach (var diagnostic in emitResult.Diagnostics)
-                        {
-                            workspace.LogTestMessage("  " + diagnostic.GetMessage());
-                        }
-
-                        // log emit failures so that we can improve most common cases
-                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
-                        {
                             // log errors in the format of
                             // CS0001:1;CS002:10;...
-                            var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
-                            m["Errors"] = string.Join(";", groups);
-                        }));
+                        var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                        m["Errors"] = string.Join(";", groups);
+                    }));
 
-                        return null;
-                    }
+                    return null;
                 }
             }
             finally

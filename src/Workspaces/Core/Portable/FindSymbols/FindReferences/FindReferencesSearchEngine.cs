@@ -278,18 +278,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document, SemanticModel semanticModel, ISymbol symbol,
             HashSet<string>? globalAliases, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
+            // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
+            // happened.  So tehre must be a group for this symbol in our map.
+            var group = _symbolToGroup[symbol];
+            foreach (var finder in _finders)
             {
-                // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                // happened.  So tehre must be a group for this symbol in our map.
-                var group = _symbolToGroup[symbol];
-                foreach (var finder in _finders)
-                {
-                    var references = await finder.FindReferencesInDocumentAsync(
-                        symbol, globalAliases, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
-                    foreach (var (_, location) in references)
-                        await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
-                }
+                var references = await finder.FindReferencesInDocumentAsync(
+                    symbol, globalAliases, document, semanticModel, _options, cancellationToken).ConfigureAwait(false);
+                foreach (var (_, location) in references)
+                    await _progress.OnReferenceFoundAsync(group, symbol, location, cancellationToken).ConfigureAwait(false);
             }
         }
     }

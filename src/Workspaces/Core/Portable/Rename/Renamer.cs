@@ -149,31 +149,28 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.Renamer_RenameSymbolAsync, cancellationToken))
+            if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
             {
-                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                    if (client != null)
-                    {
-                        var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
+                    var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
 
-                        var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
-                            solution,
-                            (service, solutionInfo, cancellationToken) => service.RenameSymbolAsync(
-                                solutionInfo,
-                                serializedSymbol,
-                                newName,
-                                options,
-                                nonConflictSymbolIds,
-                                cancellationToken),
-                            cancellationToken).ConfigureAwait(false);
+                    var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
+                        solution,
+                        (service, solutionInfo, cancellationToken) => service.RenameSymbolAsync(
+                            solutionInfo,
+                            serializedSymbol,
+                            newName,
+                            options,
+                            nonConflictSymbolIds,
+                            cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasValue && result.Value != null)
-                            return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                    if (result.HasValue && result.Value != null)
+                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                        // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
-                    }
+                    // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
                 }
             }
 

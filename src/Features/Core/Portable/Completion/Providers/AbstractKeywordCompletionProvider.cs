@@ -32,12 +32,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var cancellationToken = context.CancellationToken;
 
-            using (Logger.LogBlock(FunctionId.Completion_KeywordCompletionProvider_GetItemsWorker, cancellationToken))
-            {
-                context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
-                    s_comparer,
-                    d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken)).ConfigureAwait(false));
-            }
+            context.AddItems(await context.Document.GetUnionItemsFromDocumentAndLinkedDocumentsAsync(
+                s_comparer,
+                d => RecommendCompletionItemsAsync(d, context.Position, cancellationToken)).ConfigureAwait(false));
         }
 
         private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, int position, CancellationToken cancellationToken)

@@ -83,74 +83,71 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var selection = TryGetCodeRefactoringSelection(state, range);
                 await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-                using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
+                var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document is null)
+                    return;
+
+                // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
+                // this as each priority level will both sort and inline actions.  However, we don't want to
+                // inline actions at each priority if it's going to make the total number of actions too high.
+                // This does mean we might inline actions from a higher priority group, and then disable 
+                // inlining for lower pri groups.  However, intuitively, that is what we want.  More important
+                // items should be pushed higher up, and less important items shouldn't take up that much space.
+                var currentActionCount = 0;
+
+                using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
+
+                // Collectors are in priority order.  So just walk them from highest to lowest.
+                foreach (var collector in collectors)
                 {
-                    var document = range.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document is null)
-                        return;
-
-                    // Keep track of how many actions we've put in the lightbulb at each priority level.  We do
-                    // this as each priority level will both sort and inline actions.  However, we don't want to
-                    // inline actions at each priority if it's going to make the total number of actions too high.
-                    // This does mean we might inline actions from a higher priority group, and then disable 
-                    // inlining for lower pri groups.  However, intuitively, that is what we want.  More important
-                    // items should be pushed higher up, and less important items shouldn't take up that much space.
-                    var currentActionCount = 0;
-
-                    using var _ = ArrayBuilder<SuggestedActionSet>.GetInstance(out var lowPrioritySets);
-
-                    // Collectors are in priority order.  So just walk them from highest to lowest.
-                    foreach (var collector in collectors)
+                    var priority = collector.Priority switch
                     {
-                        var priority = collector.Priority switch
-                        {
-                            VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
-                            VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
-                            VisualStudio.Utilities.DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
-                            _ => (CodeActionRequestPriority?)null,
-                        };
+                        VisualStudio.Utilities.DefaultOrderings.Highest => CodeActionRequestPriority.High,
+                        VisualStudio.Utilities.DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                        VisualStudio.Utilities.DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
+                        _ => (CodeActionRequestPriority?)null,
+                    };
 
-                        if (priority != null)
-                        {
-                            var allSets = GetCodeFixesAndRefactoringsAsync(
-                                state, requestedActionCategories, document,
-                                range, selection,
-                                addOperationScope: _ => null,
-                                priority.Value,
-                                currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
+                    if (priority != null)
+                    {
+                        var allSets = GetCodeFixesAndRefactoringsAsync(
+                            state, requestedActionCategories, document,
+                            range, selection,
+                            addOperationScope: _ => null,
+                            priority.Value,
+                            currentActionCount, cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false);
 
-                            await foreach (var set in allSets)
+                        await foreach (var set in allSets)
+                        {
+                            if (priority == CodeActionRequestPriority.High && set.Priority == SuggestedActionSetPriority.Low)
                             {
-                                if (priority == CodeActionRequestPriority.High && set.Priority == SuggestedActionSetPriority.Low)
-                                {
-                                    // if we're processing the high pri bucket, but we get action sets for lower pri
-                                    // groups, then keep track of them and add them in later when we get to that group.
-                                    lowPrioritySets.Add(set);
-                                }
-                                else
-                                {
-                                    currentActionCount += set.Actions.Count();
-                                    collector.Add(set);
-                                }
+                                // if we're processing the high pri bucket, but we get action sets for lower pri
+                                // groups, then keep track of them and add them in later when we get to that group.
+                                lowPrioritySets.Add(set);
                             }
-
-                            if (priority == CodeActionRequestPriority.Normal)
+                            else
                             {
-                                // now, add any low pri items we've been waiting on to the final group.
-                                foreach (var set in lowPrioritySets)
-                                {
-                                    currentActionCount += set.Actions.Count();
-                                    collector.Add(set);
-                                }
+                                currentActionCount += set.Actions.Count();
+                                collector.Add(set);
                             }
                         }
 
-                        // Ensure we always complete the collector even if we didn't add any items to it.
-                        // This ensures that we unblock the UI from displaying all the results for that
-                        // priority class.
-                        collector.Complete();
-                        completedCollectors.Add(collector);
+                        if (priority == CodeActionRequestPriority.Normal)
+                        {
+                            // now, add any low pri items we've been waiting on to the final group.
+                            foreach (var set in lowPrioritySets)
+                            {
+                                currentActionCount += set.Actions.Count();
+                                collector.Add(set);
+                            }
+                        }
                     }
+
+                    // Ensure we always complete the collector even if we didn't add any items to it.
+                    // This ensures that we unblock the UI from displaying all the results for that
+                    // priority class.
+                    collector.Complete();
+                    completedCollectors.Add(collector);
                 }
             }
 

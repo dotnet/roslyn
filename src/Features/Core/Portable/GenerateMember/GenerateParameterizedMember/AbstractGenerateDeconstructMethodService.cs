@@ -26,15 +26,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             INamedTypeSymbol typeToGenerateIn,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateMethod, cancellationToken))
-            {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var state = await State.GenerateDeconstructMethodStateAsync(
-                    (TService)this, semanticDocument, leftSide, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateDeconstructMethodStateAsync(
+                (TService)this, semanticDocument, leftSide, typeToGenerateIn, cancellationToken).ConfigureAwait(false);
 
-                return state != null ? await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false) : ImmutableArray<CodeAction>.Empty;
-            }
+            return state != null ? await GetActionsAsync(document, state, cancellationToken).ConfigureAwait(false) : ImmutableArray<CodeAction>.Empty;
         }
     }
 }

@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 await GlobalOperationTask.ConfigureAwait(false);
 
                 using (var pooledObject = SharedPools.Default<List<ExpensiveAnalyzerInfo>>().GetPooledObject())
-                using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, CancellationToken))
                 {
                     _diagnosticAnalyzerPerformanceTracker.GenerateReport(pooledObject.Object);
 

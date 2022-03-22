@@ -75,16 +75,13 @@ namespace Microsoft.CodeAnalysis.BraceMatching
         internal async Task ProduceTagsAsync(
             TaggerContext<BraceHighlightTag> context, Document document, ITextSnapshot snapshot, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Tagger_BraceHighlighting_TagProducer_ProduceTags, cancellationToken))
+            if (position >= 0 && position <= snapshot.Length)
             {
-                if (position >= 0 && position <= snapshot.Length)
-                {
-                    var (bracesLeftOfPosition, bracesRightOfPosition) = await GetAllMatchingBracesAsync(
-                        _braceMatcherService, document, position, options, cancellationToken).ConfigureAwait(false);
+                var (bracesLeftOfPosition, bracesRightOfPosition) = await GetAllMatchingBracesAsync(
+                    _braceMatcherService, document, position, options, cancellationToken).ConfigureAwait(false);
 
-                    AddBraces(context, snapshot, bracesLeftOfPosition);
-                    AddBraces(context, snapshot, bracesRightOfPosition);
-                }
+                AddBraces(context, snapshot, bracesLeftOfPosition);
+                AddBraces(context, snapshot, bracesRightOfPosition);
             }
         }
 

@@ -109,39 +109,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         {
             AssertIsForeground();
 
-            using (Logger.LogBlock(FunctionId.EventHookup_Generate_Handler, cancellationToken))
+            EventHookupSessionManager.CancelAndDismissExistingSessions();
+
+            var workspace = textView.TextSnapshot.TextBuffer.GetWorkspace();
+            if (workspace == null)
             {
+                nextHandler();
                 EventHookupSessionManager.CancelAndDismissExistingSessions();
-
-                var workspace = textView.TextSnapshot.TextBuffer.GetWorkspace();
-                if (workspace == null)
-                {
-                    nextHandler();
-                    EventHookupSessionManager.CancelAndDismissExistingSessions();
-                    return;
-                }
-
-                var document = textView.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                Contract.ThrowIfNull(document, "Event Hookup could not find the document for the IBufferView.");
-
-                var position = textView.GetCaretPoint(subjectBuffer).Value.Position;
-                var solutionWithEventHandler = CreateSolutionWithEventHandler(
-                    document,
-                    eventHandlerMethodName,
-                    position,
-                    out var plusEqualTokenEndPosition,
-                    cancellationToken);
-
-                Contract.ThrowIfNull(solutionWithEventHandler, "Event Hookup could not create solution with event handler.");
-
-                // The new solution is created, so start user observable changes
-
-                Contract.ThrowIfFalse(workspace.TryApplyChanges(solutionWithEventHandler), "Event Hookup could not update the solution.");
-
-                // The += token will not move during this process, so it is safe to use that
-                // position as a location from which to find the identifier we're renaming.
-                BeginInlineRename(textView, plusEqualTokenEndPosition, cancellationToken);
+                return;
             }
+
+            var document = textView.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Contract.ThrowIfNull(document, "Event Hookup could not find the document for the IBufferView.");
+
+            var position = textView.GetCaretPoint(subjectBuffer).Value.Position;
+            var solutionWithEventHandler = CreateSolutionWithEventHandler(
+                document,
+                eventHandlerMethodName,
+                position,
+                out var plusEqualTokenEndPosition,
+                cancellationToken);
+
+            Contract.ThrowIfNull(solutionWithEventHandler, "Event Hookup could not create solution with event handler.");
+
+            // The new solution is created, so start user observable changes
+
+            Contract.ThrowIfFalse(workspace.TryApplyChanges(solutionWithEventHandler), "Event Hookup could not update the solution.");
+
+            // The += token will not move during this process, so it is safe to use that
+            // position as a location from which to find the identifier we're renaming.
+            BeginInlineRename(textView, plusEqualTokenEndPosition, cancellationToken);
         }
 
         private Solution CreateSolutionWithEventHandler(

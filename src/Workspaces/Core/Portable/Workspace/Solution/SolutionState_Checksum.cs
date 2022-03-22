@@ -117,37 +117,34 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.SolutionState_ComputeChecksumsAsync, FilePath, cancellationToken))
+                // get states by id order to have deterministic checksum.  Limit to the requested set of projects
+                // if applicable.
+                var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
+                var projectChecksumTasks = orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
+                                                            .Select(id => ProjectStates[id])
+                                                            .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
+                                                            .Select(s => s.GetChecksumAsync(cancellationToken))
+                                                            .ToArray();
+
+                var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
+                var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
+
+                var optionsChecksum = serializer.CreateChecksum(options, cancellationToken);
+
+                var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
+                var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
+
+                if (FrozenSourceGeneratedDocumentState != null)
                 {
-                    // get states by id order to have deterministic checksum.  Limit to the requested set of projects
-                    // if applicable.
-                    var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
-                    var projectChecksumTasks = orderedProjectIds.Where(id => projectsToInclude == null || projectsToInclude.Contains(id))
-                                                                .Select(id => ProjectStates[id])
-                                                                .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
-                                                                .Select(s => s.GetChecksumAsync(cancellationToken))
-                                                                .ToArray();
-
-                    var serializer = _solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
-                    var attributesChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);
-
-                    var optionsChecksum = serializer.CreateChecksum(options, cancellationToken);
-
-                    var frozenSourceGeneratedDocumentIdentityChecksum = Checksum.Null;
-                    var frozenSourceGeneratedDocumentTextChecksum = Checksum.Null;
-
-                    if (FrozenSourceGeneratedDocumentState != null)
-                    {
-                        frozenSourceGeneratedDocumentIdentityChecksum = serializer.CreateChecksum(FrozenSourceGeneratedDocumentState.Identity, cancellationToken);
-                        frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
-                    }
-
-                    var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences,
-                        _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
-
-                    var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
-                    return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
+                    frozenSourceGeneratedDocumentIdentityChecksum = serializer.CreateChecksum(FrozenSourceGeneratedDocumentState.Identity, cancellationToken);
+                    frozenSourceGeneratedDocumentTextChecksum = (await FrozenSourceGeneratedDocumentState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false)).Text;
                 }
+
+                var analyzerReferenceChecksums = ChecksumCache.GetOrCreate<ChecksumCollection>(AnalyzerReferences,
+                    _ => new ChecksumCollection(AnalyzerReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+
+                var projectChecksums = await Task.WhenAll(projectChecksumTasks).ConfigureAwait(false);
+                return new SolutionStateChecksums(attributesChecksum, optionsChecksum, new ChecksumCollection(projectChecksums), analyzerReferenceChecksums, frozenSourceGeneratedDocumentIdentityChecksum, frozenSourceGeneratedDocumentTextChecksum);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {

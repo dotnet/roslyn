@@ -44,25 +44,22 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (Logger.LogBlock(FunctionId.Renamer_FindRenameLocationsAsync, cancellationToken))
+            var solution = renameLocationSet.Solution;
+            var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var solution = renameLocationSet.Solution;
-                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    var serializableLocationSet = renameLocationSet.Dehydrate(solution, cancellationToken);
-                    var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
+                var serializableLocationSet = renameLocationSet.Dehydrate(solution, cancellationToken);
+                var nonConflictSymbolIds = nonConflictSymbols?.SelectAsArray(s => SerializableSymbolAndProjectId.Dehydrate(solution, s, cancellationToken)) ?? default;
 
-                    var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
-                        solution,
-                        (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
-                        cancellationToken).ConfigureAwait(false);
+                var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
 
-                    if (result.HasValue && result.Value != null)
-                        return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (result.HasValue && result.Value != null)
+                    return await result.Value.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                    // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
-                }
+                // TODO: do not fall back to in-proc if client is available (https://github.com/dotnet/roslyn/issues/47557)
             }
 
             return await ResolveConflictsInCurrentProcessAsync(

@@ -45,21 +45,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
 
             public TextExtent GetExtentOfWord(SnapshotPoint currentPosition)
             {
-                using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetExtentOfWord, CancellationToken.None))
+                var result = default(TextExtent);
+                _uiThreadOperationExecutor.Execute(
+                    title: EditorFeaturesResources.Text_Navigation,
+                    defaultDescription: EditorFeaturesResources.Finding_word_extent,
+                    allowCancellation: true,
+                    showProgress: false,
+                    action: context =>
                 {
-                    var result = default(TextExtent);
-                    _uiThreadOperationExecutor.Execute(
-                        title: EditorFeaturesResources.Text_Navigation,
-                        defaultDescription: EditorFeaturesResources.Finding_word_extent,
-                        allowCancellation: true,
-                        showProgress: false,
-                        action: context =>
-                    {
-                        result = GetExtentOfWordWorker(currentPosition, context.UserCancellationToken);
-                    });
+                    result = GetExtentOfWordWorker(currentPosition, context.UserCancellationToken);
+                });
 
-                    return result;
-                }
+                return result;
             }
 
             private TextExtent GetExtentOfWordWorker(SnapshotPoint position, CancellationToken cancellationToken)
@@ -119,21 +116,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
 
             public SnapshotSpan GetSpanOfEnclosing(SnapshotSpan activeSpan)
             {
-                using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfEnclosing, CancellationToken.None))
+                var span = default(SnapshotSpan);
+                var result = _uiThreadOperationExecutor.Execute(
+                    title: EditorFeaturesResources.Text_Navigation,
+                    defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
+                    allowCancellation: true,
+                    showProgress: false,
+                    action: context =>
                 {
-                    var span = default(SnapshotSpan);
-                    var result = _uiThreadOperationExecutor.Execute(
-                        title: EditorFeaturesResources.Text_Navigation,
-                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
-                        allowCancellation: true,
-                        showProgress: false,
-                        action: context =>
-                    {
-                        span = GetSpanOfEnclosingWorker(activeSpan, context.UserCancellationToken);
-                    });
+                    span = GetSpanOfEnclosingWorker(activeSpan, context.UserCancellationToken);
+                });
 
-                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
-                }
+                return result == UIThreadOperationStatus.Completed ? span : activeSpan;
             }
 
             private static SnapshotSpan GetSpanOfEnclosingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
@@ -151,21 +145,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
 
             public SnapshotSpan GetSpanOfFirstChild(SnapshotSpan activeSpan)
             {
-                using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfFirstChild, CancellationToken.None))
+                var span = default(SnapshotSpan);
+                var result = _uiThreadOperationExecutor.Execute(
+                    title: EditorFeaturesResources.Text_Navigation,
+                    defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
+                    allowCancellation: true,
+                    showProgress: false,
+                    action: context =>
                 {
-                    var span = default(SnapshotSpan);
-                    var result = _uiThreadOperationExecutor.Execute(
-                        title: EditorFeaturesResources.Text_Navigation,
-                        defaultDescription: EditorFeaturesResources.Finding_enclosing_span,
-                        allowCancellation: true,
-                        showProgress: false,
-                        action: context =>
-                    {
-                        span = GetSpanOfFirstChildWorker(activeSpan, context.UserCancellationToken);
-                    });
+                    span = GetSpanOfFirstChildWorker(activeSpan, context.UserCancellationToken);
+                });
 
-                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
-                }
+                return result == UIThreadOperationStatus.Completed ? span : activeSpan;
             }
 
             private static SnapshotSpan GetSpanOfFirstChildWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
@@ -187,21 +178,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
 
             public SnapshotSpan GetSpanOfNextSibling(SnapshotSpan activeSpan)
             {
-                using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfNextSibling, CancellationToken.None))
+                var span = default(SnapshotSpan);
+                var result = _uiThreadOperationExecutor.Execute(
+                    title: EditorFeaturesResources.Text_Navigation,
+                    defaultDescription: EditorFeaturesResources.Finding_span_of_next_sibling,
+                    allowCancellation: true,
+                    showProgress: false,
+                    action: context =>
                 {
-                    var span = default(SnapshotSpan);
-                    var result = _uiThreadOperationExecutor.Execute(
-                        title: EditorFeaturesResources.Text_Navigation,
-                        defaultDescription: EditorFeaturesResources.Finding_span_of_next_sibling,
-                        allowCancellation: true,
-                        showProgress: false,
-                        action: context =>
-                    {
-                        span = GetSpanOfNextSiblingWorker(activeSpan, context.UserCancellationToken);
-                    });
+                    span = GetSpanOfNextSiblingWorker(activeSpan, context.UserCancellationToken);
+                });
 
-                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
-                }
+                return result == UIThreadOperationStatus.Completed ? span : activeSpan;
             }
 
             private static SnapshotSpan GetSpanOfNextSiblingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)
@@ -239,21 +227,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
 
             public SnapshotSpan GetSpanOfPreviousSibling(SnapshotSpan activeSpan)
             {
-                using (Logger.LogBlock(FunctionId.TextStructureNavigator_GetSpanOfPreviousSibling, CancellationToken.None))
+                var span = default(SnapshotSpan);
+                var result = _uiThreadOperationExecutor.Execute(
+                    title: EditorFeaturesResources.Text_Navigation,
+                    defaultDescription: EditorFeaturesResources.Finding_span_of_previous_sibling,
+                    allowCancellation: true,
+                    showProgress: false,
+                    action: context =>
                 {
-                    var span = default(SnapshotSpan);
-                    var result = _uiThreadOperationExecutor.Execute(
-                        title: EditorFeaturesResources.Text_Navigation,
-                        defaultDescription: EditorFeaturesResources.Finding_span_of_previous_sibling,
-                        allowCancellation: true,
-                        showProgress: false,
-                        action: context =>
-                    {
-                        span = GetSpanOfPreviousSiblingWorker(activeSpan, context.UserCancellationToken);
-                    });
+                    span = GetSpanOfPreviousSiblingWorker(activeSpan, context.UserCancellationToken);
+                });
 
-                    return result == UIThreadOperationStatus.Completed ? span : activeSpan;
-                }
+                return result == UIThreadOperationStatus.Completed ? span : activeSpan;
             }
 
             private static SnapshotSpan GetSpanOfPreviousSiblingWorker(SnapshotSpan activeSpan, CancellationToken cancellationToken)

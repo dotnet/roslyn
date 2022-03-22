@@ -27,34 +27,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
+            if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
             {
-                if (SerializableSymbolAndProjectId.TryCreate(symbol, solution, cancellationToken, out var serializedSymbol))
+                var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client != null)
                 {
-                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
-                    if (client != null)
-                    {
-                        // Create a callback that we can pass to the server process to hear about the 
-                        // results as it finds them.  When we hear about results we'll forward them to
-                        // the 'progress' parameter which will then update the UI.
-                        var serverCallback = new FindReferencesServerCallback(solution, progress);
-                        var documentIds = documents?.SelectAsArray(d => d.Id) ?? default;
+                    // Create a callback that we can pass to the server process to hear about the 
+                    // results as it finds them.  When we hear about results we'll forward them to
+                    // the 'progress' parameter which will then update the UI.
+                    var serverCallback = new FindReferencesServerCallback(solution, progress);
+                    var documentIds = documents?.SelectAsArray(d => d.Id) ?? default;
 
-                        await client.TryInvokeAsync<IRemoteSymbolFinderService>(
-                            solution,
-                            (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
-                            serverCallback,
-                            cancellationToken).ConfigureAwait(false);
+                    await client.TryInvokeAsync<IRemoteSymbolFinderService>(
+                        solution,
+                        (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, serializedSymbol, documentIds, options, cancellationToken),
+                        serverCallback,
+                        cancellationToken).ConfigureAwait(false);
 
-                        return;
-                    }
+                    return;
                 }
-
-                // Couldn't effectively search in OOP. Perform the search in-proc.
-                await FindReferencesInCurrentProcessAsync(
-                    symbol, solution, progress,
-                    documents, options, cancellationToken).ConfigureAwait(false);
             }
+
+            // Couldn't effectively search in OOP. Perform the search in-proc.
+            await FindReferencesInCurrentProcessAsync(
+                symbol, solution, progress,
+                documents, options, cancellationToken).ConfigureAwait(false);
         }
 
         internal static Task FindReferencesInCurrentProcessAsync(

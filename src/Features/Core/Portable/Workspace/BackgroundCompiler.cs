@@ -147,8 +147,6 @@ namespace Microsoft.CodeAnalysis.Host
 
             allProjectIds.AddRange(projectsToBuild.Where(p => p != initialProject));
 
-            var logger = Logger.LogBlock(FunctionId.BackgroundCompiler_BuildCompilationsAsync, cancellationToken);
-
             var compilationTasks = allProjectIds
                 .Select(solution.GetProject)
                 .Select(async p =>
@@ -161,7 +159,6 @@ namespace Microsoft.CodeAnalysis.Host
                 .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
                 {
-                    logger.Dispose();
                     if (t.Status == TaskStatus.RanToCompletion)
                     {
                         lock (_buildGate)

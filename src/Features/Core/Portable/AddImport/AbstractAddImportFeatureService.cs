@@ -89,26 +89,22 @@ namespace Microsoft.CodeAnalysis.AddImport
             using var _ = ArrayBuilder<AddImportFixData>.GetInstance(out var result);
             if (node != null)
             {
-
-                using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
+                if (!cancellationToken.IsCancellationRequested)
                 {
-                    if (!cancellationToken.IsCancellationRequested)
+                    if (CanAddImport(node, options.Placement.AllowInHiddenRegions, cancellationToken))
                     {
-                        if (CanAddImport(node, options.Placement.AllowInHiddenRegions, cancellationToken))
+                        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                        var allSymbolReferences = await FindResultsAsync(
+                            document, semanticModel, diagnosticId, node, maxResults, symbolSearchService,
+                            options, packageSources, cancellationToken).ConfigureAwait(false);
+
+                        // Nothing found at all. No need to proceed.
+                        foreach (var reference in allSymbolReferences)
                         {
-                            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                            var allSymbolReferences = await FindResultsAsync(
-                                document, semanticModel, diagnosticId, node, maxResults, symbolSearchService,
-                                options, packageSources, cancellationToken).ConfigureAwait(false);
+                            cancellationToken.ThrowIfCancellationRequested();
 
-                            // Nothing found at all. No need to proceed.
-                            foreach (var reference in allSymbolReferences)
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-
-                                var fixData = await reference.TryGetFixDataAsync(document, node, options.Placement, cancellationToken).ConfigureAwait(false);
-                                result.AddIfNotNull(fixData);
-                            }
+                            var fixData = await reference.TryGetFixDataAsync(document, node, options.Placement, cancellationToken).ConfigureAwait(false);
+                            result.AddIfNotNull(fixData);
                         }
                     }
                 }

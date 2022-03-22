@@ -61,44 +61,41 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, s_logKind, kind, cancellationToken))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (value is IChecksummedObject checksummedObject)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                return checksummedObject.Checksum;
+            }
 
-                if (value is IChecksummedObject checksummedObject)
-                {
-                    return checksummedObject.Checksum;
-                }
+            switch (kind)
+            {
+                case WellKnownSynchronizationKind.Null:
+                    return Checksum.Null;
 
-                switch (kind)
-                {
-                    case WellKnownSynchronizationKind.Null:
-                        return Checksum.Null;
+                case WellKnownSynchronizationKind.CompilationOptions:
+                case WellKnownSynchronizationKind.ParseOptions:
+                case WellKnownSynchronizationKind.ProjectReference:
+                case WellKnownSynchronizationKind.OptionSet:
+                case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                    return Checksum.Create(value, this);
 
-                    case WellKnownSynchronizationKind.CompilationOptions:
-                    case WellKnownSynchronizationKind.ParseOptions:
-                    case WellKnownSynchronizationKind.ProjectReference:
-                    case WellKnownSynchronizationKind.OptionSet:
-                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                        return Checksum.Create(value, this);
+                case WellKnownSynchronizationKind.MetadataReference:
+                    return Checksum.Create(CreateChecksum((MetadataReference)value, cancellationToken));
 
-                    case WellKnownSynchronizationKind.MetadataReference:
-                        return Checksum.Create(CreateChecksum((MetadataReference)value, cancellationToken));
+                case WellKnownSynchronizationKind.AnalyzerReference:
+                    return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
 
-                    case WellKnownSynchronizationKind.AnalyzerReference:
-                        return Checksum.Create(CreateChecksum((AnalyzerReference)value, cancellationToken));
+                case WellKnownSynchronizationKind.SerializableSourceText:
+                    return Checksum.Create(((SerializableSourceText)value).GetChecksum());
 
-                    case WellKnownSynchronizationKind.SerializableSourceText:
-                        return Checksum.Create(((SerializableSourceText)value).GetChecksum());
+                case WellKnownSynchronizationKind.SourceText:
+                    return Checksum.Create(((SourceText)value).GetChecksum());
 
-                    case WellKnownSynchronizationKind.SourceText:
-                        return Checksum.Create(((SourceText)value).GetChecksum());
-
-                    default:
-                        // object that is not part of solution is not supported since we don't know what inputs are required to
-                        // serialize it
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
+                default:
+                    // object that is not part of solution is not supported since we don't know what inputs are required to
+                    // serialize it
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
@@ -106,115 +103,109 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_Serialize, s_logKind, kind, cancellationToken))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (value is ChecksumWithChildren checksumWithChildren)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                SerializeChecksumWithChildren(checksumWithChildren, writer, cancellationToken);
+                return;
+            }
 
-                if (value is ChecksumWithChildren checksumWithChildren)
-                {
-                    SerializeChecksumWithChildren(checksumWithChildren, writer, cancellationToken);
+            switch (kind)
+            {
+                case WellKnownSynchronizationKind.Null:
+                    // do nothing
                     return;
-                }
 
-                switch (kind)
-                {
-                    case WellKnownSynchronizationKind.Null:
-                        // do nothing
-                        return;
+                case WellKnownSynchronizationKind.SolutionAttributes:
+                case WellKnownSynchronizationKind.ProjectAttributes:
+                case WellKnownSynchronizationKind.DocumentAttributes:
+                case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                    ((IObjectWritable)value).WriteTo(writer);
+                    return;
 
-                    case WellKnownSynchronizationKind.SolutionAttributes:
-                    case WellKnownSynchronizationKind.ProjectAttributes:
-                    case WellKnownSynchronizationKind.DocumentAttributes:
-                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                        ((IObjectWritable)value).WriteTo(writer);
-                        return;
+                case WellKnownSynchronizationKind.CompilationOptions:
+                    SerializeCompilationOptions((CompilationOptions)value, writer, cancellationToken);
+                    return;
 
-                    case WellKnownSynchronizationKind.CompilationOptions:
-                        SerializeCompilationOptions((CompilationOptions)value, writer, cancellationToken);
-                        return;
+                case WellKnownSynchronizationKind.ParseOptions:
+                    cancellationToken.ThrowIfCancellationRequested();
+                    SerializeParseOptions((ParseOptions)value, writer);
+                    return;
 
-                    case WellKnownSynchronizationKind.ParseOptions:
-                        cancellationToken.ThrowIfCancellationRequested();
-                        SerializeParseOptions((ParseOptions)value, writer);
-                        return;
+                case WellKnownSynchronizationKind.ProjectReference:
+                    SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
+                    return;
 
-                    case WellKnownSynchronizationKind.ProjectReference:
-                        SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
-                        return;
+                case WellKnownSynchronizationKind.MetadataReference:
+                    SerializeMetadataReference((MetadataReference)value, writer, context, cancellationToken);
+                    return;
 
-                    case WellKnownSynchronizationKind.MetadataReference:
-                        SerializeMetadataReference((MetadataReference)value, writer, context, cancellationToken);
-                        return;
+                case WellKnownSynchronizationKind.AnalyzerReference:
+                    SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
+                    return;
 
-                    case WellKnownSynchronizationKind.AnalyzerReference:
-                        SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
-                        return;
+                case WellKnownSynchronizationKind.SerializableSourceText:
+                    SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
+                    return;
 
-                    case WellKnownSynchronizationKind.SerializableSourceText:
-                        SerializeSourceText((SerializableSourceText)value, writer, context, cancellationToken);
-                        return;
+                case WellKnownSynchronizationKind.SourceText:
+                    SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
+                    return;
 
-                    case WellKnownSynchronizationKind.SourceText:
-                        SerializeSourceText(new SerializableSourceText((SourceText)value), writer, context, cancellationToken);
-                        return;
+                case WellKnownSynchronizationKind.OptionSet:
+                    SerializeOptionSet((SerializableOptionSet)value, writer, cancellationToken);
+                    return;
 
-                    case WellKnownSynchronizationKind.OptionSet:
-                        SerializeOptionSet((SerializableOptionSet)value, writer, cancellationToken);
-                        return;
-
-                    default:
-                        // object that is not part of solution is not supported since we don't know what inputs are required to
-                        // serialize it
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
+                default:
+                    // object that is not part of solution is not supported since we don't know what inputs are required to
+                    // serialize it
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 
         public T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            switch (kind)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                case WellKnownSynchronizationKind.Null:
+                    return default;
 
-                switch (kind)
-                {
-                    case WellKnownSynchronizationKind.Null:
-                        return default;
+                case WellKnownSynchronizationKind.SolutionState:
+                case WellKnownSynchronizationKind.ProjectState:
+                case WellKnownSynchronizationKind.DocumentState:
+                case WellKnownSynchronizationKind.ChecksumCollection:
+                    return (T)(object)DeserializeChecksumWithChildren(reader, cancellationToken);
 
-                    case WellKnownSynchronizationKind.SolutionState:
-                    case WellKnownSynchronizationKind.ProjectState:
-                    case WellKnownSynchronizationKind.DocumentState:
-                    case WellKnownSynchronizationKind.ChecksumCollection:
-                        return (T)(object)DeserializeChecksumWithChildren(reader, cancellationToken);
+                case WellKnownSynchronizationKind.SolutionAttributes:
+                    return (T)(object)SolutionInfo.SolutionAttributes.ReadFrom(reader);
+                case WellKnownSynchronizationKind.ProjectAttributes:
+                    return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
+                case WellKnownSynchronizationKind.DocumentAttributes:
+                    return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
+                case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
+                    return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
+                case WellKnownSynchronizationKind.CompilationOptions:
+                    return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
+                case WellKnownSynchronizationKind.ParseOptions:
+                    return (T)(object)DeserializeParseOptions(reader, cancellationToken);
+                case WellKnownSynchronizationKind.ProjectReference:
+                    return (T)(object)DeserializeProjectReference(reader, cancellationToken);
+                case WellKnownSynchronizationKind.MetadataReference:
+                    return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
+                case WellKnownSynchronizationKind.AnalyzerReference:
+                    return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
+                case WellKnownSynchronizationKind.SerializableSourceText:
+                    return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
+                case WellKnownSynchronizationKind.SourceText:
+                    return (T)(object)DeserializeSourceText(reader, cancellationToken);
+                case WellKnownSynchronizationKind.OptionSet:
+                    return (T)(object)DeserializeOptionSet(reader, cancellationToken);
 
-                    case WellKnownSynchronizationKind.SolutionAttributes:
-                        return (T)(object)SolutionInfo.SolutionAttributes.ReadFrom(reader);
-                    case WellKnownSynchronizationKind.ProjectAttributes:
-                        return (T)(object)ProjectInfo.ProjectAttributes.ReadFrom(reader);
-                    case WellKnownSynchronizationKind.DocumentAttributes:
-                        return (T)(object)DocumentInfo.DocumentAttributes.ReadFrom(reader);
-                    case WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity:
-                        return (T)(object)SourceGeneratedDocumentIdentity.ReadFrom(reader);
-                    case WellKnownSynchronizationKind.CompilationOptions:
-                        return (T)(object)DeserializeCompilationOptions(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.ParseOptions:
-                        return (T)(object)DeserializeParseOptions(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.ProjectReference:
-                        return (T)(object)DeserializeProjectReference(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.MetadataReference:
-                        return (T)(object)DeserializeMetadataReference(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.AnalyzerReference:
-                        return (T)(object)DeserializeAnalyzerReference(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.SerializableSourceText:
-                        return (T)(object)DeserializeSerializableSourceText(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.SourceText:
-                        return (T)(object)DeserializeSourceText(reader, cancellationToken);
-                    case WellKnownSynchronizationKind.OptionSet:
-                        return (T)(object)DeserializeOptionSet(reader, cancellationToken);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(kind);
-                }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 

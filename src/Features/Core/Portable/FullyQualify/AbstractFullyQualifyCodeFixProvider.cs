@@ -55,47 +55,44 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(span.Start).GetAncestors<SyntaxNode>().First(n => n.Span.Contains(span));
 
-            using (Logger.LogBlock(FunctionId.Refactoring_FullyQualify, cancellationToken))
+            // Has to be a simple identifier or generic name.
+            if (node == null || !CanFullyQualify(diagnostic, ref node))
             {
-                // Has to be a simple identifier or generic name.
-                if (node == null || !CanFullyQualify(diagnostic, ref node))
-                {
-                    return;
-                }
+                return;
+            }
 
-                var hideAdvancedMembers = context.Options.HideAdvancedMembers;
-                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var hideAdvancedMembers = context.Options.HideAdvancedMembers;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var matchingTypes = await GetMatchingTypesAsync(document, semanticModel, node, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
-                var matchingNamespaces = await GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
+            var matchingTypes = await GetMatchingTypesAsync(document, semanticModel, node, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+            var matchingNamespaces = await GetMatchingNamespacesAsync(project, semanticModel, node, cancellationToken).ConfigureAwait(false);
 
-                if (matchingTypes.IsEmpty && matchingNamespaces.IsEmpty)
-                {
-                    return;
-                }
+            if (matchingTypes.IsEmpty && matchingNamespaces.IsEmpty)
+            {
+                return;
+            }
 
-                var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypes, semanticModel.Compilation));
-                var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaces, semanticModel.Compilation));
+            var matchingTypeContainers = FilterAndSort(GetContainers(matchingTypes, semanticModel.Compilation));
+            var matchingNamespaceContainers = FilterAndSort(GetContainers(matchingNamespaces, semanticModel.Compilation));
 
-                var proposedContainers =
-                    matchingTypeContainers.Concat(matchingNamespaceContainers)
-                                          .Distinct()
-                                          .Take(MaxResults);
+            var proposedContainers =
+                matchingTypeContainers.Concat(matchingNamespaceContainers)
+                                      .Distinct()
+                                      .Take(MaxResults);
 
-                var codeActions = CreateActions(document, node, semanticModel, proposedContainers).ToImmutableArray();
+            var codeActions = CreateActions(document, node, semanticModel, proposedContainers).ToImmutableArray();
 
-                if (codeActions.Length > 1)
-                {
-                    // Wrap the spell checking actions into a single top level suggestion
-                    // so as to not clutter the list.
-                    context.RegisterCodeFix(new GroupingCodeAction(
-                        string.Format(FeaturesResources.Fully_qualify_0, GetNodeName(document, node)),
-                        codeActions), context.Diagnostics);
-                }
-                else
-                {
-                    context.RegisterFixes(codeActions, context.Diagnostics);
-                }
+            if (codeActions.Length > 1)
+            {
+                // Wrap the spell checking actions into a single top level suggestion
+                // so as to not clutter the list.
+                context.RegisterCodeFix(new GroupingCodeAction(
+                    string.Format(FeaturesResources.Fully_qualify_0, GetNodeName(document, node)),
+                    codeActions), context.Diagnostics);
+            }
+            else
+            {
+                context.RegisterFixes(codeActions, context.Diagnostics);
             }
         }
 

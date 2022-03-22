@@ -55,11 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (itemService == null)
                     return null;
 
-                using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
-                {
-                    var items = await itemService.GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
-                    return new NavigationBarModel(itemService, items);
-                }
+                var items = await itemService.GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
+                return new NavigationBarModel(itemService, items);
             }
         }
 

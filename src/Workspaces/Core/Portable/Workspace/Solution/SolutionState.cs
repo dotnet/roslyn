@@ -1978,12 +1978,9 @@ namespace Microsoft.CodeAnalysis
 
                 // otherwise get a metadata only image reference that is built by emitting the metadata from the
                 // referenced project's compilation and re-importing it.
-                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
-                {
-                    var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
-                        tracker, this, properties, cancellationToken).ConfigureAwait(false);
-                }
+                var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
+                return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
+                    tracker, this, properties, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {

@@ -41,51 +41,48 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateVariable, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            if (state == null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-
-                var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state == null)
-                {
-                    return ImmutableArray<CodeAction>.Empty;
-                }
-
-                using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
-
-                var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
-
-                if (canGenerateMember && state.CanGeneratePropertyOrField())
-                {
-                    // prefer fields over properties (and vice versa) depending on the casing of the member.
-                    // lowercase -> fields.  title case -> properties.
-                    var name = state.IdentifierToken.ValueText;
-                    if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
-                    {
-                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
-                        AddFieldCodeActions(actions, semanticDocument, state);
-                    }
-                    else
-                    {
-                        AddFieldCodeActions(actions, semanticDocument, state);
-                        await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-
-                await AddLocalCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
-                await AddParameterCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
-
-                if (actions.Count > 1)
-                {
-                    // Wrap the generate variable actions into a single top level suggestion
-                    // so as to not clutter the list.
-                    return ImmutableArray.Create<CodeAction>(new MyCodeAction(
-                        string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
-                        actions.ToImmutable()));
-                }
-
-                return actions.ToImmutable();
+                return ImmutableArray<CodeAction>.Empty;
             }
+
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+
+            var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
+
+            if (canGenerateMember && state.CanGeneratePropertyOrField())
+            {
+                // prefer fields over properties (and vice versa) depending on the casing of the member.
+                // lowercase -> fields.  title case -> properties.
+                var name = state.IdentifierToken.ValueText;
+                if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
+                {
+                    await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
+                    AddFieldCodeActions(actions, semanticDocument, state);
+                }
+                else
+                {
+                    AddFieldCodeActions(actions, semanticDocument, state);
+                    await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            await AddLocalCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
+            await AddParameterCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
+
+            if (actions.Count > 1)
+            {
+                // Wrap the generate variable actions into a single top level suggestion
+                // so as to not clutter the list.
+                return ImmutableArray.Create<CodeAction>(new MyCodeAction(
+                    string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
+                    actions.ToImmutable()));
+            }
+
+            return actions.ToImmutable();
         }
 
         protected virtual bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)

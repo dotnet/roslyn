@@ -37,29 +37,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Sub
 
         Public Overrides Function Expand(node As SyntaxNode, semanticModel As SemanticModel, aliasReplacementAnnotation As SyntaxAnnotation, expandInsideNode As Func(Of SyntaxNode, Boolean), expandParameter As Boolean, cancellationToken As CancellationToken) As SyntaxNode
-            Using Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken)
-                If TypeOf node Is ExpressionSyntax OrElse
-                    TypeOf node Is StatementSyntax OrElse
-                    TypeOf node Is AttributeSyntax OrElse
-                    TypeOf node Is SimpleArgumentSyntax OrElse
-                    TypeOf node Is CrefReferenceSyntax OrElse
-                    TypeOf node Is TypeConstraintSyntax Then
+            If TypeOf node Is ExpressionSyntax OrElse
+                TypeOf node Is StatementSyntax OrElse
+                TypeOf node Is AttributeSyntax OrElse
+                TypeOf node Is SimpleArgumentSyntax OrElse
+                TypeOf node Is CrefReferenceSyntax OrElse
+                TypeOf node Is TypeConstraintSyntax Then
 
-                    Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken, expandParameter, aliasReplacementAnnotation)
-                    Return rewriter.Visit(node)
-                Else
-                    Throw New ArgumentException(
+                Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken, expandParameter, aliasReplacementAnnotation)
+                Return rewriter.Visit(node)
+            Else
+                Throw New ArgumentException(
                         VBWorkspaceResources.Only_attributes_expressions_or_statements_can_be_made_explicit,
                         paramName:=NameOf(node))
-                End If
-            End Using
+            End If
         End Function
 
         Public Overrides Function Expand(token As SyntaxToken, semanticModel As SemanticModel, expandInsideNode As Func(Of SyntaxNode, Boolean), cancellationToken As CancellationToken) As SyntaxToken
-            Using Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken)
-                Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken)
-                Return TryEscapeIdentifierToken(rewriter.VisitToken(token))
-            End Using
+            Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken)
+            Return TryEscapeIdentifierToken(rewriter.VisitToken(token))
         End Function
 
         Protected Overrides Function GetSpeculativeSemanticModel(ByRef nodeToSpeculate As SyntaxNode, originalSemanticModel As SemanticModel, originalNode As SyntaxNode) As SemanticModel

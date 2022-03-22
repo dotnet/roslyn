@@ -52,34 +52,31 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             CancellationToken cancellationToken)
         {
             predicate ??= Functions<SyntaxNode>.True;
-            using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
+            var unnecessaryImports = await GetCommonUnnecessaryImportsOfAllContextAsync(
+                document, predicate, cancellationToken).ConfigureAwait(false);
+            if (unnecessaryImports == null || unnecessaryImports.Any(import => import.OverlapsHiddenPosition(cancellationToken)))
             {
-                var unnecessaryImports = await GetCommonUnnecessaryImportsOfAllContextAsync(
-                    document, predicate, cancellationToken).ConfigureAwait(false);
-                if (unnecessaryImports == null || unnecessaryImports.Any(import => import.OverlapsHiddenPosition(cancellationToken)))
-                {
-                    return document;
-                }
+                return document;
+            }
 
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var oldRoot = (CompilationUnitSyntax)root;
-                var newRoot = (CompilationUnitSyntax)new Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot);
+            var oldRoot = (CompilationUnitSyntax)root;
+            var newRoot = (CompilationUnitSyntax)new Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot);
 
-                cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 #if CODE_STYLE
-                var provider = GetSyntaxFormattingService();
-                var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree));
+            var provider = GetSyntaxFormattingService();
+            var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree));
 #else
                 var provider = document.Project.Solution.Workspace.Services;
                 var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 #endif
-                var spans = new List<TextSpan>();
-                AddFormattingSpans(newRoot, spans, cancellationToken);
-                var formattedRoot = Formatter.Format(newRoot, spans, provider, options, rules: null, cancellationToken);
+            var spans = new List<TextSpan>();
+            AddFormattingSpans(newRoot, spans, cancellationToken);
+            var formattedRoot = Formatter.Format(newRoot, spans, provider, options, rules: null, cancellationToken);
 
-                return document.WithSyntaxRoot(formattedRoot);
-            }
+            return document.WithSyntaxRoot(formattedRoot);
         }
 
         private void AddFormattingSpans(

@@ -42,14 +42,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 return asset;
             }
 
-            using (Logger.LogBlock(FunctionId.AssetService_GetAssetAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
-            {
-                // TODO: what happen if service doesn't come back. timeout?
-                var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
+            // TODO: what happen if service doesn't come back. timeout?
+            var value = await RequestAssetAsync(checksum, cancellationToken).ConfigureAwait(false);
 
-                _assetCache.TryAddAsset(checksum, value);
-                return (T)value;
-            }
+            _assetCache.TryAddAsset(checksum, value);
+            return (T)value;
         }
 
         public async Task<List<ValueTuple<Checksum, T>>> GetAssetsAsync<T>(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
@@ -82,11 +79,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // one can call this method to make cache hot for all assets that belong to the solution checksum so that GetAssetAsync call will most likely cache hit.
             // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
             // before one actually consume the data. 
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeSolutionAssetsAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
-            {
-                var syncer = new ChecksumSynchronizer(this);
-                await syncer.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            }
+            var syncer = new ChecksumSynchronizer(this);
+            await syncer.SynchronizeSolutionAssetsAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
 
             timer.Stop();
 
@@ -107,11 +101,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // one can call this method to make cache hot for all assets that belong to the project checksum so that GetAssetAsync call will most likely cache hit.
             // it is most likely since we might change cache hueristic in future which make data to live a lot shorter in the cache, and the data might get expired
             // before one actually consume the data. 
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeProjectAssetsAsync, Checksum.GetChecksumsLogInfo, projectChecksums, cancellationToken))
-            {
-                var syncer = new ChecksumSynchronizer(this);
-                await syncer.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
-            }
+            var syncer = new ChecksumSynchronizer(this);
+            await syncer.SynchronizeProjectAssetsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
         }
 
         public bool EnsureCacheEntryIfExists(Checksum checksum)
@@ -128,14 +119,11 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Debug.Assert(!checksums.Contains(Checksum.Null));
 
-            using (Logger.LogBlock(FunctionId.AssetService_SynchronizeAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
-            {
-                var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
+            var assets = await RequestAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
 
-                foreach (var (checksum, value) in assets)
-                {
-                    _assetCache.TryAddAsset(checksum, value);
-                }
+            foreach (var (checksum, value) in assets)
+            {
+                _assetCache.TryAddAsset(checksum, value);
             }
         }
 

@@ -53,77 +53,74 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             {
                 try
                 {
-                    using (Logger.LogBlock(FunctionId.SignatureHelp_ModelComputation_ComputeModelInBackground, cancellationToken))
+                    AssertIsBackground();
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var document = Controller.DocumentProvider.GetDocument(caretPosition.Snapshot, cancellationToken);
+                    if (document == null)
                     {
-                        AssertIsBackground();
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        var document = Controller.DocumentProvider.GetDocument(caretPosition.Snapshot, cancellationToken);
-                        if (document == null)
-                        {
-                            return currentModel;
-                        }
-
-                        // Let LSP handle signature help in the cloud scenario
-                        if (Controller.SubjectBuffer.IsInLspEditorContext())
-                        {
-                            return null;
-                        }
-
-                        if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
-                        {
-                            if (currentModel == null)
-                            {
-                                return null;
-                            }
-
-                            if (triggerInfo.TriggerCharacter.HasValue &&
-                                !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value))
-                            {
-                                return currentModel;
-                            }
-                        }
-
-                        var options = Controller.GlobalOptions.GetSignatureHelpOptions(document.Project.Language);
-
-                        // first try to query the providers that can trigger on the specified character
-                        var (provider, items) = await ComputeItemsAsync(
-                            providers, caretPosition, triggerInfo,
-                            options, document, cancellationToken).ConfigureAwait(false);
-
-                        if (provider == null)
-                        {
-                            // No provider produced items. So we can't produce a model
-                            return null;
-                        }
-
-                        if (currentModel != null &&
-                            currentModel.Provider == provider &&
-                            currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
-                            currentModel.Items.IndexOf(currentModel.SelectedItem) == items.SelectedItemIndex &&
-                            currentModel.ArgumentIndex == items.ArgumentIndex &&
-                            currentModel.ArgumentCount == items.ArgumentCount &&
-                            currentModel.ArgumentName == items.ArgumentName)
-                        {
-                            // The new model is the same as the current model.  Return the currentModel
-                            // so we keep the active selection.
-                            return currentModel;
-                        }
-
-                        var selectedItem = GetSelectedItem(currentModel, items, provider, out var userSelected);
-
-                        var model = new Model(disconnectedBufferGraph, items.ApplicableSpan, provider,
-                            items.Items, selectedItem, items.ArgumentIndex, items.ArgumentCount, items.ArgumentName,
-                            selectedParameter: 0, userSelected);
-
-                        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                        var isCaseSensitive = syntaxFactsService == null || syntaxFactsService.IsCaseSensitive;
-                        var selection = DefaultSignatureHelpSelector.GetSelection(model.Items,
-                            model.SelectedItem, model.UserSelected, model.ArgumentIndex, model.ArgumentCount, model.ArgumentName, isCaseSensitive);
-
-                        return model.WithSelectedItem(selection.SelectedItem, selection.UserSelected)
-                                    .WithSelectedParameter(selection.SelectedParameter);
+                        return currentModel;
                     }
+
+                    // Let LSP handle signature help in the cloud scenario
+                    if (Controller.SubjectBuffer.IsInLspEditorContext())
+                    {
+                        return null;
+                    }
+
+                    if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
+                    {
+                        if (currentModel == null)
+                        {
+                            return null;
+                        }
+
+                        if (triggerInfo.TriggerCharacter.HasValue &&
+                            !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value))
+                        {
+                            return currentModel;
+                        }
+                    }
+
+                    var options = Controller.GlobalOptions.GetSignatureHelpOptions(document.Project.Language);
+
+                    // first try to query the providers that can trigger on the specified character
+                    var (provider, items) = await ComputeItemsAsync(
+                        providers, caretPosition, triggerInfo,
+                        options, document, cancellationToken).ConfigureAwait(false);
+
+                    if (provider == null)
+                    {
+                        // No provider produced items. So we can't produce a model
+                        return null;
+                    }
+
+                    if (currentModel != null &&
+                        currentModel.Provider == provider &&
+                        currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
+                        currentModel.Items.IndexOf(currentModel.SelectedItem) == items.SelectedItemIndex &&
+                        currentModel.ArgumentIndex == items.ArgumentIndex &&
+                        currentModel.ArgumentCount == items.ArgumentCount &&
+                        currentModel.ArgumentName == items.ArgumentName)
+                    {
+                        // The new model is the same as the current model.  Return the currentModel
+                        // so we keep the active selection.
+                        return currentModel;
+                    }
+
+                    var selectedItem = GetSelectedItem(currentModel, items, provider, out var userSelected);
+
+                    var model = new Model(disconnectedBufferGraph, items.ApplicableSpan, provider,
+                        items.Items, selectedItem, items.ArgumentIndex, items.ArgumentCount, items.ArgumentName,
+                        selectedParameter: 0, userSelected);
+
+                    var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+                    var isCaseSensitive = syntaxFactsService == null || syntaxFactsService.IsCaseSensitive;
+                    var selection = DefaultSignatureHelpSelector.GetSelection(model.Items,
+                        model.SelectedItem, model.UserSelected, model.ArgumentIndex, model.ArgumentCount, model.ArgumentName, isCaseSensitive);
+
+                    return model.WithSelectedItem(selection.SelectedItem, selection.UserSelected)
+                                .WithSelectedParameter(selection.SelectedParameter);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {

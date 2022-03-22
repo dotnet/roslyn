@@ -1179,96 +1179,93 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
         {
-            using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
+            // If solution did not originate from this workspace then fail
+            if (newSolution.Workspace != this)
             {
-                // If solution did not originate from this workspace then fail
-                if (newSolution.Workspace != this)
-                {
-                    Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: workspaces do not match");
-                    return false;
-                }
+                Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: workspaces do not match");
+                return false;
+            }
 
-                var oldSolution = this.CurrentSolution;
+            var oldSolution = this.CurrentSolution;
 
-                // If the workspace has already accepted an update, then fail
-                if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
-                {
-                    Logger.Log(
-                        FunctionId.Workspace_ApplyChanges,
-                        static (oldSolution, newSolution) =>
-                        {
+            // If the workspace has already accepted an update, then fail
+            if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
+            {
+                Logger.Log(
+                    FunctionId.Workspace_ApplyChanges,
+                    static (oldSolution, newSolution) =>
+                    {
                             // 'oldSolution' is the current workspace solution; if we reach this point we know
                             // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
-                            var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
-                            var newWorkspaceVersion = newSolution.WorkspaceVersion;
-                            return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
-                        },
-                        oldSolution,
-                        newSolution);
-                    return false;
-                }
+                        var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
+                        var newWorkspaceVersion = newSolution.WorkspaceVersion;
+                        return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                    },
+                    oldSolution,
+                    newSolution);
+                return false;
+            }
 
-                // make sure that newSolution is a branch of the current solution
+            // make sure that newSolution is a branch of the current solution
 
-                // the given solution must be a branched one.
-                // otherwise, there should be no change to apply.
-                if (oldSolution.BranchId == newSolution.BranchId)
-                {
-                    CheckNoChanges(oldSolution, newSolution);
-                    return true;
-                }
-
-                var solutionChanges = newSolution.GetChanges(oldSolution);
-                this.CheckAllowedSolutionChanges(solutionChanges);
-
-                var solutionWithLinkedFileChangesMerged = newSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: CancellationToken.None).Result;
-                solutionChanges = solutionWithLinkedFileChangesMerged.GetChanges(oldSolution);
-
-                // added projects
-                foreach (var proj in solutionChanges.GetAddedProjects())
-                {
-                    this.ApplyProjectAdded(CreateProjectInfo(proj));
-                }
-
-                // changed projects
-                var projectChangesList = solutionChanges.GetProjectChanges().ToList();
-                progressTracker.AddItems(projectChangesList.Count);
-
-                foreach (var projectChanges in projectChangesList)
-                {
-                    this.ApplyProjectChanges(projectChanges);
-                    progressTracker.ItemCompleted();
-                }
-
-                // changes in mapped files outside the workspace (may span multiple projects)
-                this.ApplyMappedFileChanges(solutionChanges);
-
-                // removed projects
-                foreach (var proj in solutionChanges.GetRemovedProjects())
-                {
-                    this.ApplyProjectRemoved(proj.Id);
-                }
-
-                if (this.CurrentSolution.Options != newSolution.Options)
-                {
-                    SetOptions(newSolution.Options);
-                }
-
-                if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))
-                {
-                    foreach (var analyzerReference in solutionChanges.GetRemovedAnalyzerReferences())
-                    {
-                        ApplySolutionAnalyzerReferenceRemoved(analyzerReference);
-                    }
-
-                    foreach (var analyzerReference in solutionChanges.GetAddedAnalyzerReferences())
-                    {
-                        ApplySolutionAnalyzerReferenceAdded(analyzerReference);
-                    }
-                }
-
+            // the given solution must be a branched one.
+            // otherwise, there should be no change to apply.
+            if (oldSolution.BranchId == newSolution.BranchId)
+            {
+                CheckNoChanges(oldSolution, newSolution);
                 return true;
             }
+
+            var solutionChanges = newSolution.GetChanges(oldSolution);
+            this.CheckAllowedSolutionChanges(solutionChanges);
+
+            var solutionWithLinkedFileChangesMerged = newSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: CancellationToken.None).Result;
+            solutionChanges = solutionWithLinkedFileChangesMerged.GetChanges(oldSolution);
+
+            // added projects
+            foreach (var proj in solutionChanges.GetAddedProjects())
+            {
+                this.ApplyProjectAdded(CreateProjectInfo(proj));
+            }
+
+            // changed projects
+            var projectChangesList = solutionChanges.GetProjectChanges().ToList();
+            progressTracker.AddItems(projectChangesList.Count);
+
+            foreach (var projectChanges in projectChangesList)
+            {
+                this.ApplyProjectChanges(projectChanges);
+                progressTracker.ItemCompleted();
+            }
+
+            // changes in mapped files outside the workspace (may span multiple projects)
+            this.ApplyMappedFileChanges(solutionChanges);
+
+            // removed projects
+            foreach (var proj in solutionChanges.GetRemovedProjects())
+            {
+                this.ApplyProjectRemoved(proj.Id);
+            }
+
+            if (this.CurrentSolution.Options != newSolution.Options)
+            {
+                SetOptions(newSolution.Options);
+            }
+
+            if (!CurrentSolution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences))
+            {
+                foreach (var analyzerReference in solutionChanges.GetRemovedAnalyzerReferences())
+                {
+                    ApplySolutionAnalyzerReferenceRemoved(analyzerReference);
+                }
+
+                foreach (var analyzerReference in solutionChanges.GetAddedAnalyzerReferences())
+                {
+                    ApplySolutionAnalyzerReferenceAdded(analyzerReference);
+                }
+            }
+
+            return true;
         }
 
         internal virtual void ApplyMappedFileChanges(SolutionChanges solutionChanges)

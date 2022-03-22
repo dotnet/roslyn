@@ -43,36 +43,35 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                 baseTree As SyntaxTree,
                                 cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
 
-            Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
-                Dim buffer = spanToFormat.Snapshot.TextBuffer
-                Dim currentSnapshot = buffer.CurrentSnapshot
+            Dim buffer = spanToFormat.Snapshot.TextBuffer
+            Dim currentSnapshot = buffer.CurrentSnapshot
 
-                ' make sure things are current
-                spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
-                dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
+            ' make sure things are current
+            spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
+            dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
 
-                ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
-                ' user indefinitely while getting full semantics for this projects (which can require building all
-                ' projects we depend on).
-                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
-                If document Is Nothing Then
-                    Return
-                End If
+            ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
+            ' user indefinitely while getting full semantics for this projects (which can require building all
+            ' projects we depend on).
+            Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
+            If document Is Nothing Then
+                Return
+            End If
 
-                If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
-                    Return
-                End If
+            If Not (isExplicitFormat OrElse _globalOptions.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                Return
+            End If
 
-                Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
-                If AbortForDiagnostics(document, cancellationToken) Then
-                    Return
-                End If
+            Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
+            If AbortForDiagnostics(document, cancellationToken) Then
+                Return
+            End If
 
-                ' create commit formatting cleanup provider that has line commit specific behavior
-                Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
-                Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
-                Dim formattingOptions = SyntaxFormattingOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language)
-                Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
+            ' create commit formatting cleanup provider that has line commit specific behavior
+            Dim inferredIndentationService = document.Project.Solution.Workspace.Services.GetRequiredService(Of IInferredIndentationService)()
+            Dim documentOptions = inferredIndentationService.GetDocumentOptionsWithInferredIndentationAsync(document, isExplicitFormat, cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim formattingOptions = SyntaxFormattingOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language)
+            Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                                                 document,
                                                 formattingOptions,
                                                 spanToFormat,
@@ -81,38 +80,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                 document.GetSyntaxTreeSynchronously(cancellationToken),
                                                 cancellationToken)
 
-                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
+            Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
                                                WhereAsArray(s_codeCleanupPredicate).
                                                Concat(commitFormattingCleanup)
 
-                Dim finalDocument As Document
-                If useSemantics OrElse isExplicitFormat Then
-                    finalDocument = CodeCleaner.CleanupAsync(document,
+            Dim finalDocument As Document
+            If useSemantics OrElse isExplicitFormat Then
+                finalDocument = CodeCleaner.CleanupAsync(document,
                                                              textSpanToFormat,
                                                              codeCleanups,
                                                              cancellationToken).WaitAndGetResult(cancellationToken)
-                Else
-                    Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
-                    Dim newRoot = CodeCleaner.CleanupAsync(root,
+            Else
+                Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
+                Dim newRoot = CodeCleaner.CleanupAsync(root,
                                                            textSpanToFormat,
                                                            documentOptions,
                                                            document.Project.Solution.Workspace.Services,
                                                            codeCleanups,
                                                            cancellationToken).WaitAndGetResult(cancellationToken)
-                    If root Is newRoot Then
-                        finalDocument = document
+                If root Is newRoot Then
+                    finalDocument = document
+                Else
+                    Dim text As SourceText = Nothing
+                    If newRoot.SyntaxTree IsNot Nothing AndAlso newRoot.SyntaxTree.TryGetText(text) Then
+                        finalDocument = document.WithText(text)
                     Else
-                        Dim text As SourceText = Nothing
-                        If newRoot.SyntaxTree IsNot Nothing AndAlso newRoot.SyntaxTree.TryGetText(text) Then
-                            finalDocument = document.WithText(text)
-                        Else
-                            finalDocument = document.WithSyntaxRoot(newRoot)
-                        End If
+                        finalDocument = document.WithSyntaxRoot(newRoot)
                     End If
                 End If
+            End If
 
-                finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
-            End Using
+            finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
         End Sub
 
         Private Shared Function AbortForDiagnostics(document As Document, cancellationToken As CancellationToken) As Boolean

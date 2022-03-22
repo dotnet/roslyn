@@ -45,21 +45,12 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
 
         private SyntaxNode CaseCorrect(SemanticModel? semanticModel, SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.CaseCorrection_CaseCorrect, cancellationToken))
-            {
-                var normalizedSpanCollection = new NormalizedTextSpanCollection(spans);
-                var replacements = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
+            var normalizedSpanCollection = new NormalizedTextSpanCollection(spans);
+            var replacements = new ConcurrentDictionary<SyntaxToken, SyntaxToken>();
 
-                using (Logger.LogBlock(FunctionId.CaseCorrection_AddReplacements, cancellationToken))
-                {
-                    AddReplacements(semanticModel, root, normalizedSpanCollection.ToImmutableArray(), replacements, cancellationToken);
-                }
+            AddReplacements(semanticModel, root, normalizedSpanCollection.ToImmutableArray(), replacements, cancellationToken);
 
-                using (Logger.LogBlock(FunctionId.CaseCorrection_ReplaceTokens, cancellationToken))
-                {
-                    return root.ReplaceTokens(replacements.Keys, (oldToken, _) => replacements[oldToken]);
-                }
-            }
+            return root.ReplaceTokens(replacements.Keys, (oldToken, _) => replacements[oldToken]);
         }
     }
 }

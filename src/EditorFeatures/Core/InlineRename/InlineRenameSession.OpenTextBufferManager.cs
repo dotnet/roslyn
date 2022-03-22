@@ -227,32 +227,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     return;
                 }
 
-                using (Logger.LogBlock(FunctionId.Rename_OnTextBufferChanged, CancellationToken.None))
+                var trackingSpansAfterEdit = new NormalizedSpanCollection(GetEditableSpansForSnapshot(args.After).Select(ss => (Span)ss));
+                var spansTouchedInEdit = new NormalizedSpanCollection(args.Changes.Select(c => c.NewSpan));
+
+                var intersectionSpans = NormalizedSpanCollection.Intersection(trackingSpansAfterEdit, spansTouchedInEdit);
+                if (intersectionSpans.Count == 0)
                 {
-                    var trackingSpansAfterEdit = new NormalizedSpanCollection(GetEditableSpansForSnapshot(args.After).Select(ss => (Span)ss));
-                    var spansTouchedInEdit = new NormalizedSpanCollection(args.Changes.Select(c => c.NewSpan));
-
-                    var intersectionSpans = NormalizedSpanCollection.Intersection(trackingSpansAfterEdit, spansTouchedInEdit);
-                    if (intersectionSpans.Count == 0)
-                    {
-                        // In Razor we sometimes get formatting changes during inline rename that
-                        // do not intersect with any of our spans. Ideally this shouldn't happen at
-                        // all, but if it does happen we can just ignore it.
-                        return;
-                    }
-
-                    // Cases with invalid identifiers may cause there to be multiple intersection
-                    // spans, but they should still all map to a single tracked rename span (e.g.
-                    // renaming "two" to "one two three" may be interpreted as two distinct
-                    // additions of "one" and "three").
-                    var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
-                    var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
-                    Debug.Assert(trackingSpansTouched.Count() == 1);
-
-                    var singleTrackingSpanTouched = trackingSpansTouched.Single();
-                    _activeSpan = _referenceSpanToLinkedRenameSpanMap.Where(kvp => kvp.Value.TrackingSpan.GetSpan(args.After).Contains(boundingIntersectionSpan)).Single().Key;
-                    _session.UndoManager.OnTextChanged(this.ActiveTextView.Selection, singleTrackingSpanTouched);
+                    // In Razor we sometimes get formatting changes during inline rename that
+                    // do not intersect with any of our spans. Ideally this shouldn't happen at
+                    // all, but if it does happen we can just ignore it.
+                    return;
                 }
+
+                // Cases with invalid identifiers may cause there to be multiple intersection
+                // spans, but they should still all map to a single tracked rename span (e.g.
+                // renaming "two" to "one two three" may be interpreted as two distinct
+                // additions of "one" and "three").
+                var boundingIntersectionSpan = Span.FromBounds(intersectionSpans.First().Start, intersectionSpans.Last().End);
+                var trackingSpansTouched = GetEditableSpansForSnapshot(args.After).Where(ss => ss.IntersectsWith(boundingIntersectionSpan));
+                Debug.Assert(trackingSpansTouched.Count() == 1);
+
+                var singleTrackingSpanTouched = trackingSpansTouched.Single();
+                _activeSpan = _referenceSpanToLinkedRenameSpanMap.Where(kvp => kvp.Value.TrackingSpan.GetSpan(args.After).Contains(boundingIntersectionSpan)).Single().Key;
+                _session.UndoManager.OnTextChanged(this.ActiveTextView.Selection, singleTrackingSpanTouched);
             }
 
             /// <summary>
@@ -542,38 +539,35 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 try
                 {
-                    using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, newDocument.Name, cancellationToken))
+                    if (oldDocument == newDocument)
                     {
-                        if (oldDocument == newDocument)
-                        {
-                            // no changes
-                            return SpecializedCollections.EmptyEnumerable<TextChange>();
-                        }
-
-                        if (newDocument.Id != oldDocument.Id)
-                        {
-                            throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
-                        }
-
-                        var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                        if (oldText == newText)
-                        {
-                            return SpecializedCollections.EmptyEnumerable<TextChange>();
-                        }
-
-                        var textChanges = newText.GetTextChanges(oldText).ToList();
-
-                        // if changes are significant (not the whole document being replaced) then use these changes
-                        if (textChanges.Count != 1 || textChanges[0].Span != new TextSpan(0, oldText.Length))
-                        {
-                            return textChanges;
-                        }
-
-                        var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
-                        return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
+                        // no changes
+                        return SpecializedCollections.EmptyEnumerable<TextChange>();
                     }
+
+                    if (newDocument.Id != oldDocument.Id)
+                    {
+                        throw new ArgumentException(WorkspacesResources.The_specified_document_is_not_a_version_of_this_document);
+                    }
+
+                    var oldText = await oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (oldText == newText)
+                    {
+                        return SpecializedCollections.EmptyEnumerable<TextChange>();
+                    }
+
+                    var textChanges = newText.GetTextChanges(oldText).ToList();
+
+                    // if changes are significant (not the whole document being replaced) then use these changes
+                    if (textChanges.Count != 1 || textChanges[0].Span != new TextSpan(0, oldText.Length))
+                    {
+                        return textChanges;
+                    }
+
+                    var textDiffService = oldDocument.Project.Solution.Workspace.Services.GetService<IDocumentTextDifferencingService>();
+                    return await textDiffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {

@@ -162,31 +162,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     TESTSessionHookupMutex.ReleaseMutex();
                 }
 
-                using (Logger.LogBlock(FunctionId.EventHookup_Determine_If_Event_Hookup, cancellationToken))
+                var plusEqualsToken = await GetPlusEqualsTokenInsideAddAssignExpressionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (plusEqualsToken == null)
                 {
-                    var plusEqualsToken = await GetPlusEqualsTokenInsideAddAssignExpressionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                    if (plusEqualsToken == null)
-                    {
-                        return null;
-                    }
-
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                    var eventSymbol = GetEventSymbol(semanticModel, plusEqualsToken.Value, cancellationToken);
-                    if (eventSymbol == null)
-                    {
-                        return null;
-                    }
-
-                    var namingRule = await document.GetApplicableNamingRuleAsync(
-                        new SymbolKindOrTypeKind(MethodKind.Ordinary),
-                        new DeclarationModifiers(isStatic: plusEqualsToken.Value.Parent.IsInStaticContext()),
-                        Accessibility.Private, cancellationToken).ConfigureAwait(false);
-
-                    return GetEventHandlerName(
-                        eventSymbol, plusEqualsToken.Value, semanticModel,
-                        document.GetLanguageService<ISyntaxFactsService>(), namingRule);
+                    return null;
                 }
+
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                var eventSymbol = GetEventSymbol(semanticModel, plusEqualsToken.Value, cancellationToken);
+                if (eventSymbol == null)
+                {
+                    return null;
+                }
+
+                var namingRule = await document.GetApplicableNamingRuleAsync(
+                    new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                    new DeclarationModifiers(isStatic: plusEqualsToken.Value.Parent.IsInStaticContext()),
+                    Accessibility.Private, cancellationToken).ConfigureAwait(false);
+
+                return GetEventHandlerName(
+                    eventSymbol, plusEqualsToken.Value, semanticModel,
+                    document.GetLanguageService<ISyntaxFactsService>(), namingRule);
             }
 
             private async Task<SyntaxToken?> GetPlusEqualsTokenInsideAddAssignExpressionAsync(Document document, int position, CancellationToken cancellationToken)

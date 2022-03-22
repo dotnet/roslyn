@@ -187,29 +187,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(GlobalOptions, a), e, CancellationToken.None))
+                if (_workspace != e.Workspace)
                 {
-                    if (_workspace != e.Workspace)
-                    {
-                        return;
-                    }
-
-                    var diagnostics = e.GetPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
-                    if (diagnostics.Length == 0)
-                    {
-                        OnDataRemoved(e);
-                        return;
-                    }
-
-                    var count = diagnostics.Where(ShouldInclude).Count();
-                    if (count <= 0)
-                    {
-                        OnDataRemoved(e);
-                        return;
-                    }
-
-                    OnDataAddedOrChanged(e);
+                    return;
                 }
+
+                var diagnostics = e.GetPushDiagnostics(GlobalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode);
+                if (diagnostics.Length == 0)
+                {
+                    OnDataRemoved(e);
+                    return;
+                }
+
+                var count = diagnostics.Where(ShouldInclude).Count();
+                if (count <= 0)
+                {
+                    OnDataRemoved(e);
+                    return;
+                }
+
+                OnDataAddedOrChanged(e);
             }
 
             public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
