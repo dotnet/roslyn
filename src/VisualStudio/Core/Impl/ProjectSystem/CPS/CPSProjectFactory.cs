@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>().ConfigureAwait(true);
+                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
 
                 // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to 
                 // set up some items, and the F# project system doesn't guarantee that the F# package has been loaded itself

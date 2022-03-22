@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             => service.StreamFixesAsync(document, range, CodeActionRequestPriority.None, options, addOperationScope: _ => null, cancellationToken);
 
         public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan range, CodeActionOptions options, CancellationToken cancellationToken)
-            => service.StreamFixesAsync(document, range, options, cancellationToken).ToImmutableArrayAsync();
+            => service.StreamFixesAsync(document, range, options, cancellationToken).ToImmutableArrayAsync(cancellationToken);
 
         public static Task<ImmutableArray<CodeFixCollection>> GetFixesAsync(this ICodeFixService service, Document document, TextSpan textSpan, CodeActionRequestPriority priority, CodeActionOptions options, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken)
-            => service.StreamFixesAsync(document, textSpan, priority, options, addOperationScope, cancellationToken).ToImmutableArrayAsync();
+            => service.StreamFixesAsync(document, textSpan, priority, options, addOperationScope, cancellationToken).ToImmutableArrayAsync(cancellationToken);
     }
 }
