@@ -9802,15 +9802,15 @@ class B : A
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,24): error CS9013: 'B.F1<T>()': return type must be 'T' to match overridden member 'A.F1<T>()'. Consider adding a 'where T : class' or 'where T : default' constraint.
+                // (9,24): error CS9013: 'B.F1<T>()': return type must be 'T?' to match overridden member 'A.F1<T>()'. Consider adding a 'where T : class' or 'where T : default' constraint.
                 //     public override T? F1<T>() => default;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, "F1").WithArguments("B.F1<T>()", "A.F1<T>()", "T", "T").WithLocation(9, 24),
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, "F1").WithArguments("B.F1<T>()", "A.F1<T>()", "T?", "T").WithLocation(9, 24),
                 // (9,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override T? F1<T>() => default;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F1").WithArguments("System.Nullable<T>", "T", "T").WithLocation(9, 24),
-                // (10,24): error CS9013: 'B.F2<T>()': return type must be 'T' to match overridden member 'A.F2<T>()'. Consider adding a 'where T : class' or 'where T : default' constraint.
+                // (10,24): error CS9013: 'B.F2<T>()': return type must be 'T?' to match overridden member 'A.F2<T>()'. Consider adding a 'where T : class' or 'where T : default' constraint.
                 //     public override T? F2<T>() => default;
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, "F2").WithArguments("B.F2<T>()", "A.F2<T>()", "T", "T").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride_MayRequireConstraint, "F2").WithArguments("B.F2<T>()", "A.F2<T>()", "T?", "T").WithLocation(10, 24),
                 // (10,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     public override T? F2<T>() => default;
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F2").WithArguments("System.Nullable<T>", "T", "T").WithLocation(10, 24));
