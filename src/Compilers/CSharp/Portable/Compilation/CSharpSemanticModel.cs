@@ -232,6 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
 
+            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
+            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            {
+                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+            }
+
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
@@ -243,6 +249,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder == null)
             {
                 return null;
+            }
+
+            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
+            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor)
+            {
+                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
             }
 
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);

@@ -1558,10 +1558,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
-                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor // PROTOTYPE: We should traverse until we get a property accessor.
-                        )
+                        // PROTOTYPE(semi-auto-props): Use ContainingMember() to support local functions and lambdas.
+                        ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
                     {
-                        if (accessor.Property.CreateBackingFieldForFieldKeyword() is { } backingField)
+                        if (GetSymbolForPossibleFieldKeyword() is { } backingField)
                         {
                             expression = BindNonMethod(node, backingField, diagnostics, LookupResultKind.Viable, indexed: false, isError: false);
                         }

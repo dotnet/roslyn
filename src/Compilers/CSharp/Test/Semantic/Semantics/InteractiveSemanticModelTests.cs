@@ -96,6 +96,28 @@ void Goo() {};
         }
 
         [Fact]
+        public void BindFieldKeyword()
+        {
+            var testSrc = @"
+public class C
+{
+    public string S
+    {
+        get
+        {
+            _ = /*<bind>*/field/*</bind>*/;
+            return field;
+        }
+    }
+}";
+            // Get the bind info for the text identified within the commented <bind> </bind> tags
+            var bindInfo = GetBindInfoForTest(testSrc);
+            Assert.Equal(SpecialType.System_String, bindInfo.Type.SpecialType);
+            Assert.Equal("System.String Script.C.<S>k__BackingField", bindInfo.Symbol.GetSymbol().ToTestDisplayString());
+            Assert.Equal(SymbolKind.Field, bindInfo.Symbol.Kind);
+        }
+
+        [Fact]
         public void BindBooleanField()
         {
             var testSrc = @"

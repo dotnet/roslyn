@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -42,6 +43,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
+        /// <summary>
+        /// Represents the state of "field" identifier for speculative semantic model tests.
+        /// </summary>
+        public enum FieldBindingTestState
+        {
+            /// <summary>
+            /// The field identifier isn't a backing field or a local.
+            /// </summary>
+            /// <remarks>
+            /// If the original property is not semi-auto property. We don't
+            /// bind field identifier as a backing field.
+            /// </remarks>
+            None,
+
+            /// <summary>
+            /// The field identifier is bound as a backing field.
+            /// </summary>
+            /// <remarks>
+            /// This only happens if the original property is a semi-auto property.
+            /// </remarks>
+            BecomesBackingField,
+
+            /// <summary>
+            /// The field identifier is bound as a local.
+            /// </summary>
+            BecomesLocal,
+        }
+
         private void VerifyTypeIL(CSharpCompilation compilation, string typeName, string expected)
         {
             if (!ExecutionConditionUtil.IsDesktop)
@@ -51,6 +80,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             }
 
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
+        }
+
+        [Fact]
+        public void TestNameOfFieldInAttribute()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return local();
+
+            [My(nameof(field))]
+            int local() => 0;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+");
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 6 (0x6)
+		.maxstack 8
+		IL_0000: call int32 C::'<get_P>g__local|1_0'()
+		IL_0005: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2057
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	.method assembly hidebysig static 
+		int32 '<get_P>g__local|1_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		.custom instance void MyAttribute::.ctor(string) = (
+			01 00 05 66 69 65 6c 64 00 00
+		)
+		// Method begins at RVA 0x205f
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.0
+		IL_0001: ret
+	} // end of method C::'<get_P>g__local|1_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
@@ -1157,7 +1263,7 @@ class C
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact(Skip = "PROTOTYPE(semi-auto-props)")]
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support")]
         public void InStaticLambda()
         {
             var comp = CreateCompilation(@"
@@ -1183,6 +1289,299 @@ public class C
                 //             Func<int> f = static () => field;
                 Diagnostic(ErrorCode.ERR_StaticAnonymousFunctionCannotCaptureThis, "field").WithLocation(10, 40)
             );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        public void InStaticLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunc();
+
+            static int localFunc() => field;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics(
+                // (10,39): error CS8422: A static local function cannot contain a reference to 'this' or 'base'.
+                //             static int localFunc() => field;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureThis, "field").WithLocation(10, 39)
+            );
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        public void InLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunc();
+            int localFunc() => field;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance int32 C::'<get_P>g__localFunc|1_0'()
+		IL_0006: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2058
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	.method private hidebysig 
+		instance int32 '<get_P>g__localFunc|1_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2060
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::'<get_P>g__localFunc|1_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support")]
+        public void InStaticLambda_PropertyIsStatic()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public class C
+{
+    public static int P
+    {
+        get
+        {
+            Func<int> f = static () => field;
+            Console.WriteLine(f());
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c'
+		extends [mscorlib]System.Object
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Fields
+		.field public static initonly class C/'<>c' '<>9'
+		.field public static class [mscorlib]System.Func`1<int32> '<>9__1_0'
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Method begins at RVA 0x2084
+			// Code size 11 (0xb)
+			.maxstack 8
+			IL_0000: newobj instance void C/'<>c'::.ctor()
+			IL_0005: stsfld class C/'<>c' C/'<>c'::'<>9'
+			IL_000a: ret
+		} // end of method '<>c'::.cctor
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Method begins at RVA 0x207c
+			// Code size 7 (0x7)
+			.maxstack 8
+			IL_0000: ldarg.0
+			IL_0001: call instance void [mscorlib]System.Object::.ctor()
+			IL_0006: ret
+		} // end of method '<>c'::.ctor
+		.method assembly hidebysig 
+			instance int32 '<get_P>b__1_0' () cil managed 
+		{
+			// Method begins at RVA 0x2090
+			// Code size 6 (0x6)
+			.maxstack 8
+			IL_0000: ldsfld int32 C::'<P>k__BackingField'
+			IL_0005: ret
+		} // end of method '<>c'::'<get_P>b__1_0'
+	} // end of class <>c
+	// Fields
+	.field private static initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname static 
+		int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 43 (0x2b)
+		.maxstack 8
+		IL_0000: ldsfld class [mscorlib]System.Func`1<int32> C/'<>c'::'<>9__1_0'
+		IL_0005: dup
+		IL_0006: brtrue.s IL_001f
+		IL_0008: pop
+		IL_0009: ldsfld class C/'<>c' C/'<>c'::'<>9'
+		IL_000e: ldftn instance int32 C/'<>c'::'<get_P>b__1_0'()
+		IL_0014: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
+		IL_0019: dup
+		IL_001a: stsfld class [mscorlib]System.Func`1<int32> C/'<>c'::'<>9__1_0'
+		IL_001f: callvirt instance !0 class [mscorlib]System.Func`1<int32>::Invoke()
+		IL_0024: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0029: ldc.i4.0
+		IL_002a: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x207c
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property int32 P()
+	{
+		.get int32 C::get_P()
+	}
+} // end of class C
+");
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact(Skip = "PROTOTYPE(semi-auto-props): Waiting on lambda support.")]
+        public void InLambda()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public class C
+{
+    public int P
+    {
+        get
+        {
+            Func<int> f = () => field;
+            Console.WriteLine(f());
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 24 (0x18)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldftn instance int32 C::'<get_P>b__1_0'()
+		IL_0007: newobj instance void class [mscorlib]System.Func`1<int32>::.ctor(object, native int)
+		IL_000c: callvirt instance !0 class [mscorlib]System.Func`1<int32>::Invoke()
+		IL_0011: call void [mscorlib]System.Console::WriteLine(int32)
+		IL_0016: ldc.i4.0
+		IL_0017: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2069
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	.method private hidebysig 
+		instance int32 '<get_P>b__1_0' () cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2071
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: ret
+	} // end of method C::'<get_P>b__1_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -1490,15 +1889,19 @@ struct S
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindOriginalFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P { get => 0; }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -1513,23 +1916,35 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            // PROTOTYPE(semi-auto-props): Should this return a null or non-null?
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 class C
 {
     public int P { get => 0; }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -1540,12 +1955,381 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
-            // PROTOTYPE(semi-auto-props): Should `GetFieldsToEmit` return empty? Currently it looks like it mutates the original symbol in a bad way.
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunction_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunction();
+            int localFunction() => 0;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunction_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunction();
+            int localFunction() => 0;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support."), CombinatorialData]
+        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field + localFunction();
+
+            int localFunction() => 0;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
+            {
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+            }
+            else
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+        }
+
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support."), CombinatorialData]
+        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field + localFunction();
+
+            int localFunction() => 0;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
+            {
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+            }
+            else
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Equal(runNullableAnalysis == "never" ? 1 : 0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P => 0;
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var arrowClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression("field"));
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, arrowClause, out var speculativeModel);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(arrowClause.Expression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, arrowClause.Expression, bindingOption);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, arrowClause.Expression, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, arrowClause.Expression, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+        }
+
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodied_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P => 0;
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var arrowClause = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression("field"));
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, arrowClause, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(arrowClause.Expression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, arrowClause.Expression, bindingOption);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, arrowClause.Expression, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, arrowClause.Expression, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P => 0;
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+        }
+
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInExpressionBodiedProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P => 0;
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var identifier = SyntaxFactory.ParseExpression("field");
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
@@ -1590,6 +2374,7 @@ class C
 
             var fieldIdentifierSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
             Assert.Equal(SymbolKind.Local, fieldIdentifierSymbolInfo.Symbol.Kind);
+
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
         }
@@ -1636,7 +2421,183 @@ class C
         }
 
         [Fact]
-        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindOriginalFirst()
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_BindOriginalFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var block = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field;
+        }
+    }
+}").GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, block, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_BindSpeculatedFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var block = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field;
+        }
+    }
+}").GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, block, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_LocalFunction_BindOriginalFirst([CombinatorialValues("never", "always")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunction();
+
+            int localFunction() { return 0; }
+        }
+    }
+}
+", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var block = (BlockSyntax)SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunction();
+
+            int localFunction() { return field; }
+        }
+    }
+}").GetRoot().DescendantNodes().Single(s => s is BlockSyntax && s.Parent is LocalFunctionStatementSyntax);
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, block, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_LocalFunction_BindSpeculatedFirst([CombinatorialValues("never", "always")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunction();
+
+            int localFunction() { return 0; }
+        }
+    }
+}
+", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var block = (BlockSyntax)SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return localFunction();
+
+            int localFunction() { return field; }
+        }
+    }
+}").GetRoot().DescendantNodes().Single(s => s is BlockSyntax && s.Parent is LocalFunctionStatementSyntax);
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, block, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 using System;
@@ -1653,7 +2614,7 @@ class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -1668,15 +2629,37 @@ class C
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.Equal(SpeculativeBindingOption.BindAsTypeOrNamespace, bindingOption);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Double" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
             Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldInAccessorUsingField_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 using System;
@@ -1693,7 +2676,7 @@ class C
         }
     }
 }
-");
+", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -1704,25 +2687,125 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.Equal(SpeculativeBindingOption.BindAsTypeOrNamespace, bindingOption);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
+
+            var typeInfo = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Double" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, bindingOption);
+            Assert.Null(aliasInfo);
+
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_MethodBodySemanticModel_BindOriginalFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var accessor = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field;
+        }
+    }
+}").GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            model.TryGetSpeculativeSemanticModelForMethodBody(token.SpanStart, accessor, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(accessor.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void SpeculativeSemanticModel_FieldKeywordInRegularAccessor_ReplaceBlock_MethodBodySemanticModel_BindSpeculatedFirst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return 0;
+        }
+    }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(tree);
+            var accessor = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    public int P
+    {
+        get
+        {
+            return field;
+        }
+    }
+}").GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            model.TryGetSpeculativeSemanticModelForMethodBody(token.SpanStart, accessor, out var speculativeModel);
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(accessor.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Theory]
-        [InlineData("get => 0; set => field = value;", false)]
-        [InlineData("set => field = value; get => 0;", false)]
-        [InlineData("get { return 0; } set { field = value; }", false)]
-        [InlineData("set { field = value; } get { return 0; }", false)]
-        [InlineData("get => 0; set { field = value; }", false)]
-        [InlineData("set { field = value; } get => 0;", false)]
-        [InlineData("get { return 0; } set => field = value;", false)]
-        [InlineData("set => field = value; get { return 0; }", false)]
-        [InlineData("get { double field = 0; return field; } set => field = value;", true)]
-        [InlineData("set => field = value; get { double field = 0; return field; }", true)]
-        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindOriginalFirst(string accessors, bool isLocal)
+        [InlineData("get => 0; set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { double field = 0; return field; } set => field = value;", FieldBindingTestState.BecomesLocal)]
+        [InlineData("set => field = value; get { double field = 0; return field; }", FieldBindingTestState.BecomesLocal)]
+        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindOriginalFirst(string accessors, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1747,16 +2830,46 @@ class C
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            if (isLocal)
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal("System.Double", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
                 Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             }
             else
             {
+                Assert.Equal(FieldBindingTestState.BecomesBackingField, bindingState);
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
@@ -1764,17 +2877,17 @@ class C
         }
 
         [Theory]
-        [InlineData("get => 0; set => field = value;", false)]
-        [InlineData("set => field = value; get => 0;", false)]
-        [InlineData("get { return 0; } set { field = value; }", false)]
-        [InlineData("set { field = value; } get { return 0; }", false)]
-        [InlineData("get => 0; set { field = value; }", false)]
-        [InlineData("set { field = value; } get => 0;", false)]
-        [InlineData("get { return 0; } set => field = value;", false)]
-        [InlineData("set => field = value; get { return 0; }", false)]
-        [InlineData("get { int field = 0; return field; } set => field = value;", true)]
-        [InlineData("set => field = value; get { int field = 0; return field; }", true)]
-        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindSpeculatedFirst(string accessors, bool isLocalAfterSpeculating)
+        [InlineData("get => 0; set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; set { field = value; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set { field = value; } get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } set => field = value;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("set => field = value; get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { int field = 0; return field; } set => field = value;", FieldBindingTestState.BecomesLocal)]
+        [InlineData("set => field = value; get { int field = 0; return field; }", FieldBindingTestState.BecomesLocal)]
+        public void SpeculativeSemanticModel_FieldInGetterNotUsingFieldWhereSetterAccessorDoes_BindSpeculatedFirst(string accessors, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1795,12 +2908,48 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Int32 field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(bindingState == FieldBindingTestState.BecomesLocal ? "System.Int32" : "System.Double", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+            else
+            {
+                Assert.Equal(FieldBindingTestState.BecomesBackingField, bindingState);
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            if (isLocalAfterSpeculating)
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal("System.Int32 field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
@@ -1809,22 +2958,22 @@ class C
             else
             {
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
         }
 
         [Theory]
-        [InlineData("get => 0; get => field;", 19, false, false)]
-        [InlineData("get => field; get => 0;", 23, true, false)]
-        [InlineData("get { return 0; } get => field;", 27, false, false)]
-        [InlineData("get => field; get { return 0; }", 23, true, false)]
-        [InlineData("get => 0; get { return field; }", 19, false, false)]
-        [InlineData("get { return field; } get => 0;", 31, true, false)]
-        [InlineData("get { return 0; } get { return field; }", 27, false, false)]
-        [InlineData("get { return field; } get { return 0; }", 31, true, false)]
-        [InlineData("get { double field = 0; return field; } get { return field; }", 49, false, true)]
-        [InlineData("get { return field; } get { double field = 0; return field; }", 31, true, true)]
-        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindOriginalFirst(string accessors, int diagnosticColumn, bool fieldAccessorFirst, bool isLocal)
+        [InlineData("get => 0; get => field;", 19, FieldBindingTestState.None)]
+        [InlineData("get => field; get => 0;", 23, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get => field;", 27, FieldBindingTestState.None)]
+        [InlineData("get => field; get { return 0; }", 23, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; get { return field; }", 19, FieldBindingTestState.None)]
+        [InlineData("get { return field; } get => 0;", 31, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get { return field; }", 27, FieldBindingTestState.None)]
+        [InlineData("get { return field; } get { return 0; }", 31, FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { double field = 0; return field; } get { return field; }", 49, FieldBindingTestState.BecomesLocal)]
+        [InlineData("get { return field; } get { double field = 0; return field; }", 31, FieldBindingTestState.BecomesBackingField)]
+        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindOriginalFirst(string accessors, int diagnosticColumn, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1851,7 +3000,7 @@ class C
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
 
             var fieldsToEmit = comp.GetTypeByMetadataName("C").GetFieldsToEmit();
-            if (fieldAccessorFirst)
+            if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldsToEmit.Single().ToTestDisplayString());
             }
@@ -1861,29 +3010,53 @@ class C
             }
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            if (fieldAccessorFirst)
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+            if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
             }
+            else if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
+            }
             else
             {
-                // PROTOTYPE(semi-auto-props): Is this correct behavior?
-                if (isLocal)
-                {
-                    Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
-                    Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
-                }
-                else
-                {
-                    Assert.Null(fieldKeywordSymbolInfo.Symbol);
-                }
+                Assert.Equal(FieldBindingTestState.None, bindingState);
+                Assert.Null(fieldKeywordSymbolInfo.Symbol);
             }
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(bindingState == FieldBindingTestState.None ? "?" : "System.Double", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingState == FieldBindingTestState.None ? TypeKind.Error : TypeKind.Struct, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
 
-            if (fieldAccessorFirst)
+            if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             }
@@ -1894,17 +3067,17 @@ class C
         }
 
         [Theory]
-        [InlineData("get => 0; get => field;", false)]
-        [InlineData("get => field; get => 0;", false)]
-        [InlineData("get { return 0; } get => field;", false)]
-        [InlineData("get => field; get { return 0; }", false)]
-        [InlineData("get => 0; get { return field; }", false)]
-        [InlineData("get { return field; } get => 0;", false)]
-        [InlineData("get { return 0; } get { return field; }", false)]
-        [InlineData("get { return field; } get { return 0; }", false)]
-        [InlineData("get { return field; } get { int field = 0; return field; }", false)]
-        [InlineData("get { int field = 0; return field; } get { return field; }", true)]
-        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindSpeculatedFirst(string accessors, bool isLocalAfterSpeculating)
+        [InlineData("get => 0; get => field;", FieldBindingTestState.None)]
+        [InlineData("get => field; get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get => field;", FieldBindingTestState.None)]
+        [InlineData("get => field; get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get => 0; get { return field; }", FieldBindingTestState.None)]
+        [InlineData("get { return field; } get => 0;", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { return 0; } get { return field; }", FieldBindingTestState.None)]
+        [InlineData("get { return field; } get { return 0; }", FieldBindingTestState.BecomesBackingField)]
+        [InlineData("get { int field = 0; return field; } get { return field; }", FieldBindingTestState.BecomesLocal)]
+        [InlineData("get { return field; } get { int field = 0; return field; }", FieldBindingTestState.BecomesBackingField)]
+        public void SpeculativeSemanticModel_FieldInDuplicateAccessorWhereOneAccessorUsesField_BindSpeculatedFirst(string accessors, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1925,37 +3098,76 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
 
-            if (isLocalAfterSpeculating)
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Int32 field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var displayString = bindingState switch
+            {
+                FieldBindingTestState.None => "?",
+                FieldBindingTestState.BecomesLocal => "System.Int32",
+                FieldBindingTestState.BecomesBackingField => "System.Double",
+                _ => throw new ArgumentException("Unexpected value.", nameof(bindingState))
+            };
+            Assert.Equal(displayString, typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingState == FieldBindingTestState.None ? TypeKind.Error : TypeKind.Struct, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
                 Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
-            else
+            else if (bindingState == FieldBindingTestState.BecomesBackingField)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
                 Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            }
+            else
+            {
+                Assert.Equal(FieldBindingTestState.None, bindingState);
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+                Assert.Null(fieldKeywordSymbolInfo.Symbol);
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
-
         }
 
         [Theory]
-        [InlineData("get => 0; get => 1;", 19, 0, false)]
-        [InlineData("get => 0; get => 1;", 19, 1, false)]
-        [InlineData("get { return 0; } get => 1;", 27, 0, false)]
-        [InlineData("get { return 0; } get => 1;", 27, 1, false)]
-        [InlineData("get => 0; get { return 1; }", 19, 0, false)]
-        [InlineData("get => 0; get { return 1; }", 19, 1, false)]
-        [InlineData("get { return 0; } get { return 1; }", 27, 0, false)]
-        [InlineData("get { return 0; } get { return 1; }", 27, 1, false)]
-        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 0, true)]
-        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 1, false)]
-        // PROTOTYPE(semi-auto-props): field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
-        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindOriginalFirst(string accessors, int diagnosticColumn, int numericLiteralToSpeculate, bool speculatingProducesLocal)
+        [InlineData("get => 0; get => 1;", 19, 0, FieldBindingTestState.None)]
+        [InlineData("get => 0; get => 1;", 19, 1, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get => 1;", 27, 0, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get => 1;", 27, 1, FieldBindingTestState.None)]
+        [InlineData("get => 0; get { return 1; }", 19, 0, FieldBindingTestState.None)]
+        [InlineData("get => 0; get { return 1; }", 19, 1, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get { return 1; }", 27, 0, FieldBindingTestState.None)]
+        [InlineData("get { return 0; } get { return 1; }", 27, 1, FieldBindingTestState.None)]
+        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 0, FieldBindingTestState.BecomesLocal)]
+        [InlineData("get { double field = 0; return field; } get { return 1; }", 49, 1, FieldBindingTestState.None)]
+        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindOriginalFirst(string accessors, int diagnosticColumn, int numericLiteralToSpeculate, FieldBindingTestState bindingState)
         {
             var comp = CreateCompilation($@"
 class C
@@ -1984,15 +3196,44 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-            if (speculatingProducesLocal)
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
+
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Double field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(bindingState == FieldBindingTestState.None ? "?" : "System.Double", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingState == FieldBindingTestState.None ? TypeKind.Error : TypeKind.Struct, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
                 Assert.Equal("System.Double field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
             }
             else
             {
+                Assert.Equal(FieldBindingTestState.None, bindingState);
                 Assert.Null(fieldKeywordSymbolInfo.Symbol);
             }
 
@@ -2001,18 +3242,17 @@ class C
         }
 
         [Theory]
-        [InlineData("get => 0; get => 1;", 0, false)]
-        [InlineData("get => 0; get => 1;", 1, false)]
-        [InlineData("get { return 0; } get => 1;", 0, false)]
-        [InlineData("get { return 0; } get => 1;", 1, false)]
-        [InlineData("get => 0; get { return 1; }", 0, false)]
-        [InlineData("get => 0; get { return 1; }", 1, false)]
-        [InlineData("get { return 0; } get { return 1; }", 0, false)]
-        [InlineData("get { return 0; } get { return 1; }", 1, false)]
-        [InlineData("get { int field = 0; return field; } get { return 1; }", 0, true)]
-        [InlineData("get { int field = 0; return field; } get { return 1; }", 1, false)]
-        // PROTOTYPE(semi-auto-props): field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
-        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindSpeculatedFirst(string accessors, int numericLiteralToSpeculate, bool isLocalAfterSpeculating)
+        [InlineData("get => 0; get => 1;", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get => 0; get => 1;", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get => 1;", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get => 1;", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get => 0; get { return 1; }", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get => 0; get { return 1; }", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get { return 1; }", 0, FieldBindingTestState.None, 0)]
+        [InlineData("get { return 0; } get { return 1; }", 1, FieldBindingTestState.None, 0)]
+        [InlineData("get { int field = 0; return field; } get { return 1; }", 0, FieldBindingTestState.BecomesLocal, 1)]
+        [InlineData("get { int field = 0; return field; } get { return 1; }", 1, FieldBindingTestState.None, 1)]
+        public void SpeculativeSemanticModel_TwoGettersNotUsingFieldKeyword_BindSpeculatedFirst(string accessors, int numericLiteralToSpeculate, FieldBindingTestState bindingState, int numberOfAccessorBinding)
         {
             var comp = CreateCompilation($@"
 class C
@@ -2033,28 +3273,59 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
-            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            var fieldKeywordSymbolInfoAsExpression = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfoAsExpression);
 
-            if (isLocalAfterSpeculating)
+            var fieldKeywordSymbolInfoAsType = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(fieldKeywordSymbolInfoAsType.Symbol);
+            if (bindingState == FieldBindingTestState.BecomesLocal)
+            {
+                Assert.Equal(CandidateReason.NotATypeOrNamespace, fieldKeywordSymbolInfoAsType.CandidateReason);
+                Assert.Equal("System.Int32 field", fieldKeywordSymbolInfoAsType.CandidateSymbols.Single().GetSymbol().ToTestDisplayString());
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfoAsType.IsEmpty);
+            }
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(bindingState == FieldBindingTestState.None ? "?" : "System.Int32", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingState == FieldBindingTestState.None ? TypeKind.Error : TypeKind.Struct, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            if (bindingState == FieldBindingTestState.BecomesLocal)
             {
                 Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
                 Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
                 Assert.Equal("System.Int32 field", fieldKeywordSymbolInfo.Symbol.GetSymbol().ToTestDisplayString());
                 Assert.Equal(SymbolKind.Local, fieldKeywordSymbolInfo.Symbol.Kind);
-                Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
             }
             else
             {
-                // PROTOTYPE(semi-auto-props) : It looks like the property symbol was mutated in a bad way.
-                Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-                Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
-                Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+                Assert.Equal(FieldBindingTestState.None, bindingState);
+                Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+                Assert.Null(fieldKeywordSymbolInfo.Symbol);
             }
+
+            Assert.Equal(numberOfAccessorBinding, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindOriginalFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2075,7 +3346,7 @@ public class C
 
     public bool GetBoolValue() => true;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
@@ -2091,14 +3362,34 @@ public class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal("?", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
-        [Fact]
-        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindSpeculatedFirst()
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_FieldLocalNotInScope_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
         {
             var comp = CreateCompilation(@"
 public class C
@@ -2119,7 +3410,7 @@ public class C
 
     public bool GetBoolValue() => true;
 }
-");
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
 
@@ -2130,12 +3421,531 @@ public class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, bindingOption);
             Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
-            // PROTOTYPE(semi-auto-props): field in the speculative model does not bind to a backing field if the original location was not a semi-auto property
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal("?", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsRegularProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return local();
+
+            int local(int x = 0) => x;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var equalsValueClauseSyntax = (EqualsValueClauseSyntax)tree.GetRoot().DescendantNodes().Single(t => t is EqualsValueClauseSyntax);
+
+            var model = comp.GetSemanticModel(tree);
+            var newEqualsValueClause = equalsValueClauseSyntax.WithValue(SyntaxFactory.ParseExpression("field"));
+            model.TryGetSpeculativeSemanticModel(equalsValueClauseSyntax.SpanStart, newEqualsValueClause, out var speculativeModel);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(newEqualsValueClause.Value);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal("?", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsRegularProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return local();
+
+            int local(int x = 0) => x;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var equalsValueClauseSyntax = (EqualsValueClauseSyntax)tree.GetRoot().DescendantNodes().Single(t => t is EqualsValueClauseSyntax);
+
+            var model = comp.GetSemanticModel(tree);
+            var newEqualsValueClause = equalsValueClauseSyntax.WithValue(SyntaxFactory.ParseExpression("field"));
+            model.TryGetSpeculativeSemanticModel(equalsValueClauseSyntax.SpanStart, newEqualsValueClause, out var speculativeModel);
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(newEqualsValueClause.Value);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+
+            var typeInfoAsExpression = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal("?", typeInfoAsExpression.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsExpression.Type.TypeKind);
+            Assert.Equal(typeInfoAsExpression.Type, typeInfoAsExpression.ConvertedType);
+
+            var typeInfoAsType = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Equal("field", typeInfoAsType.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfoAsType.Type.TypeKind);
+            Assert.Equal(typeInfoAsType.Type, typeInfoAsType.ConvertedType);
+
+            var aliasInfoAsExpression = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsExpression);
+            var aliasInfoAsType = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            Assert.Null(aliasInfoAsExpression);
+            Assert.Null(aliasInfoAsType);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsSemiAutoProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return field + local();
+
+            int local(int x = 0) => x;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var equalsValueClauseSyntax = (EqualsValueClauseSyntax)tree.GetRoot().DescendantNodes().Single(t => t is EqualsValueClauseSyntax);
+
+            var model = comp.GetSemanticModel(tree);
+            var newEqualsValueClause = equalsValueClauseSyntax.WithValue(SyntaxFactory.ParseExpression("field"));
+            model.TryGetSpeculativeSemanticModel(equalsValueClauseSyntax.SpanStart, newEqualsValueClause, out var speculativeModel);
+
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(newEqualsValueClause.Value);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
+            {
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
+            else
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+
+            var typeInfo = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory(Skip = "PROTOTYPE(semi-auto-props): Waiting on local functions support.")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsExpression, "always")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "never")]
+        [InlineData(SpeculativeBindingOption.BindAsTypeOrNamespace, "always")]
+        public void SpeculativeSemanticModel_EqualsValueClauseSyntax_OriginalIsSemiAutoProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return field + local();
+
+            int local(int x = 0) => x;
+        }
+    }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var equalsValueClauseSyntax = (EqualsValueClauseSyntax)tree.GetRoot().DescendantNodes().Single(t => t is EqualsValueClauseSyntax);
+
+            var model = comp.GetSemanticModel(tree);
+            var newEqualsValueClause = equalsValueClauseSyntax.WithValue(SyntaxFactory.ParseExpression("field"));
+            model.TryGetSpeculativeSemanticModel(equalsValueClauseSyntax.SpanStart, newEqualsValueClause, out var speculativeModel);
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(newEqualsValueClause.Value);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+            }
+
+            var typeInfo = model.GetSpeculativeTypeInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(equalsValueClauseSyntax.SpanStart, newEqualsValueClause.Value, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_AttributeSyntax_OriginalIsRegularProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("never", "always")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return local();
+
+            [My("""")]
+            int local(int x = 0) => x;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var attributeSyntax = (AttributeSyntax)tree.GetRoot().DescendantNodes().Single(t => t is AttributeSyntax);
+
+            var model = comp.GetSemanticModel(tree);
+
+            var newAttributeSyntax = SyntaxFactory.Attribute(
+                attributeSyntax.Name,
+                SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList<AttributeArgumentSyntax>().Add(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression("nameof(field)")))));
+
+            var fieldNode = (IdentifierNameSyntax)((InvocationExpressionSyntax)newAttributeSyntax.ArgumentList.Arguments[0].Expression).ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.FieldKeyword, fieldNode.Identifier.ContextualKind());
+            model.TryGetSpeculativeSemanticModel(attributeSyntax.SpanStart, newAttributeSyntax, out var speculativeModel);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+
+            var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_AttributeSyntax_OriginalIsRegularProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("never", "always")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return local();
+
+            [My("""")]
+            int local(int x = 0) => x;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+
+            var attributeSyntax = (AttributeSyntax)tree.GetRoot().DescendantNodes().Single(t => t is AttributeSyntax);
+            var model = comp.GetSemanticModel(tree);
+
+            var newAttributeSyntax = SyntaxFactory.Attribute(
+                attributeSyntax.Name,
+                SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList<AttributeArgumentSyntax>().Add(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression("nameof(field)")))));
+
+            var fieldNode = (IdentifierNameSyntax)((InvocationExpressionSyntax)newAttributeSyntax.ArgumentList.Arguments[0].Expression).ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.FieldKeyword, fieldNode.Identifier.ContextualKind());
+            model.TryGetSpeculativeSemanticModel(attributeSyntax.SpanStart, newAttributeSyntax, out var speculativeModel);
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+            }
+
+            var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "?" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_AttributeSyntax_OriginalIsSemiAutoProperty_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("never", "always")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return field + local();
+
+            [My("""")]
+            int local(int x = 0) => x;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var attributeSyntax = (AttributeSyntax)tree.GetRoot().DescendantNodes().Single(t => t is AttributeSyntax);
+            var model = comp.GetSemanticModel(tree);
+
+            var newAttributeSyntax = SyntaxFactory.Attribute(
+                attributeSyntax.Name,
+                SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList<AttributeArgumentSyntax>().Add(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression("nameof(field)")))));
+
+            var fieldNode = (IdentifierNameSyntax)((InvocationExpressionSyntax)newAttributeSyntax.ArgumentList.Arguments[0].Expression).ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.FieldKeyword, fieldNode.Identifier.ContextualKind());
+            model.TryGetSpeculativeSemanticModel(attributeSyntax.SpanStart, newAttributeSyntax, out var speculativeModel);
+
+            Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
+            {
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+            }
+            else
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+                Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            }
+
+            var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Theory, CombinatorialData]
+        public void SpeculativeSemanticModel_AttributeSyntax_OriginalIsSemiAutoProperty_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("never", "always")] string runNullableAnalysis)
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return field + local();
+
+            [My("""")]
+            int local(int x = 0) => x;
+        }
+    }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var attributeSyntax = (AttributeSyntax)tree.GetRoot().DescendantNodes().Single(t => t is AttributeSyntax);
+            var model = comp.GetSemanticModel(tree);
+
+            var newAttributeSyntax = SyntaxFactory.Attribute(
+                attributeSyntax.Name,
+                SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList<AttributeArgumentSyntax>().Add(SyntaxFactory.AttributeArgument(SyntaxFactory.ParseExpression("nameof(field)")))));
+
+            var fieldNode = (IdentifierNameSyntax)((InvocationExpressionSyntax)newAttributeSyntax.ArgumentList.Arguments[0].Expression).ArgumentList.Arguments[0].Expression;
+            Assert.Equal(SyntaxKind.FieldKeyword, fieldNode.Identifier.ContextualKind());
+            model.TryGetSpeculativeSemanticModel(attributeSyntax.SpanStart, newAttributeSyntax, out var speculativeModel);
+
+            var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            {
+                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+            }
+            else
+            {
+                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
+                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+            }
+
+            var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? "System.Int32" : "field", typeInfo.Type.GetSymbol().ToTestDisplayString());
+            Assert.Equal(bindingOption == SpeculativeBindingOption.BindAsExpression ? TypeKind.Struct : TypeKind.Error, typeInfo.Type.TypeKind);
+            Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
+
+            var aliasInfo = model.GetSpeculativeAliasInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+            Assert.Null(aliasInfo);
+
+            Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
+            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestFromSemanticModelBinder()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P1 { get => field; }
+}
+", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never"));
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var info = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single());
+            Assert.Empty(info.CandidateSymbols);
+            Assert.False(info.IsEmpty);
+            Assert.Equal("System.Int32 C.<P1>k__BackingField", info.Symbol.GetSymbol().ToTestDisplayString());
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers().OfType<FieldSymbol>());
+            comp.VerifyDiagnostics();
+
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
