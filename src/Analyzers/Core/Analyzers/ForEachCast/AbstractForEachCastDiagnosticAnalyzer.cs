@@ -64,10 +64,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 return;
 
             var option = context.GetOption(CodeStyleOptions2.ForEachExplicitCastInSource, semanticModel.Language);
-            if (option.Value == ForEachExplicitCastInSourcePreference.Never)
-                return;
-
-            Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.NonLegacy);
+            Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.WhenStronglyTyped);
 
             if (semanticModel.GetOperation(node, cancellationToken) is not IForEachLoopOperation loopOperation)
                 return;
@@ -115,8 +112,8 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             //
             // So, to detect if we're in a legacy situation, we look for iterations that are returning an object-type
             // where the collection itself didn't implement `IEnumerable<T>` in some way.
-            if (option.Value == ForEachExplicitCastInSourcePreference.NonLegacy &&
-                IsLegacyAPI(ienumerableOfTType, collectionType, collectionElementType))
+            if (option.Value == ForEachExplicitCastInSourcePreference.WhenStronglyTyped &&
+                !IsStronglyTyped(ienumerableOfTType, collectionType, collectionElementType))
             {
                 return;
             }
@@ -141,10 +138,9 @@ namespace Microsoft.CodeAnalysis.ForEachCast
                 iterationType.ToDisplayString()));
         }
 
-        private static bool IsLegacyAPI(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)
-        {
-            return collectionElementType.SpecialType == SpecialType.System_Object &&
-                !(collectionType.OriginalDefinition.Equals(ienumerableOfTType) || collectionType.AllInterfaces.Any(i => i.OriginalDefinition.Equals(ienumerableOfTType)));
-        }
+        private static bool IsStronglyTyped(INamedTypeSymbol ienumerableOfTType, ITypeSymbol collectionType, ITypeSymbol collectionElementType)
+            => collectionElementType.SpecialType != SpecialType.System_Object ||
+               collectionType.OriginalDefinition.Equals(ienumerableOfTType) ||
+               collectionType.AllInterfaces.Any(i => i.OriginalDefinition.Equals(ienumerableOfTType));
     }
 }

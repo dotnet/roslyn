@@ -32,8 +32,8 @@ dotnet_style_prefer_foreach_explicit_cast_in_source=" + optionValue,
         private static Task TestAlwaysAsync(string markup, string alwaysMarkup)
             => TestWorkerAsync(markup, alwaysMarkup, "always");
 
-        private static Task TestNonLegacyAsync(string markup, string nonLegacyMarkup)
-            => TestWorkerAsync(markup, nonLegacyMarkup, "non_legacy");
+        private static Task TestWhenStronglyTypedAsync(string markup, string nonLegacyMarkup)
+            => TestWorkerAsync(markup, nonLegacyMarkup, "when_strongly_typed");
 
         [Fact]
         public async Task NonGenericIComparableCollection()
@@ -62,7 +62,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -180,7 +180,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -218,7 +218,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -256,7 +256,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -317,7 +317,7 @@ namespace ConsoleApplication1
     }
 }";
 
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -340,7 +340,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -384,7 +384,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -407,7 +407,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -435,7 +435,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -474,7 +474,7 @@ namespace ConsoleApplication1
     }
 }";
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -524,7 +524,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -549,7 +549,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -591,7 +591,7 @@ namespace ConsoleApplication1
     }
 }";
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -615,7 +615,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -638,7 +638,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -661,7 +661,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -702,7 +702,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -746,7 +746,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -794,7 +794,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -821,7 +821,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -844,7 +844,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -867,7 +867,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -907,7 +907,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, fixedCode);
-            await TestNonLegacyAsync(test, fixedCode);
+            await TestWhenStronglyTypedAsync(test, fixedCode);
         }
 
         [Fact]
@@ -930,7 +930,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -954,7 +954,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -978,7 +978,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
 
         [Fact]
@@ -1002,7 +1002,7 @@ namespace ConsoleApplication1
 }";
 
             await TestAlwaysAsync(test, test);
-            await TestNonLegacyAsync(test, test);
+            await TestWhenStronglyTypedAsync(test, test);
         }
     }
 }

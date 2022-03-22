@@ -380,14 +380,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         #region dotnet_style_prefer_foreach_explicit_cast_in_Source
 
         private static readonly CodeStyleOption2<ForEachExplicitCastInSourcePreference> s_forEachExplicitCastInSourceNonLegacyPreference =
-            new(ForEachExplicitCastInSourcePreference.NonLegacy, NotificationOption2.Suggestion);
+            new(ForEachExplicitCastInSourcePreference.WhenStronglyTyped, NotificationOption2.Suggestion);
 
         private static readonly BidirectionalMap<string, ForEachExplicitCastInSourcePreference> s_forEachExplicitCastInSourcePreferencePreferenceMap =
             new(new[]
             {
                 KeyValuePairUtil.Create("always", ForEachExplicitCastInSourcePreference.Always),
-                KeyValuePairUtil.Create("never", ForEachExplicitCastInSourcePreference.Never),
-                KeyValuePairUtil.Create("non_legacy", ForEachExplicitCastInSourcePreference.NonLegacy),
+                KeyValuePairUtil.Create("when_strongly_typed", ForEachExplicitCastInSourcePreference.WhenStronglyTyped),
             });
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<ForEachExplicitCastInSourcePreference>> ForEachExplicitCastInSource =
