@@ -3,9 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportLanguageServiceFactory(GetType(ITypeImportCompletionService), LanguageNames.VisualBasic), [Shared]>
