@@ -60,13 +60,8 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
             var assemblyVersion = symbol.ContainingAssembly.Identity.Version.ToString();
 
-            if (_logger is not null)
-            {
-                // We block to clear the log from the previous operation, so things don't get confusing
-                // if the log messages are delayed
-                await _logger.ClearAsync().ConfigureAwait(false);
-            }
-
+            // Clear the log so messages from the previously generated file don't confuse the user
+            _logger?.Clear();
             _logger?.Log(FeaturesResources.Navigating_to_symbol_0_from_1, symbol, assemblyName);
 
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);

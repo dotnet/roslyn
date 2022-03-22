@@ -104,11 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);
 
-            TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
-
-            Debug.Assert((object)disposableInterface != null);
-            bool hasErrors = ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
-
+            bool hasErrors = false;
             ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
             BoundMultipleLocalDeclarations? multipleDeclarationsOpt = null;
             BoundExpression? expressionOpt = null;
@@ -182,6 +178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool bindDisposable(bool fromExpression, out MethodArgumentInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
             {
+                TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
+                Debug.Assert((object)disposableInterface != null);
+
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
                 Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
                 patternDisposeInfo = null;
@@ -195,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         awaitableType = originalBinder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask);
                     }
-                    return true;
+
+                    return !ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
                 }
 
                 Debug.Assert(!fromExpression || expressionOpt != null);
