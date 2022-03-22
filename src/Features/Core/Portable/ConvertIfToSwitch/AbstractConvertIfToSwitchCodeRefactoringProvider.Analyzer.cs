@@ -441,8 +441,6 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 operation = operation.WalkDownConversion();
 
-                RoslynDebug.AssertNotNull(operation);
-
                 var expression = operation.Syntax;
                 // If we have not figured the switch expression yet,
                 // we will assume that the first expression is the one.
