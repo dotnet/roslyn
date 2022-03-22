@@ -468,10 +468,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 foreach (var fixer in fixers)
                 {
-                    if (allFixers.Contains(fixer))
-                        continue;
+                    if (!allFixers.Contains(fixer))
+                        allFixers.Add(fixer);
 
-                    allFixers.Add(fixer);
                     fixerToRangesAndDiagnostics.MultiAdd(fixer, (range, diagnostics));
                 }
             }
