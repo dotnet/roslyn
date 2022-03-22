@@ -72,51 +72,23 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             if (state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented.Length > 0)
             {
-                var hasInaccessibleMembers = false;
+                var totalMemberCount = 0;
+                var inaccessibleMemberCount = 0;
 
                 foreach (var (_, members) in state.MembersWithoutExplicitOrImplicitImplementationWhichCanBeImplicitlyImplemented)
                 {
                     foreach (var member in members)
                     {
-                        switch (member)
+                        totalMemberCount++;
+
+                        if (AccessibilityHelper.IsLessAccessibleThan(member, state.ClassOrStructType))
                         {
-                            case IPropertySymbol propertySymbol:
-
-                                if (propertySymbol.Type.DeclaredAccessibility > Accessibility.NotApplicable &&
-                                    propertySymbol.Type.DeclaredAccessibility < state.ClassOrStructType.DeclaredAccessibility)
-                                {
-                                    hasInaccessibleMembers = true;
-                                    goto AccessibilityChecked;
-                                }
-
-                                break;
-                            case IMethodSymbol methodSymbol:
-
-                                if (methodSymbol.ReturnType.DeclaredAccessibility > Accessibility.NotApplicable &&
-                                    methodSymbol.ReturnType.DeclaredAccessibility < state.ClassOrStructType.DeclaredAccessibility)
-                                {
-                                    hasInaccessibleMembers = true;
-                                    goto AccessibilityChecked;
-                                }
-
-                                foreach (var parameter in methodSymbol.Parameters)
-                                {
-                                    if (parameter.Type.DeclaredAccessibility > Accessibility.NotApplicable &&
-                                        parameter.Type.DeclaredAccessibility < state.ClassOrStructType.DeclaredAccessibility)
-                                    {
-                                        hasInaccessibleMembers = true;
-                                        goto AccessibilityChecked;
-                                    }
-                                }
-
-                                break;
+                            inaccessibleMemberCount++;
                         }
                     }
                 }
 
-AccessibilityChecked:
-
-                if (!hasInaccessibleMembers)
+                if (totalMemberCount != inaccessibleMemberCount)
                 {
                     yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);
                 }
