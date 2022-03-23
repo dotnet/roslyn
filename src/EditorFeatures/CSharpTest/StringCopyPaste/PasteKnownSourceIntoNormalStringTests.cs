@@ -104,5 +104,66 @@ var dest =
 var dest =
     ""[||]"";");
         }
+        [WpfFact]
+        public void TestPasteSimpleVerbatimLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = @""{|Copy:goo|}"";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""goo[||]"";",
+@"
+var dest =
+    ""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteSimpleSubstringVerbatimLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = @""g{|Copy:o|}o"";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""o[||]"";",
+@"
+var dest =
+    ""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteSelectedVerbatimNewLineLiteralContent()
+        {
+            TestCopyPaste(
+"var v = @\"{|Copy:\r\n|}\";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""\r\n[||]"";",
+"\r\nvar dest =\r\n    \"\r\n[||]\";");
+        }
+
+        [WpfFact]
+        public void TestPasteFullySelectedEscapeVerbatimLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = @""{|Copy:""""|}"";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""\""[||]"";",
+@"
+var dest =
+    """"""[||]"";");
+        }
     }
 }
