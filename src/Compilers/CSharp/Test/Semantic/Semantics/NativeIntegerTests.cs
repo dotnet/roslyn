@@ -3837,9 +3837,9 @@ class Program
             Assert.True(type.IsNativeIntegerType);
         }
 
-        [Fact]
+        [Theory, CombinatorialData]
         [WorkItem(60337, "https://github.com/dotnet/roslyn/issues/60337")]
-        public void NameOfNintSpeculation()
+        public void NameOfNintSpeculation_01([CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
             var source = @"
 class C
@@ -3850,7 +3850,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9.WithFeature("run-nullable-analysis", runNullableAnalysis));
             comp.VerifyDiagnostics(
                 // (6,24): error CS0103: The name 'nint' does not exist in the current context
                 //         var x = nameof(nint);
@@ -3862,10 +3862,186 @@ class C
             var existingNameOf = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var model = comp.GetSemanticModel(tree);
             var nameofToSpeculate = (InvocationExpressionSyntax)SyntaxFactory.ParseExpression("nameof(nint)");
+
             var speculativeSymbolInfo = model.GetSpeculativeSymbolInfo(existingNameOf.SpanStart, nameofToSpeculate.ArgumentList.Arguments[0].Expression, SpeculativeBindingOption.BindAsExpression);
             var symbolInfo = model.GetSymbolInfo(existingNint);
-            
+
             Assert.Equal(symbolInfo, speculativeSymbolInfo);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(60337, "https://github.com/dotnet/roslyn/issues/60337")]
+        public void NameOfNintSpeculation_02([CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var source = @"
+class C
+{
+    string M()
+    {
+        return nameof(nint);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            comp.VerifyDiagnostics(
+                // (6,24): error CS0103: The name 'nint' does not exist in the current context
+                //         return nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 23)
+            );
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var existingNint = root.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
+            var existingReturnNameOf = root.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            var returnNameofToSpeculate = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return nameof(nuint);");
+            var nintNode = returnNameofToSpeculate.DescendantNodes().Single(n => n is IdentifierNameSyntax && n.ToString() == "nint");
+
+            model.TryGetSpeculativeSemanticModel(existingReturnNameOf.SpanStart, returnNameofToSpeculate, out var speculativeModel);
+            var speculativeSymbolInfo = speculativeModel.GetSymbolInfo(nintNode);
+            var symbolInfo = model.GetSymbolInfo(existingNint);
+
+            Assert.Equal(symbolInfo, speculativeSymbolInfo);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(60337, "https://github.com/dotnet/roslyn/issues/60337")]
+        public void NameOfNintSpeculation_03([CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var source = @"
+class C
+{
+    void M(string x = nameof(nint))
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            comp.VerifyDiagnostics(
+                // (4,30): error CS0103: The name 'nint' does not exist in the current context
+                //     void M(string x = nameof(nint))
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(4, 30)
+            );
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var existingEqualsNameofNint = root.DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+            var existingNint = existingEqualsNameofNint.DescendantNodes().OfType<IdentifierNameSyntax>().Single(n => n.ToString() == "nint");
+            var model = comp.GetSemanticModel(tree);
+            var equalsValueClauseToSpeculate = (EqualsValueClauseSyntax)SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("nameof(nint)"));
+            var nintNode = equalsValueClauseToSpeculate.DescendantNodes().Single(n => n is IdentifierNameSyntax && n.ToString() == "nint");
+
+            model.TryGetSpeculativeSemanticModel(existingEqualsNameofNint.SpanStart, equalsValueClauseToSpeculate, out var speculativeModel);
+            var speculativeSymbolInfo = speculativeModel.GetSymbolInfo(nintNode);
+            var symbolInfo = model.GetSymbolInfo(existingNint);
+
+            Assert.Equal(symbolInfo, speculativeSymbolInfo);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(60337, "https://github.com/dotnet/roslyn/issues/60337")]
+        public void NameOfNintSpeculation_04([CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var source = @"
+class C
+{
+    public string S => nameof(nint);
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            comp.VerifyDiagnostics(
+                // (4,31): error CS0103: The name 'nint' does not exist in the current context
+                //     public string S => nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(4, 31)
+            );
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var arrowNameofNint = root.DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single();
+            var existingNint = arrowNameofNint.DescendantNodes().OfType<IdentifierNameSyntax>().Single(n => n.ToString() == "nint");
+            var model = comp.GetSemanticModel(tree);
+            var arrowToSpeculate = (ArrowExpressionClauseSyntax)SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression("nameof(nint)"));
+            var nintNode = arrowToSpeculate.DescendantNodes().Single(n => n is IdentifierNameSyntax && n.ToString() == "nint");
+
+            model.TryGetSpeculativeSemanticModel(arrowNameofNint.SpanStart, arrowToSpeculate, out var speculativeModel);
+            var speculativeSymbolInfo = speculativeModel.GetSymbolInfo(nintNode);
+            var symbolInfo = model.GetSymbolInfo(existingNint);
+
+            Assert.Equal(symbolInfo, speculativeSymbolInfo);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(60337, "https://github.com/dotnet/roslyn/issues/60337")]
+        public void NameOfNintSpeculation_05([CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var source = @"
+class C
+{
+    public C(string s) { }
+
+    public C() : this(nameof(nint)) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0103: The name 'nint' does not exist in the current context
+                //     public C() : this(nameof(nint)) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 30)
+            );
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var constructorInitializer = root.DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+            var existingNint = constructorInitializer.DescendantNodes().OfType<IdentifierNameSyntax>().Single(n => n.ToString() == "nint");
+            var model = comp.GetSemanticModel(tree);
+            var constructorInitializerToSpeculate = (ConstructorInitializerSyntax)SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer, SyntaxFactory.ParseArgumentList("(nameof(nint))"));
+            var nintNode = constructorInitializerToSpeculate.DescendantNodes().Single(n => n is IdentifierNameSyntax && n.ToString() == "nint");
+
+            model.TryGetSpeculativeSemanticModel(constructorInitializer.SpanStart, constructorInitializerToSpeculate, out var speculativeModel);
+            var speculativeSymbolInfo = speculativeModel.GetSymbolInfo(nintNode);
+            var symbolInfo = model.GetSymbolInfo(existingNint);
+
+            Assert.Equal(symbolInfo, speculativeSymbolInfo);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem(60337, "https://github.com/dotnet/roslyn/issues/60337")]
+        public void NameOfNintSpeculation_06([CombinatorialValues("always", "never")] string runNullableAnalysis)
+        {
+            var source = @"
+[C(nameof(nint))]
+public class CAttribute : System.Attribute
+{
+    public CAttribute(string s) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9.WithFeature("run-nullable-analysis", runNullableAnalysis));
+            comp.VerifyDiagnostics(
+                // (2,11): error CS0103: The name 'nint' does not exist in the current context
+                // [C(nameof(nint))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(2, 11)
+            );
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var attribute = root.DescendantNodes().OfType<AttributeSyntax>().Single();
+            var existingNint = attribute.DescendantNodes().OfType<IdentifierNameSyntax>().Single(n => n.ToString() == "nint");
+            var model = comp.GetSemanticModel(tree);
+            var attributeToSpeculate = (AttributeSyntax)SyntaxFactory.Attribute(SyntaxFactory.ParseName("C"), SyntaxFactory.ParseAttributeArgumentList("(nameof(nint))"));
+            var nintNode = attributeToSpeculate.DescendantNodes().Single(n => n is IdentifierNameSyntax && n.ToString() == "nint");
+
+            model.TryGetSpeculativeSemanticModel(attribute.SpanStart, attributeToSpeculate, out var speculativeModel);
+            var speculativeSymbolInfo = speculativeModel.GetSymbolInfo(nintNode);
+            var symbolInfo = model.GetSymbolInfo(existingNint);
+
+            Assert.Equal(symbolInfo, speculativeSymbolInfo);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
         }
 
         [Fact]
