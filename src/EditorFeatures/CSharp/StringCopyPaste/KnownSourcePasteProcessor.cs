@@ -59,6 +59,69 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return edits.ToImmutable();
         }
 
+        /// <summary>
+        /// Takes a chunk of pasted text and reparses it as if it was surrounded by the original quotes it had in the
+        /// string it came from.  With this we can determine how to interpret things like the escapes in their original
+        /// context.  We can also figure out how to deal with copied interpolations.
+        /// </summary>
+        private string WrapChangeWithOriginalQuotes(string pastedText)
+        {
+            var textCopiedFrom = _snapshotCopiedFrom.AsText();
+            GetTextContentSpans(
+                textCopiedFrom, _stringExpressionCopiedFrom, out _, out _,
+                out var startQuoteSpan, out var endQuoteSpan);
+
+            var startQuote = textCopiedFrom.ToString(startQuoteSpan);
+            var endQuote = textCopiedFrom.ToString(endQuoteSpan);
+            if (!IsAnyMultiLineRawStringExpression(_stringExpressionCopiedFrom))
+                return $"{startQuote}{pastedText}{endQuote}";
+
+            // With a raw string we have the issue that the contents may need to be indented properly in order for the
+            // string to parsed successfully.  Because we're using the original start/end quote to wrap the text that
+            // was pasted this normally is not an issue.  However, it can be a problem in the following case:
+            //
+            //      var source = """
+            //              exiting text
+            //              [|copy
+            //              this|]
+            //              existing text
+            //              """
+            //
+            // In this case, the first line of the text will not start with enough indentation and we will generate:
+            //
+            // """
+            // copy
+            //              this
+            //              """
+            //
+            // To address this.  We ensure that if the content starts with spaces to not be a problem.
+            var endLine = textCopiedFrom.Lines.GetLineFromPosition(_stringExpressionCopiedFrom.Span.End);
+            var rawStringIndentation = endLine.GetLeadingWhitespace();
+
+            var pastedTextWhitespace = pastedText.GetLeadingWhitespace();
+
+            // First, if we don't have enough indentation whitespace in the string, but we do have a portion of the
+            // necessary whitespace, then synthesize the remainder we need.
+            if (pastedTextWhitespace.Length < rawStringIndentation.Length)
+            {
+                if (rawStringIndentation.EndsWith(pastedTextWhitespace))
+                    return $"{startQuote}{rawStringIndentation[..^pastedTextWhitespace.Length]}{pastedText}{endQuote}";
+            }
+            else
+            {
+                // We have a lot of indentation whitespace.  Make sure it's legal though for this raw string.  If so,
+                // nothing to do.
+                if (pastedTextWhitespace.StartsWith(rawStringIndentation))
+                    return $"{startQuote}{pastedText}{endQuote}";
+            }
+
+            // We have something with whitespace incompatible with the raw string indentation.  Just add the required
+            // indentation we need to ensure this can parse.  Note: this is a heuristic, and it's possible we could
+            // figure out something better here (for example copying just enough indentation whitespace to make things
+            // successfully parse).
+            return $"{startQuote}{rawStringIndentation}{pastedText}{endQuote}";
+        }
+
         private string TransformValueToDestinationKind(ExpressionSyntax parsedChange)
         {
             // we have a matrix of every string source type to every string destination type.
@@ -201,69 +264,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private void TransformInterpolatedStringToRawInterpolatedString(InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInto)
         {
             throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Takes a chunk of pasted text and reparses it as if it was surrounded by the original quotes it had in the
-        /// string it came from.  With this we can determine how to interpret things like the escapes in their original
-        /// context.  We can also figure out how to deal with copied interpolations.
-        /// </summary>
-        private string WrapChangeWithOriginalQuotes(string pastedText)
-        {
-            var textCopiedFrom = _snapshotCopiedFrom.AsText();
-            GetTextContentSpans(
-                textCopiedFrom, _stringExpressionCopiedFrom, out _, out _,
-                out var startQuoteSpan, out var endQuoteSpan);
-
-            var startQuote = textCopiedFrom.ToString(startQuoteSpan);
-            var endQuote = textCopiedFrom.ToString(endQuoteSpan);
-            if (!IsAnyMultiLineRawStringExpression(_stringExpressionCopiedFrom))
-                return $"{startQuote}{pastedText}{endQuote}";
-
-            // With a raw string we have the issue that the contents may need to be indented properly in order for the
-            // string to parsed successfully.  Because we're using the original start/end quote to wrap the text that
-            // was pasted this normally is not an issue.  However, it can be a problem in the following case:
-            //
-            //      var source = """
-            //              exiting text
-            //              [|copy
-            //              this|]
-            //              existing text
-            //              """
-            //
-            // In this case, the first line of the text will not start with enough indentation and we will generate:
-            //
-            // """
-            // copy
-            //              this
-            //              """
-            //
-            // To address this.  We ensure that if the content starts with spaces to not be a problem.
-            var endLine = textCopiedFrom.Lines.GetLineFromPosition(_stringExpressionCopiedFrom.Span.End);
-            var rawStringIndentation = endLine.GetLeadingWhitespace();
-
-            var pastedTextWhitespace = pastedText.GetLeadingWhitespace();
-
-            // First, if we don't have enough indentation whitespace in the string, but we do have a portion of the
-            // necessary whitespace, then synthesize the remainder we need.
-            if (pastedTextWhitespace.Length < rawStringIndentation.Length)
-            {
-                if (rawStringIndentation.EndsWith(pastedTextWhitespace))
-                    return $"{startQuote}{rawStringIndentation[..^pastedTextWhitespace.Length]}{pastedText}{endQuote}";
-            }
-            else
-            {
-                // We have a lot of indentation whitespace.  Make sure it's legal though for this raw string.  If so,
-                // nothing to do.
-                if (pastedTextWhitespace.StartsWith(rawStringIndentation))
-                    return $"{startQuote}{pastedText}{endQuote}";
-            }
-
-            // We have something with whitespace incompatible with the raw string indentation.  Just add the required
-            // indentation we need to ensure this can parse.  Note: this is a heuristic, and it's possible we could
-            // figure out something better here (for example copying just enough indentation whitespace to make things
-            // successfully parse).
-            return $"{startQuote}{rawStringIndentation}{pastedText}{endQuote}";
         }
     }
 }
