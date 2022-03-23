@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
             if (_ruleSetEventHandler != null)
-                await _ruleSetEventHandler.RegisterAsync(cancellationToken).ConfigureAwait(false);
+                await _ruleSetEventHandler.RegisterAsync(this, cancellationToken).ConfigureAwait(false);
         }
 
         private void UnregisterAnalyzerTracker()

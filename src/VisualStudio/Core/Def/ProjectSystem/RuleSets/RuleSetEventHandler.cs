@@ -39,16 +39,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.R
             _serviceProvider = serviceProvider;
         }
 
-        public async Task RegisterAsync(CancellationToken cancellationToken)
+        public async Task RegisterAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
             if (!_eventsHookedUp)
             {
+                var trackProjectDocuments = await serviceProvider.GetServiceAsync<SVsTrackProjectDocuments, IVsTrackProjectDocuments2>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 if (!_eventsHookedUp)
                 {
-                    var trackProjectDocuments = (IVsTrackProjectDocuments2)_serviceProvider.GetService(typeof(SVsTrackProjectDocuments));
-
                     if (ErrorHandler.Succeeded(trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out _cookie)))
                         _eventsHookedUp = true;
                 }
