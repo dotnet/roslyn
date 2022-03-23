@@ -105,58 +105,11 @@ public class MyAttribute : System.Attribute
     public MyAttribute(string s) { }
 }
 ");
-            comp.VerifyDiagnostics();
-            VerifyTypeIL(comp, "C", @"
-.class public auto ansi beforefieldinit C
-	extends [mscorlib]System.Object
-{
-	// Fields
-	.field private initonly int32 '<P>k__BackingField'
-	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-		01 00 00 00
-	)
-	// Methods
-	.method public hidebysig specialname 
-		instance int32 get_P () cil managed 
-	{
-		// Method begins at RVA 0x2050
-		// Code size 6 (0x6)
-		.maxstack 8
-		IL_0000: call int32 C::'<get_P>g__local|1_0'()
-		IL_0005: ret
-	} // end of method C::get_P
-	.method public hidebysig specialname rtspecialname 
-		instance void .ctor () cil managed 
-	{
-		// Method begins at RVA 0x2057
-		// Code size 7 (0x7)
-		.maxstack 8
-		IL_0000: ldarg.0
-		IL_0001: call instance void [mscorlib]System.Object::.ctor()
-		IL_0006: ret
-	} // end of method C::.ctor
-	.method assembly hidebysig static 
-		int32 '<get_P>g__local|1_0' () cil managed 
-	{
-		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-			01 00 00 00
-		)
-		.custom instance void MyAttribute::.ctor(string) = (
-			01 00 05 66 69 65 6c 64 00 00
-		)
-		// Method begins at RVA 0x205f
-		// Code size 2 (0x2)
-		.maxstack 8
-		IL_0000: ldc.i4.0
-		IL_0001: ret
-	} // end of method C::'<get_P>g__local|1_0'
-	// Properties
-	.property instance int32 P()
-	{
-		.get instance int32 C::get_P()
-	}
-} // end of class C
-");
+            comp.VerifyDiagnostics(
+                // (10,24): error CS0103: The name 'field' does not exist in the current context
+                //             [My(nameof(field))]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(10, 24)
+            );
         }
 
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
@@ -3839,16 +3792,20 @@ public class MyAttribute : System.Attribute
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
+
+            // Since we're passing fieldNode, the model don't know we're inside nameof, so field is bound to backing field.
+            // This doesn't match fieldKeywordSymbolInfo where semantic model is aware we're inside nameof and doesn't bind to backing.
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
+
+            Assert.True(fieldKeywordSymbolInfo.IsEmpty);
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
             if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
             {
-                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
-                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
             }
             else
             {
-                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
-                Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
+                Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo2.Symbol.GetSymbol());
             }
 
             var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
@@ -3901,15 +3858,19 @@ public class MyAttribute : System.Attribute
             model.TryGetSpeculativeSemanticModel(attributeSyntax.SpanStart, newAttributeSyntax, out var speculativeModel);
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(fieldNode);
+
+            // Since we're passing fieldNode, the model don't know we're inside nameof, so field is bound to backing field.
+            // This doesn't match fieldKeywordSymbolInfo where semantic model is aware we're inside nameof and doesn't bind to backing.
             var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
-            if (bindingOption == SpeculativeBindingOption.BindAsExpression)
+            Assert.True(fieldKeywordSymbolInfo.IsEmpty);
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
+            if (bindingOption == SpeculativeBindingOption.BindAsTypeOrNamespace)
             {
-                Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
+                Assert.Equal(fieldKeywordSymbolInfo2, fieldKeywordSymbolInfo);
             }
             else
             {
-                Assert.True(fieldKeywordSymbolInfo2.IsEmpty);
-                Assert.Null(fieldKeywordSymbolInfo2.Symbol);
+                Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo2.Symbol.GetSymbol());
             }
 
             var typeInfo = model.GetSpeculativeTypeInfo(attributeSyntax.SpanStart, fieldNode, bindingOption);
@@ -3921,7 +3882,6 @@ public class MyAttribute : System.Attribute
             Assert.Null(aliasInfo);
 
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
-            Assert.Equal(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             Assert.Equal(runNullableAnalysis == "always" ? 0 : 1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
