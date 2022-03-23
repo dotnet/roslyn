@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// editor we're in.  In that case, we don't know what any particular piece of text means.  For example, <c>\t</c>
     /// might be a tab or it could be the literal two characters <c>\</c> and <c>t</c>.
     /// </summary>
-    internal class UnknownSourcePasteProcessor : AbstractPasteProcessor
+    internal sealed class UnknownSourcePasteProcessor : AbstractPasteProcessor
     {
         /// <summary>
         /// Whether or not the string expression remained successfully parseable after the paste.  <see
         /// cref="StringCopyPasteCommandHandler.PasteWasSuccessful"/>.  If it can still be successfully parsed subclasses
         /// can adjust their view on which pieces of content need to be escaped or not.
         /// </summary>
-        protected readonly bool PasteWasSuccessful;
+        private readonly bool _pasteWasSuccessful;
 
         public UnknownSourcePasteProcessor(
             string newLine,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             bool pasteWasSuccessful)
             : base(newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
-            PasteWasSuccessful = pasteWasSuccessful;
+            _pasteWasSuccessful = pasteWasSuccessful;
         }
 
         public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (!IsAnyRawStringExpression(StringExpressionBeforePaste) && !ShouldAlwaysEscapeTextForNonRawString())
             {
                 // If the pasting was successful, then no need to change anything.
-                if (PasteWasSuccessful)
+                if (_pasteWasSuccessful)
                     return default;
             }
 
@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             //
             // note: we don't have to do this if the paste was successful.  Instead, we'll just process the contents,
             // adjusting whitespace below.
-            var quotesToAdd = PasteWasSuccessful ? null : GetQuotesToAddToRawString();
-            var dollarSignsToAdd = PasteWasSuccessful ? null : GetDollarSignsToAddToRawString();
+            var quotesToAdd = _pasteWasSuccessful ? null : GetQuotesToAddToRawString();
+            var dollarSignsToAdd = _pasteWasSuccessful ? null : GetDollarSignsToAddToRawString();
 
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var editsToMake);
 

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -40,6 +41,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
+        {
+            // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
+            // same location the paste originally happened at.  For raw-strings things get more complex as we have to
+            // deal with things like indentation and potentially adding newlines to make things legal.
+            return IsAnyRawStringExpression(StringExpressionBeforePaste)
+                ? GetEditsForRawString(cancellationToken)
+                : GetEditsForNonRawString();
+        }
+
+        private ImmutableArray<TextChange> GetEditsForNonRawString()
         {
             using var _ = ArrayBuilder<TextChange>.GetInstance(out var edits);
 
@@ -134,12 +145,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Raw multi line string
             // Raw interpolated line string
             // Raw interpolated multi-line string.
-
-            // Pasting into raw strings can be complex.  A single-line raw string may need to become multi-line, and
-            // a multi-line raw string has indentation whitespace we have to respect.
-            if (IsAnyRawStringExpression(StringExpressionBeforePaste))
-                return TransformValueForRawStringExpression(parsedChange, StringExpressionBeforePaste);
-
             var pastingIntoVerbatimString = IsVerbatimStringExpression(StringExpressionBeforePaste);
 
             return (parsedChange, StringExpressionBeforePaste) switch
@@ -226,38 +231,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
-        private string TransformValueForRawStringExpression(ExpressionSyntax parsedChange, ExpressionSyntax stringExpressionBeforePaste)
+        private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {
-            return (parsedChange, StringExpressionBeforePaste) switch
-            {
-                (LiteralExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformLiteralToLiteral(pastedText),
-                (LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformLiteralToInterpolatedString(pastedText),
-                (InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformInterpolatedStringToLiteral(pastedText),
-                (InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformInterpolatedStringToInterpolatedString(pastedText),
-                _ => throw ExceptionUtilities.Unreachable,
-            };
+            // Determine the basic updates to the pasted pieces we need to make to properly unescape the pieces for a
+            // raw string.
 
-            string TransformLiteralToLiteral(LiteralExpressionSyntax pastedText)
-            {
-                // Pasting literal content into raw string.  Not too difficult *unless* this forces us to convert the
-                // raw literal 
-                throw new NotImplementedException();
-            }
+            // After we've inserted the text we may now have made the raw string illegal (for example, having too many
+            // quotes in it now).  Update the delimiters to make the content legal if necessary.
+            // if the content we're going to add itself contains quotes, then figure out how many start/end quotes the
+            // final string literal will need (which also gives us the number of quotes to add to the start/end).
+            //
+            // note: we don't have to do this if the paste was successful.  Instead, we'll just process the contents,
+            // adjusting whitespace below.
+            var contentChanges = GetRawStringContentChanges(cancellationToken);
 
-            string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText)
-            {
-                throw new NotImplementedException();
-            }
+            var quotesToAdd = GetQuotesToAddToRawString();
+            var dollarSignsToAdd = GetDollarSignsToAddToRawString();
 
-            string TransformInterpolatedStringToLiteral(InterpolatedStringExpressionSyntax pastedText)
-            {
-                throw new NotImplementedException();
-            }
+            using var _ = ArrayBuilder<TextChange>.GetInstance(out var editsToMake);
 
-            string TransformInterpolatedStringToInterpolatedString(InterpolatedStringExpressionSyntax pastedText)
-            {
-                throw new NotImplementedException();
-            }
+            // First, add any extra dollar signs needed.
+            if (dollarSignsToAdd != null)
+                editsToMake.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.Start, 0), dollarSignsToAdd));
+
+            // Then any quotes to your starting delimiter
+            if (quotesToAdd != null)
+                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
+
+            // Then add the actual changes in the content.
+            editsToMake.AddRange(contentChanges);
+
+            // Then add any extra end quotes needed.
+            if (quotesToAdd != null)
+                editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.Last().End, 0), quotesToAdd));
+
+            return editsToMake.ToImmutable();
+        }
+
+        private string GetDollarSignsToAddToRawString()
+        {
+            throw new NotImplementedException();
+        }
+
+        private string GetQuotesToAddToRawString()
+        {
+            throw new NotImplementedException();
+        }
+
+        private ImmutableArray<TextChange> GetRawStringContentChanges(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

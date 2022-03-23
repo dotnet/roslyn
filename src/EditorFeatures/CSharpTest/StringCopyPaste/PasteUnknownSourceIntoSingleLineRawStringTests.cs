@@ -170,6 +170,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         }
 
         [WpfFact]
+        public void TestTwoQuotesIntoSingleLineRawString3()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"\"",
+@"var x = """""" ""[||] """"""",
+@"var x = """""""" """"""[||] """"""""",
+                afterUndo:
+@"var x = """""" """"""[||] """"""");
+        }
+
+        [WpfFact]
         public void TestTripleQuoteIntoSingleLineRawString3()
         {
             TestPasteUnknownSource(
