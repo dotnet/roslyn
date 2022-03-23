@@ -1368,6 +1368,73 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void ConstantExpressions_04()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine();
+        Helpers.Print(hello());
+        Helpers.Print(dog());
+        Helpers.Print(cat());
+    }
+
+    static byte[] hello() => nameof(hello);
+    static Span<byte> dog() => nameof(dog);
+    static ReadOnlySpan<byte> cat() => nameof(cat);
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.hello()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("C.dog()", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.CD6357EFDD966DE8C0CB2F876CC89EC74CE35F0968E11743987084BD42FB8944""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
+  IL_0016:  ret
+}
+");
+
+            verifier.VerifyIL("C.cat()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.77AF778B51ABD4A3C51C5DDD97204A9C3AE614EBCCB75A606C3B6865AED6744E""
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void UserDefinedImplicitConversions_01()
         {
             var source = @"
@@ -3487,6 +3554,39 @@ class C
                 // (15,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
                 //     static void M09(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)stringNull){}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(ReadOnlySpan<byte>)stringNull").WithArguments("x").WithLocation(15, 44)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CallerMemberName_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    void Test1([System.Runtime.CompilerServices.CallerMemberName] byte[] x = default)
+    {
+    }
+    void Test2([System.Runtime.CompilerServices.CallerMemberName] Span<byte> x = default)
+    {
+    }
+    void Test3([System.Runtime.CompilerServices.CallerMemberName] ReadOnlySpan<byte> x = default)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,17): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'byte[]'
+                //     void Test1([System.Runtime.CompilerServices.CallerMemberName] byte[] x = default)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "System.Runtime.CompilerServices.CallerMemberName").WithArguments("string", "byte[]").WithLocation(5, 17),
+                // (8,17): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'Span<byte>'
+                //     void Test2([System.Runtime.CompilerServices.CallerMemberName] Span<byte> x = default)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "System.Runtime.CompilerServices.CallerMemberName").WithArguments("string", "System.Span<byte>").WithLocation(8, 17),
+                // (11,17): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'ReadOnlySpan<byte>'
+                //     void Test3([System.Runtime.CompilerServices.CallerMemberName] ReadOnlySpan<byte> x = default)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "System.Runtime.CompilerServices.CallerMemberName").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(11, 17)
                 );
         }
 
