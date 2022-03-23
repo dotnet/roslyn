@@ -3132,6 +3132,56 @@ public class Bar
 }");
         }
 
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TestCheckedStatement(string keywordToken)
+        {
+            Test($@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        {keywordToken}
+        {{
+            $$
+        }}
+    }}
+}}",
+$@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        {keywordToken}$$
+    }}
+}}");
+        }
+
+        [WpfTheory]
+        [InlineData("checked")]
+        [InlineData("unchecked")]
+        public void TextCheckedExpression(string keywordToken)
+        {
+            Test($@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}(1 + 1);
+        $$
+    }}
+}}",
+$@"
+public class Bar
+{{
+    public void Bar2()
+    {{
+        var i = {keywordToken}$$(1 +$$ 1)$$
+    }}
+}}");
+        }
+
         protected override string Language => LanguageNames.CSharp;
 
         protected override Action CreateNextHandler(TestWorkspace workspace)
