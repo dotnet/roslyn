@@ -6,13 +6,11 @@ using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -53,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private const string CopyId = "RoslynStringCopyPasteId";
         private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+        private readonly ITextBufferFactoryService3 _textBufferFactoryService;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -64,11 +63,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public StringCopyPasteCommandHandler(
             IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
+            ITextBufferFactoryService3 textBufferFactoryService,
             IEditorOperationsFactoryService editorOperationsFactoryService,
             IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
+            _textBufferFactoryService = textBufferFactoryService;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
         }

@@ -68,6 +68,104 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             return edits.ToImmutable();
+
+            string TransformValueToDestinationKind(ExpressionSyntax parsedChange)
+            {
+                // we have a matrix of every string source type to every string destination type.
+                // 
+                // Normal string
+                // Interpolated string
+                // Verbatim string
+                // Verbatim interpolated string
+                // Raw single line string
+                // Raw multi line string
+                // Raw interpolated line string
+                // Raw interpolated multi-line string.
+                var pastingIntoVerbatimString = IsVerbatimStringExpression(StringExpressionBeforePaste);
+
+                return (parsedChange, StringExpressionBeforePaste) switch
+                {
+                    (LiteralExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformLiteralToLiteral(pastedText),
+                    (LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformLiteralToInterpolatedString(pastedText),
+                    (InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformInterpolatedStringToLiteral(pastedText),
+                    (InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformInterpolatedStringToInterpolatedString(pastedText),
+                    _ => throw ExceptionUtilities.Unreachable,
+                };
+
+                string TransformLiteralToLiteral(LiteralExpressionSyntax pastedText)
+                {
+                    var textValue = pastedText.Token.ValueText;
+                    return EscapeForNonRawStringLiteral(
+                        isVerbatim: pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, textValue);
+                }
+
+                string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText)
+                {
+                    var textValue = pastedText.Token.ValueText;
+                    return EscapeForNonRawStringLiteral(
+                        isVerbatim: pastingIntoVerbatimString, isInterpolated: true, trySkipExistingEscapes: false, textValue);
+                }
+
+                string TransformInterpolatedStringToLiteral(InterpolatedStringExpressionSyntax pastedText)
+                {
+                    using var _ = PooledStringBuilder.GetInstance(out var builder);
+                    foreach (var content in pastedText.Contents)
+                    {
+                        if (content is InterpolatedStringTextSyntax stringText)
+                        {
+                            builder.Append(EscapeForNonRawStringLiteral(
+                                pastingIntoVerbatimString, isInterpolated: true, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
+                        }
+                        else if (content is InterpolationSyntax interpolation)
+                        {
+                            // we're copying an interpolation from an interpolated string to a string literal. For example,
+                            // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in the
+                            // future is split the literal into `"goo" + $"{x + y}" + "bar"`.  However, it's unclear if that
+                            // would actually be desirable as `$"{x + x}"` may have no meaning in the destination location. So,
+                            // for now, we do the simple thing and just treat the interpolation as raw text that should just be
+                            // escaped as appropriate into the destination.
+                            builder.Append(EscapeForNonRawStringLiteral(
+                                pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, interpolation.ToString()));
+                        }
+                    }
+
+                    return builder.ToString();
+                }
+
+                string TransformInterpolatedStringToInterpolatedString(InterpolatedStringExpressionSyntax pastedText)
+                {
+                    using var _ = PooledStringBuilder.GetInstance(out var builder);
+                    foreach (var content in pastedText.Contents)
+                    {
+                        if (content is InterpolatedStringTextSyntax stringText)
+                        {
+                            builder.Append(EscapeForNonRawStringLiteral(
+                                pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
+                        }
+                        else if (content is InterpolationSyntax interpolation)
+                        {
+                            // we're moving an interpolation from one interpolation to another.  This can just be copied
+                            // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
+                            // for the destination type.
+                            if (interpolation.FormatClause is not null)
+                            {
+                                var oldToken = interpolation.FormatClause.FormatStringToken;
+                                var newToken = Token(
+                                    oldToken.LeadingTrivia, oldToken.Kind(),
+                                    EscapeForNonRawStringLiteral(
+                                        pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, oldToken.ValueText),
+                                    oldToken.ValueText, oldToken.TrailingTrivia);
+
+                                interpolation = interpolation.ReplaceToken(oldToken, newToken);
+                            }
+
+                            builder.Append(interpolation.ToString());
+                        }
+                    }
+
+                    return builder.ToString();
+                }
+            }
         }
 
         /// <summary>
@@ -131,104 +229,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // figure out something better here (for example copying just enough indentation whitespace to make things
             // successfully parse).
             return $"{startQuote}{rawStringIndentation}{pastedText}{endQuote}";
-        }
-
-        private string TransformValueToDestinationKind(ExpressionSyntax parsedChange)
-        {
-            // we have a matrix of every string source type to every string destination type.
-            // 
-            // Normal string
-            // Interpolated string
-            // Verbatim string
-            // Verbatim interpolated string
-            // Raw single line string
-            // Raw multi line string
-            // Raw interpolated line string
-            // Raw interpolated multi-line string.
-            var pastingIntoVerbatimString = IsVerbatimStringExpression(StringExpressionBeforePaste);
-
-            return (parsedChange, StringExpressionBeforePaste) switch
-            {
-                (LiteralExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformLiteralToLiteral(pastedText),
-                (LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformLiteralToInterpolatedString(pastedText),
-                (InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformInterpolatedStringToLiteral(pastedText),
-                (InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformInterpolatedStringToInterpolatedString(pastedText),
-                _ => throw ExceptionUtilities.Unreachable,
-            };
-
-            string TransformLiteralToLiteral(LiteralExpressionSyntax pastedText)
-            {
-                var textValue = pastedText.Token.ValueText;
-                return EscapeForNonRawStringLiteral(
-                    isVerbatim: pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, textValue);
-            }
-
-            string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText)
-            {
-                var textValue = pastedText.Token.ValueText;
-                return EscapeForNonRawStringLiteral(
-                    isVerbatim: pastingIntoVerbatimString, isInterpolated: true, trySkipExistingEscapes: false, textValue);
-            }
-
-            string TransformInterpolatedStringToLiteral(InterpolatedStringExpressionSyntax pastedText)
-            {
-                using var _ = PooledStringBuilder.GetInstance(out var builder);
-                foreach (var content in pastedText.Contents)
-                {
-                    if (content is InterpolatedStringTextSyntax stringText)
-                    {
-                        builder.Append(EscapeForNonRawStringLiteral(
-                            pastingIntoVerbatimString, isInterpolated: true, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
-                    }
-                    else if (content is InterpolationSyntax interpolation)
-                    {
-                        // we're copying an interpolation from an interpolated string to a string literal. For example,
-                        // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in the
-                        // future is split the literal into `"goo" + $"{x + y}" + "bar"`.  However, it's unclear if that
-                        // would actually be desirable as `$"{x + x}"` may have no meaning in the destination location. So,
-                        // for now, we do the simple thing and just treat the interpolation as raw text that should just be
-                        // escaped as appropriate into the destination.
-                        builder.Append(EscapeForNonRawStringLiteral(
-                            pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, interpolation.ToString()));
-                    }
-                }
-
-                return builder.ToString();
-            }
-
-            string TransformInterpolatedStringToInterpolatedString(InterpolatedStringExpressionSyntax pastedText)
-            {
-                using var _ = PooledStringBuilder.GetInstance(out var builder);
-                foreach (var content in pastedText.Contents)
-                {
-                    if (content is InterpolatedStringTextSyntax stringText)
-                    {
-                        builder.Append(EscapeForNonRawStringLiteral(
-                            pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
-                    }
-                    else if (content is InterpolationSyntax interpolation)
-                    {
-                        // we're moving an interpolation from one interpolation to another.  This can just be copied
-                        // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
-                        // for the destination type.
-                        if (interpolation.FormatClause is not null)
-                        {
-                            var oldToken = interpolation.FormatClause.FormatStringToken;
-                            var newToken = Token(
-                                oldToken.LeadingTrivia, oldToken.Kind(),
-                                EscapeForNonRawStringLiteral(
-                                    pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, oldToken.ValueText),
-                                oldToken.ValueText, oldToken.TrailingTrivia);
-
-                            interpolation = interpolation.ReplaceToken(oldToken, newToken);
-                        }
-
-                        builder.Append(interpolation.ToString());
-                    }
-                }
-
-                return builder.ToString();
-            }
         }
 
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
