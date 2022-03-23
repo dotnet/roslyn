@@ -438,6 +438,9 @@ dotnet_diagnostic.IDE0190.severity = %value%
 # IDE0200
 dotnet_diagnostic.IDE0200.severity = %value%
 
+# IDE0210
+dotnet_diagnostic.IDE0210.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -1036,6 +1039,9 @@ csharp_style_prefer_parameter_null_checking = true
 
 # IDE0200, PreferMethodGroupConversion
 csharp_style_prefer_method_group_conversion = true
+
+# IDE0210, ForEachExplicitCastInSource
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
