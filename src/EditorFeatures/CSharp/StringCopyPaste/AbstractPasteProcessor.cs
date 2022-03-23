@@ -120,7 +120,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             NewLine = newLine;
             StringExpressionBeforePaste = stringExpressionBeforePaste;
 
-            TextContentsSpansBeforePaste = GetTextContentSpans(TextBeforePaste, stringExpressionBeforePaste, out DelimiterQuoteCount, out DelimiterDollarCount);
+            TextContentsSpansBeforePaste = GetTextContentSpans(
+                TextBeforePaste, stringExpressionBeforePaste,
+                out DelimiterQuoteCount, out DelimiterDollarCount,
+                out _, out _);
             TextContentsSpansAfterPaste = TextContentsSpansBeforePaste.SelectAsArray(MapSpanForward);
 
             Contract.ThrowIfTrue(TextContentsSpansBeforePaste.IsEmpty);

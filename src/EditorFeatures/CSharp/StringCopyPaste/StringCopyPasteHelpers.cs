@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public static bool IsAnyMultiLineRawStringExpression(ExpressionSyntax expression)
             => expression.Kind() is SyntaxKind.MultiLineRawStringLiteralToken ||
-               expression is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken });
+               expression is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken };
 
         public static bool IsRawStringLiteral(InterpolatedStringExpressionSyntax interpolatedString)
             => interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
@@ -282,12 +282,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             while (end > start && text[end - 1] == '"')
                 end--;
 
-            if (literal.Kind() is SyntaxKind.SingleLineRawStringLiteralToken)
+            if (literal.Token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken)
             {
                 startQuoteSpan = TextSpan.FromBounds(literal.SpanStart, start);
                 endQuoteSpan = TextSpan.FromBounds(end, literal.Span.End);
             }
-            else if (literal.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
+            else if (literal.Token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 // Consume the whitespace and newline after the initial quotes.
                 var rawStart = start;

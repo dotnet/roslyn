@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // literal token.  Otherwise, we have a multi-selection across token kinds which will be extremely 
             // complex to try to reconcile.
             var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(
-                selectionsBeforePaste, cancellationToken);
+                documentBeforePaste, selectionsBeforePaste, cancellationToken);
             if (stringExpressionBeforePaste == null)
                 return;
 
@@ -223,17 +223,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 // See if this is a paste of the last copy that we heard about.
                 if (service != null &&
+                    _lastSelectedSpans?.Count > 0 &&
+                    _lastClipboardSequenceNumber != null &&
                     service.TryGetClipboardSequenceNumber(out var sequenceNumber) &&
-                    _lastClipboardSequenceNumber == sequenceNumber &&
-                    _lastSelectedSpans != null)
+                    _lastClipboardSequenceNumber == sequenceNumber)
                 {
-                    var stringExpressionCopiedFrom = TryGetCompatibleContainingStringExpression(
-                        _lastSelectedSpans, cancellationToken);
-                    if (stringExpressionCopiedFrom != null)
+                    var lastSelectedSnapshot = _lastSelectedSpans[0].Snapshot;
+                    var lastSelectedDocument = lastSelectedSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (lastSelectedDocument != null)
                     {
-                        return new KnownSourcePasteProcessor(
-                            newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
-                            stringExpressionBeforePaste, stringExpressionCopiedFrom, _lastSelectedSpans[0].Snapshot);
+                        var stringExpressionCopiedFrom = TryGetCompatibleContainingStringExpression(
+                            lastSelectedDocument, _lastSelectedSpans, cancellationToken);
+                        if (stringExpressionCopiedFrom != null)
+                        {
+                            return new KnownSourcePasteProcessor(
+                                newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                                stringExpressionBeforePaste, stringExpressionCopiedFrom, _lastSelectedSpans[0].Snapshot);
+                        }
                     }
                 }
 
@@ -325,16 +331,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// anything special as trying to correct in this scenario is too difficult.
         /// </summary>
         private static ExpressionSyntax? TryGetCompatibleContainingStringExpression(
-            NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
+            Document document, NormalizedSnapshotSpanCollection spans, CancellationToken cancellationToken)
         {
             if (spans.Count == 0)
                 return null;
 
             var snapshot = spans[0].Snapshot;
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-                return null;
-
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             if (root == null)
                 return null;
@@ -347,7 +349,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Now, given that string expression, find the inside 'text' spans of the expression.  These are the parts
             // of the literal between the quotes.  It does not include the interpolation holes in an interpolated
             // string.  These spans may be empty (for an empty string, or empty text gap between interpolations).
-            var contentSpans = GetTextContentSpans(snapshot.AsText(), stringExpression, out _, out _);
+            var contentSpans = GetTextContentSpans(
+                snapshot.AsText(), stringExpression,
+                out _, out _, out _, out _);
 
             foreach (var snapshotSpan in spans)
             {
