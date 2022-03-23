@@ -232,10 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
 
-            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
-            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            if (TryCreateSpeculativeFieldKeywordBinder(binder, out var speculativeFieldKeywordBinder))
             {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+                binder = speculativeFieldKeywordBinder;
             }
 
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
@@ -251,10 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            // PROTOTYPE(semi-auto-props): ContainingMember() to support local functions and lambdas.
-            if (binder.ContainingMemberOrLambda is SourcePropertyAccessorSymbol accessor)
+            if (TryCreateSpeculativeFieldKeywordBinder(binder, out var speculativeFieldKeywordBinder))
             {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
+                binder = speculativeFieldKeywordBinder;
             }
 
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
@@ -279,6 +277,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return boundNode;
+        }
+
+        protected static bool TryGetAccessorSymbolForFieldKeywordBinder(Symbol symbol, out SourcePropertyAccessorSymbol accessorSymbol)
+        {
+            if (symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            {
+                accessorSymbol = accessor;
+                return true;
+            }
+
+            accessorSymbol = null;
+            return false;
+        }
+
+        protected static bool TryCreateSpeculativeFieldKeywordBinder(Binder binder, out SpeculativeFieldKeywordBinder speculativeFieldKeywordBinder)
+        {
+            if (TryGetAccessorSymbolForFieldKeywordBinder(binder.ContainingMember(), out var accessor))
+            {
+                speculativeFieldKeywordBinder = new SpeculativeFieldKeywordBinder(accessor, binder);
+                return true;
+            }
+
+            speculativeFieldKeywordBinder = null;
+            return false;
         }
 
         /// <summary>
