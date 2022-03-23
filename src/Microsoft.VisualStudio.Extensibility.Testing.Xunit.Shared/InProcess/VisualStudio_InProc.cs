@@ -4,6 +4,8 @@
 namespace Xunit.InProcess
 {
     using System;
+    using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Reflection;
     using System.Runtime.InteropServices;
@@ -119,7 +121,7 @@ namespace Xunit.InProcess
             });
         }
 
-        internal static string GetIdeState()
+        internal static string GetIdeState(ImmutableList<KeyValuePair<string, Func<string>>> customIdeStateCollectors)
         {
             return InvokeOnUIThread(() =>
             {
@@ -160,6 +162,26 @@ namespace Xunit.InProcess
                             var item = taskItems[i];
                             var text = item.get_Text(out var name) == VSConstants.S_OK ? name : string.Empty;
                             stateBuilder.AppendLine($"  {++index}: {name}");
+                        }
+                    }
+                }
+
+                /*
+                 * Custom collectors
+                 */
+                foreach (var collector in customIdeStateCollectors)
+                {
+                    stateBuilder.Append(collector.Key).AppendLine(":");
+                    var lines = collector.Value().Replace("\r\n", "\n").Split(new[] { '\n' });
+                    foreach (var line in lines)
+                    {
+                        if (line == string.Empty)
+                        {
+                            stateBuilder.AppendLine();
+                        }
+                        else
+                        {
+                            stateBuilder.Append("  ").AppendLine(line);
                         }
                     }
                 }

@@ -4,17 +4,29 @@
 namespace Xunit.Harness
 {
     using System;
+    using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.IO;
     using System.Text;
     using Xunit.InProcess;
 
-    internal static class IdeStateCollector
+    public static class IdeStateCollector
     {
+        private static ImmutableList<KeyValuePair<string, Func<string>>> _customIdeStateCollectors = ImmutableList<KeyValuePair<string, Func<string>>>.Empty;
+
+        public static void RegisterCustomState(string title, Func<string> callback)
+        {
+            ImmutableInterlocked.Update(
+                ref _customIdeStateCollectors,
+                (loggers, newLogger) => loggers.Add(newLogger),
+                new KeyValuePair<string, Func<string>>(title, callback));
+        }
+
         internal static void TryWriteIdeStateToFile(string filePath)
         {
             try
             {
-                var content = VisualStudio_InProc.GetIdeState();
+                var content = VisualStudio_InProc.GetIdeState(_customIdeStateCollectors);
                 if (string.IsNullOrEmpty(content))
                 {
                     return;
