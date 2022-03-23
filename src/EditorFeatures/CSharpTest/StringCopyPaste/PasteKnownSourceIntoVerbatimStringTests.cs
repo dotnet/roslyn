@@ -261,5 +261,165 @@ var dest =
     @""    goo
     bar[||]"";");
         }
+
+        [WpfFact]
+        public void TestPasteInterpolationFromInterpolatedStringLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:{0}|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""{0}[||]"";",
+@"
+var dest =
+    @""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent1()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:{""goo""}|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""{""""goo""""}[||]"";",
+@"
+var dest =
+    @""{""goo""}[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent2()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:X{""goo""}Y|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""X{""""goo""""}Y[||]"";",
+@"
+var dest =
+    @""X{""goo""}Y[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent3()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:\""X{""goo""}Y\""|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""""""X{""""goo""""}Y""""[||]"";",
+@"
+var dest =
+    @""\""X{""goo""}Y\""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromInterpolatedStringLiteralContent4()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:\""X{@""goo""}Y\""|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""""""X{@""""goo""""}Y""""[||]"";",
+@"
+var dest =
+    @""\""X{@""goo""}Y\""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationFromVerbatimInterpolatedStringLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""{0}[||]"";",
+@"
+var dest =
+    @""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent1()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{""goo""}|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""{""""goo""""}[||]"";",
+@"
+var dest =
+    @""{""goo""}[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent2()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:X{""goo""}Y|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""X{""""goo""""}Y[||]"";",
+@"
+var dest =
+    @""X{""goo""}Y[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent3()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:""""X{""goo""}Y""""|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""""""X{""""goo""""}Y""""[||]"";",
+@"
+var dest =
+    @""""""X{""goo""}Y""""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWithStringFromVerbatimInterpolatedStringLiteralContent4()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:""""X{@""goo""}Y""""|}"";",
+@"
+var dest =
+    @""[||]"";",
+@"
+var dest =
+    @""""""X{@""""goo""""}Y""""[||]"";",
+@"
+var dest =
+    @""""""X{@""goo""}Y""""[||]"";");
+        }
     }
 }
