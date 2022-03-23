@@ -602,7 +602,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     hasErrors = true;
                 }
             }
-            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() ? convertedExpression : defaultExpression))
+            else if (!defaultExpression.HasAnyErrors &&
+                !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() || convertedExpression is BoundConversion { Conversion.IsUTF8StringLiteral: true } ?
+                    convertedExpression : defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
                 diagnostics.Add(ErrorCode.ERR_DefaultValueMustBeConstant, parameterSyntax.Default.Value.Location, parameterSyntax.Identifier.ValueText);

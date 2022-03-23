@@ -674,10 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindLiteralConstant((LiteralExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.UTF8StringLiteralExpression:
-                    // PROTOTYPE(UTF8StringLiterals) : In the raw-string-work we decided to not have a special expression type.
-                    //                                 It's just a string-literal that consumer can check the token kind on.
-                    //                                 Once that feature makes it into this branch, evaluate if we can/want
-                    //                                 to do the same for this feature.
                     return BindUTF8StringLiteral((LiteralExpressionSyntax)node, diagnostics);
 
                 case SyntaxKind.DefaultLiteralExpression:
