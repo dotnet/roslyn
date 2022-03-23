@@ -104,6 +104,7 @@ var dest =
 var dest =
     ""[||]"";");
         }
+
         [WpfFact]
         public void TestPasteSimpleVerbatimLiteralContent()
         {
@@ -254,6 +255,70 @@ var dest =
 var dest =
     ""    goo
     bar[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationFromInterpolatedStringLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:{0}|}"";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""{0}[||]"";",
+@"
+var dest =
+    ""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWIthStringFromInterpolatedStringLiteralContent1()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:{""goo""}|}"";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""{\""goo\""}[||]"";",
+@"
+var dest =
+    ""{""goo""}[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWIthStringFromInterpolatedStringLiteralContent2()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:X{""goo""}Y|}"";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""X{\""goo\""}Y[||]"";",
+@"
+var dest =
+    ""X{""goo""}Y[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationWIthStringFromInterpolatedStringLiteralContent3()
+        {
+            TestCopyPaste(
+@"var v = $""{|Copy:\""X{""goo""}Y\""|}"";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""\""X{\""goo\""}Y\""[||]"";",
+@"
+var dest =
+    ""\""X{""goo""}Y\""[||]"";");
         }
     }
 }

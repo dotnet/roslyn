@@ -122,6 +122,38 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private string TransformInterpolatedStringToLiteral(InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto)
         {
+            // Pasting into raw strings can be complex.  A single-line raw string may need to become multi-line, and
+            // a multi-line raw string has indentation whitespace we have to respect.
+            if (IsAnyRawStringExpression(pastedInto))
+                TransformInterpolatedStringToRawStringLiteral(pastedText, pastedInto);
+
+            var isVerbatim = pastedInto.Token.IsVerbatimStringLiteral();
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+            foreach (var content in pastedText.Contents)
+            {
+                if (content is InterpolatedStringTextSyntax stringText)
+                {
+                    builder.Append(EscapeForNonRawStringLiteral(
+                        isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
+                }
+                else if (content is InterpolationSyntax interpolation)
+                {
+                    // we're copying an interpolation from an interpolated string to a string literal. For example,
+                    // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in the
+                    // future is split the literal into `"goo" + $"{x + y}" + "bar"`.  However, it's unclear if that
+                    // would actually be desirable as `$"{x + x}"` may have no meaning in the destination location. So,
+                    // for now, we do the simple thing and just treat the interpolation as raw text that should just be
+                    // escaped as appropriate into the destination.
+                    builder.Append(EscapeForNonRawStringLiteral(
+                        isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, interpolation.ToString()));
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        private void TransformInterpolatedStringToRawStringLiteral(InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto)
+        {
             throw new NotImplementedException();
         }
 
