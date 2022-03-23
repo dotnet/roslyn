@@ -34,15 +34,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 }";
 
             var expectedCodeAfterCommit =
-@"$$class Program
+@"class Program
 {
     public void Method()
     {
-        if (true)
-        {
-        }
+        if ($$true) { }
     }
 }";
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertIfSnippetInGlobalContextTest()
+        {
+            var markupBeforeCommit =
+@"Ins$$
+";
+
+            var expectedCodeAfterCommit =
+@"if ($$true) { }
+";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
     }

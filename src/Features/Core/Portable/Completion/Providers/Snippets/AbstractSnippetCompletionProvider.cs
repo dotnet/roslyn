@@ -34,27 +34,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allChangesDocument = document.WithText(allChangesText);
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
+            var lspSnippet = GenerateLSPSnippet(snippet);
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
             return CompletionChange.Create(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
 
-        private string? GenerateLSPSnippet(SnippetChange snippetChange)
+        private static string? GenerateLSPSnippet(SnippetChange snippetChange)
         {
-            var mainChangeText = snippetChange.MainTextChange!.Value.NewText;
+            var mainChangeText = snippetChange.MainTextChange!.Value.NewText!;
             var renameLocationsMap = snippetChange.RenameLocationsMap;
             if (renameLocationsMap is null)
             {
                 return mainChangeText;
             }
 
-            for (var i = 1; i < renameLocationsMap.Count; i++)
+            var count = 1;
+            var modifier = 0;
+            foreach (var (priority, identifier) in renameLocationsMap.Keys)
             {
-                var value = renameLocationsMap[i];
+                if (identifier.Length != 0)
+                {
+                    var locationCount = renameLocationsMap[(priority, identifier)].Count;
+                    var newStr = $"${{{{{count}:{identifier}}}}}";
+                    mainChangeText = mainChangeText.Replace(identifier, newStr);
+                    modifier += ((newStr.Length - identifier.Length) * locationCount + 1);
+                }
+                else
+                {
+                    var location = renameLocationsMap[(priority, identifier)][0];
+                    mainChangeText = mainChangeText.Insert(location.Start + modifier, $"$0");
+                }
 
-                foreach 
-                newText += 
+                count++;
             }
-        }
+
+            return mainChangeText;
+        } //foreach (${{1:var}} ${{2:item}} in ${{3:collection}}) { $0}
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

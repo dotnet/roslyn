@@ -77,14 +77,15 @@ namespace Microsoft.CodeAnalysis.Snippets
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var textChanges = await GenerateSnippetTextChangesAsync(document, position, cancellationToken).ConfigureAwait(false);
             var snippetDocument = await GetDocumentWithSnippetAsync(document, textChanges, cancellationToken).ConfigureAwait(false);
-
+            var mainChanges = await snippetDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
+            var mainChange = mainChanges.Where(change => change.Span.Start == position).FirstOrDefault();
             var renameLocationsMap = await GetRenameLocationsMapAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
             var formatAnnotatedSnippetDocument = await AddFormatAnnotationAsync(snippetDocument, position, cancellationToken).ConfigureAwait(false);
             var reformattedDocument = await CleanupDocumentAsync(formatAnnotatedSnippetDocument, cancellationToken).ConfigureAwait(false);
             var reformattedRoot = await reformattedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var caretTarget = reformattedRoot.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             var changes = await reformattedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var mainChange = changes.Where(x => x.Span.Start == position).FirstOrDefault();
+
             return new SnippetChange(
                 mainTextChange: mainChange,
                 textChanges: changes.ToImmutableArray(),
@@ -131,9 +132,9 @@ namespace Microsoft.CodeAnalysis.Snippets
             return document;
         }
 
-        protected virtual Task<Dictionary<int, List<TextSpan>>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
+        protected virtual Task<Dictionary<(int, string), List<TextSpan>>?> GetRenameLocationsMapAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            return Task.FromResult<Dictionary<int, List<TextSpan>>?>(null);
+            return Task.FromResult<Dictionary<(int, string), List<TextSpan>>?>(null);
         }
     }
 }

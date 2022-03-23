@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// The items that we will want to rename as well as the ordering
         /// in which to visit those items.
         /// </summary>
-        public readonly Dictionary<int, List<TextSpan>>? RenameLocationsMap;
+        public readonly Dictionary<(int, string), List<TextSpan>>? RenameLocationsMap;
 
         public SnippetChange(
             TextChange? mainTextChange,
             ImmutableArray<TextChange> textChanges,
             int? cursorPosition,
-            Dictionary<int, List<TextSpan>>? renameLocationsMap)
+            Dictionary<(int, string), List<TextSpan>>? renameLocationsMap)
         {
             if (textChanges.IsEmpty || mainTextChange is null)
             {
