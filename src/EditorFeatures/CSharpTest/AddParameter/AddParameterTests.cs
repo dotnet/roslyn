@@ -2902,5 +2902,18 @@ namespace System.Runtime.CompilerServices
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)]
+        [WorkItem(56952, "https://github.com/dotnet/roslyn/issues/56952")]
+        public async Task TestRecordsNamingConventions()
+        {
+            await TestInRegularAndScript1Async(@"[|new Test(""repro"")|];
+
+record Test();
+", @"new Test(""repro"");
+
+record Test(string V);
+");
+        }
     }
 }
