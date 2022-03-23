@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// <summary>
         /// The buffer's snapshot prior to the paste application.
         /// </summary>
-        protected readonly ITextSnapshot SnapshotBeforePaste;
+        protected readonly ITextSnapshot2 SnapshotBeforePaste;
 
         /// <summary>
         /// The buffer's snapshot right after the paste application.  Guaranteed to be exactly one version ahead of <see
         /// cref="SnapshotBeforePaste"/>.
         /// </summary>
-        protected readonly ITextSnapshot SnapshotAfterPaste;
+        protected readonly ITextSnapshot2 SnapshotAfterPaste;
 
         /// <summary>
         /// Roslyn SourceText corresponding to <see cref="SnapshotBeforePaste"/>.
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         protected AbstractPasteProcessor(
             string newLine,
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
+            ITextSnapshot2 snapshotBeforePaste,
+            ITextSnapshot2 snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste)
@@ -141,6 +141,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             var trackingSpan = SnapshotBeforePaste.CreateTrackingSpan(span.ToSpan(), SpanTrackingMode.EdgeInclusive);
             return trackingSpan.GetSpan(SnapshotAfterPaste).Span.ToTextSpan();
+        }
+
+        /// <summary>
+        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
+        /// add to the start and end to keep things parsing properly.
+        /// </summary>
+        protected string? GetQuotesToAddToRawString(
+            SourceText textAfterChange, ImmutableArray<TextSpan> textContentSpansAfterChange)
+        {
+            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
+
+            var longestQuoteSequence = textContentSpansAfterChange.Max(ts => GetLongestQuoteSequence(textAfterChange, ts));
+
+            var quotesToAddCount = (longestQuoteSequence - DelimiterQuoteCount) + 1;
+            return quotesToAddCount <= 0 ? null : new string('"', quotesToAddCount);
+        }
+
+        /// <summary>
+        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many dollar
+        /// signs to add to the start to keep things parsing properly.
+        /// </summary>
+        protected string? GetDollarSignsToAddToRawString(
+            SourceText textAfterChange, ImmutableArray<TextSpan> textContentSpansAfterChange)
+        {
+            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
+
+            // Only have to do this for interpolated strings.  Other strings never have a $ in their starting delimiter.
+            if (StringExpressionBeforePaste is not InterpolatedStringExpressionSyntax)
+                return null;
+
+            var longestBraceSequence = textContentSpansAfterChange.Max(
+                ts => Math.Max(
+                    GetLongestOpenBraceSequence(textAfterChange, ts),
+                    GetLongestCloseBraceSequence(textAfterChange, ts)));
+
+            var dollarsToAddCount = (longestBraceSequence - DelimiterDollarCount) + 1;
+            return dollarsToAddCount <= 0 ? null : new string('$', dollarsToAddCount);
         }
     }
 }

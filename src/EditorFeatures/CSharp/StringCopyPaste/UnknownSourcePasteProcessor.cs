@@ -100,40 +100,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return textChanges.ToImmutableAndClear();
         }
 
-        /// <summary>
-        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many quotes to
-        /// add to the start and end to keep things parsing properly.
-        /// </summary>
+        /// <inheritdoc cref="AbstractPasteProcessor.GetQuotesToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
         private string? GetQuotesToAddToRawString()
-        {
-            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
+            => GetQuotesToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
 
-            var longestQuoteSequence = TextContentsSpansAfterPaste.Max(ts => GetLongestQuoteSequence(TextAfterPaste, ts));
-
-            var quotesToAddCount = (longestQuoteSequence - DelimiterQuoteCount) + 1;
-            return quotesToAddCount <= 0 ? null : new string('"', quotesToAddCount);
-        }
-
-        /// <summary>
-        /// Given an initial raw string literal, and the changes made to it by the paste, determines how many dollar
-        /// signs to add to the start to keep things parsing properly.
-        /// </summary>
+        /// <inheritdoc cref="AbstractPasteProcessor.GetDollarSignsToAddToRawString(SourceText, ImmutableArray{TextSpan})" />
         private string? GetDollarSignsToAddToRawString()
-        {
-            Contract.ThrowIfFalse(IsAnyRawStringExpression(StringExpressionBeforePaste));
-
-            // Only have to do this for interpolated strings.  Other strings never have a $ in their starting delimiter.
-            if (StringExpressionBeforePaste is not InterpolatedStringExpressionSyntax)
-                return null;
-
-            var longestBraceSequence = TextContentsSpansAfterPaste.Max(
-                ts => Math.Max(
-                    GetLongestOpenBraceSequence(TextAfterPaste, ts),
-                    GetLongestCloseBraceSequence(TextAfterPaste, ts)));
-
-            var dollarsToAddCount = (longestBraceSequence - DelimiterDollarCount) + 1;
-            return dollarsToAddCount <= 0 ? null : new string('$', dollarsToAddCount);
-        }
+            => GetDollarSignsToAddToRawString(TextAfterPaste, TextContentsSpansAfterPaste);
 
         private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
         {

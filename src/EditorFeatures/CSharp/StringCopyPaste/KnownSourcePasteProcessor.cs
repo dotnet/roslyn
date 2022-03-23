@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -22,10 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
     internal class KnownSourcePasteProcessor : AbstractPasteProcessor
     {
+        private readonly ITextBufferFactoryService3 _textBufferFactoryService;
         private readonly ExpressionSyntax _stringExpressionCopiedFrom;
         private readonly ITextSnapshot _snapshotCopiedFrom;
 
         public KnownSourcePasteProcessor(
+            ITextBufferFactoryService3 textBufferFactoryService,
             string newLine,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
@@ -36,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ITextSnapshot snapshotCopiedFrom)
             : base(newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
+            _textBufferFactoryService = textBufferFactoryService;
             _stringExpressionCopiedFrom = stringExpressionCopiedFrom;
             _snapshotCopiedFrom = snapshotCopiedFrom;
         }
@@ -241,9 +245,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // if the content we're going to add itself contains quotes, then figure out how many start/end quotes the
             // final string literal will need (which also gives us the number of quotes to add to the start/end).
             //
-            // note: we don't have to do this if the paste was successful.  Instead, we'll just process the contents,
-            // adjusting whitespace below.
-            var contentChanges = GetRawStringContentChanges(cancellationToken);
+            var internalContentChanges = GetRawStringContentChanges(cancellationToken);
+            var clonedBuffer = _textBufferFactoryService.CreateTextBuffer(SnapshotBeforePaste.TextImage, SnapshotBeforePaste.ContentType);
+            var clonedSnapshotBeforePaste = clonedBuffer.CurrentSnapshot;
+            var edit = clonedBuffer.CreateEdit();
+            foreach (var change in internalContentChanges)
+                edit.Replace(change.Span.ToSpan(), change.NewText);
+            edit.Apply();
+            var clonedSnapshotAfterPaste = clonedBuffer.CurrentSnapshot;
 
             var quotesToAdd = GetQuotesToAddToRawString();
             var dollarSignsToAdd = GetDollarSignsToAddToRawString();
