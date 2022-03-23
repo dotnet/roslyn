@@ -13730,7 +13730,7 @@ End Class
 5180801")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
