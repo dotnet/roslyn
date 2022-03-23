@@ -447,7 +447,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
-        public void String_CompleteVerbatim()
+        public void String_BeforeOtherString1()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = $$ + "" + bar"";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_BeforeOtherString2()
+        {
+            var code = @"class C
+{
+    void Method()
+    {
+        var s = $$ + ""; } "";
+    }
+}";
+            using var session = CreateSessionDoubleQuote(code);
+            Assert.NotNull(session);
+            CheckStart(session.Session);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(59178, "https://github.com/dotnet/roslyn/issues/59178")]
+        public void String_DontCompleteVerbatim()
         {
             var code = @"class C
 {
@@ -459,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 }";
             using var session = CreateSessionDoubleQuote(code);
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         internal static Holder CreateSessionSingleQuote(string code)
