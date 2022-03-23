@@ -464,10 +464,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return false;
         }
 
-        public static string EscapeForNonRawStringLiteral(bool isVerbatim, bool isInterpolated, string value)
+        public static string EscapeForNonRawStringLiteral(bool isVerbatim, bool isInterpolated, bool trySkipExistingEscapes, string value)
         {
             if (isVerbatim)
-                return EscapeForNonRawVerbatimStringLiteral(isInterpolated, value);
+                return EscapeForNonRawVerbatimStringLiteral(isInterpolated, trySkipExistingEscapes, value);
 
             // Standard strings have a much larger set of cases to consider.
             using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     // Otherwise, if it's not already escaped, then escape it.
                     if (isInterpolated && ch is '{' or '}')
                     {
-                        if (nextCh == ch)
+                        if (trySkipExistingEscapes && nextCh == ch)
                             i++;
                         else
                             builder.Append(ch);
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
         }
 
-        private static string EscapeForNonRawVerbatimStringLiteral(bool isInterpolated, string value)
+        private static string EscapeForNonRawVerbatimStringLiteral(bool isInterpolated, bool trySkipExistingEscapes, string value)
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
@@ -602,14 +602,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 // Otherwise, if it's not already escaped, then escape it.
                 if (ch == '"')
                 {
-                    if (nextCh == ch)
+                    if (trySkipExistingEscapes && nextCh == ch)
                         i++;
                     else
                         builder.Append(ch);
                 }
                 else if (isInterpolated && ch is '{' or '}')
                 {
-                    if (nextCh == ch)
+                    if (trySkipExistingEscapes && nextCh == ch)
                         i++;
                     else
                         builder.Append(ch);

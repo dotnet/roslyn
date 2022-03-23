@@ -89,7 +89,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             using var textChanges = TemporaryArray<TextChange>.Empty;
 
             foreach (var change in Changes)
-                textChanges.Add(new TextChange(change.OldSpan.ToTextSpan(), EscapeForNonRawStringLiteral(isVerbatim, isInterpolated, change.NewText)));
+            {
+                // We're pasting from an unknown source.  If we see a viable escape in that source treat it as an escape
+                // instead of escaping it one more time upon paste.
+                textChanges.Add(new TextChange(
+                    change.OldSpan.ToTextSpan(),
+                    EscapeForNonRawStringLiteral(isVerbatim, isInterpolated, trySkipExistingEscapes: true, change.NewText)));
+            }
 
             return textChanges.ToImmutableAndClear();
         }

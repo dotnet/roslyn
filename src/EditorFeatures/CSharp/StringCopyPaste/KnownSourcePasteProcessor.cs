@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // the string we're pasting.  So we just need to get that value and ensure it is properly
             var textValue = pastedText.Token.ValueText;
             return EscapeForNonRawStringLiteral(
-                pastedInto.Token.IsVerbatimStringLiteral(), isInterpolated: false, textValue);
+                pastedInto.Token.IsVerbatimStringLiteral(), isInterpolated: false, trySkipExistingEscapes: false, textValue);
         }
 
         private void TransformLiteralToRawStringLiteral(LiteralExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto)
