@@ -28,20 +28,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private readonly ITextSnapshot _snapshotCopiedFrom;
 
         public KnownSourcePasteProcessor(
-            ITextBufferFactoryService3 textBufferFactoryService,
             string newLine,
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
+            ITextSnapshot2 snapshotBeforePaste,
+            ITextSnapshot2 snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             ExpressionSyntax stringExpressionCopiedFrom,
-            ITextSnapshot snapshotCopiedFrom)
+            ITextSnapshot snapshotCopiedFrom,
+            ITextBufferFactoryService3 textBufferFactoryService)
             : base(newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
-            _textBufferFactoryService = textBufferFactoryService;
             _stringExpressionCopiedFrom = stringExpressionCopiedFrom;
             _snapshotCopiedFrom = snapshotCopiedFrom;
+            _textBufferFactoryService = textBufferFactoryService;
         }
 
         public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
 
             // Then add the actual changes in the content.
-            editsToMake.AddRange(contentChanges);
+            editsToMake.AddRange(internalContentChanges);
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)

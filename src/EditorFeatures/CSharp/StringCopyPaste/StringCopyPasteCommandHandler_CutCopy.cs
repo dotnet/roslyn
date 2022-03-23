@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.Text;
@@ -49,10 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (copyPasteService == null)
                 return;
 
-            if (!copyPasteService.TryGetClipboardSequenceNumber(out var sequenceNumber))
+            var nextSequenceNumber = Interlocked.Increment(ref s_sequenceNumber);
+            if (!copyPasteService.TrySetClipboardSequenceNumber(nextSequenceNumber))
                 return;
 
-            _lastClipboardSequenceNumber = sequenceNumber;
+            _lastClipboardSequenceNumber = nextSequenceNumber;
             _lastSelectedSpans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
         }
     }

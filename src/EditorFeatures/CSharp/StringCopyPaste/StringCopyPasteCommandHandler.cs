@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         IChainedCommandHandler<PasteCommandArgs>
     {
         private const string CopyId = "RoslynStringCopyPasteId";
+
+        private static int s_sequenceNumber = 1;
+
         private readonly IThreadingContext _threadingContext;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly ITextBufferFactoryService3 _textBufferFactoryService;
@@ -87,11 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var subjectBuffer = args.SubjectBuffer;
 
             var selectionsBeforePaste = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
-            var snapshotBeforePaste = subjectBuffer.CurrentSnapshot;
 
             // Always let the real paste go through.  That way we always have a version of the document that doesn't
             // include our changes that we can undo back to.
             nextCommandHandler();
+
+            if (subjectBuffer.CurrentSnapshot is not ITextSnapshot2 snapshotBeforePaste)
+                return;
 
             // If we don't even see any changes from the paste, there's nothing we can do.
             if (snapshotBeforePaste.Version.Changes is null)
@@ -105,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (selectionsBeforePaste.Count == 0)
                 return;
 
-            var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
+            if (subjectBuffer.CurrentSnapshot is not ITextSnapshot2 snapshotAfterPaste)
+                return;
 
             // If there were multiple changes that already happened, then don't make any changes.  Some other component
             // already did something advanced.
@@ -217,7 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                             var knownProcessor = new KnownSourcePasteProcessor(
                                 newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
-                                stringExpressionBeforePaste, stringExpressionCopiedFrom, _lastSelectedSpans[0].Snapshot);
+                                stringExpressionBeforePaste, stringExpressionCopiedFrom,
+                                _lastSelectedSpans[0].Snapshot, _textBufferFactoryService);
                             return knownProcessor.GetEdits(cancellationToken);
                         }
                     }

@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public UnknownSourcePasteProcessor(
             string newLine,
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
+            ITextSnapshot2 snapshotBeforePaste,
+            ITextSnapshot2 snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,

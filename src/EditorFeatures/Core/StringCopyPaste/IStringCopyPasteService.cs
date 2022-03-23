@@ -11,10 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 {
     internal interface IStringCopyPasteService : IWorkspaceService
     {
-        /// <summary>
-        /// Attempts to retrieve a monotonically increasing value representing which copy value the clipboard currently
-        /// has on it.  Can be used to determine if another copy to the clipboard happened between different times.
-        /// </summary>
+        bool TrySetClipboardSequenceNumber(int sequenceNumber);
         bool TryGetClipboardSequenceNumber(out int sequenceNumber);
     }
 
@@ -31,6 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
         // layer we have no information about the clipboard, so it would be dangerous to presume that that information
         // had been validly associated with latest clipboard operation and had not been affected by things outside our
         // awareness.
+
+        public bool TrySetClipboardSequenceNumber(int sequenceNumber)
+            => false;
 
         public bool TryGetClipboardSequenceNumber(out int sequenceNumber)
         {

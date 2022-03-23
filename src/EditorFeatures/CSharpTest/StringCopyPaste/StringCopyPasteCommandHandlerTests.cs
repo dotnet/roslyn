@@ -33,29 +33,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     {
         internal sealed class StringCopyPasteTestState : AbstractCommandHandlerTestState
         {
-            [ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Host), Shared]
-            [PartNotDiscoverable]
-            private class MockStringCopyPasteService : IStringCopyPasteService
-            {
-                [ImportingConstructor]
-                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-                public MockStringCopyPasteService()
-                {
-                }
+            //[ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Host), Shared]
+            //[PartNotDiscoverable]
+            //private class MockStringCopyPasteService : IStringCopyPasteService
+            //{
+            //    [ImportingConstructor]
+            //    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            //    public MockStringCopyPasteService()
+            //    {
+            //    }
 
-                public bool TryGetClipboardSequenceNumber(out int sequenceNumber)
-                {
-                    sequenceNumber = 0;
-                    return true;
-                }
-            }
+            //    public bool TryGetClipboardSequenceNumber(out int sequenceNumber)
+            //    {
+            //        sequenceNumber = 0;
+            //        return true;
+            //    }
+            //}
 
             private static readonly TestComposition s_compositionWithUnknownCopy =
                 EditorTestCompositions.EditorFeaturesWpf
-                    .AddParts(typeof(StringCopyPasteCommandHandler))
-                    .AddExcludedPartTypes(typeof(WpfStringCopyPasteService));
+                    .AddParts(typeof(StringCopyPasteCommandHandler));
+            // .AddExcludedPartTypes(typeof(WpfStringCopyPasteService));
             private static readonly TestComposition s_compositionWithKnownCopy =
-                s_compositionWithUnknownCopy.AddParts(typeof(MockStringCopyPasteService));
+                s_compositionWithUnknownCopy;//.AddParts(typeof(MockStringCopyPasteService));
 
             private readonly StringCopyPasteCommandHandler _commandHandler;
 
