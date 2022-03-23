@@ -1859,40 +1859,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool TryBindNameofOperator(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics, out BoundExpression result)
         {
+            if (IsNameofOperator(node, out var argumentExpression))
+            {
+                result = BindNameofOperatorInternal(node, argumentExpression, diagnostics);
+                return true;
+            }
+
             result = null;
+            return false;
+        }
+
+        internal bool IsNameofOperator(InvocationExpressionSyntax node, out ExpressionSyntax argumentExpression)
+        {
             if (node.Expression.Kind() != SyntaxKind.IdentifierName ||
                 ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() != SyntaxKind.NameOfKeyword ||
                 node.ArgumentList.Arguments.Count != 1)
             {
+                argumentExpression = null;
                 return false;
             }
 
             ArgumentSyntax argument = node.ArgumentList.Arguments[0];
             if (argument.NameColon != null || argument.RefOrOutKeyword != default(SyntaxToken) || InvocableNameofInScope())
             {
+                argumentExpression = null;
                 return false;
             }
 
-            result = BindNameofOperatorInternal(node, diagnostics);
+            argumentExpression = argument.Expression;
             return true;
         }
 
-        private BoundExpression BindNameofOperatorInternal(InvocationExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindNameofOperatorInternal(InvocationExpressionSyntax node, ExpressionSyntax argumentExpression, BindingDiagnosticBag diagnostics)
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
-            var argument = node.ArgumentList.Arguments[0].Expression;
-            // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
-            var nameofBinder = new NameofBinder(argument, this);
-            var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
 
-            bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
+            // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
+            var nameofBinder = new NameofBinder(argumentExpression, this);
+            var boundArgument = nameofBinder.BindExpression(argumentExpression, diagnostics);
+
+            bool syntaxIsOk = CheckSyntaxForNameofArgument(argumentExpression, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
             if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)boundArgument;
                 if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)
                 {
                     // method group with type parameters not allowed
-                    diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argument.Location);
+                    diagnostics.Add(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, argumentExpression.Location);
                 }
                 else
                 {

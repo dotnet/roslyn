@@ -3838,6 +3838,37 @@ class Program
         }
 
         [Fact]
+        [WorkItem(60337, "https://github.com/dotnet/roslyn/issues/60337")]
+        public void NameOfNintSpeculation()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var x = nameof(nint);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (6,24): error CS0103: The name 'nint' does not exist in the current context
+                //         var x = nameof(nint);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "nint").WithArguments("nint").WithLocation(6, 24)
+            );
+            var tree = comp.SyntaxTrees.Single();
+            var root = tree.GetRoot();
+            var existingNint = root.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
+            var existingNameOf = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var model = comp.GetSemanticModel(tree);
+            var nameofToSpeculate = (InvocationExpressionSyntax)SyntaxFactory.ParseExpression("nameof(nint)");
+            var speculativeSymbolInfo = model.GetSpeculativeSymbolInfo(existingNameOf.SpanStart, nameofToSpeculate.ArgumentList.Arguments[0].Expression, SpeculativeBindingOption.BindAsExpression);
+            var symbolInfo = model.GetSymbolInfo(existingNint);
+            
+            Assert.Equal(symbolInfo, speculativeSymbolInfo);
+        }
+
+        [Fact]
         public void MemberName_01()
         {
             var source =

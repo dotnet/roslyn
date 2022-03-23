@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -228,6 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // unbound generic types are allowed.
                 //Debug.Assert(binder is TypeofBinder); // Expectation, not requirement.
                 binder = new TypeofBinder(expression, binder);
+            }
+            else if (bindingOption == SpeculativeBindingOption.BindAsExpression && IsInNameofExpression(position, binder, out var argumentExpression))
+            {
+                binder = new NameofBinder(argumentExpression, binder);
             }
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
@@ -1860,6 +1865,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 curr = curr.ParentOrStructuredTriviaParent;
             }
 
+            return false;
+        }
+
+        private bool IsInNameofExpression(int position, Binder binder, out ExpressionSyntax argumentExpression)
+        {
+            var token = this.Root.FindToken(position);
+            var curr = token.Parent;
+            while (curr != this.Root)
+            {
+                if (curr is InvocationExpressionSyntax invocation)
+                {
+                    return binder.IsNameofOperator(invocation, out argumentExpression);
+                }
+
+                curr = curr.ParentOrStructuredTriviaParent;
+            }
+
+            argumentExpression = null;
             return false;
         }
 
