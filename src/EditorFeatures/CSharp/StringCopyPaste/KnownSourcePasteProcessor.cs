@@ -91,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // the string we're pasting.  So we just need to get that value and ensure it is properly
             var textValue = pastedText.Token.ValueText;
             return EscapeForNonRawStringLiteral(
-                pastedInto.Token.IsVerbatimStringLiteral(), isInterpolated: false, trySkipExistingEscapes: false, textValue);
+                pastedInto.Token.IsVerbatimStringLiteral(),
+                isInterpolated: false, trySkipExistingEscapes: false, textValue);
         }
 
         private void TransformLiteralToRawStringLiteral(LiteralExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto)
@@ -99,7 +100,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             throw new NotImplementedException();
         }
 
-        private string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInfo)
+        private string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInto)
+        {
+            // Pasting into raw strings can be complex.  A single-line raw string may need to become multi-line, and
+            // a multi-line raw string has indentation whitespace we have to respect.
+            if (IsAnyRawStringExpression(pastedInto))
+                TransformLiteralToInterpolatedRawStringLiteral(pastedText, pastedInto);
+
+            // All other literal->literal pastes are trivial.  The compiler has already determined the 'value' of the
+            // the string we're pasting.  So we just need to get that value and ensure it is properly
+            var textValue = pastedText.Token.ValueText;
+            return EscapeForNonRawStringLiteral(
+                pastedInto.StringStartToken.Kind() is SyntaxKind.InterpolatedVerbatimStringStartToken,
+                isInterpolated: true, trySkipExistingEscapes: false, textValue);
+        }
+
+        private void TransformLiteralToInterpolatedRawStringLiteral(LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInto)
         {
             throw new NotImplementedException();
         }
