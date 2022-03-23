@@ -1841,6 +1841,127 @@ class C
         }
 
         [Fact]
+        public void EvaluateUTF8StringConversion_01()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.F",
+                expr: @"(byte[])""hello""");
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EvaluateUTF8StringConversion_02()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                targetFramework: TargetFramework.NetCoreApp,
+                methodName: "C.F",
+                expr: @"(System.Span<byte>)""hello""");
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
+  IL_0016:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EvaluateUTF8StringConversion_03()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                targetFramework: TargetFramework.NetCoreApp,
+                methodName: "C.F",
+                expr: @"(System.ReadOnlySpan<byte>)""hello""");
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
+  IL_0005:  ldc.i4.5
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EvaluateUTF8StringLiteral_01()
+        {
+            var source =
+@"class C
+{
+    static void F()
+    {
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.F",
+                expr: @"""hello""u8");
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
         public void AssignOutParameter()
         {
             var source =
