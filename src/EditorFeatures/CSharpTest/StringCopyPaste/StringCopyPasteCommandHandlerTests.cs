@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     {
         internal sealed class StringCopyPasteTestState : AbstractCommandHandlerTestState
         {
-            [Export(typeof(IStringCopyPasteService))]
-            [Shared]
+            [ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Host), Shared]
             [PartNotDiscoverable]
             private class MockStringCopyPasteService : IStringCopyPasteService
             {

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
@@ -130,12 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var pasteWasSuccessful = PasteWasSuccessful(
                 snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
 
-            var newLine = textView.Options.GetNewLineCharacter();
-            var processor = GetPasteProcessor();
-            if (processor == null)
-                return;
-
-            var textChanges = processor.GetEdits(cancellationToken);
+            var textChanges = GetEdits(cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
             if (textChanges.IsDefaultOrEmpty)
@@ -181,12 +177,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             }
 
             transaction.Complete();
+            return;
 
-            AbstractPasteProcessor? GetPasteProcessor()
+            ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
             {
-                var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
+                var newLine = textView.Options.GetNewLineCharacter();
 
                 // See if this is a paste of the last copy that we heard about.
+                var edits = TryGetEditsFromKnownCopySource(cancellationToken);
+                if (!edits.IsDefaultOrEmpty)
+                    return edits;
+
+                // If not, then just go through teh fallback code path that applies more heuristics.
+                var unknownPasteProcessor = new UnknownSourcePasteProcessor(
+                    newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
+                    stringExpressionBeforePaste, pasteWasSuccessful);
+                return unknownPasteProcessor.GetEdits(cancellationToken);
+            }
+
+            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(CancellationToken cancellationToken)
+            {
+                var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
                 if (service != null &&
                     _lastSelectedSpans?.Count > 0 &&
                     _lastClipboardSequenceNumber != null &&
@@ -201,16 +212,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                             lastSelectedDocument, _lastSelectedSpans, cancellationToken);
                         if (stringExpressionCopiedFrom != null)
                         {
-                            return new KnownSourcePasteProcessor(
+                            var newLine = textView.Options.GetNewLineCharacter();
+
+                            var knownProcessor = new KnownSourcePasteProcessor(
                                 newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
                                 stringExpressionBeforePaste, stringExpressionCopiedFrom, _lastSelectedSpans[0].Snapshot);
+                            return knownProcessor.GetEdits(cancellationToken);
                         }
                     }
                 }
 
-                return new UnknownSourcePasteProcessor(
-                    newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
-                    stringExpressionBeforePaste, pasteWasSuccessful);
+                return default;
             }
         }
 
