@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         /// <summary>
         /// Hook up the context menu handlers.
         /// </summary>
-        public async Task InitializeAsync(IMenuCommandService? menuCommandService, CancellationToken cancellationToken)
+        public async Task InitializeAsync(IMenuCommandService menuCommandService, CancellationToken cancellationToken)
         {
             if (menuCommandService != null)
             {
