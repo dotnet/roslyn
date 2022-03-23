@@ -3,14 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Globalization;
 using System.Threading;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -19,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -50,7 +44,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     [Export(typeof(ICommandHandler))]
     [VSUtilities.ContentType(ContentTypeNames.CSharpContentType)]
     [VSUtilities.Name(nameof(StringCopyPasteCommandHandler))]
-    internal partial class StringCopyPasteCommandHandler : IChainedCommandHandler<CopyCommandArgs>, IChainedCommandHandler<PasteCommandArgs>
+    internal partial class StringCopyPasteCommandHandler :
+        IChainedCommandHandler<CutCommandArgs>,
+        IChainedCommandHandler<CopyCommandArgs>,
+        IChainedCommandHandler<PasteCommandArgs>
     {
         private const string CopyId = "RoslynStringCopyPasteId";
         private readonly IThreadingContext _threadingContext;
@@ -77,40 +74,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public string DisplayName => nameof(StringCopyPasteCommandHandler);
 
-        #region Copy
-
-        public CommandState GetCommandState(CopyCommandArgs args, Func<CommandState> nextCommandHandler)
-            => nextCommandHandler();
-
-        public void ExecuteCommand(CopyCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
-        {
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
-
-            // Ensure that the copy always goes through all other handlers.
-            nextCommandHandler();
-
-            var textView = args.TextView;
-            var subjectBuffer = args.SubjectBuffer;
-
-            _lastClipboardSequenceNumber = null;
-            _lastSelectedSpans = null;
-
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var copyPasteService = document?.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
-            if (copyPasteService == null)
-                return;
-
-            if (!copyPasteService.TryGetClipboardSequenceNumber(out var sequenceNumber))
-                return;
-
-            _lastClipboardSequenceNumber = sequenceNumber;
-            _lastSelectedSpans = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
-        }
-
         public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextCommandHandler)
             => nextCommandHandler();
-
-        #endregion
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
@@ -247,30 +212,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     newLine, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste, pasteWasSuccessful);
             }
-        }
-
-        private static VirtualCharSequence FilterToSpans(VirtualCharSequence virtualChars, NormalizedSnapshotSpanCollection lastSelectedSpans)
-        {
-            if (virtualChars.IsDefault)
-                return default;
-
-            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
-            foreach (var vc in virtualChars)
-            {
-                if (Overlaps(vc.Span, lastSelectedSpans))
-                    result.Add(vc);
-            }
-
-            if (result.Count == 0)
-                return default;
-
-            return VirtualCharSequence.Create(result.ToImmutable());
-        }
-
-        private static bool Overlaps(TextSpan span, NormalizedSnapshotSpanCollection lastSelectedSpans)
-        {
-            var snapshotSpan = new SnapshotSpan(lastSelectedSpans[0].Snapshot, span.ToSpan());
-            return lastSelectedSpans.OverlapsWith(snapshotSpan);
         }
 
         /// <summary>

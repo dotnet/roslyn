@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Data.SqlTypes;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
+using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -29,30 +33,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     {
         internal sealed class StringCopyPasteTestState : AbstractCommandHandlerTestState
         {
-            private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
-                typeof(StringCopyPasteCommandHandler));
+            [Export(typeof(IStringCopyPasteService))]
+            [Shared]
+            [PartNotDiscoverable]
+            private class MockStringCopyPasteService : IStringCopyPasteService
+            {
+                [ImportingConstructor]
+                [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+                public MockStringCopyPasteService()
+                {
+                }
+
+                public bool TryGetClipboardSequenceNumber(out int sequenceNumber)
+                {
+                    sequenceNumber = 0;
+                    return true;
+                }
+            }
+
+            private static readonly TestComposition s_compositionWithUnknownCopy =
+                EditorTestCompositions.EditorFeaturesWpf
+                    .AddParts(typeof(StringCopyPasteCommandHandler))
+                    .AddExcludedPartTypes(typeof(WpfStringCopyPasteService));
+            private static readonly TestComposition s_compositionWithKnownCopy =
+                s_compositionWithUnknownCopy.AddParts(typeof(MockStringCopyPasteService));
 
             private readonly StringCopyPasteCommandHandler _commandHandler;
 
-            public StringCopyPasteTestState(XElement workspaceElement)
-                : base(workspaceElement, s_composition)
+            public StringCopyPasteTestState(XElement workspaceElement, bool unknownCopy)
+                : base(workspaceElement, unknownCopy ? s_compositionWithUnknownCopy : s_compositionWithKnownCopy)
             {
                 _commandHandler = (StringCopyPasteCommandHandler)GetExportedValues<ICommandHandler>().
                     Single(c => c is StringCopyPasteCommandHandler);
             }
 
-            public static StringCopyPasteTestState CreateTestState(string markup)
-                => new(GetWorkspaceXml(markup));
+            public static StringCopyPasteTestState CreateTestState(string? copyFileMarkup, string pasteFileMarkup)
+                => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup), unknownCopy: copyFileMarkup == null);
 
-            public static XElement GetWorkspaceXml(string markup)
-                => markup.Contains("<Workspace>")
-                    ? XElement.Parse(markup)
-                    : XElement.Parse(string.Format(@"
+            public static XElement GetWorkspaceXml(string? copyFileMarkup, string pasteFileMarkup)
+                => XElement.Parse(($@"
 <Workspace>
     <Project Language=""C#"" CommonReferences=""true"">
-        <Document Markup=""SpansOnly"">{0}</Document>
+        <Document Markup=""SpansOnly"">{pasteFileMarkup}</Document>
     </Project>
-</Workspace>", markup));
+    {(copyFileMarkup == null ? "" : $@"
+    <Project Language=""C#"" CommonReferences=""true"">
+        <Document Markup=""SpansOnly"">{copyFileMarkup}</Document>
+    </Project>")}
+</Workspace>"));
 
             internal void AssertCodeIs(string expectedCode)
             {
@@ -157,17 +185,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 textBuffer2 = textBuffer;
                 var broker = textView.GetMultiSelectionBroker();
 
-                broker.AddSelectionRange(copySpans.Select(s => new Selection(s.ToSnapshotSpan(textBuffer.CurrentSnapshot))));
+                var selections = copySpans.Select(s => new Selection(s.ToSnapshotSpan(textBuffer.CurrentSnapshot))).ToArray();
+                broker.SetSelectionRange(selections, selections.First());
             }
         }
-
-#if false
-        private static void TestCopyPaste(string markup, string expectedMarkup, string afterUndo)
-        {
-            using var state = StringCopyPasteTestState.CreateTestState(markup);
-
-            state.TestCopyPaste(expectedMarkup, pasteText: null, afterUndo);
-        }
-#endif
     }
 }
