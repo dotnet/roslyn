@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             var actualTree = TreeToText(tree!).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actualTree);
 
-            var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
-            Assert.Equal(strictDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
+            ValidateDiagnostics(strictDiagnostics, tree);
 
             CheckInvariants(tree, allChars);
 

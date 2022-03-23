@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
@@ -22,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
     public partial class CSharpJsonParserTests
     {
+        private const string SupportedLanguage = "en-US";
+
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
         private const string StatementPrefix = "var v = ";
 
@@ -69,8 +72,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             var actualTree = TreeToText(tree).Replace("\"", "\"\"");
             Assert.Equal(expectedTree!.Replace("\"", "\"\""), actualTree);
 
+            ValidateDiagnostics(expectedDiagnostics, tree);
+        }
+
+        private protected static void ValidateDiagnostics(string expectedDiagnostics, JsonTree tree)
+        {
             var actualDiagnostics = DiagnosticsToText(tree.Diagnostics).Replace("\"", "\"\"");
-            Assert.Equal(expectedDiagnostics.Replace("\"", "\"\""), actualDiagnostics);
+            Assert.Equal(RemoveMessagesInNonSupportedLanguage(expectedDiagnostics).Replace("\"", "\"\""), actualDiagnostics);
+        }
+
+        private static string RemoveMessagesInNonSupportedLanguage(string value)
+        {
+            if (value == "")
+                return value;
+
+            if (Thread.CurrentThread.CurrentCulture.Name == SupportedLanguage)
+                return value;
+
+            var diagnosticsElement = XElement.Parse(value);
+            foreach (var diagnosticElement in diagnosticsElement.Elements("Diagnostic"))
+                diagnosticElement.Attribute("Message").Remove();
+
+            return diagnosticsElement.ToString();
         }
 
         private void TryParseSubTrees(string stringText, JsonOptions options)
@@ -172,10 +195,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             return new XElement("Diagnostics",
                 diagnostics.Select(d =>
-                    new XElement("Diagnostic",
-                        new XAttribute("Message", d.Message),
-                        new XAttribute("Start", d.Span.Start),
-                        new XAttribute("Length", d.Span.Length)))).ToString();
+                {
+                    var element = new XElement("Diagnostic");
+                    // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
+                    // do this in en-US as that's the only culture where we control the text exactly
+                    // and can ensure it exactly matches Regex.  We depend on localization to do a 
+                    // good enough job here for other languages.
+                    if (Thread.CurrentThread.CurrentCulture.Name == SupportedLanguage)
+                        element.Add(new XAttribute("Message", d.Message));
+
+                    element.Add(new XAttribute("Start", d.Span.Start));
+                    element.Add(new XAttribute("Length", d.Span.Length));
+
+                    return element;
+                })).ToString();
         }
 
         private static XElement NodeToElement(JsonNode node)
