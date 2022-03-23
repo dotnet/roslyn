@@ -13730,6 +13730,8 @@ End Class
 5180801")
         End Sub
 
+        ' Restricting to English as there are different tolerance limits on non-English cultures. The test
+        ' is to prevent regressions and single language should be sufficient here
         <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
