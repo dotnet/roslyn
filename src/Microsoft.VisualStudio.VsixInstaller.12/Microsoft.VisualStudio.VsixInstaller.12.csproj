@@ -10,6 +10,15 @@
     <DefineConstants>$(DefineConstants);DEV12</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--
+      Avoid copying dependencies to the output directory. This executable uses a custom AssemblyResolve handler to load
+      the correct dependencies from the target installation directory, and we don't want files in the current directory
+      to override this behavior.
+    -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.ExtensionManager" HintPath="$(PkgMicrosoft_VisualStudio_Extensibility_Testing_SupportFiles)\build\ref\12\Microsoft.VisualStudio.ExtensionManager.dll" Private="false" />
     <Reference Include="Microsoft.VisualStudio.ExtensionManager.Implementation" HintPath="$(PkgMicrosoft_VisualStudio_Extensibility_Testing_SupportFiles)\build\ref\12\Microsoft.VisualStudio.ExtensionManager.Implementation.dll" Private="false" />
