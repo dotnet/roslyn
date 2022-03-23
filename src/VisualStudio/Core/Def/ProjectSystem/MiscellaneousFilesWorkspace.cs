@@ -78,12 +78,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _metadataReferences = ImmutableArray.CreateRange(CreateMetadataReferences());
         }
 
-        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
+            await TaskScheduler.Default;
             _textManager = await serviceProvider.GetServiceAsync<SVsTextManager, IVsTextManager>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             var runningDocumentTable = await serviceProvider.GetServiceAsync<SVsRunningDocumentTable, IVsRunningDocumentTable>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
-
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(
                 _threadingContext, _editorAdaptersFactoryService, runningDocumentTable, this);
