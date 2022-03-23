@@ -165,14 +165,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 editsToMake.Add(new TextChange(new TextSpan(TextContentsSpansBeforePaste.First().Start, 0), quotesToAdd));
 
             // Then add the actual changes in the content.
-            var isSingleLine =
-                StringExpressionBeforePaste is LiteralExpressionSyntax { Token.RawKind: (int)SyntaxKind.SingleLineRawStringLiteralToken } ||
-                StringExpressionBeforePaste is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedSingleLineRawStringStartToken };
 
-            if (isSingleLine)
-                AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
-            else
+            if (IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste))
                 AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(editsToMake);
+            else
+                AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(editsToMake, cancellationToken);
 
             // Then add any extra end quotes needed.
             if (quotesToAdd != null)

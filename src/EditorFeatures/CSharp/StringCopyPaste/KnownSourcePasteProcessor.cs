@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             foreach (var change in Changes)
             {
                 var wrappedChange = WrapChangeWithOriginalQuotes(change.NewText);
-                var parsedChange = SyntaxFactory.ParseExpression(wrappedChange);
+                var parsedChange = ParseExpression(wrappedChange);
 
                 // If for some reason we can't actually successfully parse this copied text, then bail out.
                 if (ContainsError(parsedChange))
@@ -140,43 +140,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (IsAnyRawStringExpression(StringExpressionBeforePaste))
                 return TransformValueForRawStringExpression(parsedChange, StringExpressionBeforePaste);
 
+            var pastingIntoVerbatimString = IsVerbatimStringExpression(StringExpressionBeforePaste);
+
             return (parsedChange, StringExpressionBeforePaste) switch
             {
-                (LiteralExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto) => TransformLiteralToLiteral(pastedText, pastedInto),
-                (LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInto) => TransformLiteralToInterpolatedString(pastedText, pastedInto),
-                (InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto) => TransformInterpolatedStringToLiteral(pastedText, pastedInto),
-                (InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInto) => TransformInterpolatedStringToInterpolatedString(pastedText, pastedInto),
+                (LiteralExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformLiteralToLiteral(pastedText),
+                (LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformLiteralToInterpolatedString(pastedText),
+                (InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformInterpolatedStringToLiteral(pastedText),
+                (InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformInterpolatedStringToInterpolatedString(pastedText),
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-            string TransformLiteralToLiteral(LiteralExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto)
+            string TransformLiteralToLiteral(LiteralExpressionSyntax pastedText)
             {
                 var textValue = pastedText.Token.ValueText;
                 return EscapeForNonRawStringLiteral(
-                    IsVerbatimStringExpression(pastedInto),
-                    isInterpolated: false, trySkipExistingEscapes: false, textValue);
+                    isVerbatim: pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, textValue);
             }
 
-            string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInto)
+            string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText)
             {
-                // All other literal->literal pastes are trivial.  The compiler has already determined the 'value' of the
-                // the string we're pasting.  So we just need to get that value and ensure it is properly
                 var textValue = pastedText.Token.ValueText;
                 return EscapeForNonRawStringLiteral(
-                    pastedInto.StringStartToken.Kind() is SyntaxKind.InterpolatedVerbatimStringStartToken,
-                    isInterpolated: true, trySkipExistingEscapes: false, textValue);
+                    isVerbatim: pastingIntoVerbatimString, isInterpolated: true, trySkipExistingEscapes: false, textValue);
             }
 
-            string TransformInterpolatedStringToLiteral(InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax pastedInto)
+            string TransformInterpolatedStringToLiteral(InterpolatedStringExpressionSyntax pastedText)
             {
-                var isVerbatim = IsVerbatimStringExpression(pastedInto);
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
                 foreach (var content in pastedText.Contents)
                 {
                     if (content is InterpolatedStringTextSyntax stringText)
                     {
                         builder.Append(EscapeForNonRawStringLiteral(
-                            isVerbatim, isInterpolated: true, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
+                            pastingIntoVerbatimString, isInterpolated: true, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
                     }
                     else if (content is InterpolationSyntax interpolation)
                     {
@@ -187,23 +184,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         // for now, we do the simple thing and just treat the interpolation as raw text that should just be
                         // escaped as appropriate into the destination.
                         builder.Append(EscapeForNonRawStringLiteral(
-                            isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, interpolation.ToString()));
+                            pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, interpolation.ToString()));
                     }
                 }
 
                 return builder.ToString();
             }
 
-            string TransformInterpolatedStringToInterpolatedString(InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax pastedInto)
+            string TransformInterpolatedStringToInterpolatedString(InterpolatedStringExpressionSyntax pastedText)
             {
-                var isVerbatim = IsVerbatimStringExpression(pastedInto);
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
                 foreach (var content in pastedText.Contents)
                 {
                     if (content is InterpolatedStringTextSyntax stringText)
                     {
                         builder.Append(EscapeForNonRawStringLiteral(
-                            isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
+                            pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, stringText.TextToken.ValueText));
                     }
                     else if (content is InterpolationSyntax interpolation)
                     {
@@ -216,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                             var newToken = Token(
                                 oldToken.LeadingTrivia, oldToken.Kind(),
                                 EscapeForNonRawStringLiteral(
-                                    isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, oldToken.ValueText),
+                                    pastingIntoVerbatimString, isInterpolated: false, trySkipExistingEscapes: false, oldToken.ValueText),
                                 oldToken.ValueText, oldToken.TrailingTrivia);
 
                             interpolation = interpolation.ReplaceToken(oldToken, newToken);
@@ -232,7 +228,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private string TransformValueForRawStringExpression(ExpressionSyntax parsedChange, ExpressionSyntax stringExpressionBeforePaste)
         {
-            throw new NotImplementedException();
+            return (parsedChange, StringExpressionBeforePaste) switch
+            {
+                (LiteralExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformLiteralToLiteral(pastedText),
+                (LiteralExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformLiteralToInterpolatedString(pastedText),
+                (InterpolatedStringExpressionSyntax pastedText, LiteralExpressionSyntax) => TransformInterpolatedStringToLiteral(pastedText),
+                (InterpolatedStringExpressionSyntax pastedText, InterpolatedStringExpressionSyntax) => TransformInterpolatedStringToInterpolatedString(pastedText),
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
+            string TransformLiteralToLiteral(LiteralExpressionSyntax pastedText)
+            {
+                // Pasting literal content into raw string.  Not too difficult *unless* this forces us to convert the
+                // raw literal 
+                throw new NotImplementedException();
+            }
+
+            string TransformLiteralToInterpolatedString(LiteralExpressionSyntax pastedText)
+            {
+                throw new NotImplementedException();
+            }
+
+            string TransformInterpolatedStringToLiteral(InterpolatedStringExpressionSyntax pastedText)
+            {
+                throw new NotImplementedException();
+            }
+
+            string TransformInterpolatedStringToInterpolatedString(InterpolatedStringExpressionSyntax pastedText)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
