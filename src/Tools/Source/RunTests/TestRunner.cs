@@ -100,6 +100,7 @@ namespace RunTests
             var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } })
                 ?? throw new InvalidOperationException("Failed to deserialize global.json.");
 
+            // HACK: DO NOT COMMIT THE 7.0.100-preview.2.22153.17 version, used only for testing
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>
@@ -110,7 +111,7 @@ namespace RunTests
         <HelixTargetQueues>" + _options.HelixQueueName + @"</HelixTargetQueues>
         <Creator>" + queuedBy + @"</Creator>
         <IncludeDotNetCli>true</IncludeDotNetCli>
-        <DotNetCliVersion>" + globalJson.sdk.version + @"</DotNetCliVersion>
+        <DotNetCliVersion>7.0.100-preview.2.22153.17</DotNetCliVersion>
         <DotNetCliPackageType>sdk</DotNetCliPackageType>
         <EnableAzurePipelinesReporter>" + (isAzureDevOpsRun ? "true" : "false") + @"</EnableAzurePipelinesReporter>
     </PropertyGroup>
