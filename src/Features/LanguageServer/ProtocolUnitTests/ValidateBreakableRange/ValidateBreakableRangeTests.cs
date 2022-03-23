@@ -86,6 +86,51 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ValidateBreakableRange
             Assert.Null(result);
         }
 
+        [Fact]
+        [WorkItem(1501785, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501785")]
+        public async Task InvalidExistingBreakpoint1()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|breakpoint:int a Console.WriteLine(""hello"");|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var caret = testLspServer.GetLocations("breakpoint").Single();
+
+            var expected = caret.Range;
+
+            var result = await RunAsync(testLspServer, caret);
+            AssertJsonEquals(expected, result);
+        }
+
+        [Fact]
+        [WorkItem(1501882, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1501882")]
+        public async Task InvalidExistingBreakpoint2()
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        int b=
+     {|breakpoint:int a = 1;|}
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var caret = testLspServer.GetLocations("breakpoint").Single();
+
+            var expected = caret.Range;
+
+            var result = await RunAsync(testLspServer, caret);
+            AssertJsonEquals(expected, result);
+        }
+
         private static async Task<LSP.Range?> RunAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>(
