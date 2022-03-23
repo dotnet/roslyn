@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)type != null && type.IsReferenceType &&
                 type.SpecialType != SpecialType.System_String &&
-                (type is not ArrayTypeSymbol { IsSZArray: true } arrayType || arrayType.ElementType.SpecialType != SpecialType.System_Byte))
+                type is not ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte })
             {
                 return value.ConstantValue != ConstantValue.Null;
             }
