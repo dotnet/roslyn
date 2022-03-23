@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 : IsRawStringLiteral((InterpolatedStringExpressionSyntax)expression);
 
         public static bool IsAnyMultiLineRawStringExpression(ExpressionSyntax expression)
-            => expression.Kind() is SyntaxKind.MultiLineRawStringLiteralToken ||
-               expression is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken };
+            => expression is LiteralExpressionSyntax { Token.RawKind: (int)SyntaxKind.MultiLineRawStringLiteralToken } or
+                             InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken };
 
         public static bool IsRawStringLiteral(InterpolatedStringExpressionSyntax interpolatedString)
             => interpolatedString.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;

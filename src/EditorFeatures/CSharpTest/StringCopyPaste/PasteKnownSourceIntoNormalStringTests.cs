@@ -165,5 +165,95 @@ var dest =
 var dest =
     """"""[||]"";");
         }
+
+        [WpfFact]
+        public void TestPasteSimpleRawSingleLineLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = """"""{|Copy:goo|}"""""";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""goo[||]"";",
+@"
+var dest =
+    ""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteQuotesRawSingleLineLiteralContent()
+        {
+            TestCopyPaste(
+@"var v = """"""{|Copy: """" |}"""""";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    "" \""\"" [||]"";",
+@"
+var dest =
+    "" """" [||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteSimpleRawMultiLineLiteralContent1()
+        {
+            TestCopyPaste(
+@"var v = """"""
+    {|Copy:goo|}
+    """""";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""goo[||]"";",
+@"
+var dest =
+    ""[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteSimpleRawMultiLineLiteralContent2()
+        {
+            TestCopyPaste(
+@"var v = """"""
+    {|Copy:goo
+    bar|}
+    """""";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""goo\r\nbar[||]"";",
+@"
+var dest =
+    ""goo
+    bar[||]"";");
+        }
+
+        [WpfFact]
+        public void TestPasteSimpleRawMultiLineLiteralContent3()
+        {
+            TestCopyPaste(
+@"var v = """"""
+{|Copy:    goo
+    bar|}
+    """""";",
+@"
+var dest =
+    ""[||]"";",
+@"
+var dest =
+    ""goo\r\nbar[||]"";",
+@"
+var dest =
+    ""    goo
+    bar[||]"";");
+        }
     }
 }
