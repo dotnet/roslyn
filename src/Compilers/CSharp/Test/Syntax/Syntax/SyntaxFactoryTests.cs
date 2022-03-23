@@ -384,6 +384,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("'\\udbff'", literal.Text);
         }
 
+        [WorkItem(58705, "https://github.com/dotnet/roslyn/issues/58705")]
+        [Fact]
+        public void TestZeroWidthJoiner()
+        {
+            var literal = SyntaxFactory.Literal('\u200D');
+            Assert.Equal("'\\u200d'", literal.Text);
+        }
+
+        [WorkItem(58705, "https://github.com/dotnet/roslyn/issues/58705")]
+        [Fact]
+        public void TestZeroWidthSpace()
+        {
+            var literal = SyntaxFactory.Literal('\u200B');
+            Assert.Equal("'\\u200b'", literal.Text);
+        }
+
         private static void CheckLiteralToString(dynamic value, string expected)
         {
             var literal = SyntaxFactory.Literal(value);

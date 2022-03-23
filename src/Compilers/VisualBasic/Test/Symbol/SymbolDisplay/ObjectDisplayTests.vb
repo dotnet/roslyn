@@ -205,6 +205,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Sub
 
         <Fact>
+        Public Sub TextForZeroWidthJoiner()
+            Dim literal = SyntaxFactory.Literal(ChrW(&H200d))
+            Assert.Equal("ChrW(8205)", literal.Text)
+        End Sub
+
+        <Fact>
+        Public Sub TextForZeroWidthSpace()
+            Dim literal = SyntaxFactory.Literal(ChrW(&H200b))
+            Assert.Equal("ChrW(8203)", literal.Text)
+        End Sub
+
+        <Fact>
         Public Sub Strings_QuotesAndEscaping()
             Assert.Equal(QuoteAndEscapingCombinations("a"), {"a", """a""", """a"""})
             Assert.Equal(QuoteAndEscapingCombinations(vbTab), {vbTab, """" & vbTab & """", "vbTab"})

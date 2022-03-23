@@ -496,7 +496,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                      UnicodeCategory.ParagraphSeparator,
                      UnicodeCategory.Control,
                      UnicodeCategory.LineSeparator,
-                     UnicodeCategory.Surrogate
+                     UnicodeCategory.Surrogate,
+                     UnicodeCategory.Format
                     Return False
                 Case Else
                     Return True

@@ -198,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnicodeCategory.ParagraphSeparator:
                 case UnicodeCategory.LineSeparator:
                 case UnicodeCategory.Surrogate:
+                case UnicodeCategory.Format:
                     return true;
                 default:
                     return false;
