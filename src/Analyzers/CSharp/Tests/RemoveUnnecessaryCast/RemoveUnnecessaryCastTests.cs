@@ -12791,7 +12791,7 @@ int y = x;
             };
 
             await test.RunAsync();
-          }
+        }
 
         [WorkItem(60292, "https://github.com/dotnet/roslyn/issues/60292")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
