@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
         {
-            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            var errorList = await serviceProvider.GetServiceAsync<SVsErrorList, IErrorList>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
             _tableControl = errorList?.TableControl;
         }
 
