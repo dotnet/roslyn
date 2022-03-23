@@ -139,22 +139,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 }
                 else if (content is InterpolationSyntax interpolation)
                 {
-                    // we're moving an interpolation from one interpolation to another.  This can just be copied
-                    // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
-                    // for the destination type.
-                    if (interpolation.FormatClause is not null)
-                    {
-                        var oldToken = interpolation.FormatClause.FormatStringToken;
-                        var newToken = Token(
-                            oldToken.LeadingTrivia, oldToken.Kind(),
-                            EscapeForNonRawStringLiteral(
-                                isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, oldToken.ValueText),
-                            oldToken.ValueText, oldToken.TrailingTrivia);
-
-                        interpolation = interpolation.ReplaceToken(oldToken, newToken);
-                    }
-
-                    builder.Append(interpolation.ToString());
+                    // we're copying an interpolation from an interpolated string to a string literal. For example,
+                    // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in the
+                    // future is split the literal into `"goo" + $"{x + y}" + "bar"`.  However, it's unclear if that
+                    // would actually be desirable as `$"{x + x}"` may have no meaning in the destination location. So,
+                    // for now, we do the simple thing and just treat the interpolation as raw text that should just be
+                    // escaped as appropriate into the destination.
+                    builder.Append(EscapeForNonRawStringLiteral(
+                        isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, interpolation.ToString()));
                 }
             }
 
@@ -184,14 +176,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 }
                 else if (content is InterpolationSyntax interpolation)
                 {
-                    // we're copying an interpolation from an interpolated string to a string literal. For example,
-                    // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in the
-                    // future is split the literal into `"goo" + $"{x + y}" + "bar"`.  However, it's unclear if that
-                    // would actually be desirable as `$"{x + x}"` may have no meaning in the destination location. So,
-                    // for now, we do the simple thing and just treat the interpolation as raw text that should just be
-                    // escaped as appropriate into the destination.
-                    builder.Append(EscapeForNonRawStringLiteral(
-                        isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, interpolation.ToString()));
+                    // we're moving an interpolation from one interpolation to another.  This can just be copied
+                    // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
+                    // for the destination type.
+                    if (interpolation.FormatClause is not null)
+                    {
+                        var oldToken = interpolation.FormatClause.FormatStringToken;
+                        var newToken = Token(
+                            oldToken.LeadingTrivia, oldToken.Kind(),
+                            EscapeForNonRawStringLiteral(
+                                isVerbatim, isInterpolated: false, trySkipExistingEscapes: false, oldToken.ValueText),
+                            oldToken.ValueText, oldToken.TrailingTrivia);
+
+                        interpolation = interpolation.ReplaceToken(oldToken, newToken);
+                    }
+
+                    builder.Append(interpolation.ToString());
                 }
             }
 
