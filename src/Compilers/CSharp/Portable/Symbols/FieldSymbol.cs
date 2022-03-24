@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public abstract RefKind RefKind { get; }
+
+        public abstract ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+
         public abstract FlowAnalysisAnnotations FlowAnalysisAnnotations { get; }
 
         /// <summary>

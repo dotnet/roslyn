@@ -829,6 +829,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                if (fieldSymbol.RefKind == RefKind.RefReadOnly)
+                {
+                    ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                    return false;
+                }
+
                 if (fieldSymbol.IsFixedSizeBuffer)
                 {
                     Error(diagnostics, GetStandardLvalueError(valueKind), node);
@@ -838,8 +844,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (RequiresRefAssignableVariable(valueKind))
             {
-                Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
-                return false;
+                switch (fieldSymbol.RefKind)
+                {
+                    case RefKind.None:
+                        Debug.Assert(fieldSymbol.RefKind == RefKind.None);
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    case RefKind.Ref:
+                    case RefKind.RefReadOnly:
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
+                }
             }
 
             // r/w fields that are static or belong to reference types are writeable and returnable

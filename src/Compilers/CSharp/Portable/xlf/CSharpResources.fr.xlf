@@ -1482,6 +1482,11 @@
         <target state="translated">structs d’enregistrement</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRefFields">
+        <source>ref fields</source>
+        <target state="new">ref fields</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">ToString scellé dans l’enregistrement</target>

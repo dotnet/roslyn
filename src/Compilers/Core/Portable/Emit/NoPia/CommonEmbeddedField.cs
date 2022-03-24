@@ -201,6 +201,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return UnderlyingField.GetType(context);
             }
 
+            ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers => ImmutableArray<Cci.ICustomModifier>.Empty;
+
+            bool Cci.IFieldReference.IsByReference => false;
+
             Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
             {
                 return this;

@@ -114,9 +114,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                             Return Nothing
                         End If
 
-                        Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
-                        Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, customModifiers)
-                        Return FindFieldBySignature(_containingType, memberName, customModifiers, type)
+                        Dim fieldInfo As FieldInfo(Of TypeSymbol) = Nothing
+                        Me.DecodeFieldSignature(signaturePointer, fieldInfo)
+                        Return FindFieldBySignature(_containingType, memberName, fieldInfo.CustomModifiers, fieldInfo.Type)
 
                     Case Else
                         ' error

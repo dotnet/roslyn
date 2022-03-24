@@ -2555,5 +2555,34 @@ class C
             Verify(FormatResult(rootExpr, value),
                 EvalResult(rootExpr, message, "", rootExpr));
         }
+
+        [Fact(Skip = "Missing test support for ref fields")] // PROTOTYPE: Enable test.
+        public void RefField()
+        {
+            var source =
+@"struct S
+{
+    public S(ref string s)
+    {
+        F = ref s;
+    }
+    public ref string F;
+}";
+            var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(GetAssembly(source)));
+            using (runtime.Load())
+            {
+                var type = runtime.GetType("S");
+                var value = type.Instantiate("Hello, world!");
+                var evalResult = FormatResult("s", value);
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(
+                        "F",
+                        "Hello, world!",
+                        "string",
+                        "s.F",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.CanFavorite));
+            }
+        }
     }
 }

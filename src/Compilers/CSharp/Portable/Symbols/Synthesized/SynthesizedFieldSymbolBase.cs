@@ -86,6 +86,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
+        public sealed override RefKind RefKind => RefKind.None;
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations
             => FlowAnalysisAnnotations.None;
 

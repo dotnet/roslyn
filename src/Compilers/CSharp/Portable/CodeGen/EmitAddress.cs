@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
-        private LocalSymbol DigForValueLocal(BoundSequence topSequence, BoundExpression value)
+        private static LocalSymbol DigForValueLocal(BoundSequence topSequence, BoundExpression value)
         {
             switch (value.Kind)
             {
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //      taking field addresses, so we have to turn Constrained into writeable.
             var tempOpt = EmitReceiverRef(fieldAccess.ReceiverOpt, addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind);
 
-            _builder.EmitOpCode(ILOpCode.Ldflda);
+            _builder.EmitOpCode(field.RefKind == RefKind.None ? ILOpCode.Ldflda : ILOpCode.Ldfld);
             EmitSymbolToken(field, fieldAccess.Syntax);
 
             // when loading an address of a fixed field, we actually 

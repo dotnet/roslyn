@@ -1034,6 +1034,7 @@ oneMoreTime:
                         var left = (BoundFieldAccess)exceptionSource;
                         Debug.Assert(!left.FieldSymbol.IsStatic, "Not supported");
                         Debug.Assert(!left.ReceiverOpt.Type.IsTypeParameter());
+                        Debug.Assert(left.FieldSymbol.RefKind == RefKind.None);
 
                         var stateMachineField = left.FieldSymbol as StateMachineFieldSymbol;
                         if (((object)stateMachineField != null) && (stateMachineField.SlotIndex >= 0))
@@ -1052,7 +1053,7 @@ oneMoreTime:
                         _builder.EmitLocalLoad(temp);
                         FreeTemp(temp);
 
-                        EmitFieldStore(left);
+                        EmitFieldStore(left, refAssign: false);
                         break;
 
                     default:

@@ -6642,6 +6642,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStructFieldInitializers" xml:space="preserve">
     <value>struct field initializers</value>
   </data>
+  <data name="IDS_FeatureRefFields" xml:space="preserve">
+    <value>ref fields</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>

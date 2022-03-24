@@ -5270,6 +5270,54 @@ End Class"
                 SymbolDisplayPartKind.Keyword)
         End Sub
 
+        ''' <summary>
+        ''' IFieldSymbol.RefKind is ignored in VisualBasic.SymbolDisplayVisitor.
+        ''' </summary>
+        <Fact()>
+        Public Sub RefFields()
+            Dim source =
+"#pragma warning disable 169
+ref struct S<T>
+{
+    ref T F1;
+    ref readonly T F2;
+}"
+            Dim comp = CreateCSharpCompilation(GetUniqueName(), source, parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.Preview))
+            comp.VerifyDiagnostics()
+
+            Dim type = comp.GlobalNamespace.GetTypeMembers("S").Single()
+
+            Verify(SymbolDisplay.ToDisplayParts(type.GetMembers("F1").Single(), SymbolDisplayFormat.TestFormat),
+                "S(Of T).F1 As T",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName)
+
+            Verify(SymbolDisplay.ToDisplayParts(type.GetMembers("F2").Single(), SymbolDisplayFormat.TestFormat),
+                "S(Of T).F2 As T",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.FieldName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(

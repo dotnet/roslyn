@@ -29,15 +29,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |..............................|vvvvv|
+            // |..........................|rr|v|fffff|
             //
             // f = FlowAnalysisAnnotations. 5 bits (4 value bits + 1 completion bit).
+            // v = IsVolatile 1 bit
+            // r = RefKind 2 bits
 
             private const int HasDisallowNullAttribute = 0x1 << 0;
             private const int HasAllowNullAttribute = 0x1 << 1;
             private const int HasMaybeNullAttribute = 0x1 << 2;
             private const int HasNotNullAttribute = 0x1 << 3;
             private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 4;
+            private const int IsVolatileBit = 0x1 << 5;
+            private const int RefKindOffset = 6;
+            private const int RefKindMask = 0x3;
 
             private int _bits;
 
@@ -67,13 +72,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 Debug.Assert(value == 0 || result);
                 return result;
             }
+
+            public void SetIsVolatile(bool isVolatile)
+            {
+                if (isVolatile) ThreadSafeFlagOperations.Set(ref _bits, IsVolatileBit);
+                Debug.Assert(IsVolatile == isVolatile);
+            }
+
+            public bool IsVolatile => (_bits & IsVolatileBit) != 0;
+
+            public void SetRefKind(RefKind refKind)
+            {
+                int bits = ((int)refKind & RefKindMask) << RefKindOffset;
+                if (bits != 0) ThreadSafeFlagOperations.Set(ref _bits, bits);
+                Debug.Assert(RefKind == refKind);
+            }
+
+            public RefKind RefKind => (RefKind)((_bits >> RefKindOffset) & RefKindMask);
         }
 
         private readonly FieldDefinitionHandle _handle;
         private readonly string _name;
         private readonly FieldAttributes _flags;
         private readonly PENamedTypeSymbol _containingType;
-        private bool _lazyIsVolatile;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
         private ConstantValue _lazyConstantValue = Microsoft.CodeAnalysis.ConstantValue.Unset; // Indicates an uninitialized ConstantValue
         private Tuple<CultureInfo, string> _lazyDocComment;
@@ -86,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
         private PackedFlags _packedFlags;
+        private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         internal PEFieldSymbol(
             PEModuleSymbol moduleSymbol,
@@ -261,9 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (_lazyType == null)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
-                ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                TypeSymbol typeSymbol = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out customModifiers);
-                ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
+                FieldInfo<TypeSymbol> fieldInfo;
+                (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out fieldInfo);
+                TypeSymbol typeSymbol = fieldInfo.Type;
+                ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(fieldInfo.CustomModifiers);
 
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
                 typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, _handle, moduleSymbol);
@@ -276,7 +299,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol, accessSymbol: this, nullableContext: _containingType);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
-                _lazyIsVolatile = customModifiersArray.Any(m => !m.IsOptional && ((CSharpCustomModifier)m).ModifierSymbol.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile);
+                RefKind refKind = fieldInfo.IsByRef ?
+                    moduleSymbol.Module.HasIsReadOnlyAttribute(_handle) ? RefKind.RefReadOnly : RefKind.Ref :
+                    RefKind.None;
+                _packedFlags.SetRefKind(refKind);
+                _packedFlags.SetIsVolatile(customModifiersArray.Any(m => !m.IsOptional && ((CSharpCustomModifier)m).ModifierSymbol.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile));
 
                 TypeSymbol fixedElementType;
                 int fixedSize;
@@ -286,6 +313,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _lazyFixedImplementationType = type.Type as NamedTypeSymbol;
                     type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
+
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyRefCustomModifiers, CSharpCustomModifier.Convert(fieldInfo.RefCustomModifiers));
 
                 Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
             }
@@ -319,6 +348,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return ((PENamespaceSymbol)ContainingNamespace).ContainingPEModule;
+            }
+        }
+
+        public override RefKind RefKind
+        {
+            get
+            {
+                EnsureSignatureIsLoaded();
+                return _packedFlags.RefKind;
+            }
+        }
+
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get
+            {
+                EnsureSignatureIsLoaded();
+                return _lazyRefCustomModifiers;
             }
         }
 
@@ -397,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 EnsureSignatureIsLoaded();
-                return _lazyIsVolatile;
+                return _packedFlags.IsVolatile;
             }
         }
 

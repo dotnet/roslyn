@@ -430,6 +430,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeReference GetType(EmitContext context) => _type;
 
+        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => ImmutableArray<Cci.ICustomModifier>.Empty;
+
+        public bool IsByReference => false;
+
         internal Cci.ITypeReference Type => _type;
 
         public Cci.IFieldDefinition GetResolvedField(EmitContext context) => this;

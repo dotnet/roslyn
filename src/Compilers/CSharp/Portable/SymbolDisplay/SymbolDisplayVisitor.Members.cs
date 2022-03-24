@@ -35,6 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.isFirstSymbolVisited &&
                 !IsEnumMember(symbol))
             {
+                switch (symbol.RefKind)
+                {
+                    case RefKind.Ref:
+                        AddRefIfRequired();
+                        break;
+                    case RefKind.RefReadOnly:
+                        AddRefReadonlyIfRequired();
+                        break;
+                }
+
+                AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
+
                 VisitFieldType(symbol);
                 AddSpace();
 

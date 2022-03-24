@@ -7991,5 +7991,48 @@ class C
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
         }
+
+        [Fact]
+        public void RefFields()
+        {
+            var source =
+@"#pragma warning disable 169
+ref struct S<T>
+{
+    ref T F1;
+    ref readonly T F2;
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            Verify(comp.GetMember<FieldSymbol>("S.F1").ToDisplayParts(SymbolDisplayFormat.TestFormat),
+                "ref T S<T>.F1",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName);
+
+            Verify(comp.GetMember<FieldSymbol>("S.F2").ToDisplayParts(SymbolDisplayFormat.TestFormat),
+                "ref readonly T S<T>.F2",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.FieldName);
+        }
     }
 }

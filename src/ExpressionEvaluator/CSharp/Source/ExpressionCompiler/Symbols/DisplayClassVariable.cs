@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 return _type;
             }
+
+            public override RefKind RefKind => RefKind.None;
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
         }
     }
 }

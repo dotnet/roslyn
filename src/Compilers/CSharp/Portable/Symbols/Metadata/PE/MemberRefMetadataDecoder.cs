@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return null;
                         }
 
-                        ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                        TypeSymbol type = this.DecodeFieldSignature(ref signaturePointer, out customModifiers);
-                        return FindFieldBySignature(_containingType, memberName, customModifiers, type);
+                        FieldInfo<TypeSymbol> fieldInfo;
+                        this.DecodeFieldSignature(ref signaturePointer, out fieldInfo);
+                        return FindFieldBySignature(_containingType, memberName, fieldInfo.CustomModifiers, fieldInfo.Type);
 
                     default:
                         // error: unexpected calling convention
