@@ -2289,9 +2289,87 @@ namespace TestApp
             Assert.Single(annotatedTrivia);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null)
+        [WpfFact]
+        public void FormatUserDefinedOperator()
         {
-            using var workspace = TestWorkspace.CreateCSharp(code);
+            var code = @"$$
+class C
+{
+    public static C operator + ( C x, C y){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator + ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator +(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator checked + ( C x, C y){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator checked +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator checked + ( I1 x, I1 y);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator checked +(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> changedOptionSet = null, ParseOptions parseOptions = null)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
             if (changedOptionSet != null)
             {
                 var options = workspace.Options;
