@@ -8298,26 +8298,26 @@ abstract class Class : IInterface
         public async Task TestAccessibility_Property()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    Foo MyProperty { get; }
+    Goo MyProperty { get; }
 }
 
 public class C : {|CS0535:I|}
 {
 }",
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    Foo MyProperty { get; }
+    Goo MyProperty { get; }
 }
 
 public class C : {|CS0535:I|}
 {
-    Foo I.MyProperty
+    Goo I.MyProperty
     {
         get
         {
@@ -8332,26 +8332,26 @@ public class C : {|CS0535:I|}
         public async Task TestAccessibility_Method_InaccessibleReturnType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    Foo M();
+    Goo M();
 }
 
 public class C : {|CS0535:I|}
 {
 }",
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    Foo M();
+    Goo M();
 }
 
 public class C : {|CS0535:I|}
 {
-    Foo I.M()
+    Goo I.M()
     {
         throw new System.NotImplementedException();
     }
@@ -8363,26 +8363,26 @@ public class C : {|CS0535:I|}
         public async Task TestAccessibility_Method_InaccessibleParameterType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    void M(Foo foo);
+    void M(Goo goo);
 }
 
 public class C : {|CS0535:I|}
 {
 }",
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    void M(Foo foo);
+    void M(Goo goo);
 }
 
 public class C : {|CS0535:I|}
 {
-    void I.M(Foo foo)
+    void I.M(Goo goo)
     {
         throw new System.NotImplementedException();
     }
@@ -8433,26 +8433,26 @@ public class C : {|CS0535:I|}
         public async Task TestAccessibility_Indexer_InaccessibleReturnType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    Foo this[int i] { get; }
+    Goo this[int i] { get; }
 }
 
 public class C : {|CS0535:I|}
 {
 }",
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    Foo this[int i] { get; }
+    Goo this[int i] { get; }
 }
 
 public class C : {|CS0535:I|}
 {
-    Foo I.this[int i]
+    Goo I.this[int i]
     {
         get
         {
@@ -8467,26 +8467,26 @@ public class C : {|CS0535:I|}
         public async Task TestAccessibility_Indexer_InaccessibleParameterType()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    int this[Foo foo] { get; }
+    int this[Goo goo] { get; }
 }
 
 public class C : {|CS0535:I|}
 {
 }",
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
-    int this[Foo foo] { get; }
+    int this[Goo goo] { get; }
 }
 
 public class C : {|CS0535:I|}
 {
-    int I.this[Foo foo]
+    int I.this[Goo goo]
     {
         get
         {
@@ -8503,11 +8503,11 @@ public class C : {|CS0535:I|}
             await TestWithAllCodeStyleOptionsOffAsync(
 @"using System.Collections.Generic;
 
-internal class Foo {}
+internal class Goo {}
 
 internal interface I
 {
-    List<Foo> M();
+    List<Goo> M();
 }
 
 public class C : {|CS0535:I|}
@@ -8515,16 +8515,16 @@ public class C : {|CS0535:I|}
 }",
 @"using System.Collections.Generic;
 
-internal class Foo {}
+internal class Goo {}
 
 internal interface I
 {
-    List<Foo> M();
+    List<Goo> M();
 }
 
 public class C : {|CS0535:I|}
 {
-    List<Foo> I.M()
+    List<Goo> I.M()
     {
         throw new System.NotImplementedException();
     }
@@ -8538,12 +8538,12 @@ public class C : {|CS0535:I|}
             await TestWithAllCodeStyleOptionsOffAsync(
 @"internal class Container
 {
-    public class Foo {}
+    public class Goo {}
 }
 
 internal interface I
 {
-    Container.Foo M();
+    Container.Goo M();
 }
 
 public class C : {|CS0535:I|}
@@ -8551,17 +8551,17 @@ public class C : {|CS0535:I|}
 }",
 @"internal class Container
 {
-    public class Foo {}
+    public class Goo {}
 }
 
 internal interface I
 {
-    Container.Foo M();
+    Container.Goo M();
 }
 
 public class C : {|CS0535:I|}
 {
-    Container.Foo I.M()
+    Container.Goo I.M()
     {
         throw new System.NotImplementedException();
     }
@@ -8573,23 +8573,23 @@ public class C : {|CS0535:I|}
         public async Task TestAccessibility_SeveralMembers_ShouldExplicitlyImplementOnlyInaccessible()
         {
             await TestWithAllCodeStyleOptionsOffAsync(
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
     int N();
-    Foo M();
+    Goo M();
 }
 
 public class C : {|CS0535:{|CS0535:I|}|}
 {
 }",
-@"internal class Foo {}
+@"internal class Goo {}
 
 internal interface I
 {
     int N();
-    Foo M();
+    Goo M();
 }
 
 public class C : {|CS0535:{|CS0535:I|}|}
@@ -8599,7 +8599,7 @@ public class C : {|CS0535:{|CS0535:I|}|}
         throw new System.NotImplementedException();
     }
 
-    Foo I.M()
+    Goo I.M()
     {
         throw new System.NotImplementedException();
     }

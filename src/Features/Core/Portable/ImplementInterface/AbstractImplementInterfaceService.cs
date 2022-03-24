@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
+                // If all members to implement are inaccessible, then "Implement interface" codeaction
+                // will be the same as "Implement interface explicitly", so there is no point in having both of them
                 if (totalMemberCount != inaccessibleMemberCount)
                 {
                     yield return ImplementInterfaceCodeAction.CreateImplementCodeAction(this, document, options, state);

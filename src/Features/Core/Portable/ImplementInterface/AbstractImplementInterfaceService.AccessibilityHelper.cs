@@ -29,26 +29,16 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             return true;
                         }
 
-                        if (propertySymbol.GetMethod is not null)
+                        if (propertySymbol.GetMethod is not null &&
+                            IsLessAccessibleThan(propertySymbol.GetMethod, second))
                         {
-                            foreach (var parameter in propertySymbol.GetMethod.Parameters)
-                            {
-                                if (IsTypeLessAccessibleThanOtherType(parameter.Type, second))
-                                {
-                                    return true;
-                                }
-                            }
+                            return true;
                         }
 
-                        if (propertySymbol.SetMethod is not null)
+                        if (propertySymbol.SetMethod is not null &&
+                            IsLessAccessibleThan(propertySymbol.SetMethod, second))
                         {
-                            foreach (var parameter in propertySymbol.SetMethod.Parameters)
-                            {
-                                if (IsTypeLessAccessibleThanOtherType(parameter.Type, second))
-                                {
-                                    return true;
-                                }
-                            }
+                            return true;
                         }
 
                         return false;
