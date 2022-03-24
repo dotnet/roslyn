@@ -661,12 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool CanHaveFieldKeywordBackingField(this Symbol symbol)
         {
-            Debug.Assert(symbol.ContainingSymbol is SourceMemberContainerTypeSymbol or SourceNamespaceSymbol or SourceModuleSymbol);
-            Debug.Assert(
-                symbol.ContainingSymbol.Equals(symbol.ContainingType, TypeCompareKind.ConsiderEverything) ||
-                symbol.ContainingSymbol.Equals(symbol.ContainingNamespace, TypeCompareKind.ConsiderEverything) ||
-                symbol.ContainingSymbol.Equals(symbol.ContainingModule, TypeCompareKind.ConsiderEverything)
-                );
+            Debug.Assert(symbol.ContainingSymbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.NetModule, $"Unexpected SymbolKind '{symbol.ContainingSymbol.Kind}'.");
             return symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false };
         }
     }
