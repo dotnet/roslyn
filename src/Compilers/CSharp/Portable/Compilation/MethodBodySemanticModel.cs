@@ -196,12 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (binder != null);
 
             Debug.Assert(binder != null);
-
             Binder executablebinder = new WithNullableContextBinder(SyntaxTree, position, binder ?? this.RootBinder);
-            if (methodSymbol.TryGetAccessorSymbolForFieldKeywordBinder(out var propertyAccessor))
-            {
-                executablebinder = new SpeculativeFieldKeywordBinder(propertyAccessor, executablebinder);
-            }
+
+            Debug.Assert(executablebinder.ContainingMember().Equals(methodSymbol, TypeCompareKind.ConsiderEverything));
+            executablebinder = AddSpeculativeFieldKeywordBinderIfNeeded(executablebinder);
+
             executablebinder = new ExecutableCodeBinder(body, methodSymbol, executablebinder);
             var blockBinder = executablebinder.GetBinder(body).WithAdditionalFlags(GetSemanticModelBinderFlags());
             // We don't pass the snapshot manager along here, because we're speculating about an entirely new body and it should not
@@ -230,12 +229,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
 
             Debug.Assert(methodSymbol.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction));
-
-            // We don't need to loop over containing symbols chain because only type members can have MethodBodySemanticModel.
-            if (methodSymbol.TryGetAccessorSymbolForFieldKeywordBinder(out var accessor))
-            {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
-            }
+            Debug.Assert(binder.ContainingMember().Equals(methodSymbol, TypeCompareKind.ConsiderEverything));
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
 
             binder = new ExecutableCodeBinder(statement, methodSymbol, binder);
             speculativeModel = CreateSpeculative(parentModel, methodSymbol, statement, binder, GetSnapshotManager(), GetRemappedSymbols(), position);
@@ -255,10 +250,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
-            if (methodSymbol.TryGetAccessorSymbolForFieldKeywordBinder(out var accessor))
-            {
-                binder = new SpeculativeFieldKeywordBinder(accessor, binder);
-            }
+
+            Debug.Assert(binder.ContainingMember().Equals(methodSymbol, TypeCompareKind.ConsiderEverything));
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
 
             binder = new ExecutableCodeBinder(expressionBody, methodSymbol, binder);
 

@@ -659,16 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 member.Name;
         }
 
-        internal static bool TryGetAccessorSymbolForFieldKeywordBinder(this Symbol symbol, out SourcePropertyAccessorSymbol accessorSymbol)
+        internal static bool NeedFieldKeywordBinder(this Symbol symbol)
         {
-            if (symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
-            {
-                accessorSymbol = accessor;
-                return true;
-            }
-
-            accessorSymbol = null;
-            return false;
+            return symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false };
         }
     }
 }

@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expression = new BoundDiscardExpression(node, LocalScopeDepth, type: null);
                     }
                     else if (node.Identifier.ContextualKind() == SyntaxKind.FieldKeyword &&
-                        ContainingMember().TryGetAccessorSymbolForFieldKeywordBinder(out _))
+                        ContainingMember().NeedFieldKeywordBinder())
                     {
                         if (GetSymbolForPossibleFieldKeyword() is { } backingField)
                         {

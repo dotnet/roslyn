@@ -308,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // If we have a property, the accessor must be SourcePropertyAccessorSymbol.
                             Debug.Assert(!propertyOrEventDecl.IsKind(SyntaxKind.PropertyDeclaration) || accessor is SourcePropertyAccessorSymbol);
-                            if (accessor is SourcePropertyAccessorSymbol { Property.IsIndexer: false } propertyAccessor)
+                            if (accessor.NeedFieldKeywordBinder())
                             {
                                 Debug.Assert(propertyOrEventDecl.IsKind(SyntaxKind.PropertyDeclaration));
-                                resultBinder = new FieldKeywordBinder(propertyAccessor, resultBinder);
+                                resultBinder = new FieldKeywordBinder((SourcePropertyAccessorSymbol)accessor, resultBinder);
                             }
 
                             resultBinder = new InMethodBinder(accessor, resultBinder);
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var accessor = propertySymbol.GetMethod;
                     if ((object)accessor != null)
                     {
-                        if (!propertySymbol.IsIndexer)
+                        if (accessor.NeedFieldKeywordBinder())
                         {
                             resultBinder = new FieldKeywordBinder((SourcePropertyAccessorSymbol)accessor, resultBinder);
                         }

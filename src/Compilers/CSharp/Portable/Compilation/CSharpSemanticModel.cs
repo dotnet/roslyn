@@ -231,12 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
-
-            if (TryCreateSpeculativeFieldKeywordBinder(binder, out var speculativeFieldKeywordBinder))
-            {
-                binder = speculativeFieldKeywordBinder;
-            }
-
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
@@ -250,11 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (TryCreateSpeculativeFieldKeywordBinder(binder, out var speculativeFieldKeywordBinder))
-            {
-                binder = speculativeFieldKeywordBinder;
-            }
-
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
@@ -279,16 +270,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundNode;
         }
 
-        protected static bool TryCreateSpeculativeFieldKeywordBinder(Binder binder, out SpeculativeFieldKeywordBinder speculativeFieldKeywordBinder)
+        protected static Binder AddSpeculativeFieldKeywordBinderIfNeeded(Binder binder)
         {
-            if (binder.ContainingMember().TryGetAccessorSymbolForFieldKeywordBinder(out var accessor))
+            var symbol = binder.ContainingMember();
+            if (symbol.NeedFieldKeywordBinder())
             {
-                speculativeFieldKeywordBinder = new SpeculativeFieldKeywordBinder(accessor, binder);
-                return true;
+                return new SpeculativeFieldKeywordBinder((SourcePropertyAccessorSymbol)symbol, binder);
             }
 
-            speculativeFieldKeywordBinder = null;
-            return false;
+            return binder;
         }
 
         /// <summary>
