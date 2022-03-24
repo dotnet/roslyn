@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //throw new SwitchExpressionException(unmatchedValue);
 
                 Debug.Assert(unmatchedValue.Type.SpecialType == SpecialType.System_Object);
-                var body = F.Block(
-                        ImmutableArray<LocalSymbol>.Empty,
-                        F.Throw(F.New(F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject), ImmutableArray.Create<BoundExpression>(F.Parameter(unmatchedValue)))));
+                var body = F.Throw(F.New(F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject), ImmutableArray.Create<BoundExpression>(F.Parameter(unmatchedValue))));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 F.CloseMethod(body);

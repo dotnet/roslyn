@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 //throw new GivenException();
 
-                var body = F.Block(
-                        ImmutableArray<LocalSymbol>.Empty,
-                        F.Throw(F.New(_exceptionConstructor, ImmutableArray<BoundExpression>.Empty)));
+                var body = F.Throw(F.New(_exceptionConstructor, ImmutableArray<BoundExpression>.Empty));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 F.CloseMethod(body);

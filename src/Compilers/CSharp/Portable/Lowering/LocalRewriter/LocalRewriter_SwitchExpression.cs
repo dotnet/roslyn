@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static BoundStatement ConstructThrowSwitchExpressionExceptionHelperCall(SyntheticBoundNodeFactory factory, BoundExpression unmatchedValue)
             {
-                var module = factory.ModuleBuilderOpt!;
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
+                var module = factory.ModuleBuilderOpt;
                 var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
                 var diagnostics = factory.Diagnostics.DiagnosticBag;
                 Debug.Assert(diagnostics is not null);
@@ -169,6 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static BoundStatement ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(SyntheticBoundNodeFactory factory)
             {
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
                 var module = factory.ModuleBuilderOpt!;
                 var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
                 var diagnostics = factory.Diagnostics.DiagnosticBag;
@@ -182,6 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static BoundStatement ConstructThrowInvalidOperationExceptionHelperCall(SyntheticBoundNodeFactory factory)
             {
+                Debug.Assert(factory.ModuleBuilderOpt is not null);
                 var module = factory.ModuleBuilderOpt!;
                 var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
                 var diagnostics = factory.Diagnostics.DiagnosticBag;

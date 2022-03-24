@@ -1787,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// The ThrowIfNull and Throw helpers are modeled off of the helpers on ArgumentNullException.
         /// https://github.com/dotnet/runtime/blob/22663769611ba89cd92d14cfcb76e287f8af2335/src/libraries/System.Private.CoreLib/src/System/ArgumentNullException.cs#L56-L69
         /// </remarks>
-        internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        internal MethodSymbol EnsureThrowIfNullFunctionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
             var throwIfNullAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowIfNullFunctionName);
@@ -1814,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Creates the ThrowSwitchExpressionException helper if needed.
         /// </summary>
-        internal MethodSymbol EnsureThrowSwitchExpressionExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        internal MethodSymbol EnsureThrowSwitchExpressionExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
             var throwSwitchExpressionAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName);
@@ -1833,9 +1833,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         /// <summary>
-        /// Creates the ThrowSwitchExpressionException helper if needed.
+        /// Creates the ThrowSwitchExpressionExceptionParameterless helper if needed.
         /// </summary>
-        internal MethodSymbol EnsureThrowSwitchExpressionExceptionParameterlessExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        internal MethodSymbol EnsureThrowSwitchExpressionExceptionParameterlessExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
             var throwSwitchExpressionAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionParameterlessFunctionName);
@@ -1860,7 +1860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// Creates the ThrowInvalidOperationException helper if needed.
         /// </summary>
-        internal MethodSymbol EnsureThrowInvalidOperationExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag? diagnostics)
+        internal MethodSymbol EnsureThrowInvalidOperationExceptionExists(SyntaxNode syntaxNode, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
             var privateImplClass = GetPrivateImplClass(syntaxNode, diagnostics);
             var throwAdapter = privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedThrowInvalidOperationExceptionFunctionName);
