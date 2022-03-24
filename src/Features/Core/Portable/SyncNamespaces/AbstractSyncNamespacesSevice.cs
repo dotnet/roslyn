@@ -123,7 +123,6 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                     document.Project,
                     codeFixProvider,
                     FixAllScope.Solution,
-                    fixAllSpans: default,
                     codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
                     diagnosticIds: codeFixProvider.FixableDiagnosticIds,
                     fixAllDiagnosticProvider: diagnosticProvider,

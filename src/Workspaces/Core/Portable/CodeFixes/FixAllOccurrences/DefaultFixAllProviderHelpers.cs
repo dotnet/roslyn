@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -26,11 +25,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             var solution = fixAllContext.Scope switch
             {
-                FixAllScope.Document => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
+                FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
+                    => await GetDocumentFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Project => await GetProjectFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 FixAllScope.Solution => await GetSolutionFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
-                FixAllScope.ContainingMember or FixAllScope.ContainingType
-                    => await GetContainingMemberOrTypeFixesAsync(fixAllContext, fixAllContextsAsync).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(fixAllContext.Scope),
             };
 
@@ -74,29 +72,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return fixAllContextsAsync(
                 fixAllContext,
                 sortedProjects.SelectAsArray(p => fixAllContext.WithScope(FixAllScope.Project).WithDocumentAndProject(document: null, p)));
-        }
-
-        private static async Task<Solution?> GetContainingMemberOrTypeFixesAsync(FixAllContext fixAllContext, FixAllContexts fixAllContextsAsync)
-        {
-            Contract.ThrowIfNull(fixAllContext.Document);
-
-            if (!fixAllContext.State.DiagnosticSpan.HasValue)
-                return null;
-
-            var spanMappingService = fixAllContext.Document.GetLanguageService<IFixAllSpanMappingService>();
-            if (spanMappingService == null)
-                return null;
-
-            var documentsAndSpansToFix = await spanMappingService.GetFixAllSpansAsync(
-                fixAllContext.Document, fixAllContext.State.DiagnosticSpan.Value,
-                fixAllContext.Scope, fixAllContext.CancellationToken).ConfigureAwait(false);
-            if (documentsAndSpansToFix.IsEmpty)
-                return null;
-
-            var fixAllContexts = documentsAndSpansToFix.SelectAsArray(
-                documentAndSpans => fixAllContext.WithDocumentAndProject(documentAndSpans.Key, documentAndSpans.Key.Project)
-                                                 .WithFixAllSpans(documentAndSpans.Value));
-            return await fixAllContextsAsync(fixAllContext, fixAllContexts).ConfigureAwait(false);
         }
     }
 }

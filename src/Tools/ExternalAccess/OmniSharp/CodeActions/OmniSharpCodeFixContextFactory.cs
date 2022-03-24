@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
                     project,
                     codeFixProvider,
                     scope,
-                    fixAllSpans: default,
                     codeActionEquivalenceKey,
                     diagnosticIds,
                     fixAllDiagnosticProvider,

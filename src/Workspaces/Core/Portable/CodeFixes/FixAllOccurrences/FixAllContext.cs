@@ -139,7 +139,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     document.Project,
                     codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider)),
                     scope,
-                    fixAllSpans: default,
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
@@ -176,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     project ?? throw new ArgumentNullException(nameof(project)),
                     codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider)),
                     scope,
-                    fixAllSpans: default,
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
                     fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
@@ -331,9 +329,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext WithDocumentAndProject(Document? document, Project project)
             => this.WithState(State.WithDocumentAndProject(document, project));
-
-        internal FixAllContext WithFixAllSpans(ImmutableArray<TextSpan> fixAllSpans)
-            => this.WithState(State.WithFixAllSpans(fixAllSpans));
 
         private FixAllContext WithState(FixAllState state)
             => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);

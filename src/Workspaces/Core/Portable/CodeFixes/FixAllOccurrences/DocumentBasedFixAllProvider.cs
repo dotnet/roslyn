@@ -115,22 +115,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             using var _ = progressTracker.ItemCompletedScope();
 
-            if (fixAllContext.Document != null)
+            var document = fixAllContext.Document;
+            if (document != null)
             {
-                if (fixAllContext.State.FixAllSpans.IsEmpty)
+                if (fixAllContext.Scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
                 {
-                    return await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                    var diagnosticsMap = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(fixAllContext).ConfigureAwait(false);
+                    return diagnosticsMap.SelectMany(kvp => kvp.Value).AsImmutableOrEmpty();
                 }
                 else
                 {
-                    using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
-                    foreach (var fixAllSpan in fixAllContext.State.FixAllSpans)
-                    {
-                        var spanDiagnostics = await fixAllContext.GetDocumentSpanDiagnosticsAsync(fixAllContext.Document, fixAllSpan).ConfigureAwait(false);
-                        diagnostics.AddRange(spanDiagnostics);
-                    }
-
-                    return diagnostics.ToImmutable();
+                    return await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                 }
             }
 

@@ -127,7 +127,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     project,
                     codeFixProvider,
                     scope,
-                    fixAllSpans: default,
                     codeActionEquivalenceKey,
                     diagnosticIds,
                     fixAllDiagnosticProvider,

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -44,23 +43,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 case FixAllScope.ContainingMember or FixAllScope.ContainingType:
                     if (document != null && !await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        // For the 'ContainingMember' and 'ContainingType' scopes, we might be invoked in a couple of different ways:
-                        //  1. Using the fully populated 'FixAllContext', which has already computed, non-empty 'fixAllSpans' for
-                        //     the member or type declaration to fix in the given 'document'. For this scenario, we return the
-                        //     diagnostics for the given fixAllSpans in the document for this scenario.
-                        //  2. Using the original 'FixAllContext' which has the 'triggerSpan' and 'document' for the original code fix, but
-                        //     the 'fixAllSpans' have not yet been computed. For this scenario, we use the 'IFixAllSpanMappingService' to
-                        //     map the triggerSpan and fixAllScope to documents and spans to fix for the containing member or
-                        //     type declaration (and its partials), and then return the diagnostics for each of the documents and fixAllSpans.
-
-                        var fixAllSpans = fixAllContext.State.FixAllSpans;
                         var diagnosticSpan = fixAllContext.State.DiagnosticSpan;
-                        if (!fixAllSpans.IsEmpty)
-                        {
-                            var documentsAndSpans = SpecializedCollections.SingletonEnumerable(new KeyValuePair<Document, ImmutableArray<TextSpan>>(document, fixAllSpans));
-                            return await GetSpanDiagnosticsAsync(fixAllContext, documentsAndSpans).ConfigureAwait(false);
-                        }
-                        else if (diagnosticSpan.HasValue &&
+                        if (diagnosticSpan.HasValue &&
                             document.GetLanguageService<IFixAllSpanMappingService>() is IFixAllSpanMappingService spanMappingService)
                         {
                             var documentsAndSpans = await spanMappingService.GetFixAllSpansAsync(document,

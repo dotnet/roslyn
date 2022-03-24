@@ -673,7 +673,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     document.Project,
                     codeFixProvider,
                     FixAllScope.Document,
-                    fixAllSpans: default,
                     fixes[0].Action.EquivalenceKey,
                     diagnosticIds,
                     diagnosticProvider,
