@@ -33,9 +33,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             => ProtocolConversions.TryGetUriFromFilePath(document.FilePath, context);
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
-            => GetDocuments(solution, documentUri, logger: null);
-
-        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, ILspLogger? logger)
         {
             var documentIds = GetDocumentIds(solution, documentUri);
 
@@ -61,7 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
         {
-            var documents = solution.GetDocuments(documentIdentifier.Uri, logger: null);
+            var documents = solution.GetDocuments(documentIdentifier.Uri);
             if (documents.Length == 0)
             {
                 return null;
