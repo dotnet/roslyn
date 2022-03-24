@@ -661,6 +661,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool NeedFieldKeywordBinder(this Symbol symbol)
         {
+            Debug.Assert(symbol.ContainingSymbol is SourceMemberContainerTypeSymbol or SourceNamespaceSymbol or SourceModuleSymbol);
+            Debug.Assert(
+                symbol.ContainingSymbol.Equals(symbol.ContainingType, TypeCompareKind.ConsiderEverything) ||
+                symbol.ContainingSymbol.Equals(symbol.ContainingNamespace, TypeCompareKind.ConsiderEverything) ||
+                symbol.ContainingSymbol.Equals(symbol.ContainingModule, TypeCompareKind.ConsiderEverything)
+                );
             return symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false };
         }
     }
