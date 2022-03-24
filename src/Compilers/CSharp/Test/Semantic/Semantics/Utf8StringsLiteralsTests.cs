@@ -428,7 +428,7 @@ class C
         public void InvalidContent_01()
         {
             var source = @"
-
+#pragma warning disable CS0219 // The variable is assigned but its value is never used
 class C
 {
     static void Main()
@@ -3381,6 +3381,77 @@ class C
                 // (11,43): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<byte>'. An explicit conversion exists (are you missing a cast?)
                 //         ReadOnlySpan<byte> readonlySpan = nullValue;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "nullValue").WithArguments("object", "System.ReadOnlySpan<byte>").WithLocation(11, 43)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void VariableIsNotUsed()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        const string stringNull = null;
+
+        var x1 = ""123""U8;
+        Span<byte> x2 = ""124""U8;
+        ReadOnlySpan<byte> x3 = ""125""U8;
+        var y1 = ""abc"";
+        var y2 = stringNull;
+
+        byte[] z1 = ""345"";
+        Span<byte> z2 = ""678"";
+        ReadOnlySpan<byte> z3 = ""678"";
+
+        byte[] z4 = stringNull;
+        Span<byte> z5 = stringNull;
+        ReadOnlySpan<byte> z6 = stringNull;
+
+        byte[] a1 = null;
+        byte[] a2 = new byte[]{};
+
+        var x4 = (byte[])""123""U8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(
+                // (9,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         var x1 = "123"U8;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 13),
+                // (12,13): warning CS0219: The variable 'y1' is assigned but its value is never used
+                //         var y1 = "abc";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y1").WithArguments("y1").WithLocation(12, 13),
+                // (13,13): warning CS0219: The variable 'y2' is assigned but its value is never used
+                //         var y2 = stringNull;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y2").WithArguments("y2").WithLocation(13, 13),
+                // (15,16): warning CS0219: The variable 'z1' is assigned but its value is never used
+                //         byte[] z1 = "345";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z1").WithArguments("z1").WithLocation(15, 16),
+                // (16,20): warning CS0219: The variable 'z2' is assigned but its value is never used
+                //         Span<byte> z2 = "678";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z2").WithArguments("z2").WithLocation(16, 20),
+                // (17,28): warning CS0219: The variable 'z3' is assigned but its value is never used
+                //         ReadOnlySpan<byte> z3 = "678";
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z3").WithArguments("z3").WithLocation(17, 28),
+                // (19,16): warning CS0219: The variable 'z4' is assigned but its value is never used
+                //         byte[] z4 = stringNull;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z4").WithArguments("z4").WithLocation(19, 16),
+                // (20,20): warning CS0219: The variable 'z5' is assigned but its value is never used
+                //         Span<byte> z5 = stringNull;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z5").WithArguments("z5").WithLocation(20, 20),
+                // (21,28): warning CS0219: The variable 'z6' is assigned but its value is never used
+                //         ReadOnlySpan<byte> z6 = stringNull;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z6").WithArguments("z6").WithLocation(21, 28),
+                // (23,16): warning CS0219: The variable 'a1' is assigned but its value is never used
+                //         byte[] a1 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a1").WithArguments("a1").WithLocation(23, 16),
+                // (26,13): warning CS0219: The variable 'x4' is assigned but its value is never used
+                //         var x4 = (byte[])"123"U8;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4").WithLocation(26, 13)
                 );
         }
 
