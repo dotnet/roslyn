@@ -10485,11 +10485,11 @@ tryAgain:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
                     case SyntaxKind.SingleLineRawStringLiteralToken:
-                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
+                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                     case SyntaxKind.MultiLineRawStringLiteralToken:
-                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
+                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                     case SyntaxKind.InterpolatedStringToken:
-                    case SyntaxKind.UTF8StringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
+                    case SyntaxKind.UTF8StringLiteralToken:
                     case SyntaxKind.InterpolatedStringStartToken:
                     case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     case SyntaxKind.InterpolatedSingleLineRawStringStartToken:

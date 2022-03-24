@@ -936,5 +936,73 @@ hello
             }
             EOF();
         }
+
+        [Fact]
+        public void UTF8StringLiteral_Await_01()
+        {
+            UsingExpression(@"await ""hello""u8");
+
+            N(SyntaxKind.AwaitExpression);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UTF8StringLiteralExpression);
+                {
+                    N(SyntaxKind.UTF8StringLiteralToken, "\"hello\"u8");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UTF8StringLiteral_Await_02()
+        {
+            UsingExpression(@"await @""hello""u8");
+
+            N(SyntaxKind.AwaitExpression);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UTF8StringLiteralExpression);
+                {
+                    N(SyntaxKind.UTF8StringLiteralToken, "@\"hello\"u8");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UTF8StringLiteral_Await_03()
+        {
+            UsingExpression(@"await """"""hello""""""u8");
+
+            N(SyntaxKind.AwaitExpression);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UTF8StringLiteralExpression);
+                {
+                    N(SyntaxKind.UTF8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"u8");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UTF8StringLiteral_Await_04()
+        {
+            UsingExpression(@"await """"""
+hello
+""""""u8");
+
+            N(SyntaxKind.AwaitExpression);
+            {
+                N(SyntaxKind.AwaitKeyword);
+                N(SyntaxKind.UTF8StringLiteralExpression);
+                {
+                    N(SyntaxKind.UTF8MultiLineRawStringLiteralToken, "\"\"\"" + @"
+hello
+" + "\"\"\"u8");
+                }
+            }
+            EOF();
+        }
     }
 }

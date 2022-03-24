@@ -1368,6 +1368,73 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        public void ConstantExpressions_04()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine();
+        Helpers.Print(hello());
+        Helpers.Print(dog());
+        Helpers.Print(cat());
+    }
+
+    static byte[] hello() => nameof(hello);
+    static Span<byte> dog() => nameof(dog);
+    static ReadOnlySpan<byte> cat() => nameof(cat);
+}
+";
+            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+{ 0x68 0x65 0x6C 0x6C 0x6F }
+{ 0x64 0x6F 0x67 }
+{ 0x63 0x61 0x74 }
+", verify: Verification.Fails).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.hello()", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  3
+  IL_0000:  ldc.i4.5
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  ret
+}
+");
+
+            verifier.VerifyIL("C.dog()", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  ldc.i4.3
+  IL_0001:  newarr     ""byte""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.CD6357EFDD966DE8C0CB2F876CC89EC74CE35F0968E11743987084BD42FB8944""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
+  IL_0016:  ret
+}
+");
+
+            verifier.VerifyIL("C.cat()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.77AF778B51ABD4A3C51C5DDD97204A9C3AE614EBCCB75A606C3B6865AED6744E""
+  IL_0005:  ldc.i4.3
+  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
+  IL_000b:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void UserDefinedImplicitConversions_01()
         {
             var source = @"
@@ -3456,5 +3523,869 @@ class C
         }
 
         // PROTOTYPE(UTF8StringLiterals) : Test default parameter values and attribute applications
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefaultParameterValues_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    const string stringNull = null;
+
+    static void M01(byte[] x = stringNull){}
+    static void M02(byte[] x = ""02""){}
+    static void M03(Span<byte> x = ""03""){}
+    static void M04(ReadOnlySpan<byte> x = ""04""){}
+    static void M05(byte[] x = ""05""u8){}
+    static void M06(Span<byte> x = ""06""u8){}
+    static void M07(ReadOnlySpan<byte> x = ""07""U8){}
+    static void M08(Span<byte> x = stringNull){}
+    static void M09(ReadOnlySpan<byte> x = stringNull){}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M01(byte[] x = stringNull){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stringNull").WithArguments("x").WithLocation(7, 32),
+                // (8,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M02(byte[] x = "02"){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""02""").WithArguments("x").WithLocation(8, 32),
+                // (9,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M03(Span<byte> x = "03"){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""03""").WithArguments("x").WithLocation(9, 36),
+                // (10,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M04(ReadOnlySpan<byte> x = "04"){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""04""").WithArguments("x").WithLocation(10, 44),
+                // (11,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M05(byte[] x = "05"u8){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""05""u8").WithArguments("x").WithLocation(11, 32),
+                // (12,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M06(Span<byte> x = "06"u8){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""06""u8").WithArguments("x").WithLocation(12, 36),
+                // (13,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M07(ReadOnlySpan<byte> x = "07"U8){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""07""U8").WithArguments("x").WithLocation(13, 44),
+                // (14,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M08(Span<byte> x = stringNull){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stringNull").WithArguments("x").WithLocation(14, 36),
+                // (15,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M09(ReadOnlySpan<byte> x = stringNull){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stringNull").WithArguments("x").WithLocation(15, 44)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void DefaultParameterValues_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    const string stringNull = null;
+
+    static void M01(byte[] x = (byte[])stringNull){}
+    static void M02(byte[] x = (byte[])""02""){}
+    static void M03(Span<byte> x = (Span<byte>)""03""){}
+    static void M04(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)""04""){}
+    static void M05(byte[] x = (byte[])""05""u8){}
+    static void M06(Span<byte> x = (Span<byte>)""06""u8){}
+    static void M07(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)""07""U8){}
+    static void M08(Span<byte> x = (Span<byte>)stringNull){}
+    static void M09(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)stringNull){}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M01(byte[] x = (byte[])stringNull){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(byte[])stringNull").WithArguments("x").WithLocation(7, 32),
+                // (8,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M02(byte[] x = (byte[])"02"){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(byte[])""02""").WithArguments("x").WithLocation(8, 32),
+                // (9,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M03(Span<byte> x = (Span<byte>)"03"){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(Span<byte>)""03""").WithArguments("x").WithLocation(9, 36),
+                // (10,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M04(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)"04"){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(ReadOnlySpan<byte>)""04""").WithArguments("x").WithLocation(10, 44),
+                // (11,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M05(byte[] x = (byte[])"05"u8){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(byte[])""05""u8").WithArguments("x").WithLocation(11, 32),
+                // (12,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M06(Span<byte> x = (Span<byte>)"06"u8){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(Span<byte>)""06""u8").WithArguments("x").WithLocation(12, 36),
+                // (13,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M07(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)"07"U8){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(ReadOnlySpan<byte>)""07""U8").WithArguments("x").WithLocation(13, 44),
+                // (14,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M08(Span<byte> x = (Span<byte>)stringNull){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(Span<byte>)stringNull").WithArguments("x").WithLocation(14, 36),
+                // (15,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
+                //     static void M09(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)stringNull){}
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(ReadOnlySpan<byte>)stringNull").WithArguments("x").WithLocation(15, 44)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void CallerMemberName_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    void Test1([System.Runtime.CompilerServices.CallerMemberName] byte[] x = default)
+    {
+    }
+    void Test2([System.Runtime.CompilerServices.CallerMemberName] Span<byte> x = default)
+    {
+    }
+    void Test3([System.Runtime.CompilerServices.CallerMemberName] ReadOnlySpan<byte> x = default)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,17): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'byte[]'
+                //     void Test1([System.Runtime.CompilerServices.CallerMemberName] byte[] x = default)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "System.Runtime.CompilerServices.CallerMemberName").WithArguments("string", "byte[]").WithLocation(5, 17),
+                // (8,17): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'Span<byte>'
+                //     void Test2([System.Runtime.CompilerServices.CallerMemberName] Span<byte> x = default)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "System.Runtime.CompilerServices.CallerMemberName").WithArguments("string", "System.Span<byte>").WithLocation(8, 17),
+                // (11,17): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'ReadOnlySpan<byte>'
+                //     void Test3([System.Runtime.CompilerServices.CallerMemberName] ReadOnlySpan<byte> x = default)
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "System.Runtime.CompilerServices.CallerMemberName").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_01()
+        {
+            var source = @"
+
+class C
+{
+    const string stringNull = null;
+
+    [UTF8(stringNull)]
+    static void M01(){}
+
+    [UTF8(""2"")]
+    static void M02(){}
+
+    [UTF8(""3""U8)]
+    static void M03(){}
+
+    [UTF8((byte[])stringNull)]
+    static void M04(){}
+
+    [UTF8((byte[])""2"")]
+    static void M05(){}
+
+    [UTF8((byte[])""3""U8)]
+    static void M06(){}
+}
+
+public class UTF8Attribute : System.Attribute
+{
+    public UTF8Attribute(byte[] x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [UTF8(stringNull)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "stringNull").WithLocation(7, 11),
+                // (10,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [UTF8("2")]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"""2""").WithLocation(10, 11),
+                // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [UTF8("3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"""3""U8").WithLocation(13, 11),
+                // (16,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [UTF8((byte[])stringNull)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(byte[])stringNull").WithLocation(16, 11),
+                // (19,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [UTF8((byte[])"2")]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(byte[])""2""").WithLocation(19, 11),
+                // (22,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [UTF8((byte[])"3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(byte[])""3""U8").WithLocation(22, 11)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void AttributeArgument_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    const string stringNull = null;
+
+    [UTF8(stringNull)]
+    static void M01(){}
+
+    [UTF8(""2"")]
+    static void M02(){}
+
+    [UTF8(""3""U8)]
+    static void M03(){}
+
+    [UTF8((Span<byte>)stringNull)]
+    static void M04(){}
+
+    [UTF8((Span<byte>)""2"")]
+    static void M05(){}
+
+    [UTF8((Span<byte>)""3""U8)]
+    static void M06(){}
+}
+
+public class UTF8Attribute : System.Attribute
+{
+    public UTF8Attribute(Span<byte> x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
+                //     [UTF8(stringNull)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(7, 6),
+                // (10,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
+                //     [UTF8("2")]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(10, 6),
+                // (13,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
+                //     [UTF8("3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(13, 6),
+                // (16,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
+                //     [UTF8((Span<byte>)stringNull)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(16, 6),
+                // (19,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
+                //     [UTF8((Span<byte>)"2")]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(19, 6),
+                // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
+                //     [UTF8((Span<byte>)"3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(22, 6)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void AttributeArgument_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    const string stringNull = null;
+
+    [UTF8(stringNull)]
+    static void M01(){}
+
+    [UTF8(""2"")]
+    static void M02(){}
+
+    [UTF8(""3""U8)]
+    static void M03(){}
+
+    [UTF8((ReadOnlySpan<byte>)stringNull)]
+    static void M04(){}
+
+    [UTF8((ReadOnlySpan<byte>)""2"")]
+    static void M05(){}
+
+    [UTF8((ReadOnlySpan<byte>)""3""U8)]
+    static void M06(){}
+}
+
+public class UTF8Attribute : System.Attribute
+{
+    public UTF8Attribute(ReadOnlySpan<byte> x) {}
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
+                //     [UTF8(stringNull)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(7, 6),
+                // (10,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
+                //     [UTF8("2")]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(10, 6),
+                // (13,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
+                //     [UTF8("3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(13, 6),
+                // (16,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
+                //     [UTF8((ReadOnlySpan<byte>)stringNull)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(16, 6),
+                // (19,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
+                //     [UTF8((ReadOnlySpan<byte>)"2")]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(19, 6),
+                // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
+                //     [UTF8((ReadOnlySpan<byte>)"3"U8)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(22, 6)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void NoConversionFromNonConstant_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    void Test(string s)
+    {
+        byte[] x = s;
+        Span<byte> y = s;
+        ReadOnlySpan<byte> z = s;
+        x = (byte[])s;
+        y = (Span<byte>)s;
+        z = (ReadOnlySpan<byte>)s;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
+                //         byte[] x = s;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("string", "byte[]").WithLocation(7, 20),
+                // (8,24): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<byte>'
+                //         Span<byte> y = s;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("string", "System.Span<byte>").WithLocation(8, 24),
+                // (9,32): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<byte>'
+                //         ReadOnlySpan<byte> z = s;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(9, 32),
+                // (10,13): error CS0030: Cannot convert type 'string' to 'byte[]'
+                //         x = (byte[])s;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(byte[])s").WithArguments("string", "byte[]").WithLocation(10, 13),
+                // (11,13): error CS0030: Cannot convert type 'string' to 'System.Span<byte>'
+                //         y = (Span<byte>)s;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<byte>)s").WithArguments("string", "System.Span<byte>").WithLocation(11, 13),
+                // (12,13): error CS0030: Cannot convert type 'string' to 'System.ReadOnlySpan<byte>'
+                //         z = (ReadOnlySpan<byte>)s;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<byte>)s").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(12, 13)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void NoConversionFromNonConstant_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    void Test(string s)
+    {
+        byte[] x = $""1{s}"";
+        Span<byte> y = $""2{s}"";
+        ReadOnlySpan<byte> z = $""3{s}"";
+        x = (byte[])$""4{s}"";
+        y = (Span<byte>)$""5{s}"";
+        z = (ReadOnlySpan<byte>)$""6{s}"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
+                //         byte[] x = $"1{s}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""1{s}""").WithArguments("string", "byte[]").WithLocation(7, 20),
+                // (8,24): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<byte>'
+                //         Span<byte> y = $"2{s}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""2{s}""").WithArguments("string", "System.Span<byte>").WithLocation(8, 24),
+                // (9,32): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<byte>'
+                //         ReadOnlySpan<byte> z = $"3{s}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""3{s}""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(9, 32),
+                // (10,13): error CS0030: Cannot convert type 'string' to 'byte[]'
+                //         x = (byte[])$"4{s}";
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(byte[])$""4{s}""").WithArguments("string", "byte[]").WithLocation(10, 13),
+                // (11,13): error CS0030: Cannot convert type 'string' to 'System.Span<byte>'
+                //         y = (Span<byte>)$"5{s}";
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(Span<byte>)$""5{s}""").WithArguments("string", "System.Span<byte>").WithLocation(11, 13),
+                // (12,13): error CS0030: Cannot convert type 'string' to 'System.ReadOnlySpan<byte>'
+                //         z = (ReadOnlySpan<byte>)$"6{s}";
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(ReadOnlySpan<byte>)$""6{s}""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(12, 13)
+                );
+        }
+
+        [Fact]
+        public void PatternMatching_01()
+        {
+            var source = @"
+
+class C
+{
+    void Test(byte[] s)
+    {
+        _ = s is ""1"";
+        _ = s is ""2""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0150: A constant value is expected
+                //         _ = s is "1";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""1""").WithLocation(7, 18),
+                // (8,18): error CS0150: A constant value is expected
+                //         _ = s is "2"u8;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""2""u8").WithLocation(8, 18)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatching_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    void Test(Span<byte> s)
+    {
+        _ = s is ""1"";
+        _ = s is ""2""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0150: A constant value is expected
+                //         _ = s is "1";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""1""").WithLocation(7, 18),
+                // (8,18): error CS0150: A constant value is expected
+                //         _ = s is "2"u8;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""2""u8").WithLocation(8, 18)
+                );
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatching_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    void Test(ReadOnlySpan<byte> s)
+    {
+        _ = s is ""1"";
+        _ = s is ""2""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,18): error CS0150: A constant value is expected
+                //         _ = s is "1";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""1""").WithLocation(7, 18),
+                // (8,18): error CS0150: A constant value is expected
+                //         _ = s is "2"u8;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""2""u8").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void SemanticModel_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    byte[] Test()
+    {
+        return ""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Byte[]", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsUTF8StringLiteral);
+        }
+
+        [Fact]
+        public void SemanticModel_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    byte[] Test()
+    {
+        return (byte[])""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.Byte[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Byte[]", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    Span<byte> Test()
+    {
+        return ""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsUTF8StringLiteral);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_04()
+        {
+            var source = @"
+using System;
+class C
+{
+    Span<byte> Test()
+    {
+        return (Span<byte>)""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.Span<System.Byte>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_05()
+        {
+            var source = @"
+using System;
+class C
+{
+    ReadOnlySpan<byte> Test()
+    {
+        return ""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsUTF8StringLiteral);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_06()
+        {
+            var source = @"
+using System;
+class C
+{
+    ReadOnlySpan<byte> Test()
+    {
+        return (ReadOnlySpan<byte>)""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.ReadOnlySpan<System.Byte>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
+
+        [Fact]
+        public void SemanticModel_07()
+        {
+            var source = @"
+using System;
+class C
+{
+    byte[] Test()
+    {
+        return ""1""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.Byte[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Byte[]", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
+
+        [Fact]
+        public void SemanticModel_08()
+        {
+            var source = @"
+using System;
+class C
+{
+    byte[] Test()
+    {
+        return (byte[])""1""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Null(symbolInfo.Symbol);
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.Byte[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Byte[]", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_09()
+        {
+            var source = @"
+using System;
+class C
+{
+    Span<byte> Test()
+    {
+        return ""1""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.Span<System.Byte> System.Span<System.Byte>.op_Implicit(System.Byte[]? array)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.Byte[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsUserDefined);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_10()
+        {
+            var source = @"
+using System;
+class C
+{
+    Span<byte> Test()
+    {
+        return (Span<byte>)""1""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.Span<System.Byte> System.Span<System.Byte>.op_Implicit(System.Byte[]? array)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.Span<System.Byte>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_11()
+        {
+            var source = @"
+using System;
+class C
+{
+    ReadOnlySpan<byte> Test()
+    {
+        return ""1""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.ReadOnlySpan<System.Byte> System.ReadOnlySpan<System.Byte>.op_Implicit(System.Byte[]? array)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.Byte[]", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsUserDefined);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_12()
+        {
+            var source = @"
+using System;
+class C
+{
+    ReadOnlySpan<byte> Test()
+    {
+        return (ReadOnlySpan<byte>)""1""u8;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.ReadOnlySpan<System.Byte> System.ReadOnlySpan<System.Byte>.op_Implicit(System.Byte[]? array)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.ReadOnlySpan<System.Byte>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_13()
+        {
+            var source = @"
+using System;
+class C
+{
+    ReadOnlySpan<char> Test()
+    {
+        return ""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsUserDefined);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SemanticModel_14()
+        {
+            var source = @"
+using System;
+class C
+{
+    ReadOnlySpan<char> Test()
+    {
+        return (ReadOnlySpan<char>)""1"";
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.Equal("System.ReadOnlySpan<System.Char> System.String.op_Implicit(System.String? value)", symbolInfo.Symbol.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.ReadOnlySpan<System.Char>", typeInfo.ConvertedType.ToTestDisplayString());
+
+            Assert.True(model.GetConversion(node).IsIdentity);
+        }
     }
 }
