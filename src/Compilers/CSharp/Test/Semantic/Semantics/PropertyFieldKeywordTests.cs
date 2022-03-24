@@ -2056,7 +2056,7 @@ class C
             Assert.Null(aliasInfo);
 
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
-            Assert.Null(fieldKeywordSymbolInfo.Symbol.GetSymbol());
+            Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 

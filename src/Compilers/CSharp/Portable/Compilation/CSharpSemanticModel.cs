@@ -279,21 +279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundNode;
         }
 
-        protected static bool TryGetAccessorSymbolForFieldKeywordBinder(Symbol symbol, out SourcePropertyAccessorSymbol accessorSymbol)
-        {
-            if (symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
-            {
-                accessorSymbol = accessor;
-                return true;
-            }
-
-            accessorSymbol = null;
-            return false;
-        }
-
         protected static bool TryCreateSpeculativeFieldKeywordBinder(Binder binder, out SpeculativeFieldKeywordBinder speculativeFieldKeywordBinder)
         {
-            if (TryGetAccessorSymbolForFieldKeywordBinder(binder.ContainingMember(), out var accessor))
+            if (binder.ContainingMember().TryGetAccessorSymbolForFieldKeywordBinder(out var accessor))
             {
                 speculativeFieldKeywordBinder = new SpeculativeFieldKeywordBinder(accessor, binder);
                 return true;

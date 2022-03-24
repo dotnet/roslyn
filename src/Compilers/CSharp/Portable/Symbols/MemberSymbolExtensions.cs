@@ -658,5 +658,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 member.IsExplicitInterfaceImplementation() ? ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member.Name) :
                 member.Name;
         }
+
+        internal static bool TryGetAccessorSymbolForFieldKeywordBinder(this Symbol symbol, out SourcePropertyAccessorSymbol accessorSymbol)
+        {
+            if (symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false } accessor)
+            {
+                accessorSymbol = accessor;
+                return true;
+            }
+
+            accessorSymbol = null;
+            return false;
+        }
     }
 }

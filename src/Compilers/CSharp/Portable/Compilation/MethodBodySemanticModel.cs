@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binder != null);
 
             Binder executablebinder = new WithNullableContextBinder(SyntaxTree, position, binder ?? this.RootBinder);
-            if (TryGetAccessorSymbolForFieldKeywordBinder(methodSymbol, out var propertyAccessor))
+            if (methodSymbol.TryGetAccessorSymbolForFieldKeywordBinder(out var propertyAccessor))
             {
                 executablebinder = new SpeculativeFieldKeywordBinder(propertyAccessor, executablebinder);
             }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodSymbol.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction));
 
             // We don't need to loop over containing symbols chain because only type members can have MethodBodySemanticModel.
-            if (TryGetAccessorSymbolForFieldKeywordBinder(methodSymbol, out var accessor))
+            if (methodSymbol.TryGetAccessorSymbolForFieldKeywordBinder(out var accessor))
             {
                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
             }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodSymbol = (MethodSymbol)this.MemberSymbol;
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
-            if (TryGetAccessorSymbolForFieldKeywordBinder(methodSymbol, out var accessor))
+            if (methodSymbol.TryGetAccessorSymbolForFieldKeywordBinder(out var accessor))
             {
                 binder = new SpeculativeFieldKeywordBinder(accessor, binder);
             }
