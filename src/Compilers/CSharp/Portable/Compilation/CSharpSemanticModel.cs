@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected static Binder AddSpeculativeFieldKeywordBinderIfNeeded(Binder binder)
         {
             var symbol = binder.ContainingMember();
-            if (symbol.NeedFieldKeywordBinder())
+            if (symbol.CanHaveFieldKeywordBackingField())
             {
                 return new SpeculativeFieldKeywordBinder((SourcePropertyAccessorSymbol)symbol, binder);
             }

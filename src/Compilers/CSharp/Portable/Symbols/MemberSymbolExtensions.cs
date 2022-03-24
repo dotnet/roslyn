@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 member.Name;
         }
 
-        internal static bool NeedFieldKeywordBinder(this Symbol symbol)
+        internal static bool CanHaveFieldKeywordBackingField(this Symbol symbol)
         {
             Debug.Assert(symbol.ContainingSymbol is SourceMemberContainerTypeSymbol or SourceNamespaceSymbol or SourceModuleSymbol);
             Debug.Assert(
