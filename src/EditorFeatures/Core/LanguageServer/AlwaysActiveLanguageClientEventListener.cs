@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             public LanguageClientMetadata(string[] contentTypes, string clientName = null)
             {
                 this.ContentTypes = contentTypes;
-                this.ClientName = clientName;
             }
 
             public string ClientName { get; }
