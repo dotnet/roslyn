@@ -113,13 +113,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     foreach (var span in spans)
                     {
                         var documentDiagnostics = await fixAllContext.GetDocumentSpanDiagnosticsAsync(document, span).ConfigureAwait(false);
-                        if (!builder.TryGetValue(document, out var arrayBuilder))
-                        {
-                            arrayBuilder = ArrayBuilder<Diagnostic>.GetInstance();
-                            builder.Add(document, arrayBuilder);
-                        }
-
-                        arrayBuilder.AddRange(documentDiagnostics);
+                        builder.MultiAddRange(document, documentDiagnostics);
                     }
                 }
 
