@@ -3451,6 +3451,8 @@ class C
                 );
         }
 
+        // PROTOTYPE(UTF8StringLiterals) : Test default parameter values and attribute applications
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void DefaultParameterValues_01()
         {
