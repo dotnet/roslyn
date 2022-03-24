@@ -2975,4 +2975,133 @@ struct S
             Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P1").WithLocation(11, 12)
         );
     }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor()
+    {
+        var code = @"
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public C() { }
+}";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor()
+    {
+        var code = @"
+using System.Diagnostics.CodeAnalysis;
+#nullable enable
+class C
+{
+    private string _field;
+    public required string Field { get => _field; [MemberNotNull(nameof(_field))] set => _field = value; }
+
+    public C() { }
+    public C(bool unused) : this()
+    { 
+        _field.ToString();
+        Field.ToString();
+    }
+}";
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { code, MemberNotNullAttributeDefinition });
+        comp.VerifyDiagnostics(
+            // (9,12): warning CS8618: Non-nullable field '_field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+            //     public C() { }
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_field").WithLocation(9, 12)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_02()
+    {
+        var code = @"
+#nullable enable
+public class C
+{
+    public required string Prop { get; set; }
+
+    public C(bool unused) { }
+
+    public C() : this(true)
+    {
+        Prop.ToString();
+    }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(11, 9)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03()
+    {
+        var code = @"
+#nullable enable
+public struct C
+{
+    public required string Prop { get; set; }
+
+    public C(bool unused) { }
+
+    public C() : this(true)
+    {
+        Prop.ToString();
+    }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        // PROTOTYPE(req): These errors should change with Rikki's DA changes.
+        comp.VerifyDiagnostics(
+            // (7,12): error CS0843: Auto-implemented property 'C.Prop' must be fully assigned before control is returned to the caller.
+            //     public C(bool unused) { }
+            Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C").WithArguments("C.Prop").WithLocation(7, 12),
+            // (11,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(11, 9)
+        );
+    }
+
+    [Fact]
+    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04()
+    {
+        var code = @"
+#nullable enable
+public struct C
+{
+    public required string Prop { get; set; }
+
+    public C(bool unused) : this()
+    {
+        Prop.ToString();
+    }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (9,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(9, 9)
+        );
+    }
 }
