@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // If we have a property, the accessor must be SourcePropertyAccessorSymbol.
                             Debug.Assert(!propertyOrEventDecl.IsKind(SyntaxKind.PropertyDeclaration) || accessor is SourcePropertyAccessorSymbol);
-                            if (accessor.NeedFieldKeywordBinder())
+                            if (accessor.CanHaveFieldKeywordBackingField())
                             {
                                 Debug.Assert(propertyOrEventDecl.IsKind(SyntaxKind.PropertyDeclaration));
                                 resultBinder = new FieldKeywordBinder((SourcePropertyAccessorSymbol)accessor, resultBinder);
