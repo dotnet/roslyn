@@ -18,16 +18,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
     {
         public static readonly ImplementingSymbolsFinder Instance = new();
 
-        protected override Task<ImmutableArray<ISymbol>> GetDownSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
             => GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken);
-
-        protected override Task<ImmutableArray<ISymbol>> GetUpSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-            => throw ExceptionUtilities.Unreachable;
 
         public async Task<ImmutableArray<SymbolGroup>> GetImplementingSymbolsGroupAsync(ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
         {
             var builder = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
-            await GetDownSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
+            await GetSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var implementingSymbolGroupBuilder);
             foreach (var (symbol, symbolGroup) in builder)

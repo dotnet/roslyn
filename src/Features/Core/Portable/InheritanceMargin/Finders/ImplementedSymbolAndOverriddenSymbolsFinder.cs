@@ -18,10 +18,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
     {
         public static readonly ImplementedSymbolAndOverriddenSymbolsFinder Instance = new();
 
-        protected override Task<ImmutableArray<ISymbol>> GetDownSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-            => throw ExceptionUtilities.Unreachable;
-
-        protected override Task<ImmutableArray<ISymbol>> GetUpSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
             var overriddenSymbols = GetOverriddenSymbols(symbol);
@@ -34,7 +31,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
         {
             var builder = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
-            await GetUpSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
+            await GetSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
 
             using var _1 = ArrayBuilder<SymbolGroup>.GetInstance(out var implementedSymbolGroupsBuilder);
             using var _2 = ArrayBuilder<SymbolGroup>.GetInstance(out var overriddenSymbolGroupsBuilder);
