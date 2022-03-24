@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var accessor = propertySymbol.GetMethod;
                     if ((object)accessor != null)
                     {
-                        if (accessor.NeedFieldKeywordBinder())
+                        if (accessor.CanHaveFieldKeywordBackingField())
                         {
                             resultBinder = new FieldKeywordBinder((SourcePropertyAccessorSymbol)accessor, resultBinder);
                         }
