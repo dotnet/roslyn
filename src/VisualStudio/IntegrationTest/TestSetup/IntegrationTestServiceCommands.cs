@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
 {
@@ -121,11 +120,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
 
                 // Async initialization is a workaround for deadlock loading ExtensionManagerPackage prior to
                 // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
-                _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+                _ = Task.Run(async () =>
                 {
-                    await TaskScheduler.Default;
-
-                    var componentModel = await AsyncServiceProvider.GlobalProvider.GetServiceAsync<SComponentModel, IComponentModel>().ConfigureAwait(false);
+                    var componentModel = (IComponentModel?)await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
                     Assumes.Present(componentModel);
 
                     var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
@@ -152,7 +149,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 _marshalledService = null;
                 _service = null;
 
-                var componentModel = ServiceProvider.GetService<SComponentModel, IComponentModel>();
+                var componentModel = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
                 var asyncCompletionTracker = componentModel.GetService<AsyncCompletionTracker>();
                 asyncCompletionTracker.StopListening();
 

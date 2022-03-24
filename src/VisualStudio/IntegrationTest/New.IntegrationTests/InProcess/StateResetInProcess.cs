@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Extensibility.Testing;
@@ -36,7 +37,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
         public async Task ResetGlobalOptionsAsync(CancellationToken cancellationToken)
         {
             var globalOptions = await GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
-            ResetOption2(globalOptions, FeatureOnOffOptions.NavigateToDecompiledSources);
+            ResetOption2(globalOptions, MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             ResetOption2(globalOptions, VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace);
             ResetPerLanguageOption(globalOptions, NavigationBarViewOptions.ShowNavigationBar);
             ResetPerLanguageOption2(globalOptions, VisualStudioNavigationOptions.NavigateToObjectBrowser);

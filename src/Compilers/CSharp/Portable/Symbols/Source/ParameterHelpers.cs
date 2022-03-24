@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ParameterHelpers
     {
         public static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder,
+            Binder withTypeParametersBinder,
             Symbol owner,
             BaseParameterListSyntax syntax,
             out SyntaxToken arglistToken,
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool addRefReadOnlyModifier)
         {
             return MakeParameters<ParameterSyntax, ParameterSymbol, Symbol>(
-                binder,
+                withTypeParametersBinder,
                 owner,
                 syntax.Parameters,
                 out arglistToken,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<TParameterSymbol> MakeParameters<TParameterSyntax, TParameterSymbol, TOwningSymbol>(
-            Binder binder,
+            Binder withTypeParametersBinder,
             TOwningSymbol owner,
             SeparatedSyntaxList<TParameterSyntax> parametersList,
             out SyntaxToken arglistToken,
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(parameterSyntax.Type != null);
-                var parameterType = binder.BindType(parameterSyntax.Type, diagnostics, suppressUseSiteDiagnostics: suppressUseSiteDiagnostics);
+                var parameterType = withTypeParametersBinder.BindType(parameterSyntax.Type, diagnostics, suppressUseSiteDiagnostics: suppressUseSiteDiagnostics);
 
                 if (!allowRefOrOut && (refKind == RefKind.Ref || refKind == RefKind.Out))
                 {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                TParameterSymbol parameter = parameterCreationFunc(binder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
+                TParameterSymbol parameter = parameterCreationFunc(withTypeParametersBinder, owner, parameterType, parameterSyntax, refKind, parameterIndex, paramsKeyword, thisKeyword, addRefReadOnlyModifier, diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
@@ -224,10 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     default(ImmutableArray<TypeParameterSymbol>);
 
                 Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
-                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
+                bool allowShadowingNames = withTypeParametersBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
                     methodOwner?.MethodKind == MethodKind.LocalFunction;
 
-                binder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
+                withTypeParametersBinder.ValidateParameterNameConflicts(typeParameters, parameters.Cast<TParameterSymbol, ParameterSymbol>(), allowShadowingNames, diagnostics);
             }
 
             return parameters;
