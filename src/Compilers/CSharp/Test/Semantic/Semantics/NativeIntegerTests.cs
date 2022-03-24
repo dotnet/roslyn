@@ -3895,7 +3895,7 @@ class C
             var existingNint = root.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
             var existingReturnNameOf = root.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
             var model = comp.GetSemanticModel(tree);
-            var returnNameofToSpeculate = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return nameof(nuint);");
+            var returnNameofToSpeculate = (ReturnStatementSyntax)SyntaxFactory.ParseStatement("return nameof(nint);");
             var nintNode = returnNameofToSpeculate.DescendantNodes().Single(n => n is IdentifierNameSyntax && n.ToString() == "nint");
 
             model.TryGetSpeculativeSemanticModel(existingReturnNameOf.SpanStart, returnNameofToSpeculate, out var speculativeModel);
