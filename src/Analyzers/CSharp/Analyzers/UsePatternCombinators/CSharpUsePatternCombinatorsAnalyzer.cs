@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     return Not.TryCreate(ParsePattern(op.Operand));
 
                 case IIsTypeOperation { Syntax: BinaryExpressionSyntax { Right: TypeSyntax type } } op:
-                    return new Type(type, op.ValueOperand);
+                    return Type.TryCreate(type, op);
 
                 case IIsPatternOperation { Pattern: { Syntax: PatternSyntax pattern } } op:
                     return new Source(pattern, op.Value);

@@ -23,9 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         /// </summary>
         internal sealed class Type : AnalyzedPattern
         {
+            public static Type? TryCreate(TypeSyntax typeSyntax, IIsTypeOperation operation)
+            {
+                var sym = operation.SemanticModel.GetSpeculativeSymbolInfo(typeSyntax.SpanStart, typeSyntax, SpeculativeBindingOption.BindAsExpression);
+
+                if (sym.Symbol == null)
+                {
+                    return null;
+                }
+
+                return new Type(typeSyntax, operation.ValueOperand);
+            }
+
             public readonly TypeSyntax TypeSyntax;
 
-            public Type(TypeSyntax type, IOperation target) : base(target)
+            private Type(TypeSyntax type, IOperation target) : base(target)
                 => TypeSyntax = type;
         }
 

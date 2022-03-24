@@ -105,6 +105,7 @@ class C
         [InlineData("i == default || i > default(int)", "i is default(int) or > (default(int))")]
         [InlineData("!(o is C c)", "o is not C c")]
         [InlineData("o is int ii && o is long jj", "o is int ii and long jj")]
+        [InlineData("o is string || o is Exception", "o is string or Exception")]
         [InlineData("!(o is C)", "o is not C")]
         [InlineData("!(o is C _)", "o is not C _")]
         [InlineData("i == (0x02 | 0x04) || i != 0", "i is (0x02 | 0x04) or not 0")]
@@ -476,6 +477,27 @@ class C
         {
         }
     }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInMultipleTypePattern()
+        {
+            await TestMissingAsync(
+@"
+static class C
+{
+    public struct S1 : I { }
+    public struct S2 : I { }
+    public interface I { }
+}
+
+class Test<T>
+{
+    public readonly T C;
+    bool P => [|C is C.S1 || C is C.S2|];
 }
 ");
         }
