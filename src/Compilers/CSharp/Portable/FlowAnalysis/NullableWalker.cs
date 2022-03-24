@@ -883,22 +883,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool hasConstructorInitializer = method.HasThisConstructorInitializer(out _);
                     if (!hasConstructorInitializer && (!method.ContainingType.IsValueType || method.IsStatic))
                     {
-                        return method.ContainingType.GetMembersUnordered();
+                        return membersToBeInitialized(method.ContainingType, includeAllMembers: true);
                     }
 
-                    if (method.IncludeFieldInitializersInBody())
+                    return membersToBeInitialized(method.ContainingType, includeAllMembers: method.IncludeFieldInitializersInBody());
+
+                    static ImmutableArray<Symbol> membersToBeInitialized(NamedTypeSymbol containingType, bool includeAllMembers)
                     {
-                        return method.ContainingType.GetMembersUnordered();
-                    }
+                        var requiredMembers = containingType.AllRequiredMembers;
+                        var members = includeAllMembers ? containingType.GetMembersUnordered() : ImmutableArray<Symbol>.Empty;
+                        if (requiredMembers.IsEmpty)
+                        {
+                            return members;
+                        }
 
-                    if (hasConstructorInitializer)
-                    {
-                        // We want to assume that all required members were _not_ set by the chained constructor
-                        return method.ContainingType.AllRequiredMembers.SelectAsArray(
-                            static kvp => kvp.Value is SourcePropertySymbol { IsAutoPropertyWithGetAccessor: true } prop ? prop.BackingField : kvp.Value);
-                    }
+                        var builder = ArrayBuilder<Symbol>.GetInstance(members.Length + requiredMembers.Count);
+                        builder.AddRange(members);
+                        foreach (var (_, requiredMember) in requiredMembers)
+                        {
+                            if (!members.IsEmpty && requiredMember.ContainingType.Equals(containingType, TypeCompareKind.ConsiderEverything))
+                            {
+                                continue;
+                            }
 
-                    return ImmutableArray<Symbol>.Empty;
+                            // We want to assume that all required members were _not_ set by the chained constructor
+                            builder.Add(requiredMember is SourcePropertySymbol { IsAutoPropertyWithGetAccessor: true } prop ? prop.BackingField : requiredMember);
+                        }
+
+                        return builder.ToImmutableAndFree();
+                    }
                 }
             }
 

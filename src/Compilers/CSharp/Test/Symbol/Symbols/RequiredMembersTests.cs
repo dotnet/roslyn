@@ -2851,7 +2851,7 @@ public class RequiredMemberAttribute : Attribute
         );
     }
 
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_01()
     {
         var code = @"
@@ -2877,7 +2877,7 @@ class C
         );
     }
 
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_02()
     {
         var code = @"
@@ -2915,7 +2915,7 @@ class C
         );
     }
 
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_03()
     {
         var code = @"
@@ -2935,7 +2935,7 @@ struct S
         );
     }
 
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_04()
     {
         var code = @"
@@ -2976,7 +2976,7 @@ struct S
         );
     }
 
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_NoChainedConstructor()
     {
         var code = @"
@@ -2998,7 +2998,7 @@ class C
         );
     }
 
-    [Fact]
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
     public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor()
     {
         var code = @"
@@ -3025,8 +3025,8 @@ class C
         );
     }
 
-    [Fact]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_02()
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_01()
     {
         var code = @"
 #nullable enable
@@ -3051,8 +3051,8 @@ public class C
         );
     }
 
-    [Fact]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_03()
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_02()
     {
         var code = @"
 #nullable enable
@@ -3081,8 +3081,8 @@ public struct C
         );
     }
 
-    [Fact]
-    public void RequiredMemberSuppressesNullabilityWarnings_MemberNotNull_ChainedConstructor_04()
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_03()
     {
         var code = @"
 #nullable enable
@@ -3102,6 +3102,157 @@ public struct C
             // (9,9): warning CS8602: Dereference of a possibly null reference.
             //         Prop.ToString();
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(9, 9)
+        );
+    }
+
+    [Theory, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [InlineData(": base()")]
+    [InlineData("")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_04(string baseSyntax)
+    {
+        var code = $@"
+#nullable enable
+public class Base
+{{
+    public required string Prop1 {{ get; set; }}
+    public string Prop2 {{ get; set; }} = null!;
+}}
+
+public class Derived : Base
+{{
+    public Derived() {baseSyntax}
+    {{
+        Prop1.ToString();
+        Prop2.ToString();
+    }}
+}}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (13,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop1.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(13, 9)
+        );
+    }
+
+    [Theory, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [InlineData(": base()")]
+    [InlineData("")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_05(string baseSyntax)
+    {
+        var code = @$"
+#nullable enable
+public class Base
+{{
+    public required string Prop1 {{ get; set; }}
+    public string Prop2 {{ get; set; }} = null!;
+}}
+
+public class Derived : Base
+{{
+    public required string Prop3 {{ get; set; }}
+    public string Prop4 {{ get; set; }} = null!;
+
+    public Derived() {baseSyntax}
+    {{
+        Prop1.ToString(); // 1
+        Prop2.ToString();
+        Prop3.ToString(); // 2
+        Prop4.ToString();
+    }}
+}}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (16,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(16, 9),
+            // (18,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop3.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(18, 9)
+        );
+    }
+
+    [Theory, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    [InlineData(": base()")]
+    [InlineData("")]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_06(string baseSyntax)
+    {
+        var code = @$"
+#nullable enable
+public class Base
+{{
+    public required string Prop1 {{ get; set; }}
+    public string Prop2 {{ get; set; }} = null!;
+}}
+
+public class Derived : Base
+{{
+    public required string Prop3 {{ get; set; }}
+    public string Prop4 {{ get; set; }}
+
+    public Derived() {baseSyntax}
+    {{
+        Prop1.ToString(); // 1
+        Prop2.ToString();
+        Prop3.ToString(); // 2
+        Prop4.ToString(); // 3
+    }}
+}}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (16,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(16, 9),
+            // (18,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop3.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(18, 9),
+            // (19,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop4.ToString(); // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop4").WithLocation(19, 9)
+        );
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.NullableReferenceTypes)]
+    public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_07()
+    {
+        var code = @"
+#nullable enable
+public class Base
+{
+    public required string Prop1 { get; set; }
+    public string Prop2 { get; set; } = null!;
+}
+
+public class Derived : Base
+{
+    public required string Prop3 { get; set; }
+    public string Prop4 { get; set; }
+
+    public Derived(bool unused) { Prop4 = null!; }
+
+    public Derived() : this(true)
+    {
+        Prop1.ToString(); // 1
+        Prop2.ToString();
+        Prop3.ToString(); // 2
+        Prop4.ToString();
+    }
+}
+";
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (18,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop1").WithLocation(18, 9),
+            // (20,9): warning CS8602: Dereference of a possibly null reference.
+            //         Prop3.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(20, 9)
         );
     }
 }
