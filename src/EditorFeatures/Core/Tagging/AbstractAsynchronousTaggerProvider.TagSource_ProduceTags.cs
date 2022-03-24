@@ -217,6 +217,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var textChangeRange = this.AccumulatedTextChanges;
                     this.AccumulatedTextChanges = null;
 
+                    // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
+                    // consuming machine resources on work the user isn't likely to see.
+                    await RecomputationDelayIfNonVisibleAsync(spansToTag, cancellationToken).ConfigureAwait(false);
+
+                    // Technically not necessary since we ConfigureAwait(false) right above this.  But we want to ensure
+                    // we're always moving to the threadpool here in case the above code ever changes.
                     await TaskScheduler.Default;
 
                     cancellationToken.ThrowIfCancellationRequested();
@@ -244,6 +250,26 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     OnTagsChangedForBuffer(bufferToChanges, initialTags);
                 }
+            }
+
+            private async Task RecomputationDelayIfNonVisibleAsync(ImmutableArray<DocumentSnapshotSpan> spansToTag, CancellationToken cancellationToken)
+            {
+                // If we're not associated with a workspace, then don't delay tagging.
+                var workspace = _workspaceRegistration.Workspace;
+                if (workspace == null)
+                    return;
+
+                // if we're tagging anything that doesn't have a document, or it's a document that doesn't correspond to
+                // the workspace we're looking at, then don't delay tagging.
+                var documents = spansToTag.SelectAsArray(ss => ss.Document);
+                if (documents.Any(d => d == null || d.Project.Solution.Workspace != workspace))
+                    return;
+
+                // Ok, add a large delay if none of the documents we're tagging are visible.  We still end up letting
+                // the tagging happen once enough time has passed.  This helps ensure we do always reach a fixed point.
+                var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                await documentTrackingService.DelayIfNonVisibleAsync(
+                    documents!, TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
