@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         public static readonly ImplementingSymbolsFinder Instance = new();
 
         protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-            => GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken);
+            => InheritanceMarginServiceHelper.GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken);
 
         public async Task<ImmutableArray<SymbolGroup>> GetImplementingSymbolsGroupAsync(ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
         {
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var implementingSymbolGroupBuilder);
             foreach (var (symbol, symbolGroup) in builder)
             {
-                if (symbol.Locations.Any(l => l.IsInSource) && IsNavigableSymbol(symbol))
+                if (symbol.Locations.Any(l => l.IsInSource) && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol))
                     implementingSymbolGroupBuilder.Add(symbolGroup);
             }
 

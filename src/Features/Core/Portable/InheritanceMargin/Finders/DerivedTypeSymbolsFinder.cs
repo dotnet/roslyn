@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 
         protected override async Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            var derivedSymbols = await GetDerivedTypesAndImplementationsAsync(solution, (INamedTypeSymbol)symbol, cancellationToken).ConfigureAwait(false);
+            var derivedSymbols = await InheritanceMarginServiceHelper.GetDerivedTypesAndImplementationsAsync(solution, (INamedTypeSymbol)symbol, cancellationToken).ConfigureAwait(false);
             return derivedSymbols.CastArray<ISymbol>();
         }
 
@@ -35,7 +34,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // Ensure the user won't be able to see symbol outside the solution for derived symbols.
                 // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
                 // the user all the derived types under System.Collections
-                if (symbol.Locations.Any(l => l.IsInSource) && IsNavigableSymbol(symbol))
+                if (symbol.Locations.Any(l => l.IsInSource) && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol))
                     derivedTypeBuilder.Add(symbolGroup);
             }
 

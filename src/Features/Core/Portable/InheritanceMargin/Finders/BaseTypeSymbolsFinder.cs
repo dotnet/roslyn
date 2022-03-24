@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // class Bar : ISomethingIsNotDone { }
                 // The interface has not been declared yet, so don't show this error type to user.
                 if (!symbol.IsErrorType()
-                    && IsNavigableSymbol(symbol)
+                    && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol)
                     && symbol is INamedTypeSymbol { SpecialType: not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum) })
                 {
                     if (symbol.IsInterfaceType())

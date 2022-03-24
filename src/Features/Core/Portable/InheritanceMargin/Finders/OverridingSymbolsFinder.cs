@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var overridingSymbolGroupsBuilder);
             foreach (var (symbol, symbolGroup) in builder)
             {
-                if (symbol.Locations.Any(l => l.IsInSource) && IsNavigableSymbol(symbol))
+                if (symbol.Locations.Any(l => l.IsInSource) && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol))
                     overridingSymbolGroupsBuilder.Add(symbolGroup);
             }
 

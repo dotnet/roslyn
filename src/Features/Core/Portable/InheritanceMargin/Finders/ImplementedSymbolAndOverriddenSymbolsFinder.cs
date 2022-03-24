@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.InheritanceMargin.InheritanceMarginServiceHelper;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
@@ -21,9 +20,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
-            var overriddenSymbols = GetOverriddenSymbols(symbol);
+            var overriddenSymbols = InheritanceMarginServiceHelper.GetOverriddenSymbols(symbol);
             builder.AddRange(overriddenSymbols);
-            builder.AddRange(GetImplementedSymbolsForTypeMember(symbol, overriddenSymbols));
+            builder.AddRange(InheritanceMarginServiceHelper.GetImplementedSymbolsForTypeMember(symbol, overriddenSymbols));
             return Task.FromResult(builder.ToImmutable());
         }
 
