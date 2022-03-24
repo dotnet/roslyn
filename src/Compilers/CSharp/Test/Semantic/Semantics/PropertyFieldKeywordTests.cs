@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
 {
     /* PROTOTYPE(semi-auto-props):
      * Add tests for field attribute target, specially for setter-only
-     * nameof(field) should work only when there is a symbol called "field" in scope.
+     * nameof(field) should be disallowed.
      * nullability tests, ie, make sure we get null dereference warnings when needed.
      */
 
@@ -1972,20 +1972,23 @@ class C
         }
 
         [Theory, CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunction_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunctionOrLambda_BindOriginalFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return localFunction();
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
@@ -2018,20 +2021,23 @@ class C
         }
 
         [Theory, CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunction_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        public void SpeculativeSemanticModel_FieldInRegularAccessor_LocalFunctionOrLambda_BindSpeculatedFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return localFunction();
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
@@ -2061,21 +2067,23 @@ class C
         }
 
         [Theory, CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindOriginalFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunctionOrLambda_BindOriginalFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return field + localFunction();
-
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return field + f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
@@ -2117,21 +2125,23 @@ class C
         }
 
         [Theory, CombinatorialData]
-        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunction_BindSpeculatedFirst(SpeculativeBindingOption bindingOption, [CombinatorialValues("always", "never")] string runNullableAnalysis)
+        public void SpeculativeSemanticModel_FieldInSemiAutoPropertyAccessor_LocalFunctionOrLambda_BindSpeculatedFirst(
+            SpeculativeBindingOption bindingOption,
+            [CombinatorialValues("int f() => 0;", "System.Func<int> f = () => 0;")] string localFunctionOrLambda,
+            [CombinatorialValues("always", "never")] string runNullableAnalysis)
         {
-            var comp = CreateCompilation(@"
+            var comp = CreateCompilation($@"
 class C
-{
+{{
     public int P
-    {
+    {{
         get
-        {
-            return field + localFunction();
-
-            int localFunction() => 0;
-        }
-    }
-}
+        {{
+            {localFunctionOrLambda}
+            return field + f();
+        }}
+    }}
+}}
 ", parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", runNullableAnalysis));
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
