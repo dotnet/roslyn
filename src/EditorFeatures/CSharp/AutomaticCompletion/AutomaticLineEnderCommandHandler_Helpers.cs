@@ -470,6 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 LockStatementSyntax lockStatementNode => ShouldAddBraceForLockStatement(lockStatementNode, caretPosition),
                 UsingStatementSyntax usingStatementNode => ShouldAddBraceForUsingStatement(usingStatementNode, caretPosition),
                 WhileStatementSyntax whileStatementNode => ShouldAddBraceForWhileStatement(whileStatementNode, caretPosition),
+                CheckedStatementSyntax checkedStatementNode => ShouldAddBraceForCheckedStatement(checkedStatementNode, caretPosition),
                 _ => false,
             };
 
@@ -641,6 +642,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             => !finallyClauseNode.FinallyKeyword.IsMissing
                && finallyClauseNode.Block.OpenBraceToken.IsMissing
                && !finallyClauseNode.Block.Span.Contains(caretPosition);
+
+        private static bool ShouldAddBraceForCheckedStatement(CheckedStatementSyntax checkedStatementNode, int caretPosition)
+            => checkedStatementNode.Block.OpenBraceToken.IsMissing
+               && !checkedStatementNode.Block.Span.Contains(caretPosition);
 
         // For all the embeddedStatementOwners,
         // if the embeddedStatement is not block, insert the the braces if its statement is not block.

@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string receiverTypeSymbolKeyData,
             ImmutableArray<string> namespaceInScope,
             ImmutableArray<string> targetTypesSymbolKeyData,
-            bool forceIndexCreation,
+            bool forceCacheCreation,
             bool hideAdvancedMembers,
             CancellationToken cancellationToken);
 
-        ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken);
+        ValueTask WarmUpCacheAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, CancellationToken cancellationToken);
     }
 }

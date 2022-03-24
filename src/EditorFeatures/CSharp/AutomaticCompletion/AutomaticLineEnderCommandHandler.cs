@@ -619,6 +619,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 TryStatementSyntax tryStatementNode => tryStatementNode.TryKeyword.Span.End,
                 CatchClauseSyntax catchClauseNode => catchClauseNode.Block.SpanStart,
                 FinallyClauseSyntax finallyClauseNode => finallyClauseNode.Block.SpanStart,
+                CheckedStatementSyntax checkedStatementNode => checkedStatementNode.Keyword.Span.End,
                 _ => throw ExceptionUtilities.Unreachable,
             };
         }
