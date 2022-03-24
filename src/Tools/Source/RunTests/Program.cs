@@ -288,7 +288,7 @@ namespace RunTests
 
             foreach (var assemblyPath in assemblyPaths.OrderByDescending(x => new FileInfo(x.FilePath).Length))
             {
-                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Platform)));
+                list.AddRange(scheduler.Schedule(assemblyPath.FilePath).Select(x => new AssemblyInfo(x, assemblyPath.TargetFramework, options.Architecture)));
             }
 
             return list;

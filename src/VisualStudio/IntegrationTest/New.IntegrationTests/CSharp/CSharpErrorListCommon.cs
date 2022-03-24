@@ -170,6 +170,10 @@ class Program2
             // Close the current document and verify diagnostics for closed document are not removed from error list.
             await TestServices.SolutionExplorer.SaveAllAsync(HangMitigatingCancellationToken);
             await TestServices.Editor.SendExplicitFocusAsync(HangMitigatingCancellationToken);
+
+            // Assert the window title is Class1.cs, which also means the file has no unsaved changes
+            Assert.Equal("Class1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
+
             await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F4, ShiftState.Ctrl));
             await TestServices.ErrorList.ShowErrorListAsync(HangMitigatingCancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(new[] { FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawler, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList }, HangMitigatingCancellationToken);

@@ -19226,7 +19226,7 @@ public class C
             Assert.Equal("(System.Int32 a, dynamic c) x2", x2.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
         [WorkItem(16825, "https://github.com/dotnet/roslyn/issues/16825")]
         public void NullCoalescingOperatorWithTupleNames()
         {
@@ -19275,6 +19275,7 @@ public class D
                 //         var x8 = new C() ?? (a: 1, c: 3); // C
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "c: 3").WithArguments("c", "(int, int)").WithLocation(18, 36)
                 );
+            _ = comp.GetEmitDiagnostics();
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -19309,6 +19310,44 @@ public class D
 
             var x6double = model.GetDeclaredSymbol(nodes.OfType<VariableDeclaratorSyntax>().ElementAt(11));
             Assert.Equal("(System.Double d, System.Int32 c) x6double", x6double.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(60046, "https://github.com/dotnet/roslyn/issues/60046")]
+        public void NullCoalescingOperatorWithTupleNames_IdentityConversionOnUserDefinedConversion()
+        {
+            // LHS has identity conversion (for tuple names) on top of user-defined conversion
+            var source = @"
+System.Console.Write(new D() ?? (a: 1, c: 3));
+
+public class D
+{
+    public static implicit operator (int d1, int d2) (D x) { return (42, 43); }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            _ = comp.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (D V_0)
+  IL_0000:  newobj     ""D..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brtrue.s   IL_0012
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.3
+  IL_000b:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""System.ValueTuple<int, int> D.op_Implicit(D)""
+  IL_0018:  box        ""System.ValueTuple<int, int>""
+  IL_001d:  call       ""void System.Console.Write(object)""
+  IL_0022:  ret
+}
+");
         }
 
         [Fact]

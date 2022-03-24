@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _logger = logger;
         }
 
-        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, TelemetryMessage telemetry, CancellationToken cancellationToken)
+        public async Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken)
         {
             var dllStream = IOUtilities.PerformIO(() => File.OpenRead(dllPath));
             if (dllStream is null)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     {
                         var delay = Task.Delay(SymbolLocatorTimeout, cancellationToken);
                         // Call the debugger to find the PDB from a symbol server etc.
-                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, cancellationToken);
+                        var pdbResultTask = _sourceLinkService.GetPdbFilePathAsync(dllPath, peReader, useDefaultSymbolServers, cancellationToken);
 
                         var winner = await Task.WhenAny(pdbResultTask, delay).ConfigureAwait(false);
 

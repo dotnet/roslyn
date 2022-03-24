@@ -9,6 +9,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
         private readonly VisualStudioWorkspace _workspace;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IThreadingContext _threadingContext;
         private IServiceProvider? _serviceProvider;
 
         [ImportingConstructor]
@@ -35,11 +37,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
         public SyncNamespacesCommandHandler(
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
         {
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
             _globalOptions = globalOptions;
+            _threadingContext = threadingContext;
         }
 
         public void Initialize(IServiceProvider serviceProvider)
@@ -130,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces
             Solution? solution = null;
             var status = _threadOperationExecutor.Execute(ServicesVSResources.Sync_Namespaces, ServicesVSResources.Updating_namspaces, allowCancellation: true, showProgress: true, (operationContext) =>
             {
-                solution = ThreadHelper.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
+                solution = _threadingContext.JoinableTaskFactory.Run(() => syncService.SyncNamespacesAsync(projects, options, operationContext.UserCancellationToken));
             });
 
             if (status != UIThreadOperationStatus.Canceled && solution is not null)

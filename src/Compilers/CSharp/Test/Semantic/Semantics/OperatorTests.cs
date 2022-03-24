@@ -4766,7 +4766,7 @@ unsafe struct A
             // add better verification once this is implemented
         }
 
-        [Fact]
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
         public void TestNullCoalesce_Dynamic()
         {
             var source = @"
@@ -4824,6 +4824,188 @@ public class C
 }
 ";
             var compilation = CreateCompilation(source).VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableIntAndDynamic()
+        {
+            var source = @"
+int? i = 42;
+dynamic d = new object();
+System.Console.Write(i ?? d);
+";
+            var compilation = CreateCompilation(source, references: new[] { CSharpRef });
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      136 (0x88)
+  .maxstack  9
+  .locals init (int? V_0, //i
+                object V_1, //d
+                int? V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.s   42
+  IL_0004:  call       ""int?..ctor(int)""
+  IL_0009:  newobj     ""object..ctor()""
+  IL_000e:  stloc.1
+  IL_000f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_0014:  brtrue.s   IL_0055
+  IL_0016:  ldc.i4     0x100
+  IL_001b:  ldstr      ""Write""
+  IL_0020:  ldnull
+  IL_0021:  ldtoken    ""Program""
+  IL_0026:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_002b:  ldc.i4.2
+  IL_002c:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_0031:  dup
+  IL_0032:  ldc.i4.0
+  IL_0033:  ldc.i4.s   33
+  IL_0035:  ldnull
+  IL_0036:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_003b:  stelem.ref
+  IL_003c:  dup
+  IL_003d:  ldc.i4.1
+  IL_003e:  ldc.i4.0
+  IL_003f:  ldnull
+  IL_0040:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0045:  stelem.ref
+  IL_0046:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_004b:  call       ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_0050:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_0055:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_005a:  ldfld      ""System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>>.Target""
+  IL_005f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>> Program.<>o__0.<>p__0""
+  IL_0064:  ldtoken    ""System.Console""
+  IL_0069:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_006e:  ldloc.0
+  IL_006f:  stloc.2
+  IL_0070:  ldloca.s   V_2
+  IL_0072:  call       ""bool int?.HasValue.get""
+  IL_0077:  brtrue.s   IL_007c
+  IL_0079:  ldloc.1
+  IL_007a:  br.s       IL_0082
+  IL_007c:  ldloc.2
+  IL_007d:  box        ""int?""
+  IL_0082:  callvirt   ""void System.Action<System.Runtime.CompilerServices.CallSite, System.Type, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_0087:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableIntAndObject()
+        {
+            var source = @"
+int? i = 42;
+object d = new object();
+System.Console.Write(i ?? d);
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (object V_0, //d
+                int? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  newobj     ""int?..ctor(int)""
+  IL_0007:  newobj     ""object..ctor()""
+  IL_000c:  stloc.0
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  call       ""bool int?.HasValue.get""
+  IL_0015:  brtrue.s   IL_001a
+  IL_0017:  ldloc.0
+  IL_0018:  br.s       IL_0026
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  call       ""int int?.GetValueOrDefault()""
+  IL_0021:  box        ""int""
+  IL_0026:  call       ""void System.Console.Write(object)""
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableLongAndInt()
+        {
+            var source = @"
+long? l = 42;
+int i = 43;
+System.Console.Write(l ?? i);
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (int V_0, //i
+                long? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  conv.i8
+  IL_0003:  newobj     ""long?..ctor(long)""
+  IL_0008:  ldc.i4.s   43
+  IL_000a:  stloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""bool long?.HasValue.get""
+  IL_0013:  brtrue.s   IL_0019
+  IL_0015:  ldloc.0
+  IL_0016:  conv.i8
+  IL_0017:  br.s       IL_0020
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  call       ""long long?.GetValueOrDefault()""
+  IL_0020:  call       ""void System.Console.Write(long)""
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
+        public void TestNullCoalesce_NullableIntAndLong()
+        {
+            var source = @"
+int? i = 42;
+long l = 43;
+System.Console.Write(i ?? l);
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            compilation.GetEmitDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: "42");
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  .locals init (long V_0, //l
+                int? V_1)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  newobj     ""int?..ctor(int)""
+  IL_0007:  ldc.i4.s   43
+  IL_0009:  conv.i8
+  IL_000a:  stloc.0
+  IL_000b:  stloc.1
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""bool int?.HasValue.get""
+  IL_0013:  brtrue.s   IL_0018
+  IL_0015:  ldloc.0
+  IL_0016:  br.s       IL_0020
+  IL_0018:  ldloca.s   V_1
+  IL_001a:  call       ""int int?.GetValueOrDefault()""
+  IL_001f:  conv.i8
+  IL_0020:  call       ""void System.Console.Write(long)""
+  IL_0025:  ret
+}
+");
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
