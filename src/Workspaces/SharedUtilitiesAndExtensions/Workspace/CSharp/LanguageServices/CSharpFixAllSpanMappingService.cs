@@ -45,8 +45,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes
             var firstNonGlobalStatement = root.ChildNodes().FirstOrDefault(n => n is not GlobalStatementSyntax);
             if (firstNonGlobalStatement is not null)
             {
-                // Bail out for error case where a non-global statement precedes global statements.
-                if (root.FullSpan.Start == firstNonGlobalStatement.FullSpan.Start)
+                // Bail out for compiler error case where a non-global statement precedes a global statement.
+                // C# compiler requires all global statements to preceed non-global statements.
+                var globalStatements = root.ChildNodes().OfType<GlobalStatementSyntax>();
+                if (globalStatements.Any(g => firstNonGlobalStatement.SpanStart < g.SpanStart))
                     return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
 
                 fixAllSpan = new TextSpan(root.FullSpan.Start, firstNonGlobalStatement.FullSpan.Start - 1);
