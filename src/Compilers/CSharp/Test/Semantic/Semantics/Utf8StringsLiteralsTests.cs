@@ -2047,7 +2047,6 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             comp.VerifyDiagnostics(
                 // (7,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(ReadOnlySpan<char>)' and 'C.Test(byte[])'
                 //         System.Console.Write(Test("s"));
@@ -2074,7 +2073,6 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             comp.VerifyDiagnostics(
                 // (7,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(byte[])' and 'C.Test(ReadOnlySpan<char>)'
                 //         System.Console.Write(Test("s"));
@@ -2136,7 +2134,6 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
@@ -2288,13 +2285,10 @@ static class E
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             // The behavior has changed
-            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             CompileAndVerify(comp, expectedOutput: @"byte[]").
                 VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            // PROTOTYPE(UTF8StringLiterals) : Confirm we are comfortable with not changing semantics based on language version and keeping an error for this scenario.
-            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             comp.VerifyDiagnostics(
                 // (9,31): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Console.WriteLine(p.M(""));
@@ -3341,7 +3335,6 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
