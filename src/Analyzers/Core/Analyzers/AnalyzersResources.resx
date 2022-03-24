@@ -157,7 +157,7 @@
     <value>Use 'throw' expression</value>
   </data>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
-    <value>Add 'this' or 'Me' qualification.</value>
+    <value>Add 'this' or 'Me' qualification</value>
   </data>
   <data name="Member_access_should_be_qualified" xml:space="preserve">
     <value>Member access should be qualified.</value>

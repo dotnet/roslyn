@@ -273,6 +273,20 @@ namespace Microsoft.CodeAnalysis
             return c; // note this is a new compilation
         }
 
+        public static TCompilation VerifySuppressedAndFilteredDiagnostics<TCompilation>(
+            this TCompilation c,
+            DiagnosticAnalyzer[] analyzers,
+            AnalyzerOptions options = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            CancellationToken cancellationToken = default)
+            where TCompilation : Compilation
+        {
+            // Verify suppressed diagnostics are filtered when reportSuppressedDiagnostics is false.
+            // The actual verification is handled in GetCompilationWithAnalyzerDiagnostics.
+            c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics: false, includeCompilerDiagnostics: true, cancellationToken, out var diagnostics);
+            return c; // note this is a new compilation
+        }
+
         private static TCompilation GetCompilationWithAnalyzerDiagnostics<TCompilation>(
             this TCompilation c,
             DiagnosticAnalyzer[] analyzers,
@@ -299,7 +313,7 @@ namespace Microsoft.CodeAnalysis
             var allDiagnostics = includeCompilerDiagnostics ?
                 compilerDiagnostics.AddRange(analyzerDiagnostics) :
                 analyzerDiagnostics;
-            diagnostics = driver.ApplyProgrammaticSuppressions(allDiagnostics, newCompilation);
+            diagnostics = driver.ApplyProgrammaticSuppressionsAndFilterDiagnostics(allDiagnostics, newCompilation);
 
             if (!reportSuppressedDiagnostics)
             {

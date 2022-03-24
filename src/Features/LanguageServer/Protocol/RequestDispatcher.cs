@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public RequestDispatcher(
             // Lazily imported handler providers to avoid instantiating providers until they are directly needed.
-            ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+            ImmutableArray<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
             WellKnownLspServerKinds serverKind)
         {
             _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders, serverKind);
         }
 
         private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> CreateMethodToHandlerMap(
-            IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, WellKnownLspServerKinds serverKind)
+            IEnumerable<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, WellKnownLspServerKinds serverKind)
         {
             var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IRequestHandler>>();
 

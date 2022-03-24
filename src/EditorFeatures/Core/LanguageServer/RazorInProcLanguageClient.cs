@@ -60,6 +60,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
+        protected override void Activate_OffUIThread()
+        {
+            // Ensure we let the default capabilities provider initialize off the UI thread to avoid
+            // unnecessary MEF part loading during the GetCapabilities call, which is done on the UI thread
+            _defaultCapabilitiesProvider.Initialize();
+        }
+
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
             var capabilities = _defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);

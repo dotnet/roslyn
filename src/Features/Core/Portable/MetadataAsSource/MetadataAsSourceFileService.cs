@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return _rootTemporaryPathWithGuid;
         }
 
-        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, bool allowDecompilation, CancellationToken cancellationToken = default)
+        public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(Project project, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, CancellationToken cancellationToken = default)
         {
             if (project == null)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 {
                     var provider = lazyProvider.Value;
                     var providerTempPath = Path.Combine(tempPath, provider.GetType().Name);
-                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, allowDecompilation, providerTempPath, cancellationToken).ConfigureAwait(false);
+                    var result = await provider.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly, options, providerTempPath, cancellationToken).ConfigureAwait(false);
                     if (result is not null)
                     {
                         return result;

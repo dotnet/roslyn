@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // as this is just something that happens during solution load and will pass once that is over.  By using
                 // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
                 // compilation data (like skeleton assemblies).
+                var forceFrozenPartialSemanticsForCrossProcessOperations = true;
                 var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document == null)
                     return null;
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
-                    var items = await itemService.GetItemsAsync(document, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
+                    var items = await itemService.GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
                     return new NavigationBarModel(itemService, items);
                 }
             }
