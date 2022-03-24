@@ -4003,14 +4003,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             static TypeWithAnnotations getSpanElementType(NamedTypeSymbol namedType)
             {
                 Debug.Assert(namedType.Name == "Span");
-                Debug.Assert(namedType.OriginalDefinition.TypeParameters.Count() == 1);
+                Debug.Assert(namedType.OriginalDefinition.Arity == 1);
                 return namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
             }
 
             static TypeSymbol setSpanElementType(NamedTypeSymbol namedType, TypeWithAnnotations elementType)
             {
                 Debug.Assert(namedType.Name == "Span");
-                Debug.Assert(namedType.OriginalDefinition.TypeParameters.Count() == 1);
+                Debug.Assert(namedType.OriginalDefinition.Arity == 1);
                 return namedType.OriginalDefinition.Construct(ImmutableArray.Create(elementType));
             }
         }
