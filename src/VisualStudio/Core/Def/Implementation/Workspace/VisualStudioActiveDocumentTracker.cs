@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -29,7 +30,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// Can be accessed via the <see cref="IDocumentTrackingService"/> as a workspace service.
     /// </summary>
     [Export]
-    internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents
+    [Export(typeof(ITextBufferVisibilityTracker))]
+    internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents, ITextBufferVisibilityTracker
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
@@ -207,6 +209,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         int IVsSelectionEvents.OnCmdUIContextChanged([ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")] uint dwCmdUICookie, [ComAliasName("Microsoft.VisualStudio.OLE.Interop.BOOL")] int fActive)
             => VSConstants.E_NOTIMPL;
+
+        public bool IsVisible(ITextBuffer subjectBuffer)
+            => _visibleFrames.Any(f => f.TextBuffer == subjectBuffer);
 
         /// <summary>
         /// Listens to frame notifications for a visible frame. When the frame becomes invisible or closes,

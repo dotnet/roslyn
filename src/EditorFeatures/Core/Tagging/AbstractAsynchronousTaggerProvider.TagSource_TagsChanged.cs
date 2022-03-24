@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging
@@ -42,12 +43,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private ValueTask ProcessTagsChangedAsync(
+            private async ValueTask ProcessTagsChangedAsync(
                 ImmutableArray<NormalizedSnapshotSpanCollection> snapshotSpans, CancellationToken cancellationToken)
             {
+                // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
+                // machine resources that the user won't even notice.
+                if (_visibilityTracker != null && !_visibilityTracker.IsVisible(_subjectBuffer))
+                    await PauseAsync(cancellationToken).ConfigureAwait(false);
+
                 var tagsChanged = this.TagsChanged;
                 if (tagsChanged == null)
-                    return ValueTaskFactory.CompletedTask;
+                    return;
 
                 foreach (var collection in snapshotSpans)
                 {
@@ -64,8 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     foreach (var span in coalesced)
                         tagsChanged(this, new SnapshotSpanEventArgs(span));
                 }
-
-                return ValueTaskFactory.CompletedTask;
             }
         }
     }

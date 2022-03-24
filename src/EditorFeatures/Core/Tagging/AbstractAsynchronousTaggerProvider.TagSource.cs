@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -74,8 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #region Fields that can only be accessed from the foreground thread
 
-            private readonly ITextView _textViewOpt;
+            private readonly ITextView? _textView;
             private readonly ITextBuffer _subjectBuffer;
+            private readonly ITextBufferVisibilityTracker? _visibilityTracker;
 
             /// <summary>
             /// Our tagger event source that lets us know when we should call into the tag producer for
@@ -97,11 +98,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private bool _firstTagsRequest = true;
 
+            /// <summary>
+            /// Whether or not tag generation is paused.  We pause producing tags when documents become non-visible.
+            /// </summary>
+            private bool _paused = false;
+
             #endregion
 
             public TagSource(
-                ITextView textViewOpt,
+                ITextView? textView,
                 ITextBuffer subjectBuffer,
+                ITextBufferVisibilityTracker? visibilityTracker,
                 AbstractAsynchronousTaggerProvider<TTag> dataSource,
                 IAsynchronousOperationListener asyncListener)
                 : base(dataSource.ThreadingContext)
@@ -110,8 +117,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (dataSource.SpanTrackingMode == SpanTrackingMode.Custom)
                     throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
 
+                _textView = textView;
                 _subjectBuffer = subjectBuffer;
-                _textViewOpt = textViewOpt;
+                _visibilityTracker = visibilityTracker;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
 
@@ -147,6 +155,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // to a complete state as soon as possible.
                 EnqueueWork(initialTags: true);
 
+                if (_visibilityTracker != null)
+                    _visibilityTracker.DocumentsChanged += OnTextBufferVisibilityChanged;
+
                 return;
 
                 void Connect()
@@ -162,13 +173,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                     {
-                        if (_textViewOpt == null)
+                        if (_textView == null)
                         {
                             throw new ArgumentException(
                                 nameof(_dataSource.CaretChangeBehavior) + " can only be specified for an " + nameof(IViewTaggerProvider));
                         }
 
-                        _textViewOpt.Caret.PositionChanged += OnCaretPositionChanged;
+                        _textView.Caret.PositionChanged += OnCaretPositionChanged;
                     }
 
                     // Tell the interaction object to start issuing events.
@@ -178,9 +189,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
+                if (_visibilityTracker != null)
+                    _visibilityTracker.DocumentsChanged -= OnTextBufferVisibilityChanged;
+
                 _tagSourceState.Dispose();
 
-                _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
+                _dataSource.RemoveTagSource(_textView, _subjectBuffer);
                 GC.SuppressFinalize(this);
 
                 Disconnect();
@@ -196,7 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     if (_dataSource.CaretChangeBehavior.HasFlag(TaggerCaretChangeBehavior.RemoveAllTagsOnCaretMoveOutsideOfTag))
                     {
-                        _textViewOpt.Caret.PositionChanged -= OnCaretPositionChanged;
+                        Contract.ThrowIfNull(_textView);
+                        _textView.Caret.PositionChanged -= OnCaretPositionChanged;
                     }
 
                     if (_dataSource.TextChangeBehavior.HasFlag(TaggerTextChangeBehavior.TrackTextChanges))
@@ -208,9 +223,40 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
+            private void OnTextBufferVisibilityChanged(object? _1, EventArgs _2)
+            {
+                this.AssertIsForeground();
+
+                // any time visbility changes, resume tagging on all taggers.  Any non-visible taggers will pause
+                // themselves immediately afterwards.
+                Resume();
+            }
+
+            private async Task PauseAsync(CancellationToken cancellationToken)
+            {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                this.AssertIsForeground();
+                _paused = true;
+                _eventSource.Pause();
+            }
+
+            private void Resume()
+            {
+                this.AssertIsForeground();
+                // if we're not actually paused, no need to do anything.
+                if (_paused)
+                {
+                    // Set us back to running, and kick off work to compute tags now that we're visible again.
+                    _paused = false;
+                    _eventSource.Resume();
+                    EnqueueWork(initialTags: false);
+                }
+            }
+
             private ITaggerEventSource CreateEventSource()
             {
-                var eventSource = _dataSource.CreateEventSource(_textViewOpt, _subjectBuffer);
+                var eventSource = _dataSource.CreateEventSource(_textView, _subjectBuffer);
 
                 // If there are any options specified for this tagger, then also hook up event
                 // notifications for when those options change.
