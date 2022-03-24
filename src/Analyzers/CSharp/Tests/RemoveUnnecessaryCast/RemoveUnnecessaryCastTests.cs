@@ -12769,6 +12769,30 @@ class C
             }.RunAsync();
         }
 
+        [WorkItem(60248, "https://github.com/dotnet/roslyn/issues/60248")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastInTopLevelPrograms()
+        {
+            var test = new VerifyCS.Test()
+            {
+                TestCode = @"
+int x = 1;
+int y = [|(int)|]x;
+",
+                FixedCode = @"
+int x = 1;
+int y = x;
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+            };
+
+            await test.RunAsync();
+        }
+
         [WorkItem(60292, "https://github.com/dotnet/roslyn/issues/60292")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task KeepNecessaryExplicitNullableCast()
