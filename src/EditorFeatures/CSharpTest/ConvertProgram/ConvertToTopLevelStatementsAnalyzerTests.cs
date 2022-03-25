@@ -217,6 +217,28 @@ class Program
         }
 
         [Fact]
+        public async Task NotOnExpressionBody()
+        {
+            // we could choose to support this in the future.  It's not supported for now for simplicity.
+            var code = @"
+class Program
+{
+    static void {|CS0501:Main|}(string[] args)
+        => Console.WriteLine(0);
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task NotOnTypeWithInheritance1()
         {
             var code = @"
@@ -631,6 +653,143 @@ class Program
             {
                 TestCode = code,
                 FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldWithNoAccessibility()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    static int x;
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+int x;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldWithPrivateAccessibility()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static int x;
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+int x;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldWithMultipleDeclarators()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static int x, y;
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+int x, y;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldWithInitializer()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static int x = 0;
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+int x = 0;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFieldWithComments()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    // Leading
+    private static int x = 0; // Trailing
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+// Leading
+int x = 0; // Trailing
+
+System.Console.WriteLine(0);
+",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
