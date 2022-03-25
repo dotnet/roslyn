@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -25,14 +27,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         {
             public static Type? TryCreate(TypeSyntax typeSyntax, IIsTypeOperation operation)
             {
-                var sym = operation.SemanticModel.GetSpeculativeSymbolInfo(typeSyntax.SpanStart, typeSyntax, SpeculativeBindingOption.BindAsExpression);
+                Contract.ThrowIfNull(operation.SemanticModel);
 
-                if (sym.Symbol == null)
+                // We are coming from a type pattern, which only binds to types, but converting to
+                // patters which don't behave the same. For example, given:
+                //
+                // if (T is C.X || T is Y) { }
+                //
+                // we would want to convert to:
+                //
+                // if (T is C.X or Y)
+                //
+                // In the first case the compiler will bind to types named C or Y that are in scope
+                // but in the second it will also bind to a fields, methods etc. which for 'Y' changes
+                // semantics, and for 'C.X' could be a compile error.
+                var names = operation.SemanticModel.LookupSymbols(typeSyntax.SpanStart, name: GetLeftmostSimpleName(typeSyntax));
+                if (names.Any(t => t is not INamespaceOrTypeSymbol))
                 {
                     return null;
                 }
 
                 return new Type(typeSyntax, operation.ValueOperand);
+
+                static string GetLeftmostSimpleName(SyntaxNode node)
+                {
+                    return node switch
+                    {
+                        QualifiedNameSyntax qname => GetLeftmostSimpleName(qname.Left),
+                        SimpleNameSyntax sname => sname.Identifier.ValueText,
+                        _ => throw ExceptionUtilities.UnexpectedValue(node.GetType())
+                    };
+                }
             }
 
             public readonly TypeSyntax TypeSyntax;
