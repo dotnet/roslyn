@@ -2311,6 +2311,27 @@ class C
         }
 
         [WpfFact]
+        public void FormatUserDefinedUnaryOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator ++ ( C x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator ++(C x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
         public void FormatUserDefinedExplicitCastOperator()
         {
             var code = @"$$
@@ -2350,6 +2371,42 @@ interface I1
         }
 
         [WpfFact]
+        public void FormatUserDefinedUnaryOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator ++ ( I1 x);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator ++(I1 x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCastOperatorOnType()
+        {
+            var code = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator string ( T x);$$
+}";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator string(T x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected);
+        }
+
+        [WpfFact]
         public void FormatUserDefinedCheckedOperator()
         {
             var code = @"$$
@@ -2363,6 +2420,27 @@ class C
 class C
 {
     public static C operator checked +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedUnaryOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static C operator checked ++ ( C x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static C operator checked ++(C x)
     {
     }
 }";
@@ -2404,6 +2482,42 @@ interface I1
 interface I1
 {
     abstract static I1 operator checked +(I1 x, I1 y);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedCheckedUnaryOperatorOnType()
+        {
+            var code = @"
+interface I1
+{
+    abstract static I1 operator checked ++ ( I1 x);$$
+}";
+
+            var expected = @"
+interface I1
+{
+    abstract static I1 operator checked ++(I1 x);
+}";
+
+            AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCheckedCastOperatorOnType()
+        {
+            var code = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string ( T x);$$
+}";
+
+            var expected = @"
+interface I1<T> where T : I1<T>
+{
+    abstract static explicit operator checked string(T x);
 }";
 
             AssertFormatAfterTypeChar(code, expected, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
