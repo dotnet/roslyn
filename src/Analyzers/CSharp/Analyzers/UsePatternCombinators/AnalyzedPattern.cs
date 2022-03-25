@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 // In the first case the compiler will bind to types named C or Y that are in scope
                 // but in the second it will also bind to a fields, methods etc. which for 'Y' changes
                 // semantics, and for 'C.X' could be a compile error.
-                var names = operation.SemanticModel.LookupSymbols(typeSyntax.SpanStart, name: GetLeftmostSimpleName(typeSyntax));
+                var names = operation.SemanticModel.LookupSymbols(typeSyntax.SpanStart, name: GetLeftmostName(typeSyntax));
                 if (names.Any(t => t is not INamespaceOrTypeSymbol))
                 {
                     return null;
@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
 
                 return new Type(typeSyntax, operation.ValueOperand);
 
-                static string GetLeftmostSimpleName(SyntaxNode node)
+                static string GetLeftmostName(SyntaxNode node)
                 {
                     return node switch
                     {
-                        QualifiedNameSyntax qname => GetLeftmostSimpleName(qname.Left),
+                        QualifiedNameSyntax qname => GetLeftmostName(qname.Left),
                         SimpleNameSyntax sname => sname.Identifier.ValueText,
-                        _ => throw ExceptionUtilities.UnexpectedValue(node.GetType())
+                        _ => node.ToString()
                     };
                 }
             }
