@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal virtual Binder? SignatureBinder => null;
+        internal virtual Binder? OuterBinder => null;
 
-        internal virtual Binder? ParameterBinder => null;
+        internal virtual Binder? WithTypeParametersBinder => null;
 
 #nullable disable
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declarations,
                     ref lazyCustomAttributesBag,
                     symbolPart,
-                    binderOpt: SignatureBinder);
+                    binderOpt: OuterBinder);
             }
 
             if (bagCreatedOnThisThread)

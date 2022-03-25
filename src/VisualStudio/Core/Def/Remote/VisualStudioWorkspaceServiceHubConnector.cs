@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -24,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal sealed class VisualStudioWorkspaceServiceHubConnector : IEventListener<object>, IEventListenerStoppable
     {
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
+        private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
 
         private GlobalNotificationRemoteDeliveryService? _globalNotificationDelivery;
@@ -37,16 +39,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWorkspaceServiceHubConnector(
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext)
         {
             _listenerProvider = listenerProvider;
+            _threadingContext = threadingContext;
             _globalOptions = globalOptions;
             _disposalCancellationSource = new CancellationTokenSource();
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)
         {
-            if (workspace is not VisualStudioWorkspace || IVsShellExtensions.IsInCommandLineMode)
+            if (workspace is not VisualStudioWorkspace || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
             {
                 return;
             }
@@ -63,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         public void StopListening(Workspace workspace)
         {
-            if (!(workspace is VisualStudioWorkspace) || IVsShellExtensions.IsInCommandLineMode)
+            if (!(workspace is VisualStudioWorkspace) || IVsShellExtensions.IsInCommandLineMode(_threadingContext.JoinableTaskFactory))
             {
                 return;
             }
