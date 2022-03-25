@@ -2311,6 +2311,27 @@ class C
         }
 
         [WpfFact]
+        public void FormatUserDefinedExplicitCastOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static explicit operator C ( int x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static explicit operator C(int x)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code);
+        }
+
+        [WpfFact]
         public void FormatUserDefinedOperatorOnType()
         {
             var code = @"
@@ -2342,6 +2363,27 @@ class C
 class C
 {
     public static C operator checked +(C x, C y)
+    {
+    }
+}";
+
+            AssertFormatWithView(expected, code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+        }
+
+        [WpfFact]
+        public void FormatUserDefinedExplicitCheckedCastOperator()
+        {
+            var code = @"$$
+class C
+{
+    public static explicit operator checked C ( int x){
+    }
+}";
+
+            var expected = @"$$
+class C
+{
+    public static explicit operator checked C(int x)
     {
     }
 }";

@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
 
         private TestWorkspace CreateWorkspace(string codeWithMarker, ParseOptions parseOptions = null)
             => this.GetLanguageName() == LanguageNames.CSharp
-                ? TestWorkspace.CreateCSharp(codeWithMarker, composition: s_composition)
-                : TestWorkspace.CreateVisualBasic(codeWithMarker, composition: s_composition);
+                ? TestWorkspace.CreateCSharp(codeWithMarker, composition: s_composition, parseOptions: parseOptions)
+                : TestWorkspace.CreateVisualBasic(codeWithMarker, composition: s_composition, parseOptions: parseOptions);
 
         private static string ApplyResultAndGetFormattedText(ITextBuffer buffer, IList<TextChange> changes)
         {
