@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option2<CodeStyleOption2<bool>> PreferTopLevelStatements = CreateOption(
             CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferTopLevelStatements),
-            defaultValue: s_falseWithSuggestionEnforcement,
+            defaultValue: s_trueWithSilentEnforcement,
             "csharp_style_prefer_top_level_statements",
             $"TextEditor.CSharp.Specific.{nameof(PreferTopLevelStatements)}");
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var option = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
             var accessibilityModifiersRequired = option.Value is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
 
-            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // See if we have an existing part in another file.  If so, we'll have to generate our declaration as partial.
             var hasExistingPart = programType.DeclaringSyntaxReferences.Any(d => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax);
@@ -85,14 +87,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             foreach (var globalStatement in root.Members.OfType<GlobalStatementSyntax>())
             {
                 // Remove leading trivia from first statement.  We'll move it to the Program type.
+                var statement = globalStatement.Statement.WithAdditionalAnnotations(Formatter.Annotation);
                 if (first)
                 {
                     first = false;
-                    statements.Add(globalStatement.Statement.WithoutLeadingTrivia());
+                    statements.Add(statement.WithoutLeadingTrivia());
                 }
                 else
                 {
-                    statements.Add(globalStatement.Statement);
+                    statements.Add(statement);
                 }
             }
 
