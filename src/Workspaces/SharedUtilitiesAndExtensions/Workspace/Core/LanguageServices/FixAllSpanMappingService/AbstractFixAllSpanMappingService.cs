@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 else
                 {
                     return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
-                        .SetItem(document, ImmutableArray.Create(decl.FullSpan));
+                        .Add(document, ImmutableArray.Create(decl.FullSpan));
                 }
             }
         }
