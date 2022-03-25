@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes
                 return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
 
             // Compute the fix all span for the global statements to be fixed.
-            // If the file has non-global statements towards the end, they need to be excluded
+            // If the file has type or namespace declaration towards the end, they need to be excluded
             // from the fix all span.
             var fixAllSpan = root.FullSpan;
-            var firstNonGlobalStatement = root.ChildNodes().FirstOrDefault(n => n is not GlobalStatementSyntax);
-            if (firstNonGlobalStatement is not null)
+            var firstTypeOrNamespaceDecl = root.ChildNodes().FirstOrDefault(n => SyntaxFacts.IsNamespaceMemberDeclaration(n.Kind()));
+            if (firstTypeOrNamespaceDecl is not null)
             {
-                // Bail out for compiler error case where a non-global statement precedes a global statement.
-                // C# compiler requires all global statements to preceed non-global statements.
+                // Bail out for compiler error case where a type or namespace declaration precedes a global statement.
+                // C# compiler requires all global statements to preceed type and namespace declarations.
                 var globalStatements = root.ChildNodes().OfType<GlobalStatementSyntax>();
-                if (globalStatements.Any(g => firstNonGlobalStatement.SpanStart < g.SpanStart))
+                if (globalStatements.Any(g => firstTypeOrNamespaceDecl.SpanStart < g.SpanStart))
                     return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
 
-                fixAllSpan = new TextSpan(root.FullSpan.Start, firstNonGlobalStatement.FullSpan.Start - 1);
+                fixAllSpan = new TextSpan(root.FullSpan.Start, firstTypeOrNamespaceDecl.FullSpan.Start - 1);
             }
 
             return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty

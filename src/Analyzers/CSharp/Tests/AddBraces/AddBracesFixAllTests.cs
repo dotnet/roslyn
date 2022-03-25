@@ -644,6 +644,64 @@ class OtherType
         [InlineData("FixAllInContainingType")]
         [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public async Task TestFixAllInContainingMemberAndType_TopLevelStatements_02(string fixAllScope)
+        {
+            var input = $@"
+using System;
+
+{{|{fixAllScope}:if|}} (true) if (true) return;
+
+if (false) if (false) return;
+
+namespace N
+{{
+    class OtherType
+    {{
+        void OtherMethod()
+        {{
+            if (true) if (true) return;
+        }}
+    }}
+}}";
+
+            var expected = @"
+using System;
+
+if (true)
+{
+    if (true)
+    {
+        return;
+    }
+}
+
+if (false)
+{
+    if (false)
+    {
+        return;
+    }
+}
+
+namespace N
+{
+    class OtherType
+    {
+        void OtherMethod()
+        {
+            if (true) if (true) return;
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [Theory]
+        [InlineData("FixAllInContainingMember")]
+        [InlineData("FixAllInContainingType")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingMemberAndType_TopLevelStatements_ErrorCase(string fixAllScope)
         {
             // Error case: Global statements should precede non-global statements.
