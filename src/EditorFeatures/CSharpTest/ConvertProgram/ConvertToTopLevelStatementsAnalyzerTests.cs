@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.CSharp.TopLevelStatements;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
@@ -131,6 +132,11 @@ class Program
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+                ExpectedDiagnostics =
+                {
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    DiagnosticResult.CompilerError("CS5001"),
+                }
             }.RunAsync();
         }
 
@@ -154,6 +160,11 @@ class Program
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+                ExpectedDiagnostics =
+                {
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    DiagnosticResult.CompilerError("CS5001"),
+                }
             }.RunAsync();
         }
 
@@ -177,6 +188,11 @@ class Program
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+                ExpectedDiagnostics =
+                {
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    DiagnosticResult.CompilerError("CS5001"),
+                }
             }.RunAsync();
         }
 
@@ -186,7 +202,7 @@ class Program
             var code = @"
 class Program
 {
-    static void Main(string[] args);
+    static void {|CS0501:Main|}(string[] args);
 }
 ";
 
@@ -227,7 +243,7 @@ class Program : System.Exception
         public async Task NotOnTypeWithInheritance2()
         {
             var code = @"
-class Program : IComparable
+class Program : {|CS0535:System.IComparable|}
 {
     static void Main(string[] args)
     {
@@ -353,7 +369,7 @@ class Program
 // <summary></summary>
 class Program
 {
-    static void Main(string[] args)
+    static void {|IDE0210:Main|}(string[] args)
     {
         System.Console.WriteLine(0);
     }
