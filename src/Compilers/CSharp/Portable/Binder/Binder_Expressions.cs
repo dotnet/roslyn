@@ -5846,25 +5846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (suppressUnsupportedRequiredMembersError && useSiteInfo.AccumulatesDiagnostics && useSiteInfo.Diagnostics is { Count: not 0 })
-            {
-                diagnostics.AddDependencies(useSiteInfo);
-                foreach (var diagnostic in useSiteInfo.Diagnostics)
-                {
-                    // We don't want to report this error here because we'll report ERR_RequiredMembersBaseTypeInvalid. That error is suppressable by the
-                    // user using the `SetsRequiredMembers` attribute on the constructor, so reporting this error would prevent that from working.
-                    if ((ErrorCode)diagnostic.Code == ErrorCode.ERR_RequiredMembersInvalid)
-                    {
-                        continue;
-                    }
-
-                    diagnostics.ReportUseSiteDiagnostic(diagnostic, errorLocation);
-                }
-            }
-            else
-            {
-                diagnostics.Add(errorLocation, useSiteInfo);
-            }
+            ReportConstructorUseSiteDiagnostics(errorLocation, diagnostics, suppressUnsupportedRequiredMembersError, useSiteInfo);
 
             if (succeededIgnoringAccessibility)
             {
@@ -5919,6 +5901,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return succeededConsideringAccessibility;
+        }
+
+        internal static bool ReportConstructorUseSiteDiagnostics(Location errorLocation, BindingDiagnosticBag diagnostics, bool suppressUnsupportedRequiredMembersError, CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (suppressUnsupportedRequiredMembersError && useSiteInfo.AccumulatesDiagnostics && useSiteInfo.Diagnostics is { Count: not 0 })
+            {
+                diagnostics.AddDependencies(useSiteInfo);
+                foreach (var diagnostic in useSiteInfo.Diagnostics)
+                {
+                    // We don't want to report this error here because we'll report ERR_RequiredMembersBaseTypeInvalid. That error is suppressable by the
+                    // user using the `SetsRequiredMembers` attribute on the constructor, so reporting this error would prevent that from working.
+                    if ((ErrorCode)diagnostic.Code == ErrorCode.ERR_RequiredMembersInvalid)
+                    {
+                        continue;
+                    }
+
+                    diagnostics.ReportUseSiteDiagnostic(diagnostic, errorLocation);
+                }
+
+                return true;
+            }
+            else
+            {
+                return diagnostics.Add(errorLocation, useSiteInfo);
+            }
         }
 
         private ImmutableArray<MethodSymbol> GetAccessibleConstructorsForOverloadResolution(NamedTypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

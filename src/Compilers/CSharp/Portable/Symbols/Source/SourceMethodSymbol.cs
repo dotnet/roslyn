@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -78,5 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static Location getLocation(ParameterSymbol parameter, Location location)
                 => parameter.Locations.FirstOrDefault() ?? location;
         }
+
+        protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
     }
 }

@@ -231,6 +231,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 throw ExceptionUtilities.Unreachable;
             }
+
+            protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
         }
     }
 }

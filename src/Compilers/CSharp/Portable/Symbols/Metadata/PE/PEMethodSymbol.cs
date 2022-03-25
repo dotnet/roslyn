@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |w|v|u|t|s|r|q|p|ooo|n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -72,7 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // s = IsInitOnlyBit. 1 bit.
             // t = IsInitOnlyPopulatedBit. 1 bit.
             // u = IsUnmanagedCallersOnlyAttributePopulated. 1 bit.
-            // 6 bits remain for future purposes.
+            // v = IsSetsRequiredMembersBit. 1 bit.
+            // w = IsSetsRequiredMembersPopulated. 1 bit.
+            // 4 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsInitOnlyBit = 0x1 << 24;
             private const int IsInitOnlyPopulatedBit = 0x1 << 25;
             private const int IsUnmanagedCallersOnlyAttributePopulatedBit = 0x1 << 26;
+            private const int HasSetsRequiredMembersBit = 0x1 << 27;
+            private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
 
             private int _bits;
 
@@ -134,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
             public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
             public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
+            public bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
+            public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -239,6 +245,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public void SetIsUnmanagedCallersOnlyAttributePopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsUnmanagedCallersOnlyAttributePopulatedBit);
+            }
+
+            public bool InitializeSetsRequiredMembersBit(bool value)
+            {
+                int bitsToSet = HasSetsRequiredMembersPopulatedBit;
+                if (value) bitsToSet |= HasSetsRequiredMembersBit;
+
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
         }
 
@@ -1404,6 +1418,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return result.IsDefault
                     ? InterlockedOperations.Initialize(ref uncommonFields._lazyConditionalAttributeSymbols, ImmutableArray<string>.Empty)
                     : result;
+            }
+        }
+
+        protected override bool HasSetsRequiredMembersImpl
+        {
+            get
+            {
+                Debug.Assert(MethodKind == MethodKind.Constructor);
+                if (!_packedFlags.HasSetsRequiredMembersPopulated)
+                {
+                    var result = _containingType.ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.SetsRequiredMembersAttribute);
+                    _packedFlags.InitializeSetsRequiredMembersBit(result);
+                }
+
+                return _packedFlags.HasSetsRequiredMembers;
             }
         }
 

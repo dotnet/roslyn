@@ -2142,7 +2142,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (Binder.ReportUseSite(baseConstructor, diagnostics, diagnosticsLocation))
+            var constructorUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependencies;
+            constructorUseSiteInfo.Add(baseConstructor.GetUseSiteInfo());
+            if (Binder.ReportConstructorUseSiteDiagnostics(diagnosticsLocation, diagnostics, suppressUnsupportedRequiredMembersError: constructor.HasSetsRequiredMembers, constructorUseSiteInfo))
             {
                 return null;
             }

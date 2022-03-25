@@ -318,6 +318,7 @@ namespace Microsoft.CodeAnalysis
         System_ArgumentNullException,
 
         System_Runtime_CompilerServices_RequiredMemberAttribute,
+        System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -628,7 +629,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler",
             "System.ArgumentNullException",
 
-            "System.Runtime.CompilerServices.RequiredMemberAttribute"
+            "System.Runtime.CompilerServices.RequiredMemberAttribute",
+            "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

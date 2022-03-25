@@ -638,6 +638,19 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        protected const string SetsRequiredMembersAttribute = @"
+namespace System.Diagnostics.CodeAnalysis
+{
+    [AttributeUsage(AttributeTargets.Constructor, Inherited = false, AllowMultiple = false)]
+    public class SetsRequiredMembersAttribute : Attribute
+    {
+        public SetsRequiredMembersAttribute()
+        {
+        }
+    }
+}
+";
+
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions options = null)
         {
             return WithNullable(options, NullableContextOptions.Enable);

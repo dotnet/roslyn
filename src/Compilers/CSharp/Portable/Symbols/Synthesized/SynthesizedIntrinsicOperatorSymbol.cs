@@ -423,6 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsNullableAnalysisEnabled() => false;
 
+        protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable;
+
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)

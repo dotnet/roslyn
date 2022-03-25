@@ -871,6 +871,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                return;
+
                 ImmutableArray<Symbol> getMembersNeedingDefaultInitialState()
                 {
                     if (_hasInitialState)
@@ -880,12 +882,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We don't use a default initial state for value type instance constructors without `: this()` because
                     // any usages of uninitialized fields will get definite assignment errors anyway.
-                    bool hasConstructorInitializer = method.HasThisConstructorInitializer(out _);
-                    if (!hasConstructorInitializer && (!method.ContainingType.IsValueType || method.IsStatic))
+                    if (!method.HasThisConstructorInitializer(out _) && (!method.ContainingType.IsValueType || method.IsStatic))
                     {
                         return membersToBeInitialized(method.ContainingType, includeAllMembers: true);
                     }
 
+                    // We want to presume all required members of the type are uninitialized, and in addition we want to set all fields to
+                    // default if we can get to this constructor by doing so (ie, : this() in a value type).
                     return membersToBeInitialized(method.ContainingType, includeAllMembers: method.IncludeFieldInitializersInBody());
 
                     static ImmutableArray<Symbol> membersToBeInitialized(NamedTypeSymbol containingType, bool includeAllMembers)

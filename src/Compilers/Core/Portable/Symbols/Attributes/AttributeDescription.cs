@@ -479,5 +479,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription InterpolatedStringHandlerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerArgumentAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerArgumentAttribute", s_signaturesOfInterpolatedStringArgumentAttribute);
         internal static readonly AttributeDescription RequiredMemberAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RequiredMemberAttribute", s_signatures_HasThis_Void_Only);
+        internal static readonly AttributeDescription SetsRequiredMembersAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "SetsRequiredMembersAttribute", s_signatures_HasThis_Void_Only);
     }
 }
