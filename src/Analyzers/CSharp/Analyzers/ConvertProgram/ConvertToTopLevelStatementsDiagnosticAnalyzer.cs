@@ -73,6 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                     if (mainLastTypeName != null && containingTypeDeclaration.Identifier.ValueText != mainLastTypeName)
                         continue;
 
+                    if (methodDeclaration.ParameterList.Parameters.Count == 1 &&
+                        methodDeclaration.ParameterList.Parameters[0].Identifier.ValueText != "args")
+                    {
+                        continue;
+                    }
+
                     // Have a `static Main` method, and the containing type either matched the type-name the options
                     // specify, or the options specified no type name.  This is a reasonable candidate for the 
                     // program entrypoint.
@@ -156,11 +162,9 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                     if (methodDeclaration is { Body: null, ExpressionBody: null })
                         return false;
 
-                    if (methodDeclaration.ParameterList.Parameters.Count == 1 &&
-                        methodDeclaration.ParameterList.Parameters[0].Identifier.ValueText != "args")
-                    {
+                    // local functions can't be unsafe
+                    if (methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
                         return false;
-                    }
                 }
 
                 // can't convert doc comments to top level statements.

@@ -813,5 +813,139 @@ class Program
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestMultipleStatements()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static int x = 0;
+
+    static void {|IDE0210:Main|}(string[] args)
+    {
+        System.Console.WriteLine(args);
+        return;
+    }
+}
+",
+                FixedCode = @"int x = 0;
+
+System.Console.WriteLine(args);
+return;
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOtherMethodBecomesLocalFunction()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static int x = 0;
+
+    static void OtherMethod()
+    {
+        return;
+    }
+
+    static void {|IDE0210:Main|}(string[] args)
+    {
+        System.Console.WriteLine(args);
+    }
+}
+",
+                FixedCode = @"int x = 0;
+
+void OtherMethod()
+{
+    return;
+}
+
+System.Console.WriteLine(args);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotWithUnsafeMethod()
+        {
+            var code = @"
+class Program
+{
+    private static int x = 0;
+
+    unsafe static void OtherMethod()
+    {
+        return;
+    }
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(args);
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestOtherComplexMethodBecomesLocalFunction()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    private static int x = 0;
+
+    static async Task OtherMethod<T>(T param) where T : struct
+    {
+        return;
+    }
+
+    static void {|IDE0210:Main|}(string[] args)
+    {
+        System.Console.WriteLine(args);
+    }
+}
+",
+                FixedCode = @"
+using System.Threading.Tasks;
+
+int x = 0;
+
+async Task OtherMethod<T>(T param) where T : struct
+{
+    return;
+}
+
+System.Console.WriteLine(args);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
     }
 }

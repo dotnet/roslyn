@@ -156,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                     // top-level statements.
                     Contract.ThrowIfNull(methodDeclaration.Body); // checked by analyzer
 
+                    // move comments on the method to be on it's first statement.
                     if (methodDeclaration.Body.Statements.Count > 0)
                         statements.AddRange(methodDeclaration.Body.Statements[0].WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia()));
 
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                         parameterList: otherMethod.ParameterList,
                         constraintClauses: otherMethod.ConstraintClauses,
                         body: otherMethod.Body,
-                        expressionBody: otherMethod.ExpressionBody));
+                        expressionBody: otherMethod.ExpressionBody).WithLeadingTrivia(otherMethod.GetLeadingTrivia()));
                 }
                 else
                 {
@@ -191,6 +192,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                     throw ExceptionUtilities.Unreachable;
                 }
             }
+
+            // Move the trivia on the type itself to the first statement we create.
+            if (statements.Count > 0)
+                statements[0] = statements[0].WithPrependedLeadingTrivia(typeDeclaration.GetLeadingTrivia());
 
             using var _1 = ArrayBuilder<GlobalStatementSyntax>.GetInstance(out var globalStatements);
             foreach (var statement in statements)
