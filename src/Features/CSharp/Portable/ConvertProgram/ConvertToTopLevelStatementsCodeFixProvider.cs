@@ -7,17 +7,25 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToProgramMain), Shared]
+    using static SyntaxFactory;
+
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertToTopLevelStatements), Shared]
     internal class ConvertToTopLevelStatementsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -52,10 +60,138 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var fixedDocument = await ConvertProgramHelpers.ConvertToProgramMainAsync(document, cancellationToken).ConfigureAwait(false);
-            var fixedRoot = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var methodDeclaration = (MethodDeclarationSyntax)diagnostics[0].AdditionalLocations[0].FindNode(cancellationToken);
+            var typeDeclaration = (TypeDeclarationSyntax?)methodDeclaration.Parent;
+            Contract.ThrowIfNull(typeDeclaration); // checked by analyzer
 
-            editor.ReplaceNode(editor.OriginalRoot, fixedRoot);
+            var rootWithGlobalStatements = GetRootWithGlobalStatements(editor.Generator, editor.OriginalRoot, typeDeclaration, methodDeclaration);
+
+            if (typeDeclaration.Parent is not NamespaceDeclarationSyntax namespaceDeclaration)
+            {
+                // simple case.  we were in a top level type to begin with.  Nothing we need to do now.
+                editor.ReplaceNode(editor.OriginalRoot, rootWithGlobalStatements);
+                return;
+            }
+
+            // We were parented by a namespace.  Add using statements to bring in all the symbols that were
+            // previously visible within the namespace.  Then remove any that we don't need once we've done that.
+            var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
+            var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+
+            var annotation = new SyntaxAnnotation();
+            using var _ = ArrayBuilder<UsingDirectiveSyntax>.GetInstance(out var directives);
+            AddUsingDirectives(namespaceDeclaration.Name, annotation, directives);
+
+            var rootWithImportsAdded = addImportsService.AddImports(
+                compilation: null!, rootWithGlobalStatements, contextLocation: null, directives, editor.Generator,
+                await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false),
+                cancellationToken);
+            var documentWithImportsAdded = document.WithSyntaxRoot(rootWithImportsAdded);
+
+            var documentWithImportsRemoved = await removeImportsService.RemoveUnnecessaryImportsAsync(
+                documentWithImportsAdded, n => n.HasAnnotation(annotation), cancellationToken).ConfigureAwait(false);
+            var rootWithImportsRemoved = await documentWithImportsRemoved.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            editor.ReplaceNode(editor.OriginalRoot, rootWithImportsRemoved);
+        }
+
+        private void AddUsingDirectives(NameSyntax name, SyntaxAnnotation annotation, ArrayBuilder<UsingDirectiveSyntax> directives)
+        {
+            if (name is QualifiedNameSyntax qualifiedName)
+                AddUsingDirectives(qualifiedName.Left, annotation, directives);
+
+            directives.Add(UsingDirective(name).WithAdditionalAnnotations(annotation));
+        }
+
+        private static SyntaxNode GetRootWithGlobalStatements(
+            SyntaxGenerator generator,
+            SyntaxNode root,
+            TypeDeclarationSyntax typeDeclaration,
+            MethodDeclarationSyntax methodDeclaration)
+        {
+            var editor = new SyntaxEditor(root, generator);
+            var globalStatements = GetGlobalStatements(typeDeclaration, methodDeclaration);
+
+            var namespaceDeclaration = typeDeclaration.Parent as NamespaceDeclarationSyntax;
+            if (namespaceDeclaration != null &&
+                namespaceDeclaration.Members.Count >= 2)
+            {
+                // Our parent namespace has another symbol in it.  Keep it around, but move us to top-level-statements.
+                editor.RemoveNode(typeDeclaration);
+                editor.ReplaceNode(
+                    root,
+                    (current, _) =>
+                    {
+                        var currentRoot = (CompilationUnitSyntax)current;
+                        return currentRoot.WithMembers(currentRoot.Members.InsertRange(0, globalStatements));
+                    });
+            }
+            else if (namespaceDeclaration != null)
+            {
+                // we had a parent namespace, but we were the only thing in it.  We can just remove that namespace entirely.
+                editor.ReplaceNode(
+                    root,
+                    root.ReplaceNode(namespaceDeclaration, globalStatements));
+            }
+            else
+            {
+                // type wasn't in a namespace.  just remove the type and replace it with the new global statements.
+                editor.ReplaceNode(
+                    root, root.ReplaceNode(typeDeclaration, globalStatements));
+            }
+
+            return editor.GetChangedRoot();
+        }
+
+        private static ImmutableArray<GlobalStatementSyntax> GetGlobalStatements(TypeDeclarationSyntax typeDeclaration, MethodDeclarationSyntax methodDeclaration)
+        {
+            using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var statements);
+            foreach (var member in typeDeclaration.Members)
+            {
+                if (member == methodDeclaration)
+                {
+                    // when we hit the 'Main' method, then actually take all its nested statements and elevate them to
+                    // top-level statements.
+                    Contract.ThrowIfNull(methodDeclaration.Body); // checked by analyzer
+                    statements.AddRange(methodDeclaration.Body.Statements);
+                    continue;
+                }
+
+                // hit another member, must be a field/method.
+                if (member is FieldDeclarationSyntax fieldDeclaration)
+                {
+                    // Convert fields into local statements
+                    var localDeclaration = LocalDeclarationStatement(fieldDeclaration.Declaration)
+                        .WithSemicolonToken(fieldDeclaration.SemicolonToken)
+                        .WithTriviaFrom(fieldDeclaration);
+                    statements.Add(localDeclaration);
+                }
+                else if (member is MethodDeclarationSyntax otherMethod)
+                {
+                    // convert methods to local functions.
+                    var localFunctionDeclaration = LocalFunctionStatement(
+                        attributeLists: default,
+                        modifiers: default,
+                        returnType: otherMethod.ReturnType,
+                        identifier: otherMethod.Identifier,
+                        typeParameterList: otherMethod.TypeParameterList,
+                        parameterList: otherMethod.ParameterList,
+                        constraintClauses: otherMethod.ConstraintClauses,
+                        body: otherMethod.Body,
+                        expressionBody: otherMethod.ExpressionBody);
+                    statements.Add(localFunctionDeclaration);
+                }
+                else
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            using var _1 = ArrayBuilder<GlobalStatementSyntax>.GetInstance(out var globalStatements);
+            foreach (var statement in statements)
+                globalStatements.Add(GlobalStatement(statement).WithAdditionalAnnotations(Formatter.Annotation));
+
+            return globalStatements.ToImmutable();
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
@@ -63,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             internal override CodeActionPriority Priority { get; }
 
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, CodeActionPriority priority)
-                : base(CSharpAnalyzersResources.Convert_to_Program_Main_style_program, createChangedDocument, nameof(ConvertToProgramMainCodeFixProvider))
+                : base(CSharpAnalyzersResources.Convert_to_top_level_statements, createChangedDocument, nameof(ConvertToTopLevelStatementsCodeFixProvider))
             {
                 this.Priority = priority;
             }

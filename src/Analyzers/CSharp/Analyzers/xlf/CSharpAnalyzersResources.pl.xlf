@@ -42,6 +42,11 @@
         <target state="translated">Konwertuj do zakresu pliku elementu namespace</target>
         <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Convert_to_top_level_statements">
+        <source>Convert to top-level statements</source>
+        <target state="new">Convert to top-level statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deconstruct_variable_declaration">
         <source>Deconstruct variable declaration</source>
         <target state="translated">Zdekonstruuj deklarację zmiennej</target>

@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                     methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) &&
                     methodDeclaration.TypeParameterList is null &&
                     methodDeclaration.Identifier.ValueText == WellKnownMemberNames.EntryPointMethodName &&
-                    methodDeclaration.Parent is TypeDeclarationSyntax containingTypeDeclaration)
+                    methodDeclaration.Parent is TypeDeclarationSyntax containingTypeDeclaration &&
+                    methodDeclaration.Body != null)
                 {
                     if (mainLastTypeName != null && containingTypeDeclaration.Identifier.ValueText != mainLastTypeName)
                         continue;
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
                     // We found the entrypoint.  However, we can only effectively convert this to top-level-statements
                     // if the existing type is amenable to that.
-                    if (!TypeCanBeConverted(entryPointMethod.ContainingType))
+                    if (!TypeCanBeConverted(entryPointMethod.ContainingType, containingTypeDeclaration))
                         return;
 
                     // Looks good.  Let the user know this type/method can be converted to a top level program.
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             }
         }
 
-        private static bool TypeCanBeConverted(INamedTypeSymbol containingType)
+        private static bool TypeCanBeConverted(INamedTypeSymbol containingType, TypeDeclarationSyntax typeDeclaration)
         {
             // Can't convert if our Program type derives from anything special.
             if (containingType.BaseType?.SpecialType != SpecialType.System_Object)
@@ -124,19 +125,29 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             // All the members of the type need to be private/static.  And we can only have fields or methods. that's to
             // ensure that no one else was calling into this type, and that we can convert everything in the type to
             // either locals or local-functions.
-            foreach (var member in containingType.GetMembers())
+
+            foreach (var member in typeDeclaration.Members)
             {
-                // can ignore implicitly declared members as they don't need to be moved over.
-                if (member.IsImplicitlyDeclared)
-                    continue;
-
-                if (member.DeclaredAccessibility != Accessibility.Private)
+                // can't be converted with attributes.
+                if (member.AttributeLists.Count > 0)
                     return false;
 
-                if (!member.IsStatic)
+                // if not private, can't convert as something may be referencing it.
+                if (member.Modifiers.Any(m => m.Kind() is SyntaxKind.PublicKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.InternalKeyword))
                     return false;
 
-                if (member is not IFieldSymbol and not IMethodSymbol { MethodKind: MethodKind.Ordinary })
+                if (member.Modifiers.Any(SyntaxKind.StaticKeyword))
+                    return false;
+
+                if (member is not FieldDeclarationSyntax and not MethodDeclarationSyntax)
+                    return false;
+
+                // if a method, it has to actually have a body so we can convert it to a local function.
+                if (member is MethodDeclarationSyntax { Body: null, ExpressionBody: null })
+                    return false;
+
+                // can't convert doc comments to top level statements.
+                if (member.GetLeadingTrivia().Any(t => t.IsDocComment()))
                     return false;
             }
 
