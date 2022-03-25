@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -153,7 +155,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                     // when we hit the 'Main' method, then actually take all its nested statements and elevate them to
                     // top-level statements.
                     Contract.ThrowIfNull(methodDeclaration.Body); // checked by analyzer
-                    statements.AddRange(methodDeclaration.Body.Statements);
+
+                    if (methodDeclaration.Body.Statements.Count > 0)
+                        statements.AddRange(methodDeclaration.Body.Statements[0].WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia()));
+
+                    statements.AddRange(methodDeclaration.Body.Statements.Skip(1));
                     continue;
                 }
 

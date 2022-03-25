@@ -223,8 +223,8 @@ class Program
             var code = @"
 class Program
 {
-    static void {|CS0501:Main|}(string[] args)
-        => Console.WriteLine(0);
+    static void Main(string[] args)
+        => System.Console.WriteLine(0);
 }
 ";
 
@@ -669,14 +669,13 @@ class Program
 {
     static int x;
 
-    static void Main(string[] args)
+    static void {|IDE0210:Main|}(string[] args)
     {
         System.Console.WriteLine(0);
     }
 }
 ",
-                FixedCode = @"
-int x;
+                FixedCode = @"int x;
 
 System.Console.WriteLine(0);
 ",
@@ -696,14 +695,13 @@ class Program
 {
     private static int x;
 
-    static void Main(string[] args)
+    static void {|IDE0210:Main|}(string[] args)
     {
         System.Console.WriteLine(0);
     }
 }
 ",
-                FixedCode = @"
-int x;
+                FixedCode = @"int x;
 
 System.Console.WriteLine(0);
 ",
@@ -723,14 +721,13 @@ class Program
 {
     private static int x, y;
 
-    static void Main(string[] args)
+    static void {|IDE0210:Main|}(string[] args)
     {
         System.Console.WriteLine(0);
     }
 }
 ",
-                FixedCode = @"
-int x, y;
+                FixedCode = @"int x, y;
 
 System.Console.WriteLine(0);
 ",
@@ -750,14 +747,13 @@ class Program
 {
     private static int x = 0;
 
-    static void Main(string[] args)
+    static void {|IDE0210:Main|}(string[] args)
     {
         System.Console.WriteLine(0);
     }
 }
 ",
-                FixedCode = @"
-int x = 0;
+                FixedCode = @"int x = 0;
 
 System.Console.WriteLine(0);
 ",
@@ -778,17 +774,40 @@ class Program
     // Leading
     private static int x = 0; // Trailing
 
-    static void Main(string[] args)
+    static void {|IDE0210:Main|}(string[] args)
     {
         System.Console.WriteLine(0);
     }
 }
 ",
-                FixedCode = @"
-// Leading
+                FixedCode = @"// Leading
 int x = 0; // Trailing
 
 System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestEmptyMethod()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static int x = 0;
+
+    static void {|IDE0210:Main|}(string[] args)
+    {
+    }
+}
+",
+                FixedCode = @"
+int x = 0;
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
