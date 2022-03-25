@@ -806,8 +806,7 @@ class Program
     }
 }
 ",
-                FixedCode = @"
-int x = 0;
+                FixedCode = @"int x = 0;
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
