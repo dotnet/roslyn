@@ -8570,6 +8570,99 @@ public class C : {|CS0535:I|}
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleGenericConstraintAsReturnType()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    T M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    T M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+    T I.M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleGenericConstraintAsParameter()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>(T arg) where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>(T arg) where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+    void I.M<T>(T arg)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
+        public async Task TestAccessibility_InaccessibleGenericConstraintWhichIsNotUsed()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+}",
+@"internal class Goo {}
+
+internal interface I
+{
+    void M<T>() where T: Goo;
+}
+
+public class C : {|CS0535:I|}
+{
+    void I.M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(4146, "https://github.com/dotnet/roslyn/issues/4146")]
         public async Task TestAccessibility_SeveralMembers_ShouldExplicitlyImplementOnlyInaccessible()
         {
             await TestWithAllCodeStyleOptionsOffAsync(

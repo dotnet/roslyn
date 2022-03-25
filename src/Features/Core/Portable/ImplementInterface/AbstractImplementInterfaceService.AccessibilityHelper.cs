@@ -8,8 +8,13 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
     {
         private static class AccessibilityHelper
         {
-            public static bool IsLessAccessibleThan(ISymbol first, INamedTypeSymbol second)
+            public static bool IsLessAccessibleThan(ISymbol? first, INamedTypeSymbol second)
             {
+                if (first is null)
+                {
+                    return false;
+                }
+
                 if (first.DeclaredAccessibility <= Accessibility.NotApplicable ||
                     second.DeclaredAccessibility <= Accessibility.NotApplicable)
                 {
@@ -29,14 +34,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             return true;
                         }
 
-                        if (propertySymbol.GetMethod is not null &&
-                            IsLessAccessibleThan(propertySymbol.GetMethod, second))
+                        if (IsLessAccessibleThan(propertySymbol.GetMethod, second))
                         {
                             return true;
                         }
 
-                        if (propertySymbol.SetMethod is not null &&
-                            IsLessAccessibleThan(propertySymbol.SetMethod, second))
+                        if (IsLessAccessibleThan(propertySymbol.SetMethod, second))
                         {
                             return true;
                         }
@@ -57,6 +60,14 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             }
                         }
 
+                        foreach (var typeArg in methodSymbol.TypeArguments)
+                        {
+                            if (IsTypeLessAccessibleThanOtherType(typeArg, second))
+                            {
+                                return true;
+                            }
+                        }
+
                         return false;
 
                     case IEventSymbol eventSymbol:
@@ -67,8 +78,24 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            private static bool IsTypeLessAccessibleThanOtherType(ITypeSymbol first, INamedTypeSymbol second)
+            private static bool IsTypeLessAccessibleThanOtherType(ITypeSymbol? first, INamedTypeSymbol second)
             {
+                if (first is null)
+                {
+                    return false;
+                }
+
+                if (first is ITypeParameterSymbol typeParameter)
+                {
+                    foreach (var constraint in typeParameter.ConstraintTypes)
+                    {
+                        if (IsTypeLessAccessibleThanOtherType(constraint, second))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
                 if (first.DeclaredAccessibility <= Accessibility.NotApplicable ||
                     second.DeclaredAccessibility <= Accessibility.NotApplicable)
                 {
@@ -91,8 +118,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     }
                 }
 
-                if (first.ContainingType is not null &&
-                    IsTypeLessAccessibleThanOtherType(first.ContainingType, second))
+                if (IsTypeLessAccessibleThanOtherType(first.ContainingType, second))
                 {
                     return true;
                 }
