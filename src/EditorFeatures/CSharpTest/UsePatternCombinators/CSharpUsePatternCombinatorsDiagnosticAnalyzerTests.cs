@@ -560,5 +560,49 @@ class Test<T>
 }
 ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestInConvertibleTypePattern2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+public class Goo
+{
+    private class X { }
+    private class Y { }
+
+    private void M(object o)
+    {
+        var X = 1;
+        var Y = 2;
+
+        var @int = 1;
+        var @long = 2;
+        if [|(o is int || o is long)|]
+        {
+        }
+    }
+}
+", @"
+public class Goo
+{
+    private class X { }
+    private class Y { }
+
+    private void M(object o)
+    {
+        var X = 1;
+        var Y = 2;
+
+        var @int = 1;
+        var @long = 2;
+        if (o is int or long)
+        {
+        }
+    }
+}
+");
+        }
     }
 }

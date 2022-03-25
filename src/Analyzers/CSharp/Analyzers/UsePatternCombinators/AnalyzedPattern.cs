@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
@@ -25,9 +24,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         /// </summary>
         internal sealed class Type : AnalyzedPattern
         {
-            public static Type? TryCreate(TypeSyntax typeSyntax, IIsTypeOperation operation)
+            private static readonly SyntaxAnnotation s_annotation = new();
+
+            public static Type? TryCreate(BinaryExpressionSyntax binaryExpression, IIsTypeOperation operation)
             {
                 Contract.ThrowIfNull(operation.SemanticModel);
+                if (binaryExpression.Right is not TypeSyntax typeSyntax)
+                {
+                    return null;
+                }
 
                 // We are coming from a type pattern, which only binds to types, but converting to
                 // patters which don't behave the same. For example, given:
@@ -41,23 +46,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 // In the first case the compiler will bind to types named C or Y that are in scope
                 // but in the second it will also bind to a fields, methods etc. which for 'Y' changes
                 // semantics, and for 'C.X' could be a compile error.
-                var names = operation.SemanticModel.LookupSymbols(typeSyntax.SpanStart, name: GetLeftmostName(typeSyntax));
-                if (names.Any(t => t is not INamespaceOrTypeSymbol))
+
+                var dummyStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName("_"),
+                    SyntaxFactory.IsPatternExpression(
+                        binaryExpression.Left,
+                        SyntaxFactory.ConstantPattern(SyntaxFactory.ParenthesizedExpression(binaryExpression.Right.WithAdditionalAnnotations(s_annotation)))
+                    )
+                ));
+
+                if (operation.SemanticModel.TryGetSpeculativeSemanticModel(typeSyntax.SpanStart, dummyStatement, out var speculativeModel))
                 {
-                    return null;
+                    var originalInfo = operation.SemanticModel.GetTypeInfo(binaryExpression.Right);
+                    var newInfo = speculativeModel.GetTypeInfo(dummyStatement.GetAnnotatedNodes(s_annotation).Single());
+                    if (!originalInfo.Equals(newInfo))
+                    {
+                        return null;
+                    }
                 }
 
                 return new Type(typeSyntax, operation.ValueOperand);
-
-                static string GetLeftmostName(SyntaxNode node)
-                {
-                    return node switch
-                    {
-                        QualifiedNameSyntax qname => GetLeftmostName(qname.Left),
-                        SimpleNameSyntax sname => sname.Identifier.ValueText,
-                        _ => node.ToString()
-                    };
-                }
             }
 
             public readonly TypeSyntax TypeSyntax;
