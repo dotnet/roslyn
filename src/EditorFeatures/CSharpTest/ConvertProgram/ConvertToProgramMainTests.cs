@@ -202,6 +202,44 @@ internal class Program
         }
 
         [Fact]
+        public async Task TestWithLocalFunction()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+{|IDE0211:Console|}.WriteLine(0);
+
+void M()
+{
+}
+
+return 0;
+",
+                FixedCode = @"
+using System;
+
+internal class Program
+{
+    private static int Main(string[] args)
+    {
+        Console.WriteLine(0);
+
+        void M()
+        {
+        }
+
+        return 0;
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestWithAwait()
         {
             await new VerifyCS.Test

@@ -13,9 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 {
     internal static partial class CSharpCodeStyleOptions
     {
-        private static readonly CodeStyleOption2<bool> s_falseWithSuggestionEnforcement = new(value: false, notification: NotificationOption2.Suggestion);
-        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = new(value: true, notification: NotificationOption2.Suggestion);
-        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = new(value: true, notification: NotificationOption2.Silent);
+        private static readonly CodeStyleOption2<bool> s_trueWithSuggestionEnforcement = CodeStyleOptions2.TrueWithSuggestionEnforcement;
+        private static readonly CodeStyleOption2<bool> s_trueWithSilentEnforcement = CodeStyleOptions2.TrueWithSilentEnforcement;
 
         private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
