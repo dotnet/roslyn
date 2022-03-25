@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,14 +12,13 @@ using Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 {
     using static ConvertProgramAnalysis;
+    using static ConvertProgramTransform;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToProgramMain), Shared]
     internal class ConvertToTopLevelStatementsCodeRefactoringProvider : CodeRefactoringProvider
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             }
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertProgramHelpers.ConvertToTopLevelStatements(document, c)));
+                c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, c)));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -19,6 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 {
     using static ConvertProgramAnalysis;
+    using static ConvertProgramTransform;
 
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToProgramMain), Shared]
     internal class ConvertToProgramMainCodeRefactoringProvider : CodeRefactoringProvider
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 return;
 
             context.RegisterRefactoring(new MyCodeAction(
-                c => ConvertProgramHelpers.ConvertToProgramMainAsync(document, c)));
+                c => ConvertToProgramMainAsync(document, c)));
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

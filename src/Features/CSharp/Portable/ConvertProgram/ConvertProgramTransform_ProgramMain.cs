@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 {
-    internal static class ConvertProgramHelpers
+    internal static partial class ConvertProgramTransform
     {
         public static async Task<Document> ConvertToProgramMainAsync(Document document, CancellationToken cancellationToken)
         {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var method = (MethodDeclarationSyntax)generator.MethodDeclaration(mainMethod, "Main", GetStatements(root));
+            var method = (MethodDeclarationSyntax)generator.MethodDeclaration(mainMethod, "Main", GenerateProgramMainStatements(root));
             method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
 
             return (ClassDeclarationSyntax)generator.ClassDeclaration(
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 });
         }
 
-        private static ImmutableArray<StatementSyntax> GetStatements(CompilationUnitSyntax root)
+        private static ImmutableArray<StatementSyntax> GenerateProgramMainStatements(CompilationUnitSyntax root)
         {
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var statements);
 
