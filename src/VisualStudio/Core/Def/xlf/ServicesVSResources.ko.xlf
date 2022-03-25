@@ -1057,6 +1057,11 @@
         <target state="translated">정적 로컬 함수 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top level statements</source>
+        <target state="new">Prefer top level statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
         <target state="translated">튜플 교환 선호</target>

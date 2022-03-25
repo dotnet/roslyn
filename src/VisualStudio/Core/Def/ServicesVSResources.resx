@@ -1925,4 +1925,7 @@ Additional information: {1}</value>
   <data name="Always_use_default_symbol_servers_for_navigation" xml:space="preserve">
     <value>Always use default symbol servers for navigation</value>
   </data>
+  <data name="Prefer_top_level_statements" xml:space="preserve">
+    <value>Prefer top level statements</value>
+  </data>
 </root>
