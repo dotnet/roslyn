@@ -66,9 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                 if (child is MethodDeclarationSyntax methodDeclaration &&
                     methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) &&
                     methodDeclaration.TypeParameterList is null &&
-                    methodDeclaration.Identifier.ValueText == WellKnownMemberNames.EntryPointMethodName)
+                    methodDeclaration.Identifier.ValueText == WellKnownMemberNames.EntryPointMethodName &&
+                    methodDeclaration.Parent is TypeDeclarationSyntax containingTypeDeclaration)
                 {
-                    if (mainLastTypeName != null && (child.Parent as TypeDeclarationSyntax)?.Identifier.ValueText != mainLastTypeName)
+                    if (mainLastTypeName != null && containingTypeDeclaration.Identifier.ValueText != mainLastTypeName)
                         continue;
 
                     // Have a `static Main` method, and the containing type either matched the type-name the options
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                         ConvertProgramAnalysis.GetUseTopLevelStatementsDiagnosticLocation(
                             methodDeclaration, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                         severity,
-                        ImmutableArray<Location>.Empty,
+                        ImmutableArray.Create(methodDeclaration.GetLocation()),
                         ImmutableDictionary<string, string?>.Empty));
                 }
             }
@@ -113,18 +114,29 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             if (containingType.DeclaringSyntaxReferences.Length > 1)
                 return false;
 
+            // Too complex to support converting a nested type.
+            if (containingType.ContainingType != null)
+                return false;
+
+            if (containingType.DeclaredAccessibility != Accessibility.Internal)
+                return false;
+
             // All the members of the type need to be private/static.  And we can only have fields or methods. that's to
             // ensure that no one else was calling into this type, and that we can convert everything in the type to
             // either locals or local-functions.
             foreach (var member in containingType.GetMembers())
             {
+                // can ignore implicitly declared members as they don't need to be moved over.
+                if (member.IsImplicitlyDeclared)
+                    continue;
+
                 if (member.DeclaredAccessibility != Accessibility.Private)
                     return false;
 
                 if (!member.IsStatic)
                     return false;
 
-                if (member is not IFieldSymbol and not IMethodSymbol)
+                if (member is not IFieldSymbol and not IMethodSymbol { MethodKind: MethodKind.Ordinary })
                     return false;
             }
 

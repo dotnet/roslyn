@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConvertSwitchStatementToExpression = nameof(ConvertSwitchStatementToExpression);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
+        public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
         public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
