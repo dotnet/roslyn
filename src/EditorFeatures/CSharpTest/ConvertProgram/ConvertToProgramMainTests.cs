@@ -81,6 +81,23 @@ internal class Program
         }
 
         [Fact]
+        public async Task NotOfferedWhenSuppressed()
+        {
+            var code = @"
+System.Console.WriteLine(0);
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.None } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task OfferedWhenUserPrefersProgramMainAndTopLevelStatements_Suggestion()
         {
             await new VerifyCS.Test
