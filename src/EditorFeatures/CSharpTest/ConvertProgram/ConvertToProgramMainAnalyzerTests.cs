@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
 {
     using VerifyCS = CSharpCodeFixVerifier<ConvertToProgramMainDiagnosticAnalyzer, ConvertToProgramMainCodeFixProvider>;
 
-    public class ConvertToProgramMainTests
+    public class ConvertToProgramMainAnalyzerTests
     {
         [Fact]
         public async Task NotOfferedWhenUserPrefersTopLevelStatements()

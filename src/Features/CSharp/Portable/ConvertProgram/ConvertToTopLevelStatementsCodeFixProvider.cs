@@ -161,15 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 if (member is FieldDeclarationSyntax fieldDeclaration)
                 {
                     // Convert fields into local statements
-                    var localDeclaration = LocalDeclarationStatement(fieldDeclaration.Declaration)
+                    statements.Add(LocalDeclarationStatement(fieldDeclaration.Declaration)
                         .WithSemicolonToken(fieldDeclaration.SemicolonToken)
-                        .WithTriviaFrom(fieldDeclaration);
-                    statements.Add(localDeclaration);
+                        .WithTriviaFrom(fieldDeclaration));
                 }
                 else if (member is MethodDeclarationSyntax otherMethod)
                 {
                     // convert methods to local functions.
-                    var localFunctionDeclaration = LocalFunctionStatement(
+                    statements.Add(LocalFunctionStatement(
                         attributeLists: default,
                         modifiers: default,
                         returnType: otherMethod.ReturnType,
@@ -178,11 +177,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                         parameterList: otherMethod.ParameterList,
                         constraintClauses: otherMethod.ConstraintClauses,
                         body: otherMethod.Body,
-                        expressionBody: otherMethod.ExpressionBody);
-                    statements.Add(localFunctionDeclaration);
+                        expressionBody: otherMethod.ExpressionBody));
                 }
                 else
                 {
+                    // checked by analyzer
                     throw ExceptionUtilities.Unreachable;
                 }
             }

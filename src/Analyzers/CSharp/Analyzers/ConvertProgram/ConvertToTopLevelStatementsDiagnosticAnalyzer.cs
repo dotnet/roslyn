@@ -122,13 +122,21 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             if (containingType.DeclaredAccessibility != Accessibility.Internal)
                 return false;
 
+            // type can't be converted with attributes.
+            if (typeDeclaration.AttributeLists.Count > 0)
+                return false;
+
+            // can't convert doc comments to top level statements.
+            if (typeDeclaration.GetLeadingTrivia().Any(t => t.IsDocComment()))
+                return false;
+
             // All the members of the type need to be private/static.  And we can only have fields or methods. that's to
             // ensure that no one else was calling into this type, and that we can convert everything in the type to
             // either locals or local-functions.
 
             foreach (var member in typeDeclaration.Members)
             {
-                // can't be converted with attributes.
+                // method can't be converted with attributes.
                 if (member.AttributeLists.Count > 0)
                     return false;
 
@@ -136,15 +144,24 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                 if (member.Modifiers.Any(m => m.Kind() is SyntaxKind.PublicKeyword or SyntaxKind.ProtectedKeyword or SyntaxKind.InternalKeyword))
                     return false;
 
-                if (member.Modifiers.Any(SyntaxKind.StaticKeyword))
+                if (!member.Modifiers.Any(SyntaxKind.StaticKeyword))
                     return false;
 
                 if (member is not FieldDeclarationSyntax and not MethodDeclarationSyntax)
                     return false;
 
-                // if a method, it has to actually have a body so we can convert it to a local function.
-                if (member is MethodDeclarationSyntax { Body: null, ExpressionBody: null })
-                    return false;
+                if (member is MethodDeclarationSyntax methodDeclaration)
+                {
+                    // if a method, it has to actually have a body so we can convert it to a local function.
+                    if (methodDeclaration is { Body: null, ExpressionBody: null })
+                        return false;
+
+                    if (methodDeclaration.ParameterList.Parameters.Count == 1 &&
+                        methodDeclaration.ParameterList.Parameters[0].Identifier.ValueText != "args")
+                    {
+                        return false;
+                    }
+                }
 
                 // can't convert doc comments to top level statements.
                 if (member.GetLeadingTrivia().Any(t => t.IsDocComment()))
