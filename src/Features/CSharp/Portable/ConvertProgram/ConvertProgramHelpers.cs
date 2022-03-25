@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
@@ -67,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var hasExistingPart = programType.DeclaringSyntaxReferences.Any(d => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax);
 
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var method = (MethodDeclarationSyntax)generator.MethodDeclaration(mainMethod, "Main", GetStatements(root));
+            method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
+
             return (ClassDeclarationSyntax)generator.ClassDeclaration(
                 WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 accessibility: accessibilityModifiersRequired ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
@@ -74,8 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 members: new[]
                 {
                     (MemberDeclarationSyntax)generator.WithAccessibility(
-                        generator.MethodDeclaration(mainMethod, "Main", GetStatements(root)),
-                        accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable)
+                        method, accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable)
                 });
         }
 

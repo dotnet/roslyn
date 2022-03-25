@@ -17,6 +17,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
     public class ConvertToProgramMainRefactoringTests
     {
         [Fact]
+        public async Task TestConvertToProgramMainWithDefaultTopLevelStatementPreference()
+        {
+            // default preference is to prefer top level namespaces.  As such, we only offer to convert to the alternative as a refactoring.
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+$$System.Console.WriteLine(0);
+",
+                FixedCode = @"
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestConvertToProgramMainWithTopLevelStatementPreferenceSuggestion()
         {
             // user actually prefers top level statements.  As such, we only offer to convert to the alternative as a refactoring.

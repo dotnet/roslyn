@@ -202,6 +202,33 @@ internal class Program
         }
 
         [Fact]
+        public async Task TestWithAwait()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System;
+
+{|IDE0211:await|} Console.Out.WriteLineAsync();
+",
+                FixedCode = @"
+using System;
+using System.Threading.Tasks;
+
+internal class Program
+{
+    private static async Task Main(string[] args)
+    {
+        await Console.Out.WriteLineAsync();
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestWithAwaitAndNumericReturn()
         {
             await new VerifyCS.Test
@@ -215,10 +242,11 @@ return 0;
 ",
                 FixedCode = @"
 using System;
+using System.Threading.Tasks;
 
 internal class Program
 {
-    private static async System.Threading.Tasks.Task<int> Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         await Console.Out.WriteLineAsync();
 
