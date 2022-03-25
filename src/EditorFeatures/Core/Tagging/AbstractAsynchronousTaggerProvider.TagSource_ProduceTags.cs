@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Ok, add a large delay if none of the documents we're tagging are visible.  We still end up letting
                 // the tagging happen once enough time has passed.  This helps ensure we do always reach a fixed point.
                 var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                await documentTrackingService.DelayIfNonVisibleAsync(
+                await documentTrackingService.DelayWhileNonVisibleAsync(
                     documents!, TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
             }
 
