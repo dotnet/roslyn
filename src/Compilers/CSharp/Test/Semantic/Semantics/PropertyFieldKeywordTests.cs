@@ -112,6 +112,170 @@ public class MyAttribute : System.Attribute
             );
         }
 
+        [Fact]
+        public void TestNameOfField()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return nameof(field);
+        }
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,27): error CS0103: The name 'field' does not exist in the current context
+                //             return nameof(field);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 27)
+            );
+        }
+
+        [Fact]
+        public void TestNameOfField_NameofIsMethodInvocation()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return nameof(field);
+        }
+    }
+
+    public int nameof(int x) => 0;
+}
+");
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 13 (0xd)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldarg.0
+		IL_0002: ldfld int32 C::'<P>k__BackingField'
+		IL_0007: call instance int32 C::nameof(int32)
+		IL_000c: ret
+	} // end of method C::get_P
+	.method public hidebysig 
+		instance int32 nameof (
+			int32 x
+		) cil managed 
+	{
+		// Method begins at RVA 0x205e
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.0
+		IL_0001: ret
+	} // end of method C::nameof
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x2061
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+        }
+
+        [Fact]
+        public void TestNameOfField_NameofIsLocalFunctionInvocation()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public int P
+    {
+        get
+        {
+            return nameof(field);
+
+            int nameof(int x) => 0;
+        }
+    }
+}
+");
+            comp.VerifyDiagnostics();
+            VerifyTypeIL(comp, "C", @"
+.class public auto ansi beforefieldinit C
+	extends [mscorlib]System.Object
+{
+	// Fields
+	.field private initonly int32 '<P>k__BackingField'
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method public hidebysig specialname 
+		instance int32 get_P () cil managed 
+	{
+		// Method begins at RVA 0x2050
+		// Code size 12 (0xc)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: ldfld int32 C::'<P>k__BackingField'
+		IL_0006: call int32 C::'<get_P>g__nameof|1_0'(int32)
+		IL_000b: ret
+	} // end of method C::get_P
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Method begins at RVA 0x205d
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
+		IL_0006: ret
+	} // end of method C::.ctor
+	.method assembly hidebysig static 
+		int32 '<get_P>g__nameof|1_0' (
+			int32 x
+		) cil managed 
+	{
+		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2065
+		// Code size 2 (0x2)
+		.maxstack 8
+		IL_0000: ldc.i4.0
+		IL_0001: ret
+	} // end of method C::'<get_P>g__nameof|1_0'
+	// Properties
+	.property instance int32 P()
+	{
+		.get instance int32 C::get_P()
+	}
+} // end of class C
+");
+        }
+
         [Fact(Skip = "PROTOTYPE(semi-auto-props): Assigning in constructor is not yet supported.")]
         public void TestFieldOnlyGetter()
         {
