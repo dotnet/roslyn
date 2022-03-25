@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     return null;
                 }
 
-                // We are coming from a type pattern, which only binds to types, but converting to
-                // patters which don't behave the same. For example, given:
+                // We are coming from a type pattern, which likes to bind to types, but converting to
+                // patters which like to bind to expressions. For example, given:
                 //
                 // if (T is C.X || T is Y) { }
                 //
@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                 // In the first case the compiler will bind to types named C or Y that are in scope
                 // but in the second it will also bind to a fields, methods etc. which for 'Y' changes
                 // semantics, and for 'C.X' could be a compile error.
-
+                //
+                // So lets create a pattern syntax and make sure the result is the same
                 var dummyStatement = SyntaxFactory.ExpressionStatement(SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
                     SyntaxFactory.IdentifierName("_"),
