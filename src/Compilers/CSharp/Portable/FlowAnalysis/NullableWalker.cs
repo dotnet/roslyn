@@ -669,6 +669,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
+
+                if (symbol.IsRequired())
+                {
+                    return;
+                }
+
                 var annotations = symbol.GetFlowAnalysisAnnotations();
                 if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
                 {
@@ -811,46 +817,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (method.IsConstructor())
                     {
-                        if (needsDefaultInitialStateForMembers())
+                        foreach (var member in getMembersNeedingDefaultInitialState())
                         {
-                            foreach (var member in method.ContainingType.GetMembersUnordered())
+                            if (member.IsStatic != method.IsStatic)
                             {
-                                if (member.IsStatic != method.IsStatic)
-                                {
+                                continue;
+                            }
+
+                            var memberToInitialize = member;
+                            switch (member)
+                            {
+                                case PropertySymbol:
+                                    // skip any manually implemented properties.
                                     continue;
-                                }
-
-                                var memberToInitialize = member;
-                                switch (member)
-                                {
-                                    case PropertySymbol:
-                                        // skip any manually implemented properties.
-                                        continue;
-                                    case FieldSymbol { IsConst: true }:
-                                        continue;
-                                    case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
-                                        // this is a property where assigning 'default' causes us to simply update
-                                        // the state to the output state of the property
-                                        // thus we skip setting an initial state for it here
-                                        if (IsPropertyOutputMoreStrictThanInput(prop))
-                                        {
-                                            continue;
-                                        }
-
-                                        // We want to initialize auto-property state to the default state, but not computed properties.
-                                        memberToInitialize = prop;
-                                        break;
-                                    default:
-                                        break;
-                                }
-                                var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
-                                if (memberSlot > 0)
-                                {
-                                    var type = memberToInitialize.GetTypeOrReturnType();
-                                    if (!type.NullableAnnotation.IsOblivious())
+                                case FieldSymbol { IsConst: true }:
+                                    continue;
+                                case FieldSymbol { AssociatedSymbol: PropertySymbol prop }:
+                                    // this is a property where assigning 'default' causes us to simply update
+                                    // the state to the output state of the property
+                                    // thus we skip setting an initial state for it here
+                                    if (IsPropertyOutputMoreStrictThanInput(prop))
                                     {
-                                        this.State[memberSlot] = type.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
+                                        continue;
                                     }
+
+                                    // We want to initialize auto-property state to the default state, but not computed properties.
+                                    memberToInitialize = prop;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            var memberSlot = getSlotForFieldOrPropertyOrEvent(memberToInitialize);
+                            if (memberSlot > 0)
+                            {
+                                var type = memberToInitialize.GetTypeOrReturnType();
+                                if (!type.NullableAnnotation.IsOblivious())
+                                {
+                                    this.State[memberSlot] = type.Type.IsPossiblyNullableReferenceTypeTypeParameter() ? NullableFlowState.MaybeDefault : NullableFlowState.MaybeNull;
                                 }
                             }
                         }
@@ -868,21 +871,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                bool needsDefaultInitialStateForMembers()
+                ImmutableArray<Symbol> getMembersNeedingDefaultInitialState()
                 {
                     if (_hasInitialState)
                     {
-                        return false;
+                        return ImmutableArray<Symbol>.Empty;
                     }
 
                     // We don't use a default initial state for value type instance constructors without `: this()` because
                     // any usages of uninitialized fields will get definite assignment errors anyway.
-                    if (!method.HasThisConstructorInitializer(out _) && (!method.ContainingType.IsValueType || method.IsStatic))
+                    bool hasConstructorInitializer = method.HasThisConstructorInitializer(out _);
+                    if (!hasConstructorInitializer && (!method.ContainingType.IsValueType || method.IsStatic))
                     {
-                        return true;
+                        return membersToBeInitialized(method.ContainingType, includeAllMembers: true);
                     }
 
-                    return method.IncludeFieldInitializersInBody();
+                    return membersToBeInitialized(method.ContainingType, includeAllMembers: method.IncludeFieldInitializersInBody());
+
+                    static ImmutableArray<Symbol> membersToBeInitialized(NamedTypeSymbol containingType, bool includeAllMembers)
+                    {
+                        var requiredMembers = containingType.AllRequiredMembers;
+                        var members = includeAllMembers ? containingType.GetMembersUnordered() : ImmutableArray<Symbol>.Empty;
+                        if (requiredMembers.IsEmpty)
+                        {
+                            return members;
+                        }
+
+                        var builder = ArrayBuilder<Symbol>.GetInstance(members.Length + requiredMembers.Count);
+                        builder.AddRange(members);
+                        foreach (var (_, requiredMember) in requiredMembers)
+                        {
+                            if (!members.IsEmpty && requiredMember.ContainingType.Equals(containingType, TypeCompareKind.ConsiderEverything))
+                            {
+                                continue;
+                            }
+
+                            // We want to assume that all required members were _not_ set by the chained constructor
+                            builder.Add(requiredMember is SourcePropertySymbol { IsAutoPropertyWithGetAccessor: true } prop ? prop.BackingField : requiredMember);
+                        }
+
+                        return builder.ToImmutableAndFree();
+                    }
                 }
             }
 
