@@ -82,7 +82,8 @@ class Program
     }|}
 }
 ",
-                FixedCode = @"System.Console.WriteLine(0);
+                FixedCode = @"
+System.Console.WriteLine(0);
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -104,7 +105,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"System.Console.WriteLine(0);
+                FixedCode = @"
+System.Console.WriteLine(0);
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -397,7 +399,9 @@ class Program
     }
 }
 ",
-                FixedCode = @"System.Console.WriteLine(0);
+                FixedCode = @"
+// <summary></summary>
+System.Console.WriteLine(0);
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -675,7 +679,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"int x;
+                FixedCode = @"
+int x;
 
 System.Console.WriteLine(0);
 ",
@@ -701,7 +706,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"int x;
+                FixedCode = @"
+int x;
 
 System.Console.WriteLine(0);
 ",
@@ -727,7 +733,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"int x, y;
+                FixedCode = @"
+int x, y;
 
 System.Console.WriteLine(0);
 ",
@@ -753,7 +760,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"int x = 0;
+                FixedCode = @"
+int x = 0;
 
 System.Console.WriteLine(0);
 ",
@@ -780,7 +788,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"// Leading
+                FixedCode = @"
+// Leading
 int x = 0; // Trailing
 
 System.Console.WriteLine(0);
@@ -806,7 +815,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"int x = 0;
+                FixedCode = @"
+int x = 0;
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -831,7 +841,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"int x = 0;
+                FixedCode = @"
+int x = 0;
 
 System.Console.WriteLine(args);
 return;
@@ -863,7 +874,8 @@ class Program
     }
 }
 ",
-                FixedCode = @"int x = 0;
+                FixedCode = @"
+int x = 0;
 
 void OtherMethod()
 {
@@ -941,6 +953,33 @@ async Task OtherMethod<T>(T param) where T : struct
 }
 
 System.Console.WriteLine(args);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestAwaitExpression()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task {|IDE0210:Main|}(string[] args)
+    {
+        await Task.CompletedTask;
+    }
+}
+",
+                FixedCode = @"
+using System.Threading.Tasks;
+
+await Task.CompletedTask;
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                     // convert methods to local functions.
                     statements.Add(LocalFunctionStatement(
                         attributeLists: default,
-                        modifiers: default,
+                        modifiers: TokenList(otherMethod.Modifiers.Where(m => m.Kind() is SyntaxKind.AsyncKeyword)),
                         returnType: otherMethod.ReturnType,
                         identifier: otherMethod.Identifier,
                         typeParameterList: otherMethod.TypeParameterList,
