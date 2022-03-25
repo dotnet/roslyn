@@ -96,8 +96,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
+#pragma warning disable RS0030 // Do not used banned APIs - It is fine to invoke the public FixAllContext constructor here.
             : this(document, diagnosticSpan: null, codeFixProvider, scope,
                   codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken)
+#pragma warning restore RS0030 // Do not used banned APIs
         {
             if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)
             {
