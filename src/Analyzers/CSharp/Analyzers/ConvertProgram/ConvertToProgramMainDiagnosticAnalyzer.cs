@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -46,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
             var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
 
-            // if they prefer top level statements, there's nothing for us to do as this code matches their preference
-            if (option.Value)
+            if (!ConvertProgramAnalysis.CanOfferUseProgramMain(option, forAnalyzer: true))
                 return;
 
             var compilation = context.Compilation;
