@@ -37,28 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
         {
             var options = context.Options;
             var root = (CompilationUnitSyntax)context.Node;
-            var syntaxTree = root.SyntaxTree;
 
-            var cancellationToken = context.CancellationToken;
-
-            if (!HasGlobalStatement(root))
-                return;
-
-            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
+            var optionSet = options.GetAnalyzerOptionSet(root.SyntaxTree, context.CancellationToken);
             var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
 
-            if (!ConvertProgramAnalysis.CanOfferUseProgramMain(option, forAnalyzer: true))
-                return;
-
-            var compilation = context.Compilation;
-
-            // resiliency check for later on.  This shouldn't happen but we don't want to crash if we are in a weird
-            // state where we have top level statements but no 'Program' type.
-            var programType = compilation.GetBestTypeByMetadataName(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
-            if (programType == null)
-                return;
-
-            if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is not IMethodSymbol)
+            if (!ConvertProgramAnalysis.CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))
                 return;
 
             var severity = option.Notification.Severity;
@@ -69,17 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
                 severity,
                 ImmutableArray<Location>.Empty,
                 ImmutableDictionary<string, string?>.Empty));
-        }
-
-        private static bool HasGlobalStatement(CompilationUnitSyntax root)
-        {
-            foreach (var member in root.Members)
-            {
-                if (member.Kind() is SyntaxKind.GlobalStatement)
-                    return true;
-            }
-
-            return false;
         }
 
         private static Location GetDiagnosticLocation(CompilationUnitSyntax root, ReportDiagnostic severity)

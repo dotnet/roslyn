@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -19,7 +20,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 {
     internal static class ConvertProgramAnalysis
     {
-        public static bool CanOfferUseProgramMain(CodeStyleOption2<bool> option, bool forAnalyzer)
+        public static bool CanOfferUseProgramMain(
+            CodeStyleOption2<bool> option,
+            CompilationUnitSyntax root,
+            Compilation compilation,
+            bool forAnalyzer)
+        {
+            if (!HasGlobalStatement(root))
+                return false;
+
+            if (!CanOfferUseProgramMain(option, forAnalyzer))
+                return false;
+
+            // resiliency check for later on.  This shouldn't happen but we don't want to crash if we are in a weird
+            // state where we have top level statements but no 'Program' type.
+            var programType = compilation.GetBestTypeByMetadataName(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
+            if (programType == null)
+                return false;
+
+            if (programType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).FirstOrDefault() is not IMethodSymbol)
+                return false;
+
+            return true;
+        }
+
+        private static bool HasGlobalStatement(CompilationUnitSyntax root)
+        {
+            foreach (var member in root.Members)
+            {
+                if (member.Kind() is SyntaxKind.GlobalStatement)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool CanOfferUseProgramMain(CodeStyleOption2<bool> option, bool forAnalyzer)
         {
             var userPrefersProgramMain = option.Value == false;
             var analyzerDisabled = option.Notification.Severity == ReportDiagnostic.Suppress;
