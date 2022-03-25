@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class ConvertToProgramMainDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed class ConvertToProgramMainDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public ConvertToProgramMainDiagnosticAnalyzer()
             : base(
