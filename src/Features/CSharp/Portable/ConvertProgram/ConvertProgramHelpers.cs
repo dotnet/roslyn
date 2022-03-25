@@ -69,13 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             return (ClassDeclarationSyntax)generator.ClassDeclaration(
                 WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
-                accessibility: accessibilityModifiersRequired ? Accessibility.Internal : Accessibility.NotApplicable,
+                accessibility: accessibilityModifiersRequired ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
                 members: new[]
                 {
                     (MemberDeclarationSyntax)generator.WithAccessibility(
                         generator.MethodDeclaration(mainMethod, "Main", GetStatements(root)),
-                        accessibilityModifiersRequired ? Accessibility.Private : Accessibility.NotApplicable)
+                        accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable)
                 });
         }
 
