@@ -44,6 +44,6 @@ internal readonly struct OmniSharpInlineHint
     public readonly TextSpan Span { get; }
     public readonly ImmutableArray<TaggedText> DisplayParts { get; }
 
-    public Task<ImmutableArray<TaggedText>> GetDescrptionAsync(Document document, CancellationToken cancellationToken)
+    public Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, CancellationToken cancellationToken)
         => _getDescriptionAsync.Invoke(document, cancellationToken);
 }

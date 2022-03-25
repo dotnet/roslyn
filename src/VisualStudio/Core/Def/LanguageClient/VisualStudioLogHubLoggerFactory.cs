@@ -13,10 +13,10 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LogHub;
 using Microsoft.VisualStudio.RpcContracts.Logging;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using StreamJsonRpc;
-using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
@@ -29,14 +29,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         private static int s_logHubSessionId;
 
-        private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
+        private readonly IAsyncServiceProvider _asyncServiceProvider;
+        private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioLogHubLoggerFactory(
-            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
+            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider asyncServiceProvider,
+            IThreadingContext threadingContext)
         {
             _asyncServiceProvider = asyncServiceProvider;
+            _threadingContext = threadingContext;
         }
 
         public async Task<ILspLogger> CreateLoggerAsync(string serverTypeName, string? clientName, JsonRpc jsonRpc, CancellationToken cancellationToken)
@@ -44,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var logName = $"Roslyn.{serverTypeName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
             var logId = new LogId(logName, new ServiceMoniker(typeof(LanguageServerTarget).FullName));
 
-            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_asyncServiceProvider).ConfigureAwait(false);
+            var serviceContainer = await _asyncServiceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
             var service = serviceContainer.GetFullAccessServiceBroker();
 
             var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, ownsServiceBroker: true, cancellationToken).ConfigureAwait(false);

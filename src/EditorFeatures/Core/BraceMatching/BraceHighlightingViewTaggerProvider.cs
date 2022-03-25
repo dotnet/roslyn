@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching
                 return Task.CompletedTask;
             }
 
-            var options = BraceMatchingOptions.From(document.Project);
+            var options = GlobalOptions.GetBraceMatchingOptions(document.Project.Language);
 
             return ProduceTagsAsync(
                 context, document, documentSnapshotSpan.SnapshotSpan.Snapshot, caretPosition.Value, options, cancellationToken);

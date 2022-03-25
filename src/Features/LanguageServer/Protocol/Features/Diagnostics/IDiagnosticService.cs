@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal interface IDiagnosticService
     {
+        IGlobalOptionService GlobalOptions { get; }
+
         /// <summary>
         /// Event to get notified as new diagnostics are discovered by IDiagnosticUpdateSource
         /// 

@@ -4,7 +4,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
+using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool TryFetch(OptionKey optionKey, out object? value)
         {
             value = string.Empty;
-            if (optionKey != new OptionKey(TodoCommentOptions.TokenList))
+            if (optionKey != new OptionKey(TodoCommentOptionsStorage.TokenList))
             {
                 return false;
             }
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             var commentString = GetTaskTokenList(_taskList);
 
-            var optionValue = _globalOptionService.GetOption(TodoCommentOptions.TokenList);
+            var optionValue = _globalOptionService.GetOption(TodoCommentOptionsStorage.TokenList);
             if (optionValue == commentString)
             {
                 return;
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _lastCommentTokenCache = commentString;
 
             // let people to know that comment string has changed
-            _globalOptionService.RefreshOption(new OptionKey(TodoCommentOptions.TokenList), _lastCommentTokenCache);
+            _globalOptionService.RefreshOption(new OptionKey(TodoCommentOptionsStorage.TokenList), _lastCommentTokenCache);
         }
 
         private static string GetTaskTokenList(ITaskList? taskList)

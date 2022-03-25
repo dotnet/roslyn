@@ -1517,10 +1517,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     VisitLocalFunctionUse(localFunc, node.Syntax, isCall: false);
                 }
-                else if (node.MethodOpt is not null && methodGroup.ReceiverOpt is not null)
+                else if (node.MethodOpt is { } method && methodGroup.ReceiverOpt is { } receiver && !ignoreReceiver(receiver, method))
                 {
                     EnterRegionIfNeeded(methodGroup);
-                    VisitRvalue(methodGroup.ReceiverOpt);
+                    VisitRvalue(receiver);
                     LeaveRegionIfNeeded(methodGroup);
                 }
             }
@@ -1530,6 +1530,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+
+            static bool ignoreReceiver(BoundExpression receiver, MethodSymbol method)
+            {
+                // static methods that aren't extensions get an implicit `this` receiver that should be ignored
+                return method.IsStatic && !method.IsExtensionMethod;
+            }
         }
 
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
@@ -3287,15 +3293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode VisitStackAllocArrayCreationBase(BoundStackAllocArrayCreationBase node)
         {
             VisitRvalue(node.Count);
-
-            if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
-            {
-                foreach (var element in node.InitializerOpt.Initializers)
-                {
-                    VisitRvalue(element);
-                }
-            }
-
+            VisitRvalue(node.InitializerOpt);
             return null;
         }
 

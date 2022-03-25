@@ -3170,7 +3170,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Apply language/framework type preferences</value>
   </data>
   <data name="Apply_namespace_matches_folder_preferences" xml:space="preserve">
-    <value>Apply namespace matches folde preferences</value>
+    <value>Apply namespace matches folder preferences</value>
   </data>
   <data name="Apply_null_checking_preferences" xml:space="preserve">
     <value>Apply null checking preferences</value>

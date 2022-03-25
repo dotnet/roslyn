@@ -122,6 +122,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             //
             // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
             // since that's the primary offending persister that needs to be addressed.
+
+            // To help mitigate some of the issues with this hack we first allow implementors to do some work
+            // so they can do MEF part loading before the UI thread switch. This doesn't help with the options
+            // persisters, but at least doesn't make it worse.
+            Activate_OffUIThread();
+
+            // Now switch and do the problematic GetCapabilities call
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             _ = GetCapabilities(new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true });
 
@@ -143,6 +150,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 cancellationToken).ConfigureAwait(false);
 
             return new Connection(clientStream, clientStream);
+        }
+
+        protected virtual void Activate_OffUIThread()
+        {
         }
 
         /// <summary>

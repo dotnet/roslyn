@@ -18,7 +18,14 @@ pr:
   paths:
     exclude:
       - docs/*
+      - .vscode/*
       - .github/*
+      - .devcontainer/*
+      - .git-blame-ignore-revs
+      - .vsconfig
+      - CODE-OF-CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
 
 # Windows Build and Test Jobs
 jobs:
@@ -44,7 +51,7 @@ jobs:
       buildJobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      testArguments: -testDesktop -test32
+      testArguments: -testDesktop -testArch x86
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -53,7 +60,7 @@ jobs:
     buildJobName: Build_Windows_Debug
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
-    testArguments: -testDesktop -test64
+    testArguments: -testDesktop -testArch x64
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -81,7 +88,7 @@ jobs:
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    testArguments: -testDesktop -test32
+    testArguments: -testDesktop -testArch x86
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -90,7 +97,7 @@ jobs:
     buildJobName: Build_Windows_Release
     testArtifactName: Transport_Artifacts_Windows_Release
     configuration: Release
-    testArguments: -testDesktop -test64 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
+    testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
   - template: eng/pipelines/test-windows-job.yml
@@ -100,7 +107,7 @@ jobs:
       buildJobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      testArguments: -testDesktop -test64
+      testArguments: -testDesktop -testArch x64
 
 - template: eng/pipelines/test-windows-job.yml
   parameters:
@@ -119,6 +126,17 @@ jobs:
     testArtifactName: Transport_Artifacts_Windows_Debug
     configuration: Debug
     testArguments: -testCoreClr -testIOperation -testCompilerOnly
+
+# This leg runs almost all the compiler tests supported on CoreCLR, but
+#  with additional validation for used assemblies and GetEmitDiagnostics
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreCLR UsedAssemblies Debug'
+    jobName: Test_Windows_CoreClr_UsedAssemblies_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
 
 # Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml

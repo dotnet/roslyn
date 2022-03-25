@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 // Only place the diagnostics if the diagnostic would not intersect with the editor window
                 if (lineView.Right >= TextView.ViewportWidth - visualElement.DesiredSize.Width)
                 {
+                    graphicsResult.Dispose();
                     continue;
                 }
 

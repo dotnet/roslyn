@@ -9176,6 +9176,46 @@ class C {
             Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
         }
 
+        [Fact, WorkItem(60134, "https://github.com/dotnet/roslyn/issues/60134")]
+        public void TestDataFlowsStackArrayInit_01()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+	public void F(int x)
+	{
+		int a = 1, y = 2;
+		var b = stackalloc int[] /*<bind>*/{ a + x + 3 } /*</bind>*/;
+		int c = a + 4 + y;
+	}
+}
+");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact, WorkItem(60134, "https://github.com/dotnet/roslyn/issues/60134")]
+        public void TestDataFlowsStackArrayInit_02()
+        {
+            var comp = CreateCompilation(@"
+#nullable enable
+unsafe class C
+{
+	void F()
+	{
+        bool b = true;
+		var c = stackalloc int[] { b ? M(out var x) : x };
+	}
+    static int M(out int i) => throw null!;
+}
+", options: TestOptions.UnsafeDebugDll);
+
+            comp.VerifyDiagnostics(
+                // (8,49): error CS0165: Use of unassigned local variable 'x'
+                // 		var c = stackalloc int[] { b ? M(out var x) : x };
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(8, 49)
+                );
+        }
+
         [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
         public void TestDataFlowsOfIdentifierWithDelegateConversion()
         {
@@ -9214,7 +9254,6 @@ internal static class NoExtensionMethods
             Assert.Equal("value", GetSymbolNamesJoined(results.WrittenOutside));
             Assert.Null(GetSymbolNamesJoined(results.UsedLocalFunctions));
         }
-
 
         [Fact]
         public void TestDataFlowsOfIdentifierWithDelegateConversionCast()
@@ -9307,6 +9346,91 @@ static class Extension
                 // (4,42): error CS0165: Use of unassigned local variable 'i'
                 // _ = new Func<string>((b ? M(out var i) : i.ToString()).ExtensionMethod);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(4, 42)
+                );
+        }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentShouldSkipImplicitThisInStaticMethodConversion()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public struct C
+{
+    private object field;
+    public C(Action a)
+    {
+        // implicit `this` receiver should be ignored in definite assignment
+        a = new(M);
+        field = 1;
+    }
+
+    public C(Action a, int ignored)
+    {
+        // implicit `this` receiver should be ignored in definite assignment
+        a = new Action(M);
+        field = 1;
+    }
+
+    public void Method1(Action a)
+    {
+        // explicit `this` disallowed
+        a = new Action(this.M);
+    }
+
+    public void Method2(Action a, C c)
+    {
+        // instance receiver disallowed
+        a = new Action(c.M);
+    }
+
+    private static void M()
+    {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (23,24): error CS0176: Member 'C.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         a = new Action(this.M);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.M").WithArguments("C.M()").WithLocation(23, 24),
+                // (29,24): error CS0176: Member 'C.M()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         a = new Action(c.M);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c.M").WithArguments("C.M()").WithLocation(29, 24)
+                );
+        }
+
+        [Fact, WorkItem(59738, "https://github.com/dotnet/roslyn/issues/59738")]
+        public void DefiniteAssignmentWithExplicitThisInStaticMethodConversion()
+        {
+            var comp = CreateCompilation(@"
+using System;
+public struct C
+{
+    private object field;
+    public void Method1(Action a)
+    {
+        a = new Action(this.M);
+        field = 1;
+    }
+
+    public void Method2(Action a, C c)
+    {
+        a = new Action(c.M);
+    }
+}
+public static class Extension
+{
+    public static void M(this C c)
+    {
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (8,24): error CS1113: Extension method 'Extension.M(C)' defined on value type 'C' cannot be used to create delegates
+                //         a = new Action(this.M);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "this.M").WithArguments("Extension.M(C)", "C").WithLocation(8, 24),
+                // (14,24): error CS1113: Extension method 'Extension.M(C)' defined on value type 'C' cannot be used to create delegates
+                //         a = new Action(c.M);
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.M").WithArguments("Extension.M(C)", "C").WithLocation(14, 24)
                 );
         }
     }

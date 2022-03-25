@@ -12,10 +12,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -24,6 +26,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Nerdbank.Streams;
@@ -483,9 +486,35 @@ namespace Roslyn.Test.Utilities
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
+                InitializeClientRpc();
+            }
+
+            private TestLspServer(
+                TestWorkspace testWorkspace,
+                Dictionary<string, IList<LSP.Location>> locations,
+                LSP.ClientCapabilities clientCapabilities,
+                LanguageServerTarget target,
+                Stream clientStream)
+            {
+                TestWorkspace = testWorkspace;
+                ClientCapabilities = clientCapabilities;
+                _locations = locations;
+
+                _languageServer = target;
+
+                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
+                {
+                    ExceptionStrategy = ExceptionProcessing.ISerializable,
+                };
+
+                InitializeClientRpc();
+            }
+
+            private void InitializeClientRpc()
+            {
                 _clientRpc.StartListening();
 
-                var workspaceWaiter = GetWorkspaceWaiter(testWorkspace);
+                var workspaceWaiter = GetWorkspaceWaiter(TestWorkspace);
                 Assert.False(workspaceWaiter.HasPendingWork);
 
                 // Clear any LSP solutions that were created when the workspace was initialized.
@@ -504,6 +533,19 @@ namespace Roslyn.Test.Utilities
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
                 var server = new TestLspServer(testWorkspace, locations, clientCapabilities, serverKind);
+
+                await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
+                {
+                    Capabilities = clientCapabilities,
+                }, CancellationToken.None);
+
+                return server;
+            }
+
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, LanguageServerTarget target, Stream clientStream)
+            {
+                var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
+                var server = new TestLspServer(testWorkspace, locations, clientCapabilities, target, clientStream);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
@@ -599,6 +641,31 @@ namespace Roslyn.Test.Utilities
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
+
+            internal void InitializeDiagnostics(BackgroundAnalysisScope scope, DiagnosticMode diagnosticMode, TestAnalyzerReferenceByLanguage references)
+            {
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp), scope);
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic), scope);
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript), scope);
+                TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(InternalDiagnosticsOptions.NormalDiagnosticMode), diagnosticMode);
+
+                TestWorkspace.TryApplyChanges(TestWorkspace.CurrentSolution.WithAnalyzerReferences(new[] { references }));
+
+                var registrationService = TestWorkspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
+                registrationService.Register(TestWorkspace);
+
+                var diagnosticService = (DiagnosticService)TestWorkspace.ExportProvider.GetExportedValue<IDiagnosticService>();
+                diagnosticService.Register(new TestHostDiagnosticUpdateSource(TestWorkspace));
+            }
+
+            internal async Task WaitForDiagnosticsAsync()
+            {
+                var listenerProvider = TestWorkspace.GetService<IAsynchronousOperationListenerProvider>();
+
+                await listenerProvider.GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+                await listenerProvider.GetWaiter(FeatureAttribute.SolutionCrawler).ExpeditedWaitAsync();
+                await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).ExpeditedWaitAsync();
+            }
 
             internal RequestExecutionQueue.TestAccessor GetQueueAccessor() => _languageServer.GetTestAccessor().GetQueueAccessor();
 

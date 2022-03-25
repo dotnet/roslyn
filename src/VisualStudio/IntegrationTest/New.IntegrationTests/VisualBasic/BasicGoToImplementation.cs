@@ -61,10 +61,7 @@ End Interface", HangMitigatingCancellationToken);
                     string.Join(Environment.NewLine, results.Select(result => $"{result.GetItemOrigin()?.ToString() ?? "<unknown>"}: {result.GetText()}")));
                 results[0].NavigateTo(isPreview: false, shouldActivate: true);
 
-                // It's not clear why this delay is necessary. Navigation operations are expected to fully complete as part
-                // of one of the above waiters, but GetActiveWindowCaptionAsync appears to return "Program.cs" (the previous
-                // window caption) for a short delay after the above complete.
-                await Task.Delay(2000);
+                await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
 
                 identifierWithCaret = "$$Implementation";
             }

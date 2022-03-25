@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var completionOptions = GetCompletionOptions(document);
+            var completionOptions = GetCompletionOptions(document) with { UpdateImportCompletionCacheInBackground = true };
             var completionService = document.GetRequiredLanguageService<CompletionService>();
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
