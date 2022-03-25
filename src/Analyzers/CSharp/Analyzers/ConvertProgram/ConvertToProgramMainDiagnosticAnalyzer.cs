@@ -48,23 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
-                GetDiagnosticLocation(root, severity),
+                ConvertProgramAnalysis.GetDiagnosticLocation(
+                    root, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                 severity,
                 ImmutableArray<Location>.Empty,
                 ImmutableDictionary<string, string?>.Empty));
-        }
-
-        private static Location GetDiagnosticLocation(CompilationUnitSyntax root, ReportDiagnostic severity)
-        {
-            // if the diagnostic is hidden, show it anywhere from the top of the file through the end of the last global
-            // statement.  That way the user can make the change anywhere in teh top level code.  Otherwise, just put
-            // the diagnostic on the start of the first global statement.
-            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) != ReportDiagnostic.Hidden)
-                return root.Members.OfType<GlobalStatementSyntax>().First().GetFirstToken().GetLocation();
-
-            return Location.Create(
-                root.SyntaxTree,
-                TextSpan.FromBounds(0, root.Members.OfType<GlobalStatementSyntax>().Last().FullSpan.End));
         }
     }
 }

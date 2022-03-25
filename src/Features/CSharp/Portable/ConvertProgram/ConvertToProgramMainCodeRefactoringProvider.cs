@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var position = span.Start;
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            if (!IsValidPosition(root, position))
+            var acceptableLocation = GetDiagnosticLocation(root, isHidden: true);
+            if (!acceptableLocation.SourceSpan.IntersectsWith(position))
                 return;
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -50,12 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             context.RegisterRefactoring(new MyCodeAction(
                 c => ConvertProgramHelpers.ConvertToProgramMainAsync(document, c)));
-        }
-
-        private static bool IsValidPosition(CompilationUnitSyntax compilationUnit, int position)
-        {
-            var lastGlobalStatement = compilationUnit.Members.OfType<GlobalStatementSyntax>().LastOrDefault();
-            return lastGlobalStatement != null && position >= 0 && position < lastGlobalStatement.FullSpan.End;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

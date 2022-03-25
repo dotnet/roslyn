@@ -76,7 +76,6 @@ internal class Program
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
-                TestBehaviors = Testing.TestBehaviors.SkipSuppressionCheck,
             }.RunAsync();
         }
 

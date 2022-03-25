@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -66,6 +67,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
             var canOffer = userPrefersProgramMain == forAnalyzer || (forRefactoring && analyzerDisabled);
             return canOffer;
+        }
+
+        public static Location GetDiagnosticLocation(CompilationUnitSyntax root, bool isHidden)
+        {
+            // if the diagnostic is hidden, show it anywhere from the top of the file through the end of the last global
+            // statement.  That way the user can make the change anywhere in teh top level code.  Otherwise, just put
+            // the diagnostic on the start of the first global statement.
+            if (!isHidden)
+                return root.Members.OfType<GlobalStatementSyntax>().First().GetFirstToken().GetLocation();
+
+            // note: the legal start has to come after any #pragma directives.  We don't want this to be suppressed, but
+            // then have the span of the diagnostic end up outside the suppression.
+            var lastPragma = root.GetFirstToken().LeadingTrivia.LastOrDefault(t => t.Kind() is SyntaxKind.PragmaWarningDirectiveTrivia);
+            var start = lastPragma == default ? 0 : lastPragma.FullSpan.End;
+
+            return Location.Create(
+                root.SyntaxTree,
+                TextSpan.FromBounds(start, root.Members.OfType<GlobalStatementSyntax>().Last().FullSpan.End));
         }
     }
 }
