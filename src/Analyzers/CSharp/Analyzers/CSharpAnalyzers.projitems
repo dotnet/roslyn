@@ -61,6 +61,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\CSharpSimplifyPropertyPatternDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyPropertyPattern\SimplifyPropertyPatternHelpers.cs" />
+    <Compile Include="..\..\..\Analyzers\CSharp\Analyzers\ConvertProgram\ConvertToProgramMainDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\CSharpUseAutoPropertyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />

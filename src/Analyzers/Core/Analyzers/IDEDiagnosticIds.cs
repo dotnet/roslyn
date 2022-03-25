@@ -171,6 +171,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
 
+        public const string UseTopLevelStatementsId = "IDE0210";
+        public const string UseProgramMainId = "IDE0211";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

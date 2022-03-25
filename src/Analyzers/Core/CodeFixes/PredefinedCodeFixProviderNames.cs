@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConsecutiveStatementPlacement = nameof(ConsecutiveStatementPlacement);
         public const string ConstructorInitializerPlacement = nameof(ConstructorInitializerPlacement);
         public const string ConvertNamespace = nameof(ConvertNamespace);
+        public const string ConvertToProgramMain = nameof(ConvertToProgramMain);
         public const string ConvertSwitchStatementToExpression = nameof(ConvertSwitchStatementToExpression);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
