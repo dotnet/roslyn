@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -195,7 +194,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             // Move the trivia on the type itself to the first statement we create.
             if (statements.Count > 0)
+            {
                 statements[0] = statements[0].WithPrependedLeadingTrivia(typeDeclaration.GetLeadingTrivia());
+
+                // If our first statement doesn't have any preceding newlines, then also attempt to take any whitespace
+                // on the namespace we're contained in.  That way we have enough spaces between the first statement and
+                // any using directives.
+                if (!statements[0].GetLeadingTrivia().Any(t => t.Kind() is SyntaxKind.EndOfLineTrivia) &&
+                    typeDeclaration.Parent is NamespaceDeclarationSyntax namespaceDeclaration)
+                {
+                    statements[0] = statements[0].WithPrependedLeadingTrivia(
+                        namespaceDeclaration.GetLeadingTrivia().TakeWhile(t => t.Kind() is SyntaxKind.WhitespaceTrivia or SyntaxKind.EndOfLineTrivia));
+                }
+            }
 
             using var _1 = ArrayBuilder<GlobalStatementSyntax>.GetInstance(out var globalStatements);
             foreach (var statement in statements)

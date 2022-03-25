@@ -986,5 +986,163 @@ await Task.CompletedTask;
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestInNamespaceWithOtherType()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Threading.Tasks;
+
+namespace X.Y
+{
+    class Program
+    {
+        static async Task {|IDE0210:Main|}(string[] args)
+        {
+            await Task.CompletedTask;
+        }
+    }
+
+    class Other
+    {
+    }
+}
+",
+                FixedCode = @"
+using System.Threading.Tasks;
+
+await Task.CompletedTask;
+
+namespace X.Y
+{
+    class Other
+    {
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInNamespaceWithOtherTypeThatIsReferenced()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Threading.Tasks;
+
+namespace X.Y
+{
+    class Program
+    {
+        static void {|IDE0210:Main|}(string[] args)
+        {
+            System.Console.WriteLine(typeof(Other));
+        }
+    }
+
+    class Other
+    {
+    }
+}
+",
+                FixedCode = @"
+using System.Threading.Tasks;
+using X.Y;
+
+System.Console.WriteLine(typeof(Other));
+
+namespace X.Y
+{
+    class Other
+    {
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInNamespaceWithNoOtherTypes()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Threading.Tasks;
+
+namespace X.Y
+{
+    class Program
+    {
+        static void {|IDE0210:Main|}(string[] args)
+        {
+            System.Console.WriteLine();
+        }
+    }
+}
+",
+                FixedCode = @"
+using System.Threading.Tasks;
+
+System.Console.WriteLine();
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestInSingletonNamespaceWithOtherTypeThatIsReferenced()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+using System.Threading.Tasks;
+
+namespace X.Y
+{
+    class Program
+    {
+        static void {|IDE0210:Main|}(string[] args)
+        {
+            System.Console.WriteLine(typeof(Other));
+        }
+    }
+}
+
+namespace X
+{
+    class Other
+    {
+    }
+}
+",
+                FixedCode = @"
+using System.Threading.Tasks;
+using X;
+
+System.Console.WriteLine(typeof(Other));
+
+namespace X
+{
+    class Other
+    {
+    }
+}
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
     }
 }
