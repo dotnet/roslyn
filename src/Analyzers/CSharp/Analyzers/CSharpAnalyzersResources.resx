@@ -362,4 +362,7 @@
     <value>Convert to 'Program.Main' style program</value>
     <comment>{Locked="Program.Main"} this is the C# syntax we are going to generate</comment>
   </data>
+  <data name="Convert_to_top_level_statements" xml:space="preserve">
+    <value>Convert to top-level statements</value>
+  </data>
 </root>

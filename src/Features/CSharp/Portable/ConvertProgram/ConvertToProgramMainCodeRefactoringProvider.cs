@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var position = span.Start;
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            var acceptableLocation = GetDiagnosticLocation(root, isHidden: true);
+            var acceptableLocation = GetUseProgramMainDiagnosticLocation(root, isHidden: true);
             if (!acceptableLocation.SourceSpan.IntersectsWith(position))
                 return;
 

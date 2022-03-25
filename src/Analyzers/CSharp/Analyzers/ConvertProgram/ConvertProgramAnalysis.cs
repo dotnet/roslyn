@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             return canOffer;
         }
 
-        public static Location GetDiagnosticLocation(CompilationUnitSyntax root, bool isHidden)
+        public static Location GetUseProgramMainDiagnosticLocation(CompilationUnitSyntax root, bool isHidden)
         {
             // if the diagnostic is hidden, show it anywhere from the top of the file through the end of the last global
             // statement.  That way the user can make the change anywhere in teh top level code.  Otherwise, just put
@@ -85,6 +85,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             return Location.Create(
                 root.SyntaxTree,
                 TextSpan.FromBounds(start, root.Members.OfType<GlobalStatementSyntax>().Last().FullSpan.End));
+        }
+
+        public static bool CanOfferUseTopLevelStatements(CodeStyleOption2<bool> option, bool forAnalyzer)
+        {
+            var userPrefersTopLevelStatements = option.Value == true;
+            var analyzerDisabled = option.Notification.Severity == ReportDiagnostic.Suppress;
+            var forRefactoring = !forAnalyzer;
+
+            // If the user likes top level statements, then we offer to convert to them from the diagnostic analyzer.
+            // If the user prefers Program.Main then we offer to use top-level-statements from the refactoring provider.
+            // If the analyzer is disabled completely, the refactoring is enabled in both directions.
+            var canOffer = userPrefersTopLevelStatements == forAnalyzer || (forRefactoring && analyzerDisabled);
+            return canOffer;
+        }
+
+        public static Location GetUseTopLevelStatementsDiagnosticLocation(MethodDeclarationSyntax methodDeclaration, bool isHidden)
+        {
+            // if the diagnostic is hidden, show it anywhere on the main method. Otherwise, just put the diagnostic on
+            // the the 'Main' identifier.
+            return isHidden ? methodDeclaration.GetLocation() : methodDeclaration.Identifier.GetLocation();
         }
     }
 }

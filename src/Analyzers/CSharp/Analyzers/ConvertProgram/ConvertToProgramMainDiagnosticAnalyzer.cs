@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
-                ConvertProgramAnalysis.GetDiagnosticLocation(
+                ConvertProgramAnalysis.GetUseProgramMainDiagnosticLocation(
                     root, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                 severity,
                 ImmutableArray<Location>.Empty,
