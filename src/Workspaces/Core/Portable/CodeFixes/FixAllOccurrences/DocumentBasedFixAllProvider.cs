@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ImmutableArray<FixAllScope> _supportedFixAllScopes;
 
         protected DocumentBasedFixAllProvider()
+            : this(DefaultSupportedFixAllScopes)
         {
-            _supportedFixAllScopes = base.GetSupportedFixAllScopes().ToImmutableArray();
         }
 
         protected DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> supportedFixAllScopes)

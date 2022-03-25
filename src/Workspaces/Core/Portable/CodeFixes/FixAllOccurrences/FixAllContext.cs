@@ -252,16 +252,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            Task<IEnumerable<Diagnostic>>? getDiagnosticsTask;
-            if (State.DiagnosticProvider is FixAllContext.SpanBasedDiagnosticProvider spanBasedDiagnosticProvider)
-            {
-                getDiagnosticsTask = spanBasedDiagnosticProvider.GetDocumentSpanDiagnosticsAsync(document, filterSpan, this.CancellationToken);
-            }
-            else
-            {
-                getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
-            }
-
+            var getDiagnosticsTask = State.DiagnosticProvider is FixAllContext.SpanBasedDiagnosticProvider spanBasedDiagnosticProvider
+                ? spanBasedDiagnosticProvider.GetDocumentSpanDiagnosticsAsync(document, filterSpan, this.CancellationToken)
+                : State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
             return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds, filterSpan).ConfigureAwait(false);
         }
 
