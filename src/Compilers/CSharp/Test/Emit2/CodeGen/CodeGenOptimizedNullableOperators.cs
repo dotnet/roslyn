@@ -98,5 +98,46 @@ public class C
 }
 ");
         }
+
+        [Fact]
+        public void TestComparisonTupleContainingNullable()
+        {
+            var code = @"
+public class C
+{
+    public bool M((int?, int) x)
+    {
+        return x == (40, 41);
+    }
+}
+";
+            CompileAndVerify(code).VerifyDiagnostics().VerifyIL("C.M", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (System.ValueTuple<int?, int> V_0,
+                int? V_1,
+                int V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int? System.ValueTuple<int?, int>.Item1""
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.s   40
+  IL_000b:  stloc.2
+  IL_000c:  ldloca.s   V_1
+  IL_000e:  call       ""int int?.GetValueOrDefault()""
+  IL_0013:  ldloc.2
+  IL_0014:  bne.un.s   IL_0021
+  IL_0016:  ldloc.0
+  IL_0017:  ldfld      ""int System.ValueTuple<int?, int>.Item2""
+  IL_001c:  ldc.i4.s   41
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
+        }
     }
 }
