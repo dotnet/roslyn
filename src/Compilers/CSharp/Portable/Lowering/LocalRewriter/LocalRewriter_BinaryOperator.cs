@@ -956,8 +956,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression callX_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempX);
             BoundExpression callY_GetValueOrDefault = MakeOptimizedGetValueOrDefault(syntax, boundTempY);
-            BoundExpression callX_HasValue = MakeOptimizedHasValue(syntax, boundTempX);
-            BoundExpression callY_HasValue = MakeOptimizedHasValue(syntax, boundTempY);
 
             BinaryOperatorKind leftOperator;
             BinaryOperatorKind rightOperator;
@@ -988,26 +986,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method: null,
                 constrainedToTypeOpt: null);
 
-            // (tempx.HasValue OP tempy.HasValue)
-            BoundExpression rightExpression = MakeBinaryOperator(
-                syntax: syntax,
-                operatorKind: rightOperator,
-                loweredLeft: callX_HasValue,
-                loweredRight: callY_HasValue,
-                type: boolType,
-                method: null,
-                constrainedToTypeOpt: null);
+            var canOmitHasValueCheck = yNonNull is { ConstantValue.IsDefaultValue: false } || xNonNull is { ConstantValue.IsDefaultValue: false };
 
             // result = (tempx.GetValueOrDefault() OP tempy.GetValueOrDefault()) &
             //          (tempx.HasValue OP tempy.HasValue)
-            BoundExpression binaryExpression = MakeBinaryOperator(
-                syntax: syntax,
-                operatorKind: BinaryOperatorKind.BoolAnd,
-                loweredLeft: leftExpression,
-                loweredRight: rightExpression,
-                type: boolType,
-                method: null,
-                constrainedToTypeOpt: null);
+            BoundExpression binaryExpression;
+            if (canOmitHasValueCheck)
+            {
+                binaryExpression = leftExpression;
+            }
+            else
+            {
+                BoundExpression callX_HasValue = MakeOptimizedHasValue(syntax, boundTempX);
+                BoundExpression callY_HasValue = MakeOptimizedHasValue(syntax, boundTempY);
+
+                // (tempx.HasValue OP tempy.HasValue)
+                BoundExpression rightExpression = MakeBinaryOperator(
+                    syntax: syntax,
+                    operatorKind: rightOperator,
+                    loweredLeft: callX_HasValue,
+                    loweredRight: callY_HasValue,
+                    type: boolType,
+                    method: null,
+                    constrainedToTypeOpt: null);
+
+                binaryExpression = MakeBinaryOperator(
+                    syntax: syntax,
+                    operatorKind: BinaryOperatorKind.BoolAnd,
+                    loweredLeft: leftExpression,
+                    loweredRight: rightExpression,
+                    type: boolType,
+                    method: null,
+                    constrainedToTypeOpt: null);
+            }
+
 
             // result = !((tempx.GetValueOrDefault() == tempy.GetValueOrDefault()) &
             //            (tempx.HasValue == tempy.HasValue));
