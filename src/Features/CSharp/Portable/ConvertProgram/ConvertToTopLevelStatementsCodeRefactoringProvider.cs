@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var option = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
-            if (CanOfferUseTopLevelStatements(option, forAnalyzer: false))
+            if (!CanOfferUseTopLevelStatements(option, forAnalyzer: false))
                 return;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
