@@ -62,28 +62,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            // Respect user settings on if they want explicit or implicit accessibility modifiers.
             var option = options.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers);
             var accessibilityModifiersRequired = option.Value is AccessibilityModifiersRequired.ForNonInterfaceMembers or AccessibilityModifiersRequired.Always;
 
+            var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // See if we have an existing part in another file.  If so, we'll have to generate our declaration as partial.
             var hasExistingPart = programType.DeclaringSyntaxReferences.Any(d => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax);
 
-            var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var method = (MethodDeclarationSyntax)generator.MethodDeclaration(mainMethod, "Main", GenerateProgramMainStatements(root));
+            var method = (MethodDeclarationSyntax)generator.MethodDeclaration(
+                mainMethod, WellKnownMemberNames.EntryPointMethodName, GenerateProgramMainStatements(root));
             method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
+            method = (MethodDeclarationSyntax)generator.WithAccessibility(
+                method, accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
 
             return (ClassDeclarationSyntax)generator.ClassDeclaration(
                 WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 accessibility: accessibilityModifiersRequired ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
-                members: new[]
-                {
-                    (MemberDeclarationSyntax)generator.WithAccessibility(
-                        method, accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable)
-                });
+                members: new[] { method });
         }
 
         private static ImmutableArray<StatementSyntax> GenerateProgramMainStatements(CompilationUnitSyntax root)

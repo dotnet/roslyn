@@ -405,6 +405,9 @@ dotnet_diagnostic.IDE0100.severity = %value%
 # IDE0150
 dotnet_diagnostic.IDE0150.severity = %value%
 
+# IDE0210
+dotnet_diagnostic.IDE0210.severity = %value%
+
 # IDE0211
 dotnet_diagnostic.IDE0211.severity = %value%
 
@@ -1039,6 +1042,9 @@ csharp_style_prefer_parameter_null_checking = true
 
 # IDE0200, PreferMethodGroupConversion
 csharp_style_prefer_method_group_conversion = true
+
+# IDE0210, PreferTopLevelStatements
+csharp_style_prefer_top_level_statements = true
 
 # IDE0211, PreferTopLevelStatements
 csharp_style_prefer_top_level_statements = true
