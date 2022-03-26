@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
@@ -31,6 +32,11 @@ $$
                 FixedCode = code,
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
+                ExpectedDiagnostics =
+                {
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    DiagnosticResult.CompilerError("CS5001"),
+                }
             }.RunAsync();
         }
 
@@ -73,7 +79,7 @@ class Program
 }
 ",
                 FixedCode = @"
-System.Console.WriteLine(0);
+System.Console.WriteLine(args[0]);
 ",
                 LanguageVersion = LanguageVersion.CSharp10,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
@@ -131,6 +137,11 @@ class Program
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+                },
+                ExpectedDiagnostics =
+                {
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    DiagnosticResult.CompilerError("CS5001"),
                 }
             }.RunAsync();
         }
