@@ -85,6 +85,31 @@ System.Console.WriteLine(0);
         }
 
         [Fact]
+        public async Task TestNotOfferedInLibrary()
+        {
+            var code = @"
+class Program
+{
+    static void $$Main(string[] args)
+    {
+        System.Console.WriteLine(args[0]);
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestNotWithNonViableType()
         {
             var code = @"

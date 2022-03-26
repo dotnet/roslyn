@@ -80,6 +80,22 @@ internal class Program
         }
 
         [Fact]
+        public async Task NotOfferedInLibrary()
+        {
+            var code = @"
+{|CS8805:System.Console.WriteLine(0);|}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task NotOfferedWhenSuppressed()
         {
             var code = @"

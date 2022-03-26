@@ -115,6 +115,28 @@ System.Console.WriteLine(0);
         }
 
         [Fact]
+        public async Task NotOfferedInLibrary()
+        {
+            var code = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(0);
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task OfferedOnNameWhenNotHidden()
         {
             await new VerifyCS.Test

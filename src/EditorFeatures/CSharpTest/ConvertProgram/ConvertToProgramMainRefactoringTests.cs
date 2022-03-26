@@ -83,6 +83,20 @@ internal class Program
         }
 
         [Fact]
+        public async Task TestNotOfferedInLibrary()
+        {
+            var code = @"
+$${|CS8805:System.Console.WriteLine(0);|}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestConvertToProgramMainWithTopLevelStatementPreferenceSuggestion()
         {
             // user actually prefers top level statements.  As such, we only offer to convert to the alternative as a refactoring.
