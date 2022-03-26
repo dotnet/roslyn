@@ -1173,6 +1173,8 @@ tryAgain:
 
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
+            bool alreadyHadAsyncModifier = false;
+
             while (true)
             {
                 var newMod = GetModifier(this.CurrentToken);
@@ -1244,10 +1246,12 @@ tryAgain:
                         }
 
                     case DeclarationModifiers.Async:
-                        if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false, alreadyHadAsyncModifier: alreadyHadAsyncModifier))
                         {
                             return;
                         }
+
+                        alreadyHadAsyncModifier = true;
 
                         modTok = ConvertToKeyword(this.EatToken());
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
@@ -1281,7 +1285,7 @@ tryAgain:
             }
         }
 
-        private bool ShouldAsyncBeTreatedAsModifier(bool parsingStatementNotDeclaration)
+        private bool ShouldAsyncBeTreatedAsModifier(bool parsingStatementNotDeclaration, bool alreadyHadAsyncModifier = false)
         {
             Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
 
@@ -1291,6 +1295,20 @@ tryAgain:
             {
                 // If the next token is a (non-contextual) modifier keyword, then this token is
                 // definitely the async keyword
+                return true;
+            }
+
+            if (!alreadyHadAsyncModifier &&
+                PeekToken(1).Kind is SyntaxKind.CloseBraceToken or SyntaxKind.EndOfFileToken)
+            {
+                // Treate single 'async' before closing brace or end of file as modifier, e.g.:
+                //
+                // class Test
+                // {
+                //     async
+                // }
+                //
+                // This is preffered in the vast majority of cases for modern C#
                 return true;
             }
 

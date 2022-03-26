@@ -348,6 +348,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(60339, "https://github.com/dotnet/roslyn/issues/60339")]
         public void IncompleteAsync()
         {
             UsingTree(@"
@@ -364,10 +365,7 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken);
-                        }
+                        N(SyntaxKind.AsyncKeyword);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
