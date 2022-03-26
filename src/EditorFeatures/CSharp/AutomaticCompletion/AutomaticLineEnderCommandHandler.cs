@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             //
             // Step 3. Add semicolon if needed
             // e.g. var c = new Bar() => var c = new Bar();
-            if (selectedNode is ObjectCreationExpressionSyntax objectCreationExpressionNode)
+            if (selectedNode is BaseObjectCreationExpressionSyntax objectCreationExpressionNode)
             {
                 var (newNode, oldNode) = ModifyObjectCreationExpressionNode(objectCreationExpressionNode, addOrRemoveInitializer: false, documentOptions);
                 var newRoot = ReplaceNodeAndFormat(

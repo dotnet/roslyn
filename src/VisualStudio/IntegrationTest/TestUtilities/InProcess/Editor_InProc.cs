@@ -341,9 +341,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
         {
-            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            return JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();

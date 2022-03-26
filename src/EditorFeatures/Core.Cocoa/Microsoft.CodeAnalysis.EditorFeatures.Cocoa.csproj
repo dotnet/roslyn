@@ -1,7 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <!-- This should really be net6.0-macos. See notes on Microsoft.macOS.Ref
+         below, and https://github.com/dotnet/roslyn/issues/60078 . -->
+    <TargetFramework>net6.0</TargetFramework>
     <DefineConstants>$(DefineConstants);COCOA</DefineConstants>
+    <!-- https://github.com/xamarin/xamarin-macios/issues/14331 -->
+    <EnableDefaultmacOSItems>false</EnableDefaultmacOSItems>
+
+    <!-- CA1416 can go away when we target net6.0-macos -->
+    <NoWarn>$(NoWarn);NU1701;CA1416;CS8601;CS8618;CS8622</NoWarn>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -30,19 +37,34 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />    
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Cocoa" Version="$(MicrosoftVisualStudioTextUICocoaVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
-
-    <PackageReference Include="XamarinMac" Version="$(XamarinMacVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+
+    <!-- This project should target net6.0-macos, but due to repeated issues
+         provisioning the macos workload on Windows (generally hitting signature
+         validation errors on workload dependencies), we are instead manually
+         referencing what we need out of the macos SDK. -->
+    <PackageDownload Include="Microsoft.macOS.Ref" Version="[$(MicrosoftmacOSRefVersion)]" />
+    <Reference Include="$(NuGetPackageRoot)microsoft.macos.ref\$(MicrosoftmacOSRefVersion)\ref\net6.0\Xamarin.Mac.dll" />
+
+    <!-- There are net6.0-macos packages. Manually referencing them for the same
+         reason. There is no dependency resolution here so must manually list
+         WindowsBase and PresentationCore. -->
+    <PackageDownload Include="Microsoft.VisualStudio.FPF.PresentationFramework" Version="[$(MicrosoftVisualStudioFPFPresentationFrameworkVersion)]" />
+    <Reference Include="$(NuGetPackageRoot)microsoft.visualstudio.fpf.presentationframework\$(MicrosoftVisualStudioFPFPresentationFrameworkVersion)\lib\net6.0-macos10.15\PresentationFramework.dll" />
+    <PackageDownload Include="Microsoft.VisualStudio.FPF.PresentationCore" Version="[$(MicrosoftVisualStudioFPFPresentationCoreVersion)]" />
+    <Reference Include="$(NuGetPackageRoot)microsoft.visualstudio.fpf.presentationcore\$(MicrosoftVisualStudioFPFPresentationCoreVersion)\lib\net6.0-macos10.15\PresentationCore.dll" />
+    <PackageDownload Include="Microsoft.VisualStudio.FPF.WindowsBase" Version="[$(MicrosoftVisualStudioFPFWindowsBaseVersion)]" />
+    <Reference Include="$(NuGetPackageRoot)microsoft.visualstudio.fpf.windowsbase\$(MicrosoftVisualStudioFPFWindowsBaseVersion)\lib\net6.0-macos10.15\WindowsBase.dll" />
+    <PackageDownload Include="Microsoft.VisualStudio.Text.UI.Cocoa" Version="[$(MicrosoftVisualStudioTextUICocoaVersion)]" />
+    <Reference Include="$(NuGetPackageRoot)microsoft.visualstudio.text.ui.cocoa\$(MicrosoftVisualStudioTextUICocoaVersion)\lib\net6.0-macos10.15\Microsoft.VisualStudio.Text.UI.Cocoa.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,4 +84,13 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
   </ItemGroup>
+
+  <!-- Turn off windows dependency check. Microsoft.VisualStudio.Language.Intellisense
+       is still a net472 package with WPF dependencies. -->
+  <Target Name="IgnoreWindowsReferenceError" BeforeTargets="_CheckForTransitiveWindowsDesktopDependencies">
+    <ItemGroup>
+      <TransitiveFrameworkReference Remove="Microsoft.WindowsDesktop.App" />
+      <TransitiveFrameworkReference Remove="Microsoft.WindowsDesktop.App.WPF" />
+    </ItemGroup>
+  </Target>
 </Project>

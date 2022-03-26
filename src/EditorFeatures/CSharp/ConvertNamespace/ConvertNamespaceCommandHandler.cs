@@ -151,8 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             if (!ConvertNamespaceAnalysis.CanOfferUseFileScoped(s_optionSet, root, namespaceDecl, forAnalyzer: true, LanguageVersion.CSharp10))
                 return default;
 
-            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-            var (converted, semicolonSpan) = ConvertNamespaceTransform.ConvertNamespaceDeclarationAsync(document, namespaceDecl, formattingOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+            var (converted, semicolonSpan) = ConvertNamespaceTransform.ConvertNamespaceDeclarationAsync(document, namespaceDecl, cancellationToken).WaitAndGetResult(cancellationToken);
             var text = converted.GetTextSynchronously(cancellationToken);
             return (text, semicolonSpan);
         }

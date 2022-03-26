@@ -157,10 +157,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return;
                 }
 
-                // we might not have compilationWithAnalyzers even if project supports compilation if we are called with no analyzers. 
-                var compilation = compilationWithAnalyzers?.Compilation ??
-                    (project.SupportsCompilation ? await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false) : null);
-
                 // no cancellation after this point.
                 // any analyzer that doesn't have result will be treated as returned empty set
                 // which means we will remove those from error list
