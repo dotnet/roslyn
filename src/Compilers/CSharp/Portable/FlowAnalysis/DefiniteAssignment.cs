@@ -1235,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var associatedSymbol = fieldSymbol.AssociatedSymbol;
                 var hasAssociatedProperty = associatedSymbol?.Kind == SymbolKind.Property;
-                var symbolName = associatedSymbol?.Kind == SymbolKind.Property ? associatedSymbol.Name : fieldSymbol.Name;
+                var symbolName = hasAssociatedProperty ? associatedSymbol.Name : fieldSymbol.Name;
                 if (CurrentSymbol is not MethodSymbol { MethodKind: MethodKind.Constructor, ContainingType.TypeKind: TypeKind.Struct })
                 {
                     Diagnostics.Add(hasAssociatedProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField, node.Location, symbolName);
@@ -1245,17 +1245,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var thisSlot = GetOrCreateSlot(CurrentSymbol.EnclosingThisSymbol());
                 while (true)
                 {
-                    var containingSlot = variableBySlot[fieldSlot].ContainingSlot;
-                    if (containingSlot == fieldSlot)
+                    if (fieldSlot == 0)
                     {
                         // the offending field access is not contained in 'this'.
                         Diagnostics.Add(hasAssociatedProperty ? ErrorCode.ERR_UseDefViolationProperty : ErrorCode.ERR_UseDefViolationField, node.Location, symbolName);
                         return;
                     }
-                    else if (containingSlot == thisSlot)
+
+                    var fieldIdentifier = variableBySlot[fieldSlot];
+                    var containingSlot = fieldIdentifier.ContainingSlot;
+                    if (containingSlot == thisSlot)
                     {
                         // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
-                        AddImplicitlyInitializedField((FieldSymbol)variableBySlot[fieldSlot].Symbol);
+                        AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
 
                         if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                         {
@@ -1274,10 +1276,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return;
                     }
-                    else
-                    {
-                        fieldSlot = containingSlot;
-                    }
+
+                    fieldSlot = containingSlot;
                 }
             }
         }
