@@ -12,6 +12,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Xunit;
 
@@ -7119,9 +7120,9 @@ class Program
         }
 
         [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
-        public void TypeParameterScope_NotInMethodAttributeNameOf()
+        public void TypeParameterScope_InMethodAttributeNameOf()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     void M()
@@ -7140,7 +7141,8 @@ public class MyAttribute : System.Attribute
 {
     public MyAttribute(string name1) { }
 }
-");
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (8,20): error CS0103: The name 'TParameter' does not exist in the current context
                 //         [My(nameof(TParameter))] // 1
@@ -7152,24 +7154,167 @@ public class MyAttribute : System.Attribute
 
             VerifyTParameter(comp, 0, null);
             VerifyTParameter(comp, 1, null);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "void local<TParameter>()");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InMethodAttributeNameOf_SpeculatingWithNewAttribute()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        local<object>();
+
+        //[My(nameof(TParameter))]
+        void local<TParameter>() { }
+    }
+
+    //[My(nameof(TParameter))]
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            // C# 10
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var parentModel = comp.GetSemanticModel(tree);
+            // Note: offset by one to the left to get away from return type
+            var localFuncPosition = tree.GetText().ToString().IndexOf("void local<TParameter>()", StringComparison.Ordinal) - 1;
+            var methodPosition = tree.GetText().ToString().IndexOf("void M2<TParameter>()", StringComparison.Ordinal) - 1;
+
+            var attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.Regular10);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            // C# 11
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+            tree = comp.SyntaxTrees.Single();
+            parentModel = comp.GetSemanticModel(tree);
+            localFuncPosition = tree.GetText().ToString().IndexOf("void local<TParameter>()", StringComparison.Ordinal) - 1;
+            methodPosition = tree.GetText().ToString().IndexOf("void M2<TParameter>()", StringComparison.Ordinal) - 1;
+
+            attr = parseAttributeSyntax("[My(nameof(TParameter))]", TestOptions.RegularNext);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            attr = parseAttributeSyntax("[My(TParameter)]", TestOptions.RegularNext);
+            VerifyTParameterSpeculation(parentModel, localFuncPosition, attr, found: false);
+            VerifyTParameterSpeculation(parentModel, methodPosition, attr, found: false);
+
+            return;
+
+            // Note: this results in an attribute on a method, but that doesn't bring any extra type parameters
+            static AttributeSyntax parseAttributeSyntax(string source, CSharpParseOptions parseOptions)
+                => SyntaxFactory.ParseCompilationUnit($@"class X {{ {source} void M() {{ }} }}", options: parseOptions).DescendantNodes().OfType<AttributeSyntax>().Single();
+        }
+
+        static void VerifyTParameterSpeculation(SemanticModel parentModel, int localFuncPosition, AttributeSyntax attr1, bool found = true)
+        {
+            SemanticModel speculativeModel;
+            var success = parentModel.TryGetSpeculativeSemanticModel(localFuncPosition, attr1, out speculativeModel);
+            Assert.True(success);
+            Assert.NotNull(speculativeModel);
+
+            var symbolInfo = speculativeModel.GetSymbolInfo(getTParameter(attr1));
+            if (found)
+            {
+                Assert.Equal(SymbolKind.TypeParameter, symbolInfo.Symbol.Kind);
+            }
+            else
+            {
+                Assert.Null(symbolInfo.Symbol);
+            }
+            return;
+
+            static IdentifierNameSyntax getTParameter(CSharpSyntaxNode node)
+            {
+                return node.DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ValueText == "TParameter").Single();
+            }
+        }
+
+        [Fact, WorkItem(59775, "https://github.com/dotnet/roslyn/issues/59775")]
+        [WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
+        public void TypeParameterScope_InMethodAttributeNameOf_CompatBreak()
+        {
+            var source = @"
+class C
+{
+    class TParameter
+    {
+        public const string Constant = """";
+    }
+
+    void M()
+    {
+        local<object>();
+
+        [My(nameof(TParameter.Constant))] // 1
+        void local<TParameter>() { }
+    }
+
+    [My(nameof(TParameter.Constant))] // 2
+    void M2<TParameter>() { }
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "C.TParameter");
+            VerifyTParameter(comp, 1, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "C.TParameter");
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics(
+                // (13,20): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                //         [My(nameof(TParameter.Constant))] // 1
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(13, 20),
+                // (17,16): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                //     [My(nameof(TParameter.Constant))] // 2
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(17, 16)
+                );
+
+            VerifyTParameter(comp, 0, "void local<TParameter>()");
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
         /// <summary>
         /// Look for usages of "TParameter" and verify the index-th one.
         /// </summary>
-        private void VerifyTParameter(CSharpCompilation comp, int index, string expectedMethod, bool findAnyways = false, bool lookupFailsAnyways = false)
+        private void VerifyTParameter(CSharpCompilation comp, int index, string expectedContainer, bool findAnyways = false, string lookupFinds = "TParameter", SymbolKind symbolKind = SymbolKind.TypeParameter)
         {
-            var tree = comp.SyntaxTrees.Single();
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var tParameterUsages = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
                 .Where(i => i.Identifier.ValueText == "TParameter")
-                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute) || a.IsKind(SyntaxKind.TypeConstraint) || a.IsKind(SyntaxKind.DefaultExpression) || a.IsKind(SyntaxKind.InvocationExpression)))
+                .Where(i => i.Ancestors().Any(a => a.Kind() is SyntaxKind.Attribute or SyntaxKind.TypeConstraint or SyntaxKind.DefaultExpression or SyntaxKind.InvocationExpression or SyntaxKind.EqualsValueClause))
                 .ToArray();
 
             var tParameterUsage = tParameterUsages[index];
 
             var symbol = model.GetSymbolInfo(tParameterUsage).Symbol;
-            if (expectedMethod is null)
+            if (expectedContainer is null)
             {
                 Assert.Null(symbol);
 
@@ -7189,9 +7334,15 @@ public class MyAttribute : System.Attribute
             }
             else
             {
-                Assert.Equal(expectedMethod, symbol.ContainingSymbol.ToTestDisplayString());
-                Assert.Equal(SymbolKind.TypeParameter, model.GetTypeInfo(tParameterUsage).Type.Kind);
-                Assert.Equal(!lookupFailsAnyways, model.LookupSymbols(tParameterUsage.Position).ToTestDisplayStrings().Contains("TParameter"));
+                Assert.Equal(expectedContainer, symbol.ContainingSymbol.ToTestDisplayString());
+                Assert.Equal(symbolKind, model.GetTypeInfo(tParameterUsage).Type.Kind);
+
+                var lookupResults = model.LookupSymbols(tParameterUsage.Position).ToTestDisplayStrings();
+                Assert.Contains(lookupFinds, lookupResults);
+                if (lookupFinds != "TParameter")
+                {
+                    Assert.DoesNotContain("TParameter", lookupResults);
+                }
             }
         }
 
@@ -7375,7 +7526,42 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact]
+        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
+        public void TypeParameterScope_NotInParameterAttribute_NotShadowingConst()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    const string TParameter = """";
+
+    void M()
+    {
+        local<object>(0);
+
+        void local<TParameter>([My(TParameter)] int i) => throw null;
+    }
+
+    void M2<TParameter>([My(TParameter)] int i) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            // TParameter unexpectedly was found in local function case because of IsInMethodBody logic
+            // Tracked by https://github.com/dotnet/roslyn/issues/60110
+            comp.VerifyDiagnostics(
+                // (10,36): error CS0119: 'TParameter' is a type, which is not valid in the given context
+                //         void local<TParameter>([My(TParameter)] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type").WithLocation(10, 36)
+                );
+
+            //VerifyTParameter(comp, 0, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "System.String C.TParameter");
+            VerifyTParameter(comp, 1, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "System.String C.TParameter");
+        }
+
+        [Fact, WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
         public void TypeParameterScope_InParameterAttributeNameOf()
         {
             var comp = CreateCompilation(@"
@@ -7399,9 +7585,7 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
 
             VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
-            // LookupSymbols fails to find TParameter
-            // Tracked by https://github.com/dotnet/roslyn/issues/60194
-            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)", lookupFailsAnyways: true);
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)");
         }
 
         [Fact]
@@ -7422,16 +7606,16 @@ class C
 
 public class MyAttribute : System.Attribute
 {
-    public MyAttribute(string name1) { }
+    public MyAttribute(System.Type type) { }
 }
 ");
             comp.VerifyDiagnostics(
-                // (8,36): error CS1503: Argument 1: cannot convert from 'System.Type' to 'string'
-                //         void local<TParameter>([My(typeof(TParameter))] int i) => throw null;
-                Diagnostic(ErrorCode.ERR_BadArgType, "typeof(TParameter)").WithArguments("1", "System.Type", "string").WithLocation(8, 36),
-                // (11,29): error CS1503: Argument 1: cannot convert from 'System.Type' to 'string'
-                //     void M2<TParameter>([My(typeof(TParameter))] int i) => throw null;
-                Diagnostic(ErrorCode.ERR_BadArgType, "typeof(TParameter)").WithArguments("1", "System.Type", "string").WithLocation(11, 29)
+                    // (8,36): error CS0416: 'TParameter': an attribute argument cannot use type parameters
+                    //         void local<TParameter>([My(typeof(TParameter))] int i) => throw null;
+                    Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(TParameter)").WithArguments("TParameter").WithLocation(8, 36),
+                    // (11,29): error CS0416: 'TParameter': an attribute argument cannot use type parameters
+                    //     void M2<TParameter>([My(typeof(TParameter))] int i) => throw null;
+                    Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(TParameter)").WithArguments("TParameter").WithLocation(11, 29)
                 );
 
             VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
@@ -7446,12 +7630,12 @@ class C
 {
     void M()
     {
-        local<object>(0);
+        local<int>(0);
 
-        void local<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+        void local<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
     }
 
-    void M2<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+    void M2<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
 }
 
 public class MyAttribute : System.Attribute
@@ -7460,17 +7644,11 @@ public class MyAttribute : System.Attribute
 }
 ");
             comp.VerifyDiagnostics(
-                // (8,36): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('TParameter')
-                //         void local<TParameter>([My(sizeof(TParameter))] int i) => throw null;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(8, 36),
                 // (8,36): error CS0233: 'TParameter' does not have a predefined size, therefore sizeof can only be used in an unsafe context
-                //         void local<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+                //         void local<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(8, 36),
-                // (11,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('TParameter')
-                //     void M2<TParameter>([My(sizeof(TParameter))] int i) => throw null;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(11, 29),
                 // (11,29): error CS0233: 'TParameter' does not have a predefined size, therefore sizeof can only be used in an unsafe context
-                //     void M2<TParameter>([My(sizeof(TParameter))] int i) => throw null;
+                //     void M2<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(TParameter)").WithArguments("TParameter").WithLocation(11, 29)
                 );
 
@@ -7506,7 +7684,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_NotAsParameterAttributeType()
+        public void TypeParameterScope_AsParameterAttributeType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7635,7 +7813,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact]
+        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
         public void TypeParameterScope_NotInTypeParameterAttribute()
         {
             var comp = CreateCompilation(@"
@@ -7671,7 +7849,7 @@ public class MyAttribute : System.Attribute
             VerifyTParameter(comp, 1, null);
         }
 
-        [Fact]
+        [Fact, WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
         public void TypeParameterScope_InTypeParameterAttributeNameOf()
         {
             var comp = CreateCompilation(@"
@@ -7695,9 +7873,7 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
 
             VerifyTParameter(comp, 0, "void local<TParameter>()");
-            // LookupSymbols fails to find TParameter
-            // Tracked by https://github.com/dotnet/roslyn/issues/60194
-            VerifyTParameter(comp, 1, "void C.M2<TParameter>()", lookupFailsAnyways: true);
+            VerifyTParameter(comp, 1, "void C.M2<TParameter>()");
         }
 
         [Fact]
@@ -7728,7 +7904,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_NotAsTypeParameterAttributeType()
+        public void TypeParameterScope_AsTypeParameterAttributeType()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7762,7 +7938,7 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_AsParameterDefaultDefaultValue()
+        public void TypeParameterScope_InParameterDefaultDefaultValue()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7789,7 +7965,78 @@ public class MyAttribute : System.Attribute
         }
 
         [Fact]
-        public void TypeParameterScope_AsParameterNameOfDefaultValue()
+        public void TypeParameterScope_InParameterDefaultValue()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void M()
+    {
+        local<System.Attribute>();
+
+        void local<TParameter>(TParameter s = TParameter) => throw null;
+    }
+
+    void M2<TParameter>(TParameter s = TParameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            // TParameter unexpectedly was found in local function case because of IsInMethodBody logic
+            // Tracked by https://github.com/dotnet/roslyn/issues/60110
+            comp.VerifyDiagnostics(
+                // (8,47): error CS0119: 'TParameter' is a type, which is not valid in the given context
+                //         void local<TParameter>(TParameter s = TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type").WithLocation(8, 47),
+                // (11,40): error CS0103: The name 'TParameter' does not exist in the current context
+                //     void M2<TParameter>(TParameter s = TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "TParameter").WithArguments("TParameter").WithLocation(11, 40)
+                );
+
+            //VerifyTParameter(comp, 0, "void local<TParameter>([TParameter s = default(TParameter)])");
+            VerifyTParameter(comp, 1, null);
+        }
+
+        [Fact, WorkItem(60110, "https://github.com/dotnet/roslyn/issues/60110")]
+        public void TypeParameterScope_InParameterDefaultValue_NotShadowingConstant()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    const string TParameter = """";
+
+    void M()
+    {
+        local<System.Attribute>();
+
+        void local<TParameter>(string s = TParameter) => throw null;
+    }
+
+    void M2<TParameter>(string s = TParameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            // TParameter unexpectedly was found in local function case because of IsInMethodBody logic
+            // Tracked by https://github.com/dotnet/roslyn/issues/60110
+            comp.VerifyDiagnostics(
+                // (10,43): error CS0119: 'TParameter' is a type, which is not valid in the given context
+                //         void local<TParameter>(string s = TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type").WithLocation(10, 43)
+                );
+
+            //VerifyTParameter(comp, 0, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "System.String C.TParameter");
+            VerifyTParameter(comp, 1, "C", symbolKind: SymbolKind.NamedType, lookupFinds: "System.String C.TParameter");
+        }
+
+        [Fact, WorkItem(60194, "https://github.com/dotnet/roslyn/issues/60194")]
+        public void TypeParameterScope_InParameterNameOfDefaultValue()
         {
             var comp = CreateCompilation(@"
 class C
@@ -7812,9 +8059,259 @@ public class MyAttribute : System.Attribute
             comp.VerifyDiagnostics();
 
             VerifyTParameter(comp, 0, @"void local<TParameter>([System.String s = ""TParameter""])");
-            // LookupSymbols fails to find TParameter
-            // Tracked by https://github.com/dotnet/roslyn/issues/60194
-            VerifyTParameter(comp, 1, @"void C.M2<TParameter>([System.String s = ""TParameter""])", lookupFailsAnyways: true);
+            VerifyTParameter(comp, 1, @"void C.M2<TParameter>([System.String s = ""TParameter""])");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InParameterNameOfDefaultValue_NestedLocalFunction()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    const string TParameter = """";
+
+    void M()
+    {
+        local<object>();
+
+        void local<TParameter>(string s = TParameter) => throw null;
+    }
+
+    void M2<TParameter>(string s = TParameter) => throw null;
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+");
+            // TParameter unexpectedly was found in local function case because of IsInMethodBody logic
+            // Tracked by https://github.com/dotnet/roslyn/issues/60110
+            comp.VerifyDiagnostics(
+                // (10,43): error CS0119: 'TParameter' is a type, which is not valid in the given context
+                //         void local<TParameter>(string s = TParameter) => throw null;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type").WithLocation(10, 43)
+                );
+
+            //VerifyTParameter(comp, 0, "C", lookupFinds: "System.String C.TParameter", symbolKind: SymbolKind.NamedType);
+            VerifyTParameter(comp, 1, "C", lookupFinds: "System.String C.TParameter", symbolKind: SymbolKind.NamedType);
+        }
+
+        [Fact]
+        public void TypeParameterScope_InTypeAttributeNameOf()
+        {
+            var comp = CreateCompilation(@"
+[My(nameof(TParameter))]
+class C<TParameter>
+{
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name) { }
+}
+");
+            comp.VerifyDiagnostics();
+
+            VerifyTParameter(comp, 0, "C<TParameter>");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InTypeAttributeConstant()
+        {
+            var comp = CreateCompilation(@"
+[My(TParameter.Constant)]
+class C<TParameter> where TParameter : I
+{
+}
+
+interface I
+{
+    const string Constant = ""hello"";
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name) { }
+}
+", targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // [My(TParameter.Constant)]
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                );
+
+            VerifyTParameter(comp, 0, "C<TParameter>");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InTypeAttributeType()
+        {
+            var comp = CreateCompilation(@"
+[TParameter]
+class C<TParameter> where TParameter : MyAttribute
+{
+}
+
+public class MyAttribute : System.Attribute
+{
+}
+");
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0616: 'TParameter' is not an attribute class
+                // [TParameter]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(2, 2)
+                );
+
+            VerifyTParameter(comp, 0, null, findAnyways: true);
+        }
+
+        [Fact]
+        public void TypeParameterScope_InRecordAttributeNameOf()
+        {
+            var source = @"
+[My(nameof(TParameter))]
+record R<TParameter>();
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+            VerifyTParameter(comp, 0, "R<TParameter>");
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+            VerifyTParameter(comp, 0, "R<TParameter>");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InRecordParameterAttributeNameOf()
+        {
+            var source = @"
+record R<TParameter>([My(nameof(TParameter))] int I);
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics();
+            VerifyTParameter(comp, 0, "R<TParameter>");
+
+            comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularNext);
+            comp.VerifyDiagnostics();
+            VerifyTParameter(comp, 0, "R<TParameter>");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InRecordAttributeNameOfConstant()
+        {
+            var source = @"
+[My(nameof(TParameter.Constant))]
+record R<TParameter>() where TParameter : I;
+
+interface I
+{
+    const string Constant = ""hello"";
+}
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (2,12): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // [My(nameof(TParameter.Constant))]
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 12)
+                );
+            VerifyTParameter(comp, 0, "R<TParameter>");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InRecordAttributeNameOf_RecordStruct()
+        {
+            var source = @"
+[My(nameof(TParameter))]
+record struct R<TParameter>();
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name1) { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            VerifyTParameter(comp, 0, "R<TParameter>");
+        }
+
+        [Fact]
+        public void TypeParameterScope_AsRecordAttributeType()
+        {
+            var source = @"
+[TParameter]
+record R<TParameter>() where TParameter : System.Attribute;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS0616: 'TParameter' is not an attribute class
+                // [TParameter]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "TParameter").WithArguments("TParameter").WithLocation(2, 2)
+                );
+            VerifyTParameter(comp, 0, null, findAnyways: true);
+        }
+
+        [Fact]
+        public void TypeParameterScope_InRecordAttributeTypeArgument()
+        {
+            var source = @"
+[My<TParameter>]
+record R<TParameter>() where TParameter : System.Attribute;
+
+public class MyAttribute<T> : System.Attribute
+{
+    public MyAttribute() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,2): error CS8968: 'TParameter': an attribute type argument cannot use type parameters
+                // [My<TParameter>]
+                Diagnostic(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, "My<TParameter>").WithArguments("TParameter").WithLocation(2, 2)
+                );
+            VerifyTParameter(comp, 0, "R<TParameter>");
+        }
+
+        [Fact]
+        public void TypeParameterScope_InRecordAttributeConstant()
+        {
+            var source = @"
+[My(TParameter.Constant)]
+record R<TParameter>() where TParameter : I;
+
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string name) { }
+}
+
+public interface I
+{
+    const string Constant = ""hello"";
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (2,5): error CS0119: 'TParameter' is a type parameter, which is not valid in the given context
+                // [My(TParameter.Constant)]
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "TParameter").WithArguments("TParameter", "type parameter").WithLocation(2, 5)
+                );
+            VerifyTParameter(comp, 0, "R<TParameter>");
         }
 
         [Fact]
@@ -7868,18 +8365,10 @@ public class MyAttribute : System.Attribute
             var parameterUsage = parameterUsages[index];
 
             var symbol = model.GetSymbolInfo(parameterUsage).Symbol;
-            if (expectedMethod is null)
-            {
-                Assert.Null(symbol);
-                Assert.True(model.GetTypeInfo(parameterUsage).Type.IsErrorType());
-                Assert.DoesNotContain("parameter", model.LookupSymbols(parameterUsage.Position).ToTestDisplayStrings());
-            }
-            else
-            {
-                Assert.Equal(expectedMethod, symbol.ContainingSymbol.ToTestDisplayString());
-                Assert.Equal(SymbolKind.Parameter, model.GetTypeInfo(parameterUsage).Type.Kind);
-                Assert.Contains(symbol, model.LookupSymbols(parameterUsage.Position));
-            }
+            Debug.Assert(expectedMethod is null);
+            Assert.Null(symbol);
+            Assert.True(model.GetTypeInfo(parameterUsage).Type.IsErrorType());
+            Assert.DoesNotContain("parameter", model.LookupSymbols(parameterUsage.Position).ToTestDisplayStrings());
         }
 
         [Fact]

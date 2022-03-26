@@ -30377,5 +30377,52 @@ public record C(int I) : B(I);";
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
+
+        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        public void RecordPositionalMembersScope()
+        {
+            var src = @"
+using System;
+
+[Obsolete(nameof(Id))]
+record R1(string Id) { }
+
+[Obsolete(nameof(Id))]
+record R2(string Id);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(60379, "https://github.com/dotnet/roslyn/issues/60379")]
+        public void TypeParametersAndTypeMembersInScopeOnTypeAttribute()
+        {
+            var src = @"
+using System;
+
+[Obsolete(nameof(Id))]
+class C1
+{
+    int Id { get; set; }
+}
+
+[Obsolete(Constant)]
+class C2
+{
+    const string Constant = """";
+}
+
+[Obsolete(T)]
+class C3<T>
+{
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                    // (16,11): error CS0119: 'T' is a type, which is not valid in the given context
+                    // [Obsolete(T)]
+                    Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(16, 11)
+                    );
+        }
     }
 }

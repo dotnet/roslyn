@@ -1273,13 +1273,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol aliasOpt;
             var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
 
+            // For attributes where a nameof could introduce some type parameters, we need to track the attribute target
+            Symbol attributeTarget = GetAttributeTargetForExtraTypeParameters(attribute.Parent.Parent);
+
             return AttributeSemanticModel.Create(
                 this,
                 attribute,
                 attributeType,
                 aliasOpt,
+                attributeTarget,
                 enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument),
                 containingModel?.GetRemappedSymbols());
+        }
+
+        Symbol GetAttributeTargetForExtraTypeParameters(SyntaxNode targetSyntax)
+        {
+            return targetSyntax switch
+            {
+                MethodDeclarationSyntax methodDeclaration => GetDeclaredMemberSymbol(methodDeclaration),
+                LocalFunctionStatementSyntax localFunction => GetMemberModel(localFunction).GetDeclaredLocalFunction(localFunction),
+                _ => null
+            };
         }
 
         private FieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
@@ -1683,6 +1697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)declaration).Identifier.ValueText;
 
                 case SyntaxKind.VariableDeclarator:

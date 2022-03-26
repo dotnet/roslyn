@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// analyzed.
     ///
     /// For reasons of lifetime management, this type is distinct from the BinderFactory 
-    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns it's binders
+    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns its binders
     /// and that type's lifetime is that of the compilation. Therefore we do not store
     /// binders local to method bodies in that type's cache. 
     /// </summary>
@@ -197,6 +197,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Visit(node.Body);
             Visit(node.ExpressionBody);
+        }
+
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            if (node.MayBeNameofOperator())
+            {
+                WithTypeParametersBinder nextWhenNameofOperator = ((_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0) && MessageID.IDS_FeatureExtendedNameofScope.IsFeatureAvailable(node)
+                    ? getExtraWithTypeParametersBinder(_enclosing, getAttributeTarget(_enclosing))
+                    : null;
+
+                var argumentExpression = node.ArgumentList.Arguments[0].Expression;
+                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, nextWhenNameofOperator);
+
+                AddToMap(node, possibleNameofBinder);
+            }
+
+            base.VisitInvocationExpression(node);
+            return;
+
+            static Symbol getAttributeTarget(Binder current)
+            {
+                Debug.Assert((current.Flags & BinderFlags.InContextualAttributeBinder) != 0);
+
+                do
+                {
+                    if (current is ContextualAttributeBinder contextualAttributeBinder)
+                    {
+                        return contextualAttributeBinder.AttributeTarget;
+                    }
+
+                    current = current.Next;
+                }
+                while (current != null);
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            static WithTypeParametersBinder getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
+                => target.Kind == SymbolKind.Method ? new WithMethodTypeParametersBinder((MethodSymbol)target, enclosing) : null;
         }
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)

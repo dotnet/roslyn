@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureCacheStaticMethodGroupConversion = MessageBase + 12816,
         IDS_FeatureRawStringLiterals = MessageBase + 12817,
         IDS_FeatureDisposalPattern = MessageBase + 12818,
+        IDS_FeatureExtendedNameofScope = MessageBase + 12819,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -309,6 +310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        internal static bool IsFeatureAvailable(this MessageID feature, SyntaxNode syntax)
+        {
+            return ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(feature);
+        }
+
         internal static bool CheckFeatureAvailability(
             this MessageID feature,
             BindingDiagnosticBag diagnostics,
@@ -361,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureListPattern: // semantic check
                 case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
                 case MessageID.IDS_ParameterNullChecking: // syntax check
+                case MessageID.IDS_FeatureExtendedNameofScope: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.

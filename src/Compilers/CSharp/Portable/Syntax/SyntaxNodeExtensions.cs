@@ -49,6 +49,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool MayBeNameofOperator(this InvocationExpressionSyntax node)
+        {
+            if (node.Expression.Kind() == SyntaxKind.IdentifierName &&
+                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() == SyntaxKind.NameOfKeyword &&
+                node.ArgumentList.Arguments.Count == 1)
+            {
+                ArgumentSyntax argument = node.ArgumentList.Arguments[0];
+                if (argument.NameColon == null && argument.RefOrOutKeyword == default)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// This method is used to keep the code that generates binders in sync
         /// with the code that searches for binders.  We don't want the searcher
@@ -88,8 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
 
                 default:
-                    return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
-
+                    return syntax is StatementSyntax
+                        || IsValidScopeDesignator(syntax as ExpressionSyntax)
+                        || (kind == SyntaxKind.InvocationExpression && ((InvocationExpressionSyntax)syntax).MayBeNameofOperator());
             }
         }
 
