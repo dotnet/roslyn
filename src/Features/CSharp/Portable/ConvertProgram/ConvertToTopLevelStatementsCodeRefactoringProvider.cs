@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
     using static ConvertProgramAnalysis;
     using static ConvertProgramTransform;
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToProgramMain), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToTopLevelStatements), Shared]
     internal class ConvertToTopLevelStatementsCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
