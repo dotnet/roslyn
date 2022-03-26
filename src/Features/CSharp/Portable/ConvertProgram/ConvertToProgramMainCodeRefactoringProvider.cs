@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 {
@@ -36,9 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (!span.IsEmpty)
                 return;
 
+            if (!IsApplication(document.Project.CompilationOptions!))
+                return;
+
             var position = span.Start;
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
+
+            if (!root.Members.Any(m => m is GlobalStatementSyntax))
+                return;
+
             var acceptableLocation = GetUseProgramMainDiagnosticLocation(root, isHidden: true);
             if (!acceptableLocation.SourceSpan.IntersectsWith(position))
                 return;

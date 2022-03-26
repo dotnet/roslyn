@@ -19,6 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 {
     internal static class ConvertProgramAnalysis
     {
+        public static bool IsApplication(Compilation compilation)
+            => IsApplication(compilation.Options);
+
+        public static bool IsApplication(CompilationOptions options)
+            => options.OutputKind is OutputKind.ConsoleApplication or OutputKind.WindowsApplication;
+
         public static bool CanOfferUseProgramMain(
             CodeStyleOption2<bool> option,
             CompilationUnitSyntax root,

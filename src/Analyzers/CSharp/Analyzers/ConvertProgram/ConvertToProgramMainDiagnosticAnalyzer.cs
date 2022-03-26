@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 {
+    using static ConvertProgramAnalysis;
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class ConvertToProgramMainDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
@@ -31,7 +33,15 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(ProcessCompilationUnit, SyntaxKind.CompilationUnit);
+        {
+            context.RegisterCompilationStartAction(context =>
+            {
+                if (!IsApplication(context.Compilation))
+                    return;
+
+                context.RegisterSyntaxNodeAction(ProcessCompilationUnit, SyntaxKind.CompilationUnit);
+            });
+        }
 
         private void ProcessCompilationUnit(SyntaxNodeAnalysisContext context)
         {
@@ -41,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             var optionSet = options.GetAnalyzerOptionSet(root.SyntaxTree, context.CancellationToken);
             var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
 
-            if (!ConvertProgramAnalysis.CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))
+            if (!CanOfferUseProgramMain(option, root, context.Compilation, forAnalyzer: true))
                 return;
 
             var severity = option.Notification.Severity;
 
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 this.Descriptor,
-                ConvertProgramAnalysis.GetUseProgramMainDiagnosticLocation(
+                GetUseProgramMainDiagnosticLocation(
                     root, isHidden: severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden),
                 severity,
                 ImmutableArray<Location>.Empty,

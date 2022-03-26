@@ -33,11 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         {
             var (document, span, cancellationToken) = context;
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = semanticModel.Compilation;
             // can only suggest moving to top level statement on c# 9 or above.
-            if (compilation.LanguageVersion() < LanguageVersion.CSharp9)
+            if (document.Project.ParseOptions!.LanguageVersion() < LanguageVersion.CSharp9 ||
+                !IsApplication(document.Project.CompilationOptions!))
+            {
                 return;
+            }
 
             var methodDeclaration = await context.TryGetRelevantNodeAsync<MethodDeclarationSyntax>().ConfigureAwait(false);
             if (methodDeclaration is null)
@@ -47,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var option = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
             if (CanOfferUseTopLevelStatements(option, forAnalyzer: false))
                 return;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
 
             if (!IsProgramMainMethod(semanticModel, methodDeclaration, GetMainTypeName(compilation), cancellationToken, out var canConvert) ||
                 !canConvert)

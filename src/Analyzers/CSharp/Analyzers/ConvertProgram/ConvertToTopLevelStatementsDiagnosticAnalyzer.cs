@@ -36,8 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
             context.RegisterCompilationStartAction(context =>
             {
                 // can only suggest moving to top level statement on c# 9 or above.
-                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp9)
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp9 ||
+                    !IsApplication(context.Compilation))
+                {
                     return;
+                }
 
                 context.RegisterSyntaxNodeAction(ProcessCompilationUnit, SyntaxKind.CompilationUnit);
             });

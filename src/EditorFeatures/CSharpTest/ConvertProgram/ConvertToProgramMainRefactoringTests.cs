@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
@@ -16,6 +17,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
 
     public class ConvertToProgramMainRefactoringTests
     {
+        [Fact]
+        public async Task TestNotOnFileWithNoGlobalStatements()
+        {
+            var code = @"
+$$
+class C
+{
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                ExpectedDiagnostics =
+                {
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    DiagnosticResult.CompilerError("CS5001"),
+                }
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestNotOnEmptyFile()
+        {
+            var code = @"
+$$
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                ExpectedDiagnostics =
+                {
+                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                    DiagnosticResult.CompilerError("CS5001"),
+                }
+            }.RunAsync();
+        }
+
         [Fact]
         public async Task TestConvertToProgramMainWithDefaultTopLevelStatementPreference()
         {

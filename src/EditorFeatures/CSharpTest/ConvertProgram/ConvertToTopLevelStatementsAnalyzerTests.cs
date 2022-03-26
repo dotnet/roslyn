@@ -92,6 +92,29 @@ System.Console.WriteLine(0);
         }
 
         [Fact]
+        public async Task OfferedWithoutArgs()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    {|IDE0210:static void Main()
+    {
+        System.Console.WriteLine(0);
+    }|}
+}
+",
+                FixedCode = @"
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task OfferedOnNameWhenNotHidden()
         {
             await new VerifyCS.Test
