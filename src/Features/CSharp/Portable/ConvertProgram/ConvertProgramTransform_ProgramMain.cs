@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             {
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+                // While the analyze and refactoring check to ensure we're in a well formed state for their needs, the
+                // 'new template' code just calls directly into this if the user prefers Program.Main.  So check and
+                // make sure this is actually something we can convert before proceeding.
                 var programType = compilation.GetBestTypeByMetadataName(WellKnownMemberNames.TopLevelStatementsEntryPointTypeName);
                 if (programType != null)
                 {
