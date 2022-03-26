@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
         {
             canConvertToTopLevelStatements = false;
 
+            // Quick syntactic checks to allow us to avoid most methods.  We basically filter out anything that isn't
+            // `static Main` immediately.
             if (!methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) ||
                 methodDeclaration.TypeParameterList is not null ||
                 methodDeclaration.Identifier.ValueText != WellKnownMemberNames.EntryPointMethodName ||
@@ -59,18 +61,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
                 return false;
             }
 
+            // If the compilation options specified a type name that Main should be found in, then do a quick check that
+            // our containing type matches that.
             if (mainTypeName != null && containingTypeDeclaration.Identifier.ValueText != mainTypeName)
                 return false;
 
+            // If the user renamed the 'args' parameter, we can't convert to top level statements.
             if (methodDeclaration.ParameterList.Parameters.Count == 1 &&
                 methodDeclaration.ParameterList.Parameters[0].Identifier.ValueText != "args")
             {
                 return false;
             }
 
-            // Have a `static Main` method, and the containing type either matched the type-name the options
-            // specify, or the options specified no type name.  This is a reasonable candidate for the 
-            // program entrypoint.
+            // Found a suitable candidate.  See if this matches the entrypoint the compiler has actually chosen.
             var entryPointMethod = semanticModel.Compilation.GetEntryPoint(cancellationToken);
             if (entryPointMethod == null)
                 return false;
@@ -87,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 
         private static bool TypeCanBeConverted(INamedTypeSymbol containingType, TypeDeclarationSyntax typeDeclaration)
         {
-            // Can't convert if our Program type derives from anything special.
+            // Can't convert if our Program type derives or implements anything special.
             if (containingType.BaseType?.SpecialType != SpecialType.System_Object)
                 return false;
 
@@ -102,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             if (containingType.ContainingType != null)
                 return false;
 
+            // If the type wasn't internal it might have been public and something outside this assembly might be using it.
             if (containingType.DeclaredAccessibility != Accessibility.Internal)
                 return false;
 
