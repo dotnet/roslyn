@@ -22,7 +22,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertNamespaceAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToBlockScopedNamespaceDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertNamespace\ConvertToFileScopedNamespaceDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertProgramAnalysis.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertProgramAnalysis_TopLevelStatements.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertProgramAnalysis_ProgramMain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertToTopLevelStatementsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementDiagnosticAnalyzer.cs" />
