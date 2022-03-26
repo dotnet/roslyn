@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 {
+    using static SyntaxFactory;
+
     internal static partial class ConvertProgramTransform
     {
         public static async Task<Document> ConvertToProgramMainAsync(Document document, CancellationToken cancellationToken)
@@ -78,6 +80,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             method = method.WithReturnType(method.ReturnType.WithAdditionalAnnotations(Simplifier.AddImportsAnnotation));
             method = (MethodDeclarationSyntax)generator.WithAccessibility(
                 method, accessibilityModifiersRequired ? mainMethod.DeclaredAccessibility : Accessibility.NotApplicable);
+
+            // Workaround for simplification not being ready when we generate a new file.  Substitute System.String[]
+            // with string[].
+            if (method.ParameterList.Parameters.Count == 1 && method.ParameterList.Parameters[0].Type is ArrayTypeSyntax arrayType)
+                method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
 
             return (ClassDeclarationSyntax)generator.ClassDeclaration(
                 WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
