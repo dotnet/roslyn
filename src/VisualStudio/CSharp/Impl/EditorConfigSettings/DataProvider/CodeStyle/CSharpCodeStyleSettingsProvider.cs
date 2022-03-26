@@ -140,6 +140,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 description: ServicesVSResources.Prefer_method_group_conversion,
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
+
+            yield return CodeStyleSetting.Create(option: CSharpCodeStyleOptions.PreferTopLevelStatements,
+                description: ServicesVSResources.Prefer_top_level_statements,
+                editorConfigOptions: editorConfigOptions,
+                visualStudioOptions: visualStudioOptions, updater: updaterService, fileName: FileName);
         }
 
         private IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)
