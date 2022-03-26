@@ -78,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (namespaceDeclaration != null &&
                 namespaceDeclaration.Members.Count >= 2)
             {
-                // Our parent namespace has another symbol in it.  Keep it around, but move us to top-level-statements.
+                // Our parent namespace has another symbol in it.  Keep the namespace declaration around, removing only
+                // the existing Program type from it.
                 editor.RemoveNode(typeDeclaration);
                 editor.ReplaceNode(
                     root,
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             }
             else if (namespaceDeclaration != null)
             {
-                // we had a parent namespace, but we were the only thing in it.  We can just remove that namespace entirely.
+                // we had a parent namespace, but we were the only thing in it.  We can just remove the namespace entirely.
                 editor.ReplaceNode(
                     root,
                     root.ReplaceNode(namespaceDeclaration, globalStatements));
