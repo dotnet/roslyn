@@ -1273,13 +1273,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol aliasOpt;
             var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
 
+            // For attributes where a nameof could introduce some type parameters, we need to track the attribute target
+            Symbol attributeTarget = getAttributeTarget(attribute.Parent.Parent);
+
             return AttributeSemanticModel.Create(
                 this,
                 attribute,
                 attributeType,
                 aliasOpt,
+                attributeTarget,
                 enclosingBinder.WithAdditionalFlags(BinderFlags.AttributeArgument),
                 containingModel?.GetRemappedSymbols());
+
+            Symbol getAttributeTarget(SyntaxNode targetSyntax)
+            {
+                // TODO2 remove most cases for now
+                // TODO2 consider going through public model for all cases here
+                return targetSyntax switch
+                {
+                    MemberDeclarationSyntax memberDeclaration => GetDeclaredMemberSymbol(memberDeclaration),
+                    LocalFunctionStatementSyntax localFunction => GetMemberModel(localFunction).GetDeclaredLocalFunction(localFunction),
+                    //ParameterSyntax parameter when parameter.Parent.Parent is LocalFunctionStatementSyntax => GetMemberModel(parameter).GetLambdaOrLocalFunctionParameterSymbol(parameter),
+                    //ParameterSyntax methodParameter when methodParameter.Parent.Parent is MemberDeclarationSyntax => GetMethodParameterSymbol(methodParameter),
+                    //TypeParameterSyntax typeParameter => ((Symbols.PublicModel.TypeParameterSymbol)GetDeclaredSymbol(typeParameter)).UnderlyingTypeParameterSymbol,
+                    // TODO2 is this the complete list?
+                    _ => null
+                };
+            }
         }
 
         private FieldSymbol GetDeclaredFieldSymbol(VariableDeclaratorSyntax variableDecl)
@@ -1683,6 +1703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return ((BaseTypeDeclarationSyntax)declaration).Identifier.ValueText;
 
                 case SyntaxKind.VariableDeclarator:
@@ -2013,7 +2034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ParameterSymbol GetMethodParameterSymbol(
             ParameterSyntax parameter,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             Debug.Assert(parameter != null);
 

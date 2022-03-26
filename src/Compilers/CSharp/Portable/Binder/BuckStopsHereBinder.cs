@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override uint LocalScopeDepth => Binder.ExternalScope;
 
         protected override bool InExecutableBinder => false;
+        protected override bool IsInsideNameofOperator => false;
 
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
         {

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// analyzed.
     ///
     /// For reasons of lifetime management, this type is distinct from the BinderFactory 
-    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns it's binders
+    /// which also creates a map from CSharpSyntaxNode to Binder. That type owns its binders
     /// and that type's lifetime is that of the compilation. Therefore we do not store
     /// binders local to method bodies in that type's cache. 
     /// </summary>
@@ -197,6 +197,63 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Visit(node.Body);
             Visit(node.ExpressionBody);
+        }
+
+        public override void VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            // TODO2 need to test all these conditions
+            if (node.MayBeNameofOperator())
+            {
+                // TODO2 condition logic on LangVer
+                // TODO2 consider moving this symbol logic into NameofBinder.Create
+                WithTypeParametersBinder nextWhenNameofOperator = null;
+                //(_enclosing.Flags & BinderFlags.InContextualAttributeBinder) != 0
+                //    ? getExtraWithTypeParametersBinder(_enclosing, getAttributeBinder(_enclosing).AttributeTarget)
+                //    : null;
+
+                var argumentExpression = node.ArgumentList.Arguments[0].Expression;
+                var possibleNameofBinder = new NameofBinder(argumentExpression, _enclosing, nextWhenNameofOperator);
+
+                AddToMap(node, possibleNameofBinder);
+            }
+
+            base.VisitInvocationExpression(node);
+            return;
+
+            static ContextualAttributeBinder getAttributeBinder(Binder current)
+            {
+                Debug.Assert((current.Flags & BinderFlags.InContextualAttributeBinder) != 0);
+
+                do
+                {
+                    if (current is ContextualAttributeBinder contextualAttributeBinder)
+                    {
+                        return contextualAttributeBinder;
+                    }
+
+                    current = current.Next;
+                }
+                while (current != null);
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            static WithTypeParametersBinder getExtraWithTypeParametersBinder(Binder enclosing, Symbol target)
+            {
+                return (target.Kind, target.ContainingSymbol?.Kind) switch
+                {
+                    (SymbolKind.NamedType, _) => null, // TODO2 new WithClassTypeParametersBinder((NamedTypeSymbol)target, enclosing),
+                    (SymbolKind.TypeParameter, SymbolKind.NamedType) => null, // new WithClassTypeParametersBinder((NamedTypeSymbol)target.ContainingSymbol, enclosing),
+                    (SymbolKind.TypeParameter, SymbolKind.Method) => null, //new WithMethodTypeParametersBinder((MethodSymbol)target.ContainingSymbol, enclosing),
+                    (SymbolKind.Parameter, SymbolKind.Method) => null, // new WithMethodTypeParametersBinder((MethodSymbol)target.ContainingSymbol, enclosing),
+                    (SymbolKind.Parameter, _) => null, // TODO2 test on parameter on record
+                    (SymbolKind.Method, _) => new WithMethodTypeParametersBinder((MethodSymbol)target, enclosing),
+                    (SymbolKind.Assembly, _) => null,
+                    (SymbolKind.Property, _) => null,
+
+                    _ => throw new NotImplementedException() // TODO2 property, event, field,
+                };
+            }
         }
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)

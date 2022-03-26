@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VerifyUnchecked(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression expr)
         {
-            if (!expr.HasAnyErrors && !IsInsideNameof)
+            if (!expr.HasAnyErrors && !IsInsideNameofOperator)
             {
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.IsUnsafe())
@@ -1479,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustBeInvocableIfMember;
             }
 
-            if (!IsInMethodBody && !IsInsideNameof)
+            if (!IsInMethodBody && !IsInsideNameofOperator)
             {
                 Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
@@ -1719,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!symbol.ContainingSymbol.Equals(containingMethod));
 
                     // Captured in a lambda.
-                    return (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) && !IsInsideNameof; // false in EE evaluation method
+                    return (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) && !IsInsideNameofOperator; // false in EE evaluation method
                 }
             }
             return false;
@@ -1837,7 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        var constantValueOpt = localSymbol.IsConst && !IsInsideNameof && !type.IsErrorType()
+                        var constantValueOpt = localSymbol.IsConst && !IsInsideNameofOperator && !type.IsErrorType()
                             ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
                         return new BoundLocal(node, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt: constantValueOpt, isNullableUnknown: isNullableUnknown, type: type, hasErrors: isError);
                     }
@@ -7007,7 +7007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = this.CheckInstanceOrStatic(node, receiver, fieldSymbol, ref resultKind, diagnostics);
             }
 
-            if (!hasError && fieldSymbol.IsFixedSizeBuffer && !IsInsideNameof)
+            if (!hasError && fieldSymbol.IsFixedSizeBuffer && !IsInsideNameofOperator)
             {
                 // SPEC: In a member access of the form E.I, if E is of a struct type and a member lookup of I in
                 // that struct type identifies a fixed size member, then E.I is evaluated and classified as follows:
@@ -7052,7 +7052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConstantValue constantValueOpt = null;
 
-            if (fieldSymbol.IsConst && !IsInsideNameof)
+            if (fieldSymbol.IsConst && !IsInsideNameofOperator)
             {
                 constantValueOpt = fieldSymbol.GetConstantValue(this.ConstantFieldsInProgress, this.IsEarlyAttributeBinder);
                 if (constantValueOpt == ConstantValue.Unset)
@@ -7268,7 +7268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (instanceReceiver == false && !IsInsideNameof)
+                if (instanceReceiver == false && !IsInsideNameofOperator)
                 {
                     Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, symbol);
                     resultKind = LookupResultKind.StaticInstanceMismatch;
