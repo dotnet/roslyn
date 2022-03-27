@@ -481,6 +481,58 @@ class Program
         }
 
         [Fact]
+        public async Task NotWithMethodWithAttribute1()
+        {
+            var code = @"
+class Program
+{
+    [System.CLSCompliant(true)]
+    static void M() { }
+
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task NotWithMethodWithAttribute2()
+        {
+            var code = @"
+class Program
+{
+    static void M() { }
+
+    [System.CLSCompliant(true)]
+    static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task NotWithMemberWithDocComment()
         {
             var code = @"
