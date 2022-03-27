@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //throw new ArgumentNullException(paramName);
 
-                var body = F.Block(
-                        ImmutableArray<LocalSymbol>.Empty,
-                        F.Throw(F.New(F.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), ImmutableArray.Create<BoundExpression>(F.Parameter(paramName)))));
+                var body = F.Throw(F.New(F.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), ImmutableArray.Create<BoundExpression>(F.Parameter(paramName))));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 F.CloseMethod(body);
