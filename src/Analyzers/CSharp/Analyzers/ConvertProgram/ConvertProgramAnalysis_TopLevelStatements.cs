@@ -137,16 +137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
                 if (member is not FieldDeclarationSyntax and not MethodDeclarationSyntax)
                     return false;
 
-                if (member is MethodDeclarationSyntax methodDeclaration)
-                {
-                    // if a method, it has to actually have a body so we can convert it to a local function.
-                    if (methodDeclaration is { Body: null, ExpressionBody: null })
-                        return false;
-
-                    // local functions can't be unsafe
-                    if (methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
-                        return false;
-                }
+                // if a method, it has to actually have a body so we can convert it to a local function.
+                if (member is MethodDeclarationSyntax { Body: null, ExpressionBody: null })
+                    return false;
 
                 // can't convert doc comments to top level statements.
                 if (member.GetLeadingTrivia().Any(t => t.IsDocComment()))
