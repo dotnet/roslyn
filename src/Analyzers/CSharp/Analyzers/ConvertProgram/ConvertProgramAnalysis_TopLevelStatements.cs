@@ -52,6 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 
             // Quick syntactic checks to allow us to avoid most methods.  We basically filter out anything that isn't
             // `static Main` immediately.
+            //
+            // For simplicity, we require the method to have a body so that we don't have to care about
+            // expression-bodied members later.
             if (!methodDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) ||
                 methodDeclaration.TypeParameterList is not null ||
                 methodDeclaration.Identifier.ValueText != WellKnownMemberNames.EntryPointMethodName ||
