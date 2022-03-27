@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Storage;
@@ -193,7 +194,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             SetFileScopedNamespaces(false);
 
             ResetOption(CompletionViewOptions.EnableArgumentCompletionSnippets);
-            ResetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
+            ResetOption(MetadataAsSourceOptionsStorage.NavigateToDecompiledSources);
             return;
 
             // Local function

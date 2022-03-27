@@ -251,8 +251,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_matches_folder_preferences">
-        <source>Apply namespace matches folde preferences</source>
-        <target state="new">Apply namespace matches folde preferences</target>
+        <source>Apply namespace matches folder preferences</source>
+        <target state="new">Apply namespace matches folder preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">

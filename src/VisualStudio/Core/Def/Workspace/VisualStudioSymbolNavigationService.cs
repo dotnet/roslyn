@@ -124,9 +124,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
             Project project, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
+            var masOptions = _globalOptions.GetMetadataAsSourceOptions();
 
-            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
 
             return new NavigableLocation(async (options, cancellationToken) =>
             {

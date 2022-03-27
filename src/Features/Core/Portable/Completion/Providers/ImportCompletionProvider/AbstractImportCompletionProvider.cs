@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext syntaxContext, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
+        protected abstract void WarmUpCacheInBackground(Document document);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
         protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
@@ -45,8 +46,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var document = completionContext.Document;
 
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
+
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
+                // Queue a backgound task to warm up cache and return immediately if this is not the context to trigger this provider.
+                // `ForceExpandedCompletionIndexCreation` and `UpdateImportCompletionCacheInBackground` are both test only options to
+                // make test behavior deterministic.
+                var options = completionContext.CompletionOptions;
+                if (options.UpdateImportCompletionCacheInBackground && !options.ForceExpandedCompletionIndexCreation)
+                    WarmUpCacheInBackground(document);
+
                 return;
             }
 
