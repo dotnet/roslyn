@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             var forRefactoring = !forAnalyzer;
 
             // If the user likes Program.Main, then we offer to conver to Program.Main from the diagnostic analyzer.
-            // If the user prefers Ttop-level-statements then we offer to use Program.Main from the refactoring provider.
+            // If the user prefers Top-level-statements then we offer to use Program.Main from the refactoring provider.
             // If the analyzer is disabled completely, the refactoring is enabled in both directions.
             var canOffer = userPrefersProgramMain == forAnalyzer || (forRefactoring && analyzerDisabled);
             return canOffer;
