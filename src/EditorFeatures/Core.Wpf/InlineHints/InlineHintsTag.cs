@@ -269,15 +269,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var replacementValue = _hint.ReplacementTextChange!.Value;
                 var subjectBuffer = _span.Snapshot.TextBuffer;
 
-                if (subjectBuffer.CurrentSnapshot.Length > replacementValue.Span.End)
-                {
-                    subjectBuffer.Replace(new VisualStudio.Text.Span(replacementValue.Span.Start, replacementValue.Span.Length), replacementValue.NewText);
-                }
-                else
-                {
-                    Internal.Log.Logger.Log(FunctionId.Inline_Hints_DoubleClick,
-                        $"replacement span end:{replacementValue.Span.End} is greater than or equal to current snapshot length:{subjectBuffer.CurrentSnapshot.Length}");
-                }
+                // Selected SpanTrackingMode to be EdgeExclusive by default.
+                // Will revise if there are some scenarios we did not think of that produce undesirable behavior.
+                var currentSnapshotSpan = _span.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeExclusive);
+                subjectBuffer.Replace(currentSnapshotSpan.Span, replacementValue.NewText);
             }
         }
     }

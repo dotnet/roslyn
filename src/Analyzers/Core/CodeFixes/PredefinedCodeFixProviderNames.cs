@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string FixIncorrectExitContinue = nameof(FixIncorrectExitContinue);
         public const string FixIncorrectFunctionReturnType = nameof(FixIncorrectFunctionReturnType);
         public const string FixReturnType = nameof(FixReturnType);
+        public const string ForEachCast = nameof(ForEachCast);
         public const string FullyQualify = nameof(FullyQualify);
         public const string GenerateConstructor = nameof(GenerateConstructor);
         public const string GenerateConversion = nameof(GenerateConversion);

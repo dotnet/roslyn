@@ -4842,7 +4842,7 @@ namespace N
 /// </summary>
 class Base
 {
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
@@ -4856,7 +4856,7 @@ class Base
 class Base
 {
     public void Foo(string s) { }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -6195,7 +6195,7 @@ class Base
     {
         var v = nameof([|System|].Int32);
     }
-}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+}", IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]

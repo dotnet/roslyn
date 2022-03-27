@@ -50,11 +50,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'DebuggerDisplay' 특성을 추가합니다.</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">명시적 캐스트 추가</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">멤버 이름 추가</target>
@@ -256,8 +251,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_matches_folder_preferences">
-        <source>Apply namespace matches folde preferences</source>
-        <target state="new">Apply namespace matches folde preferences</target>
+        <source>Apply namespace matches folder preferences</source>
+        <target state="new">Apply namespace matches folder preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">

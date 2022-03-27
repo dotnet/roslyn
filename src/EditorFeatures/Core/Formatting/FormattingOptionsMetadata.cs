@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+namespace Microsoft.CodeAnalysis.Formatting
 {
     internal sealed class FormattingOptionsMetadata
     {

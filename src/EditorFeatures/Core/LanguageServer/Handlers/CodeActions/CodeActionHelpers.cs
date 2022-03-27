@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -103,6 +104,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeAction = suggestedAction.OriginalCodeAction;
             currentTitle += codeAction.Title;
 
+            var diagnosticsForFix = GetApplicableDiagnostics(request.Context, suggestedAction);
+
             // Nested code actions' unique identifiers consist of: parent code action unique identifier + '|' + title of code action
             var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction, codeActionKind, ref currentHighestSetNumber, currentTitle);
 
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             {
                 Title = codeAction.Title,
                 Kind = codeActionKind,
-                Diagnostics = request.Context.Diagnostics,
+                Diagnostics = diagnosticsForFix,
                 Children = nestedActions,
                 Priority = UnifiedSuggestedActionSetPriorityToPriorityLevel(setPriority),
                 Group = $"Roslyn{currentSetNumber}",
@@ -147,6 +150,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                 }
 
                 return nestedActions.ToArray();
+            }
+
+            static LSP.Diagnostic[]? GetApplicableDiagnostics(LSP.CodeActionContext context, IUnifiedSuggestedAction action)
+            {
+                if (action is UnifiedCodeFixSuggestedAction codeFixAction)
+                {
+                    // Associate the diagnostics from the request that match the diagnostic fixed by the code action by ID.
+                    // The request diagnostics are already restricted to the code fix location by the request.
+                    var diagnosticCodesFixedByAction = codeFixAction.CodeFix.Diagnostics.Select(d => d.Id);
+                    using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
+                    foreach (var requestDiagnostic in context.Diagnostics)
+                    {
+                        var diagnosticCode = requestDiagnostic.Code?.Value?.ToString();
+                        if (diagnosticCodesFixedByAction.Contains(diagnosticCode))
+                        {
+                            diagnosticsBuilder.Add(requestDiagnostic);
+                        }
+                    }
+
+                    return diagnosticsBuilder.ToArray();
+                }
+
+                return null;
             }
         }
 

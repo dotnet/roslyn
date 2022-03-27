@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
+namespace Microsoft.CodeAnalysis.DocumentationComments
 {
     internal abstract class AbstractXmlTagCompletionCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {

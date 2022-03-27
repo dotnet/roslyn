@@ -160,18 +160,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        public void VerifyNotSaved()
-        {
-            Contract.ThrowIfTrue(GetDTE().ActiveDocument.ProjectItem.Saved);
-        }
-
-        public string VerifySaved()
-        {
-            var activeDocument = GetDTE().ActiveDocument;
-            Contract.ThrowIfFalse(activeDocument.ProjectItem.Saved);
-            return activeDocument.FullName;
-        }
-
         public string GetActiveBufferName()
         {
             return GetDTE().ActiveDocument.Name;
@@ -353,9 +341,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
         {
-            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            return JoinableTaskFactory.Run(async () =>
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync();
 
                 var view = GetActiveTextView();
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();

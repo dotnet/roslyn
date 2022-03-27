@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -39,7 +38,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             _service = service;
         }
 
-        public async Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        public Task<ImmutableArray<NavigationBarItem>> GetItemsAsync(Document document, ITextVersion textVersion, CancellationToken cancellationToken)
+        {
+            return ((INavigationBarItemService)this).GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations: false, textVersion, cancellationToken);
+        }
+
+        async Task<ImmutableArray<NavigationBarItem>> INavigationBarItemService.GetItemsAsync(
+            Document document, bool forceFrozenPartialSemanticsForCrossProcessOperations, ITextVersion textVersion, CancellationToken cancellationToken)
         {
             var items = await _service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             return items == null

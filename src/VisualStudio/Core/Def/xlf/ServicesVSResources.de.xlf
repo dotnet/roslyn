@@ -77,6 +77,11 @@
         <target state="translated">Immer zur besseren Unterscheidung</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_use_default_symbol_servers_for_navigation">
+        <source>Always use default symbol servers for navigation</source>
+        <target state="new">Always use default symbol servers for navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Analyzer_Defaults">
         <source>Analyzer Defaults</source>
         <target state="translated">Standardwerte des Analysetools</target>
@@ -457,6 +462,11 @@
         <target state="translated">EDITORCONFIG-Datei aus Einstellungen generieren</target>
         <note />
       </trans-unit>
+      <trans-unit id="Go_To_Definition">
+        <source>Go To Definition</source>
+        <target state="new">Go To Definition</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">Zugehörige Komponenten unter dem Cursor markieren</target>
@@ -825,6 +835,11 @@
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Benennungsregeln</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_asynchronously_exerimental">
+        <source>Navigate asynchronously (experimental)</source>
+        <target state="new">Navigate asynchronously (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">

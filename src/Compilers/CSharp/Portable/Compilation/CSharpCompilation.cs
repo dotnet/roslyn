@@ -1207,7 +1207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var referenceManager = GetBoundReferenceManager();
 
-            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            int length = referenceManager.ReferencedAssemblies.Length;
+
+            assemblies.EnsureCapacity(assemblies.Count + length);
+
+            for (int i = 0; i < length; i++)
             {
                 if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
                 {

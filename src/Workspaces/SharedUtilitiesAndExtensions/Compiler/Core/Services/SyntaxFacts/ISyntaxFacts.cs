@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsThrowExpression(ParseOptions options);
         bool SupportsTargetTypedConditionalExpression(ParseOptions options);
         bool SupportsIsNotTypeExpression(ParseOptions options);
+        bool SupportsConstantInterpolatedStrings(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -202,6 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node);
 
         void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode;

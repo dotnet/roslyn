@@ -5,25 +5,22 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
@@ -35,11 +32,9 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TaskStatusCenter;
-using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -157,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             _workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
 
-            InitializeColors();
+            await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
 
             // load some services that have to be loaded in UI thread
             LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
@@ -187,11 +182,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
         }
 
-        private void InitializeColors()
+        private async Task InitializeColorsAsync(CancellationToken cancellationToken)
         {
-            // Initialize ColorScheme support
+            await TaskScheduler.Default;
             _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
-            _colorSchemeApplier.Initialize();
+            await _colorSchemeApplier.InitializeAsync(cancellationToken).ConfigureAwait(false);
         }
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
@@ -265,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
         {
             // Obtain services and QueryInterface from the main thread
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
             var monitorSelectionService = (IVsMonitorSelection)await GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
@@ -273,11 +268,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Switch to the background object for constructing commands
             await TaskScheduler.Default;
 
-            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+            var threadingContext = ComponentModel.GetService<IThreadingContext>();
+
+            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
                 .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
 
-            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
+            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
                 .InitializeResetInteractiveFromProjectCommandAsync()
                 .ConfigureAwait(true);
         }
@@ -285,7 +282,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private async Task LoadCallstackExplorerMenusAsync(CancellationToken cancellationToken)
         {
             // Obtain services and QueryInterface from the main thread
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
             StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);

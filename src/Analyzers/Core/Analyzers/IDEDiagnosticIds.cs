@@ -171,6 +171,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
 
+        public const string ForEachCastDiagnosticId = "IDE0210";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
