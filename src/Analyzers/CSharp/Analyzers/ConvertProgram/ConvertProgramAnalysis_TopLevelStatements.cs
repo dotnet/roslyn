@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
                 return false;
 
             // If the type wasn't internal it might have been public and something outside this assembly might be using it.
-            if (containingType.DeclaredAccessibility != Accessibility.Internal)
+            if (containingType.DeclaredAccessibility == Accessibility.Public)
                 return false;
 
             // type can't be converted with attributes.
