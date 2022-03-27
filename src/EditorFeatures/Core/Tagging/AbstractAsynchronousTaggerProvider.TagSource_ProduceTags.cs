@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // the tagging happen once enough time has passed.  This helps ensure we do always reach a fixed point.
                 var documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
                 await documentTrackingService.DelayWhileNonVisibleAsync(
-                    documents!, TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
+                    documents!, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
             }
 
             private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()

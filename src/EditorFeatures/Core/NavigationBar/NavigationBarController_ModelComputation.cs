@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // work until far in teh future (or if visibility changes).  This ensures our non-visible docs do settle
                 // once enough time has passed, while greatly reducing their impact on the system.
                 var documentTrackingService = document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
-                await documentTrackingService.DelayWhileNonVisibleAsync(document, TimeSpan.FromSeconds(30), cancellationToken).ConfigureAwait(false);
+                await documentTrackingService.DelayWhileNonVisibleAsync(document, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
 
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
