@@ -1934,4 +1934,7 @@ Additional information: {1}</value>
   <data name="Navigate_asynchronously_exerimental" xml:space="preserve">
     <value>Navigate asynchronously (experimental)</value>
   </data>
+  <data name="Always_use_default_symbol_servers_for_navigation" xml:space="preserve">
+    <value>Always use default symbol servers for navigation</value>
+  </data>
 </root>

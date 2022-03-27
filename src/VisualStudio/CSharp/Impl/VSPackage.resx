@@ -151,6 +151,7 @@ Report invalid regular expressions;
 Enable full solution analysis;
 Perform editor feature analysis in external process;
 Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
 Using directives;
 Place system directives first when sorting usings;
 Separate using directive groups;
