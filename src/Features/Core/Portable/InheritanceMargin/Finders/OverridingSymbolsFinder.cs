@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
@@ -17,8 +18,30 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
     {
         public static readonly OverridingSymbolsFinder Instance = new();
 
-        protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-            => SymbolFinder.FindOverridesArrayAsync(symbol, solution, cancellationToken: cancellationToken);
+        protected override async Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        {
+            var overridingSymbols = await SymbolFinder.FindOverridesArrayAsync(symbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var indegreeSymbolsMap = GetIndegreeSymbolMap(overridingSymbols);
+            return TopologicalSortAsArray(overridingSymbols, indegreeSymbolsMap);
+        }
+
+        private static ImmutableDictionary<ISymbol, HashSet<ISymbol>> GetIndegreeSymbolMap(ImmutableArray<ISymbol> overriddingSymbols)
+        {
+            using var _1 = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var mapBuilder);
+            foreach (var symbol in overriddingSymbols)
+            {
+                var indegreeSymbols = new HashSet<ISymbol>();
+                var overriddenSymbol = symbol.GetOverriddenMember();
+                if (overriddenSymbol != null && overriddingSymbols.Contains(overriddenSymbol))
+                {
+                    indegreeSymbols.Add(overriddenSymbol);
+                }
+
+                mapBuilder[symbol] = indegreeSymbols;
+            }
+
+            return mapBuilder.ToImmutableDictionary();
+        }
 
         public async Task<ImmutableArray<SymbolGroup>> GetOverridingSymbolsGroupAsync(ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
         {

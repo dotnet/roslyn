@@ -19,11 +19,50 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 
         protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+            using var _ = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var indegreeSymbolsMapBuilder);
             var overriddenSymbols = InheritanceMarginServiceHelper.GetOverriddenSymbols(symbol);
-            builder.AddRange(overriddenSymbols);
-            builder.AddRange(InheritanceMarginServiceHelper.GetImplementedSymbolsForTypeMember(symbol, overriddenSymbols));
-            return Task.FromResult(builder.ToImmutable());
+            for (var i = 0; i < overriddenSymbols.Length; i++)
+            {
+                var overriddenSymbol = overriddenSymbols[i];
+                if (i == 0)
+                {
+                    indegreeSymbolsMapBuilder[overriddenSymbol] = new HashSet<ISymbol>();
+                }
+                else
+                {
+                    indegreeSymbolsMapBuilder[overriddenSymbol] = new HashSet<ISymbol>() { overriddenSymbols[i - 1] };
+                }
+
+                AddIndegreeSymbolsForImplementedMembers(overriddenSymbol, indegreeSymbolsMapBuilder);
+            }
+
+            foreach (var implementedMember in symbol.ExplicitOrImplicitInterfaceImplementations())
+            {
+                if (!indegreeSymbolsMapBuilder.ContainsKey(implementedMember))
+                {
+                    indegreeSymbolsMapBuilder[implementedMember] = new HashSet<ISymbol>();
+                }
+            }
+
+            return Task.FromResult(TopologicalSortAsArray(
+                indegreeSymbolsMapBuilder.SelectAsArray(kvp => kvp.Key),
+                indegreeSymbolsMapBuilder.ToImmutableDictionary()));
+
+            static void AddIndegreeSymbolsForImplementedMembers(
+                ISymbol symbol, PooledDictionary<ISymbol, HashSet<ISymbol>> indegreeSymbolsMapBuilder)
+            {
+                foreach (var implementedMember in symbol.ExplicitOrImplicitInterfaceImplementations())
+                {
+                    if (indegreeSymbolsMapBuilder.TryGetValue(implementedMember, out var indegreeSymbolMap))
+                    {
+                        indegreeSymbolMap.Add(symbol);
+                    }
+                    else
+                    {
+                        indegreeSymbolsMapBuilder[implementedMember] = new HashSet<ISymbol>() { symbol };
+                    }
+                }
+            }
         }
 
         public async Task<(ImmutableArray<SymbolGroup> implementedSymbolGroups, ImmutableArray<SymbolGroup> overriddenSymbolGroups)> GetImplementedSymbolAndOverrriddenSymbolGroupsAsync(

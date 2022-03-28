@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
@@ -22,26 +24,49 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         {
             var queue = new Queue<ISymbol>();
             var initialSymbols = await SymbolFinder.FindLinkedSymbolsAsync(initialSymbol, solution, cancellationToken).ConfigureAwait(false);
-            var visitedSet = new MetadataUnifyingSymbolHashSet();
+            var visitedSet = new HashSet<ISymbol>();
             EnqueueAll(queue, initialSymbols);
             while (queue.Count > 0)
             {
                 var currentSymbol = queue.Dequeue();
-                var sourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(currentSymbol, solution, cancellationToken).ConfigureAwait(false);
-                var searchSymbol = sourceSymbol ?? currentSymbol;
-                if (visitedSet.Add(searchSymbol))
+                if (visitedSet.Add(currentSymbol))
                 {
-                    var symbols = await GetAssociatedSymbolsAsync(currentSymbol, solution, cancellationToken).ConfigureAwait(false);
-
-                    foreach (var symbol in symbols)
+                    var associatedSymbols = await GetAssociatedSymbolsAsync(currentSymbol, solution, cancellationToken).ConfigureAwait(false);
+                    foreach (var associatedSymbol in associatedSymbols)
                     {
-                        var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                        visitedSet.Add(associatedSymbol);
+                        var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(associatedSymbol, solution, cancellationToken).ConfigureAwait(false);
                         EnqueueAll(queue, linkedSymbols);
-                        if (!builder.ContainsKey(symbol))
-                            builder[symbol] = new SymbolGroup(linkedSymbols.SelectAsArray(s => s.OriginalDefinition));
+
+                        var originalSymbol = associatedSymbol.OriginalDefinition;
+                        if (!builder.ContainsKey(originalSymbol))
+                        {
+                            var linkedGroupSymbols =
+                                await linkedSymbols.SelectAsArrayAsync((s, cancellationToken) => FindOriginalSourceDefinitionInNeededAsync(s, solution, cancellationToken), cancellationToken).ConfigureAwait(false);
+                            builder[originalSymbol] = new SymbolGroup(linkedSymbols);
+                        }
                     }
                 }
             }
+        }
+
+        private static async ValueTask<ISymbol> FindOriginalSourceDefinitionInNeededAsync(
+            ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
+        {
+            var symbol = await SymbolFinder.FindSourceDefinitionAsync(initialSymbol, solution, cancellationToken).ConfigureAwait(false) ?? initialSymbol;
+            return symbol.OriginalDefinition;
+        }
+
+        protected static ImmutableArray<ISymbol> TopologicalSortAsArray(
+            ImmutableArray<ISymbol> symbols, ImmutableDictionary<ISymbol, HashSet<ISymbol>> indegreeSymbolsMap)
+        {
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+            foreach (var sortedSymbol in symbols.TopologicalSort(symbol => indegreeSymbolsMap[symbol]))
+            {
+                builder.Add(sortedSymbol);
+            }
+
+            return builder.ToImmutable();
         }
 
         private static void EnqueueAll(Queue<ISymbol> queue, ImmutableArray<ISymbol> symbols)

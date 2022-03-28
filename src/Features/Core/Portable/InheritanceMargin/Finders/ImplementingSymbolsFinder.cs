@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
@@ -17,11 +18,40 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
     {
         public static readonly ImplementingSymbolsFinder Instance = new();
 
-        protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-            => InheritanceMarginServiceHelper.GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken);
+        protected override async Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        {
+            var implementingSymbols = await InheritanceMarginServiceHelper.GetImplementingSymbolsForTypeMemberAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+            using var _ = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var indegreeSymbolsMapBuilder);
+            foreach (var implementingSymbol in implementingSymbols)
+            {
+                if (!indegreeSymbolsMapBuilder.ContainsKey(implementingSymbol))
+                {
+                    var indegreeSymbols = new HashSet<ISymbol>();
+
+                    var overriddenMember = implementingSymbol.GetOverriddenMember();
+                    if (overriddenMember != null && implementingSymbols.Contains(overriddenMember))
+                    {
+                        indegreeSymbols.Add(overriddenMember);
+                    }
+
+                    foreach (var implementedInterfaceMember in implementingSymbol.ExplicitOrImplicitInterfaceImplementations())
+                    {
+                        if (implementingSymbols.Contains(implementedInterfaceMember))
+                        {
+                            indegreeSymbols.Add(implementedInterfaceMember);
+                        }
+                    }
+
+                    indegreeSymbolsMapBuilder[implementingSymbol] = indegreeSymbols;
+                }
+            }
+
+            return TopologicalSortAsArray(implementingSymbols, indegreeSymbolsMapBuilder.ToImmutableDictionary());
+        }
 
         public async Task<ImmutableArray<SymbolGroup>> GetImplementingSymbolsGroupAsync(ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
         {
+            RoslynDebug.Assert(initialSymbol.ContainingSymbol.IsInterfaceType());
             var builder = new Dictionary<ISymbol, SymbolGroup>(MetadataUnifyingEquivalenceComparer.Instance);
             await GetSymbolGroupsAsync(initialSymbol, solution, builder, cancellationToken).ConfigureAwait(false);
 

@@ -20,7 +20,33 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         protected override async Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             var derivedSymbols = await InheritanceMarginServiceHelper.GetDerivedTypesAndImplementationsAsync(solution, (INamedTypeSymbol)symbol, cancellationToken).ConfigureAwait(false);
-            return derivedSymbols.CastArray<ISymbol>();
+            var indegreeSymbolMap = GetIndegreeSymbolMap(derivedSymbols);
+
+            return TopologicalSortAsArray(derivedSymbols.CastArray<ISymbol>(), indegreeSymbolMap);
+        }
+
+        private static ImmutableDictionary<ISymbol, HashSet<ISymbol>> GetIndegreeSymbolMap(ImmutableArray<INamedTypeSymbol> derivedSymbols)
+        {
+            using var _1 = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var indegreeSymbolsMapBuilder);
+
+            foreach (var derivedSymbol in derivedSymbols)
+            {
+                if (!indegreeSymbolsMapBuilder.ContainsKey(derivedSymbol))
+                {
+                    var indegreeSymbols = new HashSet<ISymbol>();
+                    indegreeSymbols.AddRange(derivedSymbol.Interfaces.Intersect(derivedSymbols));
+
+                    var baseType = derivedSymbol.BaseType;
+                    if (baseType != null && derivedSymbols.Contains(baseType))
+                    {
+                        indegreeSymbols.Add(baseType);
+                    }
+
+                    indegreeSymbolsMapBuilder[derivedSymbol] = indegreeSymbols;
+                }
+            }
+
+            return indegreeSymbolsMapBuilder.ToImmutableDictionary();
         }
 
         public async Task<ImmutableArray<SymbolGroup>> GetDerivedTypeSymbolGroupsAsync(ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
@@ -31,7 +57,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var derivedTypeBuilder);
             foreach (var (symbol, symbolGroup) in builder)
             {
-                // Ensure the user won't be able to see symbol outside the solution for derived symbols.
+                // Ensure the user won't be able to see derivedSymbol outside the solution for derived symbols.
                 // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
                 // the user all the derived types under System.Collections
                 if (symbol.Locations.Any(l => l.IsInSource) && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol))
