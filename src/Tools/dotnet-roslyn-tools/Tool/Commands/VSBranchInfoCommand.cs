@@ -14,7 +14,7 @@ internal class VSBranchInfoCommand
 {
     private static readonly VSBranchInfoCommandDefaultHandler s_vsBranchInfoCommandHandler = new();
 
-    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name).Concat(new[] { "all" }).ToArray();
+    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()).Concat(new[] { "all" }).ToArray();
 
     internal static readonly Option<string> BranchOption = new(new[] { "--branch", "-b" }, () => "main", "Which VS branch to show information for (eg main, rel/d17.1)");
     internal static readonly Option<string> ProductOption = new Option<string>(new[] { "--product", "-p" }, () => "roslyn", "Which product to get info for (roslyn or razor)").FromAmong(s_allProductNames);
