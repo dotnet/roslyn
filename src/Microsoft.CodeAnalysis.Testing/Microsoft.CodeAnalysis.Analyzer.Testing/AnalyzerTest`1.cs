@@ -1273,10 +1273,12 @@ namespace Microsoft.CodeAnalysis.Testing
             static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string path)
             {
                 string fileName = Path.GetFileName(path);
-                string[] folders = Path.GetDirectoryName(path)!.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+                string[] folders = Path.GetDirectoryName(path)!.Split(PathSplitChars, StringSplitOptions.RemoveEmptyEntries);
                 return (fileName, folders);
             }
         }
+
+        private static readonly char[] PathSplitChars = new[] { Path.DirectorySeparatorChar };
 
         /// <summary>
         /// Creates a solution that will be used as parent for the sources that need to be checked.
