@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -29,7 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var rootWithGlobalStatements = GetRootWithGlobalStatements(generator, root, typeDeclaration, methodDeclaration);
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var rootWithGlobalStatements = GetRootWithGlobalStatements(
+                semanticModel, generator, root, typeDeclaration, methodDeclaration, cancellationToken);
 
             // simple case.  we were in a top level type to begin with.  Nothing we need to do now.
             if (typeDeclaration.Parent is not NamespaceDeclarationSyntax namespaceDeclaration)
@@ -66,13 +71,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         }
 
         private static SyntaxNode GetRootWithGlobalStatements(
+            SemanticModel semanticModel,
             SyntaxGenerator generator,
             SyntaxNode root,
             TypeDeclarationSyntax typeDeclaration,
-            MethodDeclarationSyntax methodDeclaration)
+            MethodDeclarationSyntax methodDeclaration,
+            CancellationToken cancellationToken)
         {
             var editor = new SyntaxEditor(root, generator);
-            var globalStatements = GetGlobalStatements(typeDeclaration, methodDeclaration);
+            var globalStatements = GetGlobalStatements(
+                semanticModel, typeDeclaration, methodDeclaration, cancellationToken);
 
             var namespaceDeclaration = typeDeclaration.Parent as NamespaceDeclarationSyntax;
             if (namespaceDeclaration != null &&
@@ -106,7 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             return editor.GetChangedRoot();
         }
 
-        private static ImmutableArray<GlobalStatementSyntax> GetGlobalStatements(TypeDeclarationSyntax typeDeclaration, MethodDeclarationSyntax methodDeclaration)
+        private static ImmutableArray<GlobalStatementSyntax> GetGlobalStatements(
+            SemanticModel semanticModel,
+            TypeDeclarationSyntax typeDeclaration,
+            MethodDeclarationSyntax methodDeclaration,
+            CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var statements);
 
@@ -119,7 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 if (member is FieldDeclarationSyntax fieldDeclaration)
                 {
                     // Convert fields into local statements
-                    statements.Add(LocalDeclarationStatement(fieldDeclaration.Declaration)
+                    statements.Add(LocalDeclarationStatement(
+                        ConvertDeclaration(semanticModel, fieldDeclaration.Declaration, cancellationToken))
                         .WithSemicolonToken(fieldDeclaration.SemicolonToken)
                         .WithTriviaFrom(fieldDeclaration));
                 }
@@ -183,6 +196,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 globalStatements.Add(GlobalStatement(statement).WithAdditionalAnnotations(Formatter.Annotation));
 
             return globalStatements.ToImmutable();
+        }
+
+        private static VariableDeclarationSyntax ConvertDeclaration(
+            SemanticModel semanticModel,
+            VariableDeclarationSyntax declaration,
+            CancellationToken cancellationToken)
+        {
+            return declaration.ReplaceNodes(
+                declaration.Variables,
+                (v, _) => ConvertVariable(semanticModel, v, cancellationToken));
+        }
+
+        private static VariableDeclaratorSyntax ConvertVariable(
+            SemanticModel semanticModel,
+            VariableDeclaratorSyntax variable,
+            CancellationToken cancellationToken)
+        {
+            // If the field does not have an initialize, then generate it with one as locals do not get initialized by
+            // default like fields do.
+            if (variable.Initializer != null)
+                return variable;
+
+            var field = (IFieldSymbol?)semanticModel.GetDeclaredSymbol(variable, cancellationToken);
+            Contract.ThrowIfNull(field);
+            return variable.WithInitializer(EqualsValueClause(
+                (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(field.Type)));
         }
     }
 }

@@ -777,7 +777,7 @@ class Program
 }
 ",
                 FixedCode = @"
-int x;
+int x = 0;
 
 System.Console.WriteLine(0);
 ",
@@ -805,7 +805,7 @@ class Program
 ",
                 FixedCode = @"
 
-int x;
+int x = 0;
 System.Console.WriteLine(0);
 ",
                 LanguageVersion = LanguageVersion.CSharp9,
@@ -831,7 +831,7 @@ class Program
 }
 ",
                 FixedCode = @"
-int x;
+int x = 0;
 
 System.Console.WriteLine(0);
 ",
@@ -858,7 +858,7 @@ class Program
 }
 ",
                 FixedCode = @"
-int x, y;
+int x = 0, y = 0;
 
 System.Console.WriteLine(0);
 ",
@@ -876,7 +876,7 @@ System.Console.WriteLine(0);
                 TestCode = @"
 class Program
 {
-    private static int x = 0;
+    private static int x = 1;
 
     static void {|IDE0210:Main|}(string[] args)
     {
@@ -885,7 +885,88 @@ class Program
 }
 ",
                 FixedCode = @"
-int x = 0;
+int x = 1;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestReferenceField()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static string x;
+
+    static void {|IDE0210:Main|}(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+string x = null;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestBooleanField()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static bool x;
+
+    static void {|IDE0210:Main|}(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+bool x = false;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestStructField()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    private static System.DateTime x;
+
+    static void {|IDE0210:Main|}(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}
+",
+                FixedCode = @"
+System.DateTime x = default;
 
 System.Console.WriteLine(0);
 ",
