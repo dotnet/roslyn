@@ -1922,6 +1922,18 @@ Additional information: {1}</value>
   <data name="External_sources" xml:space="preserve">
     <value>External Sources</value>
   </data>
+  <data name="Call_Hierarchy" xml:space="preserve">
+    <value>Call Hierarchy</value>
+  </data>
+  <data name="Navigating" xml:space="preserve">
+    <value>Navigating</value>
+  </data>
+  <data name="Go_To_Definition" xml:space="preserve">
+    <value>Go To Definition</value>
+  </data>
+  <data name="Navigate_asynchronously_exerimental" xml:space="preserve">
+    <value>Navigate asynchronously (experimental)</value>
+  </data>
   <data name="Always_use_default_symbol_servers_for_navigation" xml:space="preserve">
     <value>Always use default symbol servers for navigation</value>
   </data>

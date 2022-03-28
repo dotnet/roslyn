@@ -444,6 +444,9 @@ dotnet_diagnostic.IDE0190.severity = %value%
 # IDE0200
 dotnet_diagnostic.IDE0200.severity = %value%
 
+# IDE0210
+dotnet_diagnostic.IDE0210.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -1048,6 +1051,9 @@ csharp_style_prefer_top_level_statements = true
 
 # IDE0211, PreferTopLevelStatements
 csharp_style_prefer_top_level_statements = true
+
+# IDE0220, ForEachExplicitCastInSource
+dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true

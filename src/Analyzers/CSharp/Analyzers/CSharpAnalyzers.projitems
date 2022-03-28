@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertProgramAnalysis_ProgramMain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertProgram\ConvertToTopLevelStatementsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\CSharpForEachCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveBracePlacement\ConsecutiveBracePlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\CSharpConsecutiveStatementPlacementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConstructorInitializerPlacement\ConstructorInitializerPlacementDiagnosticAnalyzer.cs" />

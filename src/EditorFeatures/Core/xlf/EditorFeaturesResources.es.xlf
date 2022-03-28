@@ -597,6 +597,11 @@
         <target state="translated">No se puede cambiar el nombre de este elemento porque está en una ubicación a la que no se puede navegar.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Esc_to_cancel">
+        <source>{0} (Esc to cancel)</source>
+        <target state="new">{0} (Esc to cancel)</target>
+        <note>Placeholder represents an operating that is happening.  Parenthesized expression indicates how you can cancel it.</note>
+      </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">Se va(n) a resolver {0} conflicto(s)</target>

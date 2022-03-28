@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -954,7 +955,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.GotoDefn, cancellationToken);
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
-                new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo },
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.NavigateTo, FeatureAttribute.GoToDefinition },
                 cancellationToken);
         }
 
@@ -962,7 +963,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await TestServices.Shell.ExecuteCommandAsync(EditorConstants.EditorCommandID.GoToBase, cancellationToken);
+            Debug.Assert(new Version("17.2.32210.308") >= await TestServices.Shell.GetVersionAsync(cancellationToken), "After updating CI to 17.2 Preview 2, the following call to ExecuteCommandAsync should has its first parameter, and uint cast, removed leaving just EditorConstants.EditorCommandID.GoToBase instead of an explicit CommandID and Guid.");
+            await TestServices.Shell.ExecuteCommandAsync(EditorConstants.EditorCommandSet, (uint)EditorConstants.EditorCommandID.GoToBase, cancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
 
