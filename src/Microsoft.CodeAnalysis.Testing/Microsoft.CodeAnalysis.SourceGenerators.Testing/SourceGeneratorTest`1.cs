@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -91,11 +92,23 @@ namespace Microsoft.CodeAnalysis.Testing
                     verifier.EqualOrDiff(expectedSources[i].content.ToString(), actual.ToString(), $"content of '{expectedSources[i].filename}' did not match. Diff shown with expected as baseline:");
                     verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                     verifier.Equal(expectedSources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                    verifier.Equal(expectedSources[i].filename, updatedDocuments[i].Name, $"file name was expected to be '{expectedSources[i].filename}' but was '{updatedDocuments[i].Name}'");
+                    verifier.True(FileNamesEqual(expectedSources[i].filename, updatedDocuments[i].Folders, updatedDocuments[i].Name), $"file name was expected to be '{newState.Sources[i].filename}' but was '{GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name)}'");
                 }
             }
 
             return diagnostics;
+
+            static string GetFileName(IEnumerable<string> actualFolders, string actualFileName)
+            {
+                var elements = new List<string>(actualFolders);
+                elements.Add(actualFileName);
+                return string.Join(Path.DirectorySeparatorChar.ToString(), elements);
+            }
+
+            static bool FileNamesEqual(string expected, IEnumerable<string> actualFolders, string actualFileName)
+            {
+                return expected == GetFileName(actualFolders, actualFileName);
+            }
         }
 
         private async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<ISourceGenerator> sourceGenerators, Project project, IVerifier verifier, CancellationToken cancellationToken)
