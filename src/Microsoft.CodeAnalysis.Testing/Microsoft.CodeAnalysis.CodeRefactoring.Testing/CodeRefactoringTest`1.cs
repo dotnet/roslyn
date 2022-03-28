@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 var elements = new List<string>(actualFolders);
                 elements.Add(actualFileName);
-                return string.Join(Path.DirectorySeparatorChar.ToString(), elements);
+                return string.Join("/", elements);
             }
 
             static bool FileNamesEqual(string expected, IEnumerable<string> actualFolders, string actualFileName)
