@@ -246,6 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRawStringLiterals = MessageBase + 12817,
         IDS_FeatureSpanCharConstantPattern = MessageBase + 12818,
         IDS_FeatureDisposalPattern = MessageBase + 12819,
+        IDS_FeatureAutoDefaultStructs = MessageBase + 12820,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -363,6 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
                 case MessageID.IDS_ParameterNullChecking: // syntax check
                 case MessageID.IDS_FeatureSpanCharConstantPattern:
+                case MessageID.IDS_FeatureAutoDefaultStructs: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.
