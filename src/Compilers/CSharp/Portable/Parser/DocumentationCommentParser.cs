@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SyntaxToken TryEatCheckedKeyword(bool isConversion)
         {
-            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
 
             if (checkedKeyword is not null &&
                 (isConversion || SyntaxFacts.IsAnyOverloadableOperator(CurrentToken.Kind)))

@@ -2092,6 +2092,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             // Note that it is possible for there to be both an implicit user-defined conversion
             // and an explicit built-in conversion from source to destination. In that scenario
             // this method returns the implicit conversion.
@@ -2111,7 +2113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
-            // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
             return Conversions.ClassifyConversionFromType(cssource, csdest, isChecked: false, ref discardedUseSiteInfo);
         }
 
@@ -2125,6 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
             return ClassifyConversion(source, destination).ToCommonConversion();
         }
 

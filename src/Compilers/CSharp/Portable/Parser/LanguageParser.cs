@@ -3348,7 +3348,7 @@ parse_member_name:;
                     {
                         possibleConversion = false;
                     }
-                    else if (this.PeekToken(1).Kind == SyntaxKind.CheckedKeyword) // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+                    else if (this.PeekToken(1).Kind == SyntaxKind.CheckedKeyword) // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
                     {
                         possibleConversion = !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(2).Kind);
                     }
@@ -3392,7 +3392,7 @@ parse_member_name:;
                 }
 
                 opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-                var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+                var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
 
                 this.Release(ref point);
                 point = GetResetPoint();
@@ -3517,7 +3517,7 @@ parse_member_name:;
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt)
         {
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-            var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+            var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
             SyntaxToken opToken;
             int opTokenErrorOffset;
             int opTokenErrorWidth;
