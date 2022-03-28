@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             // this is actually something we can convert before proceeding.
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var members = root.Members;
-            if (members.Any(m => m is GlobalStatementSyntax))
+            if (members.Count >= 1 && members[0] is GlobalStatementSyntax)
             {
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
