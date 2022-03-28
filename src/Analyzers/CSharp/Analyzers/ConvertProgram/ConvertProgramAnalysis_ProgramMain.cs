@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
             Compilation compilation,
             bool forAnalyzer)
         {
-            if (!HasGlobalStatement(root))
+            // We only have to check if the first member is a global statement.  Global statements following anything
+            // else is not legal.
+            if (root.Members.Count == 0 && root.Members[0] is not GlobalStatementSyntax)
                 return false;
 
             if (!CanOfferUseProgramMain(option, forAnalyzer))
@@ -41,17 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
                 return false;
 
             return true;
-        }
-
-        private static bool HasGlobalStatement(CompilationUnitSyntax root)
-        {
-            foreach (var member in root.Members)
-            {
-                if (member.Kind() is SyntaxKind.GlobalStatement)
-                    return true;
-            }
-
-            return false;
         }
 
         private static bool CanOfferUseProgramMain(CodeStyleOption2<bool> option, bool forAnalyzer)
