@@ -3885,6 +3885,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
+            var arrayType = VisitArrayInitialization(node.Type, isInferred, initialization, node.HasErrors);
+            SetResultType(node, TypeWithState.Create(arrayType, NullableFlowState.NotNull));
+            return null;
+        }
+
+        private TypeSymbol VisitArrayInitialization(TypeSymbol type, bool isInferred, BoundArrayInitialization initialization, bool hasErrors)
+        {
             TakeIncrementalSnapshot(initialization);
             var expressions = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, expressions);
@@ -3892,9 +3900,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
-            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
-            var arrayType = (ArrayTypeSymbol)node.Type;
-            var elementType = arrayType.ElementTypeWithAnnotations;
+            var elementType = type switch
+            {
+                ArrayTypeSymbol arrayType => arrayType.ElementTypeWithAnnotations,
+                PointerTypeSymbol pointerType => pointerType.PointedAtTypeWithAnnotations,
+                NamedTypeSymbol spanType => getSpanElementType(spanType),
+                _ => throw ExceptionUtilities.UnexpectedValue(type.TypeKind)
+            };
+
+            var resultType = type;
             if (!isInferred)
             {
                 foreach (var expr in expressions)
@@ -3907,7 +3921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expressionsNoConversions = ArrayBuilder<BoundExpression>.GetInstance(n);
                 var conversions = ArrayBuilder<Conversion>.GetInstance(n);
-                var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(n);
+                var expressionTypes = ArrayBuilder<TypeWithState>.GetInstance(n);
                 var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
                 foreach (var expression in expressions)
                 {
@@ -3916,19 +3930,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expressionsNoConversions.Add(expressionNoConversion);
                     conversions.Add(conversion);
                     SnapshotWalkerThroughConversionGroup(expression, expressionNoConversion);
-                    var resultType = VisitRvalueWithState(expressionNoConversion);
-                    resultTypes.Add(resultType);
+                    var expressionType = VisitRvalueWithState(expressionNoConversion);
+                    expressionTypes.Add(expressionType);
 
                     if (!IsTargetTypedExpression(expressionNoConversion))
                     {
-                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressionNoConversion, resultType.ToTypeWithAnnotations(compilation)));
+                        placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressionNoConversion, expressionType.ToTypeWithAnnotations(compilation)));
                     }
                 }
 
                 var placeholders = placeholderBuilder.ToImmutableAndFree();
 
                 TypeSymbol? bestType = null;
-                if (!node.HasErrors)
+                if (!hasErrors)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref discardedUseSiteInfo, out _);
@@ -3945,18 +3959,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var expressionNoConversion = expressionsNoConversions[i];
                         var expression = GetConversionIfApplicable(expressions[i], expressionNoConversion);
-                        resultTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, resultTypes[i], checkConversion: true,
+                        expressionTypes[i] = VisitConversion(expression, expressionNoConversion, conversions[i], inferredType, expressionTypes[i], checkConversion: true,
                             fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
                     }
 
                     // Set top-level nullability on inferred element type
-                    var elementState = BestTypeInferrer.GetNullableState(resultTypes);
+                    var elementState = BestTypeInferrer.GetNullableState(expressionTypes);
                     inferredType = TypeWithState.Create(inferredType.Type, elementState).ToTypeWithAnnotations(compilation);
 
                     for (int i = 0; i < n; i++)
                     {
                         // Report top-level warnings
-                        _ = VisitConversion(conversionOpt: null, conversionOperand: expressionsNoConversions[i], Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
+                        _ = VisitConversion(conversionOpt: null, conversionOperand: expressionsNoConversions[i], Conversion.Identity, targetTypeWithNullability: inferredType, operandType: expressionTypes[i],
                             checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
                     }
                 }
@@ -3972,14 +3986,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 expressionsNoConversions.Free();
                 conversions.Free();
-                resultTypes.Free();
+                expressionTypes.Free();
 
-                arrayType = arrayType.WithElementType(inferredType);
+                resultType = type switch
+                {
+                    ArrayTypeSymbol arrayType => arrayType.WithElementType(inferredType),
+                    PointerTypeSymbol pointerType => pointerType.WithPointedAtType(inferredType),
+                    NamedTypeSymbol spanType => setSpanElementType(spanType, inferredType),
+                    _ => throw ExceptionUtilities.UnexpectedValue(type.TypeKind)
+                };
             }
 
             expressions.Free();
-            SetResultType(node, TypeWithState.Create(arrayType, NullableFlowState.NotNull));
-            return null;
+            return resultType;
+
+            static TypeWithAnnotations getSpanElementType(NamedTypeSymbol namedType)
+            {
+                Debug.Assert(namedType.Name == "Span");
+                Debug.Assert(namedType.OriginalDefinition.Arity == 1);
+                return namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            }
+
+            static TypeSymbol setSpanElementType(NamedTypeSymbol namedType, TypeWithAnnotations elementType)
+            {
+                Debug.Assert(namedType.Name == "Span");
+                Debug.Assert(namedType.OriginalDefinition.Arity == 1);
+                return namedType.OriginalDefinition.Construct(ImmutableArray.Create(elementType));
+            }
         }
 
         private static bool IsTargetTypedExpression(BoundExpression node)
@@ -10546,14 +10579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResultType(expression, TypeWithState.Create(expression.Type, default));
         }
 
-        public override BoundNode? VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
-        {
-            var result = base.VisitStackAllocArrayCreation(node);
-            Debug.Assert(node.Type is null || node.Type.IsErrorType() || node.Type.IsRefLikeType);
-            SetNotNullResult(node);
-            return result;
-        }
-
         public override BoundNode? VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
             var receiver = node.Receiver;
@@ -10704,11 +10729,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            Debug.Assert(node.Type is null || node.Type.IsErrorType() || node.Type.IsRefLikeType);
+            return VisitStackAllocArrayCreationBase(node);
+        }
+
         public override BoundNode? VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
-            var result = base.VisitConvertedStackAllocExpression(node);
-            SetNotNullResult(node);
-            return result;
+            return VisitStackAllocArrayCreationBase(node);
+        }
+
+        private BoundNode? VisitStackAllocArrayCreationBase(BoundStackAllocArrayCreationBase node)
+        {
+            VisitRvalue(node.Count);
+
+            var initialization = node.InitializerOpt;
+            if (initialization is null)
+            {
+                SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+                return null;
+            }
+
+            Debug.Assert(node.Type is not null);
+            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitStackAllocArrayCreationExpression;
+            var type = VisitArrayInitialization(node.Type, isInferred, initialization, node.HasErrors);
+            SetResultType(node, TypeWithState.Create(type, NullableFlowState.NotNull));
+            return null;
         }
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
