@@ -1,6 +1,6 @@
 # Microsoft.RoslynTools
 
-`dotnet roslyn-tools` is a command line tool for performing Roslyn infrastructure tasks.
+`dotnet roslyn-tools` is a command line tool for performing infrastructure tasks.
 
 ## How to Install
 
@@ -25,7 +25,7 @@ Description:
   The command line tool for performing infrastructure tasks.
 
 Usage:
-  roslyn [command] [options]
+  roslyn-tools [command] [options]
 
 Commands:
   pr-finder                          Find merged PRs between two commits
