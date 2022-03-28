@@ -14,6 +14,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
 {
     internal abstract class InheritanceSymbolsFinder
     {
+        /// <summary>
+        /// Get the assoicated symbols for this finder for the given starting <param name="symbol"/>.
+        /// If the return symbols are not topologically sorted, then this method might be called unnecessarily.
+        /// The current strategy is:
+        /// For all the down symbols searching, the results would be topologically sorted before return. Because searching downwards is quite expansive.
+        /// For all the up symbols searching, the results would not be strictly topologically sorted. Because search upwards is less expansive, and 
+        /// we want to avoid the cost to sort the results.
+        /// </summary>
         protected abstract Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken);
 
         protected async Task GetSymbolGroupsAsync(
@@ -31,6 +39,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 var currentSymbol = queue.Dequeue();
                 if (visitedSet.Add(currentSymbol))
                 {
+                    // Note: If the assoicatedSymbols are not in topologic order. GetAssociatedSymbolsAsync might be called unnecessarily
+                    // e.g.
+                    // currentSymbol -> SubClass1 -> SubClass2 -> ... SubClassN (TFM1)
+                    //                     ↓             ↓                ↓
+                    //                  SubClass1 -> SubClass1 -> ... SubClassN (TFM2)
+                    // If 'SubClass1'(TFM1) is returned first, then 'SubClass1'(TFM2) would be in the queue first,
+                    // and in the next iteration, all SubClass for (TFM2) would be visited.
+                    // But If 'SubClassN' (TFM1) is returned first, then 'GetAssociatedSymbolsAsync' would be called for
+                    // all the SubClass for (TFM2)
                     var associatedSymbols = await GetAssociatedSymbolsAsync(currentSymbol, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var associatedSymbol in associatedSymbols)
                     {
