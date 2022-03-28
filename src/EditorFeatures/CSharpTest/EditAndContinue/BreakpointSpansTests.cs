@@ -261,7 +261,7 @@ class C
             VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
 class Class
 {
-    [|Cl$$ass()|]
+    [|Clas$$s()|]
 }");
         }
 
@@ -271,7 +271,7 @@ class Class
             VerifyAllSpansInDeclaration<ConstructorDeclarationSyntax>(@"
 class Class
 {
-    static Cl$$ass()
+    static Clas$$s()
 }");
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 // as this is just something that happens during solution load and will pass once that is over.  By using
                 // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
                 // compilation data (like skeleton assemblies).
+                var forceFrozenPartialSemanticsForCrossProcessOperations = true;
                 var document = textSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                 if (document == null)
                     return null;
@@ -54,9 +56,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 if (itemService == null)
                     return null;
 
+                // If these are navbars for a file that isn't even visible, then avoid doing any unnecessary computation
+                // work until far in teh future (or if visibility changes).  This ensures our non-visible docs do settle
+                // once enough time has passed, while greatly reducing their impact on the system.
+                var documentTrackingService = document.Project.Solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                await documentTrackingService.DelayWhileNonVisibleAsync(document, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
+
                 using (Logger.LogBlock(FunctionId.NavigationBar_ComputeModelAsync, cancellationToken))
                 {
-                    var items = await itemService.GetItemsAsync(document, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
+                    var items = await itemService.GetItemsAsync(document, forceFrozenPartialSemanticsForCrossProcessOperations, textSnapshot.Version, cancellationToken).ConfigureAwait(false);
                     return new NavigationBarModel(itemService, items);
                 }
             }

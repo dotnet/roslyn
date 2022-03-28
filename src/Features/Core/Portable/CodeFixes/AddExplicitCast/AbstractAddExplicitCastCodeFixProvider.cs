@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             if (potentialConversionTypes.Length == 1)
             {
                 context.RegisterCodeFix(new MyCodeAction(
-                    FeaturesResources.Add_explicit_cast,
+                    AnalyzersResources.Add_explicit_cast,
                     c => FixAsync(context.Document, context.Diagnostics.First(), c)),
                     context.Diagnostics);
                 return;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
             ReportTelemetryIfNecessary(potentialConversionTypes);
 
             context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
-                FeaturesResources.Add_explicit_cast,
+                AnalyzersResources.Add_explicit_cast,
                 actions.ToImmutable(), isInlinable: false),
                 context.Diagnostics);
         }

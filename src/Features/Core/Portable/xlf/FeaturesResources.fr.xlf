@@ -50,11 +50,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Ajouter l'attribut 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Ajouter un cast explicite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_member_name">
         <source>Add member name</source>
         <target state="translated">Ajouter le nom du membre</target>
@@ -256,8 +251,8 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_matches_folder_preferences">
-        <source>Apply namespace matches folde preferences</source>
-        <target state="new">Apply namespace matches folde preferences</target>
+        <source>Apply namespace matches folder preferences</source>
+        <target state="new">Apply namespace matches folder preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">

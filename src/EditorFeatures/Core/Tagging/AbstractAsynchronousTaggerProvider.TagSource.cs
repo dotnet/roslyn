@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly IAsynchronousOperationListener _asyncListener;
 
             /// <summary>
+            /// Information about what workspace the buffer we're tagging is associated with.
+            /// </summary>
+            private readonly WorkspaceRegistration _workspaceRegistration;
+
+            /// <summary>
             /// Work queue that collects high priority requests to call TagsChanged with.
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _highPriTagsChangedQueue;
@@ -122,6 +127,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _visibilityTracker = visibilityTracker;
                 _dataSource = dataSource;
                 _asyncListener = asyncListener;
+
+                _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),

@@ -78,6 +78,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function SupportsConstantInterpolatedStrings(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsConstantInterpolatedStrings
+            Return False
+        End Function
+
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
@@ -1444,6 +1448,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsExpressionOfForeach(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExpressionOfForeach
             Return node IsNot Nothing AndAlso TryCast(node.Parent, ForEachStatementSyntax)?.Expression Is node
+        End Function
+
+        Public Function GetExpressionOfForeachStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfForeachStatement
+            Return DirectCast(node, ForEachStatementSyntax).Expression
         End Function
 
         Public Function GetExpressionOfExpressionStatement(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfExpressionStatement

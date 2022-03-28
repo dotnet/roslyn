@@ -253,6 +253,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return true;
             }
 
+            if (currentNode.IsKind(SyntaxKind.EqualsValueClause) && currentNode.IsParentKind(SyntaxKind.PropertyDeclaration))
+            {
+                return true;
+            }
+
             if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
             {
                 return true;
@@ -340,6 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.ArrowExpressionClause:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.EqualsValueClause:
                 case SyntaxKind.RecordStructDeclaration:
                     // These statement types end in a semicolon. 
                     // if the original caret was inside any delimiters, `caret` will be after the outermost delimiter

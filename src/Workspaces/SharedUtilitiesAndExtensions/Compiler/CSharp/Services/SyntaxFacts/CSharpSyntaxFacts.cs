@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool SupportsTargetTypedConditionalExpression(ParseOptions options)
             => options.LanguageVersion() >= LanguageVersion.CSharp9;
 
+        public bool SupportsConstantInterpolatedStrings(ParseOptions options)
+            => options.LanguageVersion() >= LanguageVersion.CSharp10;
+
         public SyntaxToken ParseToken(string text)
             => SyntaxFactory.ParseToken(text);
 
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
                     (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
-                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax or OperatorDeclarationSyntax or RelationalPatternSyntax)) ||
                 (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
         }
 
@@ -1358,6 +1361,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
+
+        public SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node)
+            => ((CommonForEachStatementSyntax)node).Expression;
 
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;

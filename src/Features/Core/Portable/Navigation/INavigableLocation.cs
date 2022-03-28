@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.Navigation
             => _callback = callback;
 
         public Task<bool> NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
-            => _callback(options, cancellationToken);
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return _callback(options, cancellationToken);
+        }
 
         public static class TestAccessor
         {

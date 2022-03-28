@@ -67,13 +67,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
                 _navigator = navigator;
             }
 
-            public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-                => _navigator.CanNavigateToAsync(workspace, cancellationToken);
+            public override async Task<INavigableLocation?> GetNavigableLocationAsync(Workspace workspace, CancellationToken cancellationToken)
+            {
+                if (!await _navigator.CanNavigateToAsync(workspace, cancellationToken).ConfigureAwait(false))
+                    return null;
 
-#pragma warning disable CS0672 // Member overrides obsolete member
-            public override Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
-                => _navigator.TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
-#pragma warning restore CS0672 // Member overrides obsolete member
+                return new NavigableLocation((options, cancellationToken) =>
+                    _navigator.TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken));
+            }
         }
 
         internal readonly DefinitionItem UnderlyingObject;
@@ -109,13 +110,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public ImmutableArray<VSTypeScriptDocumentSpan> GetSourceSpans()
             => UnderlyingObject.SourceSpans.SelectAsArray(span => new VSTypeScriptDocumentSpan(span));
 
-        public Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-            => UnderlyingObject.CanNavigateToAsync(workspace, cancellationToken);
+        public async Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+            => await UnderlyingObject.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false) != null;
 
-#pragma warning disable CS0612 // Type or member is obsolete
-        public Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-            => UnderlyingObject.TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
-#pragma warning restore CS0612 // Type or member is obsolete
+        public async Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+        {
+            var location = await UnderlyingObject.GetNavigableLocationAsync(workspace, cancellationToken).ConfigureAwait(false);
+            return location != null &&
+                await location.NavigateToAsync(new NavigationOptions(showInPreviewTab, activateTab), cancellationToken).ConfigureAwait(false);
+        }
     }
 
     internal sealed class VSTypeScriptSourceReferenceItem

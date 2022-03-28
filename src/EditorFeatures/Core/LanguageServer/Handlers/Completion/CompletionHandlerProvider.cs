@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(CompletionHandler), typeof(CompletionResolveHandler)), Shared]
-    internal class CompletionHandlerProvider : AbstractRequestHandlerProvider
+    internal class CompletionHandlerProvider : IRequestHandlerProvider
     {
         private readonly IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
         private readonly IGlobalOptionService _globalOptions;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionProviders = completionProviders;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             var completionListCache = new CompletionListCache();
             return ImmutableArray.Create<IRequestHandler>(

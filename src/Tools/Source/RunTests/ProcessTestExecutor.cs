@@ -46,7 +46,12 @@ namespace RunTests
                 foreach (var typeInfo in typeInfoList)
                 {
                     MaybeAddSeparator();
+                    // https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests?pivots=mstest#syntax
+                    // We want to avoid matching other test classes whose names are prefixed with this test class's name.
+                    // For example, avoid running 'AttributeTests_WellKnownMember', when the request here is to run 'AttributeTests'.
+                    // We append a '.', assuming that all test methods in the class *will* match it, but not methods in other classes.
                     builder.Append(typeInfo.FullName);
+                    builder.Append('.');
                 }
                 builder.Append(sep);
 
@@ -67,6 +72,7 @@ namespace RunTests
                 }
             }
 
+            builder.Append($@" --arch {assemblyInfo.Architecture}");
             builder.Append($@" --framework {assemblyInfo.TargetFramework}");
             builder.Append($@" --logger {sep}xunit;LogFilePath={GetResultsFilePath(assemblyInfo, "xml")}{sep}");
 
@@ -86,7 +92,7 @@ namespace RunTests
 
         private string GetResultsFilePath(AssemblyInfo assemblyInfo, string suffix = "xml")
         {
-            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Platform}_test_results.{suffix}";
+            var fileName = $"{assemblyInfo.DisplayName}_{assemblyInfo.TargetFramework}_{assemblyInfo.Architecture}_test_results.{suffix}";
             return Path.Combine(Options.TestResultsDirectory, fileName);
         }
 
@@ -95,12 +101,18 @@ namespace RunTests
             var result = await RunTestAsyncInternal(assemblyInfo, retry: false, cancellationToken);
 
             // For integration tests (TestVsi), we make one more attempt to re-run failed tests.
-            if (Options.Retry && !Options.IncludeHtml && !result.Succeeded)
+            if (Options.Retry && !HasBuiltInRetry(assemblyInfo) && !Options.IncludeHtml && !result.Succeeded)
             {
                 return await RunTestAsyncInternal(assemblyInfo, retry: true, cancellationToken);
             }
 
             return result;
+
+            static bool HasBuiltInRetry(AssemblyInfo assemblyInfo)
+            {
+                // vs-extension-testing handles test retry internally.
+                return assemblyInfo.AssemblyName == "Microsoft.VisualStudio.LanguageServices.New.IntegrationTests.dll";
+            }
         }
 
         private async Task<TestResult> RunTestAsyncInternal(AssemblyInfo assemblyInfo, bool retry, CancellationToken cancellationToken)

@@ -134,8 +134,8 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Compiling expressions in Immediate/Watch windows or hovering over an expression
     - Compiling expressions in [DebuggerDisplay("...")]
 	- Assigning values in Locals/Autos/Watch windows
- 
-- Edit-and-continue
+
+- [Edit-and-continue](https://github.com/dotnet/roslyn/blob/main/docs/contributing/Testing%20for%20Interactive%20readiness.md)
 
 - Live Unit Testing (instrumentation)
 
