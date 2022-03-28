@@ -116,15 +116,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             return statements.ToImmutable();
         }
 
-        private static ClassDeclarationSyntax FixupComments(ClassDeclarationSyntax declaration)
+        private static SyntaxNode FixupComments(SyntaxNode classDeclaration)
         {
             // Remove comment explaining top level statements as it isn't relevant if the user switches back to full
             // Program.Main form.
-            var leadingTrivia = declaration.GetLeadingTrivia();
+            var leadingTrivia = classDeclaration.GetLeadingTrivia();
             var comment = leadingTrivia.FirstOrNull(
                 c => c.Kind() is SyntaxKind.SingleLineCommentTrivia && c.ToString().Contains("https://aka.ms/new-console-template"));
             if (comment == null)
-                return declaration;
+                return classDeclaration;
 
             var commentIndex = leadingTrivia.IndexOf(comment.Value);
             leadingTrivia = leadingTrivia.RemoveAt(commentIndex);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (commentIndex < leadingTrivia.Count && leadingTrivia[commentIndex].Kind() is SyntaxKind.EndOfLineTrivia)
                 leadingTrivia = leadingTrivia.RemoveAt(commentIndex);
 
-            return declaration.WithLeadingTrivia(leadingTrivia);
+            return classDeclaration.WithLeadingTrivia(leadingTrivia);
         }
     }
 }
