@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // Ensure the user won't be able to see derivedSymbol outside the solution for derived symbols.
                 // For example, if user is viewing 'IEnumerable interface' from metadata, we don't want to tell
                 // the user all the derived types under System.Collections
-                if (symbol.Locations.Any(l => l.IsInSource) && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol))
+                if (symbol.Locations.Any(l => l.IsInSource))
                     derivedTypeBuilder.Add(symbolGroup);
             }
 

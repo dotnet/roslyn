@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // class Bar : ISomethingIsNotDone { }
                 // The interface has not been declared yet, so don't show this error type to user.
                 if (!symbol.IsErrorType()
-                    && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol)
                     && symbol is INamedTypeSymbol { SpecialType: not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum) })
                 {
                     if (symbol.IsInterfaceType())

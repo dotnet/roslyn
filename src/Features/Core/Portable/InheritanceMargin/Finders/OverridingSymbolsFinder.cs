@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             using var _ = ArrayBuilder<SymbolGroup>.GetInstance(out var overridingSymbolGroupsBuilder);
             foreach (var (symbol, symbolGroup) in builder)
             {
-                if (symbol.Locations.Any(l => l.IsInSource) && InheritanceMarginServiceHelper.IsNavigableSymbol(symbol))
+                if (symbol.Locations.Any(l => l.IsInSource))
                     overridingSymbolGroupsBuilder.Add(symbolGroup);
             }
 

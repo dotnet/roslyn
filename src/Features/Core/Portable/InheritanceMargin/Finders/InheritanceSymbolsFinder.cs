@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                         EnqueueAll(queue, linkedSymbols);
 
                         var originalSymbol = associatedSymbol.OriginalDefinition;
-                        if (!builder.ContainsKey(originalSymbol))
+                        if (!builder.ContainsKey(originalSymbol) && InheritanceMarginServiceHelper.IsNavigableSymbol(originalSymbol))
                         {
                             var linkedGroupSymbols =
                                 await linkedSymbols.SelectAsArrayAsync((s, cancellationToken) => FindOriginalSourceDefinitionInNeededAsync(s, solution, cancellationToken), cancellationToken).ConfigureAwait(false);
