@@ -6,13 +6,15 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
-    public class CheckedUserDefinedOperators : CSharpTestBase
+    public class CheckedUserDefinedOperatorsTests : CSharpTestBase
     {
         [Theory]
         [InlineData("-", "op_CheckedUnaryNegation")]
@@ -3714,6 +3716,71 @@ class Program
                 );
         }
 
+        /// <summary>
+        /// Lifted nullable
+        /// </summary>
+        [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void OverloadResolution_UnaryOperators_05(string op)
+        {
+            var source1 =
+@"
+public struct C0 
+{
+    public static C0 operator checked " + op + @"(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestCheckedC0(new C0()) is null ? ""null"" : ""not null"");
+        System.Console.WriteLine(TestCheckedC0(null) is null ? ""null"" : ""not null"");
+    }
+
+    public static C0? TestCheckedC0(C0? x)
+    {
+        return checked(" + op + @"x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+not null
+null
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+not null
+null
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            compilation3.VerifyDiagnostics(
+                // (12,24): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return checked(-x);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, op + "x").WithArguments("checked user-defined operators").WithLocation(12, 24)
+                );
+        }
+
         [Theory]
         [InlineData("++")]
         [InlineData("--")]
@@ -4604,6 +4671,78 @@ regular C0
 ").VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// Lifted nullable
+        /// </summary>
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void OverloadResolution_BinaryOperators_07(string op)
+        {
+            var source1 =
+@"
+public struct C0 
+{
+    public static C0 operator checked " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestCheckedC0(new C0(), new C0()) is null ? ""null"" : ""not null"");
+        System.Console.WriteLine(TestCheckedC0(null, new C0()) is null ? ""null"" : ""not null"");
+        System.Console.WriteLine(TestCheckedC0(new C0(), null) is null ? ""null"" : ""not null"");
+        System.Console.WriteLine(TestCheckedC0(null, null) is null ? ""null"" : ""not null"");
+    }
+
+    public static C0? TestCheckedC0(C0? x, C0? y)
+    {
+        return checked(x " + op + @" y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+not null
+null
+null
+null
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+not null
+null
+null
+null
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            compilation3.VerifyDiagnostics(
+                // (14,24): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return checked(x - y);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "x " + op + " y").WithArguments("checked user-defined operators").WithLocation(14, 24)
+                );
+        }
+
         [Fact]
         public void ExpressionTree_BinaryOperators_01()
         {
@@ -5438,6 +5577,68 @@ class Program
                 // (35,28): error CS0030: Cannot convert type 'C0' to 'int'
                 //         unchecked { return (int)x; }
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)x").WithArguments("C0", "int").WithLocation(35, 28)
+                );
+        }
+
+        /// <summary>
+        /// Lifted nullable
+        /// </summary>
+        [Fact]
+        public void OverloadResolution_Conversion_05()
+        {
+            var source1 =
+@"
+public struct C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return 0;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine(TestCheckedExplicitLong(new C0()) is null ? ""null"" : ""not null"");
+        System.Console.WriteLine(TestCheckedExplicitLong(null) is null ? ""null"" : ""not null"");
+    }
+
+    public static long? TestCheckedExplicitLong(C0? x)
+    {
+        checked { return (long?)x; }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+not null
+null
+").VerifyDiagnostics();
+
+            compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+not null
+null
+").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10, references: new[] { compilation2.ToMetadataReference() });
+            compilation3.VerifyDiagnostics(
+                // (12,26): error CS8652: The feature 'checked user-defined operators' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         checked { return (long?)x; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(long?)x").WithArguments("checked user-defined operators").WithLocation(12, 26)
                 );
         }
 
@@ -6298,6 +6499,961 @@ implicit C0
 implicit C0
 implicit C0
 ").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("-")]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void Matching_UnaryOperators_01(string op)
+        {
+            var source1 =
+@"
+#nullable enable
+
+public class C0 
+{
+    public static C0 operator checked " + op + @"(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0? operator " + op + @"(C0? x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(" + op + @"x);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, references: new[] { compilation2.EmitToImageReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Matching_UnaryOperators_02()
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static modopt(System.Object) C0 operator checked -(C0 x)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            //   
+            //     public static C0 operator -(modopt(System.Object) C0 x)
+            //     {
+            //         System.Console.WriteLine(""regular C0"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 modopt(System.Object) op_CheckedUnaryNegation (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname static 
+        class C0 op_UnaryNegation (
+            class C0 modopt(System.Object) x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""regular C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(-x);
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void Matching_BinaryOperators_01(string op)
+        {
+            var source1 =
+@"
+#nullable enable
+
+public class C0 
+{
+    public static (C0 a, object b, nint c)  operator checked " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return default;
+    }
+
+    public static (C0? d, dynamic e, System.IntPtr f) operator " + op + @"(C0 x, C0 y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return default;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0(), new C0());
+    }
+
+    public static object TestCheckedC0(C0 x, C0 y)
+    {
+        return checked(x " + op + @" y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, references: new[] { compilation2.EmitToImageReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void Matching_BinaryOperators_02(string op)
+        {
+            var source1 =
+@"
+#nullable enable
+
+public class C0 
+{
+    public static C0  operator checked " + op + @"((C0 a, object b, nint c) x, C0 y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return y;
+    }
+
+    public static C0 operator " + op + @"((C0? d, dynamic e, System.IntPtr f) x, C0 y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return y;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(default, new C0());
+    }
+
+    public static object TestCheckedC0((C0, object, nint) x, C0 y)
+    {
+        return checked(x " + op + @" y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, references: new[] { compilation2.EmitToImageReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        public void Matching_BinaryOperators_03(string op)
+        {
+            var source1 =
+@"
+#nullable enable
+
+public class C0 
+{
+    public static C0  operator checked " + op + @"(C0 x, (C0 a, object b, nint c) y)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return x;
+    }
+
+    public static C0 operator " + op + @"(C0 x, (C0? d, dynamic e, System.IntPtr f) y)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return x;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0(), default);
+    }
+
+    public static object TestCheckedC0(C0 x, (C0, object, nint) y)
+    {
+        return checked(x " + op + @" y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, references: new[] { compilation2.EmitToImageReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("+", "op_Addition", "op_CheckedAddition")]
+        [InlineData("-", "op_Subtraction", "op_CheckedSubtraction")]
+        [InlineData("*", "op_Multiply", "op_CheckedMultiply")]
+        [InlineData("/", "op_Division", "op_CheckedDivision")]
+        public void Matching_BinaryOperators_04(string op, string name, string checkedName)
+        {
+            // The IL is equivalent to
+            //
+            // class C0 
+            // {
+            //     public static modopt(System.Object) C0 operator checked -(C0 x, modopt(System.Object) C0 y)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return x;
+            //     }
+            //   
+            //     public static C0 operator -(modopt(System.Object) C0 x, C0 y)
+            //     {
+            //         System.Console.WriteLine(""regular C0"");
+            //         return x;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        class C0 modopt(System.Object) " + checkedName + @" (
+            class C0 x,
+            class C0 modopt(System.Object) y
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname static 
+        class C0 " + name + @" (
+            class C0 modopt(System.Object) x,
+            class C0 y
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] class C0
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""regular C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldarg.0
+        IL_000d: stloc.0
+        IL_000e: br.s IL_0010
+
+        IL_0010: ldloc.0
+        IL_0011: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedC0(new C0());
+    }
+
+    public static C0 TestCheckedC0(C0 x)
+    {
+        return checked(x " + op + @" x);
+    }
+}";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Matching_Conversion_01()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public class C0 
+{
+    public static explicit operator checked (C0 a, object b, nint c)(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return default;
+    }
+
+    public static explicit operator (C0? d, dynamic e, System.IntPtr f)(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return default;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedExplicitLong(new C0());
+    }
+
+    public static (C0, object, nint) TestCheckedExplicitLong(C0 x)
+    {
+        checked { return ((C0, object, nint))x; }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, references: new[] { compilation2.EmitToImageReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Matching_Conversion_02()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public class C0 
+{
+    public static explicit operator checked C0((C0 a, object b, nint c) x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return new C0();
+    }
+
+    public static explicit operator C0((C0? d, dynamic e, System.IntPtr f) x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return new C0();
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedExplicitLong(default);
+    }
+
+    public static C0 TestCheckedExplicitLong((C0, object, nint) x)
+    {
+        checked { return (C0)x; }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, parseOptions: TestOptions.RegularPreview);
+            var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview, references: new[] { compilation2.EmitToImageReference() });
+            CompileAndVerify(compilation3, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Matching_Conversion_03()
+        {
+            // The IL is equivalent to
+            //
+            // public class C0 
+            // {
+            //     public static explicit operator checked modopt(System.Object) long(C0 x)
+            //     {
+            //         System.Console.WriteLine(""checked C0"");
+            //         return 0;
+            //     }
+            //
+            //     public static explicit operator long(modopt(System.Object) C0 x)
+            //     {
+            //         System.Console.WriteLine(""regular C0"");
+            //         return 0;
+            //     }
+            // }
+
+            var ilSource = @"
+.class public auto ansi beforefieldinit C0
+    extends System.Object
+{
+    .method public hidebysig specialname static 
+        int64 modopt(System.Object) op_CheckedExplicit (
+            class C0 x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] int64
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""checked C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldc.i4.0
+        IL_000d: conv.i8
+        IL_000e: stloc.0
+        IL_000f: br.s IL_0011
+
+        IL_0011: ldloc.0
+        IL_0012: ret
+    }
+
+    .method public hidebysig specialname static 
+        int64 op_Explicit (
+            class C0 modopt(System.Object) x
+        ) cil managed 
+    {
+        .maxstack 1
+        .locals init (
+            [0] int64
+        )
+
+        IL_0000: nop
+        IL_0001: ldstr ""regular C0""
+        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
+        IL_000b: nop
+        IL_000c: ldc.i4.0
+        IL_000d: conv.i8
+        IL_000e: stloc.0
+        IL_000f: br.s IL_0011
+
+        IL_0011: ldloc.0
+        IL_0012: ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+";
+
+            var source1 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestCheckedExplicitLong(new C0());
+    }
+
+    public static long TestCheckedExplicitLong(C0 x)
+    {
+        checked { return (long)x; }
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"checked C0").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
+        public void ClassifyConversion_01()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return 0;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestExplicitLong1(new C0());
+        TestExplicitLong2(new C0());
+    }
+
+    public static long TestExplicitLong1(C0 x)
+    {
+        checked { return (long)x; }
+    }
+
+    public static long TestExplicitLong2(C0 y)
+    {
+        return checked( (long)y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+checked C0
+").VerifyDiagnostics();
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+
+            var xNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            var yNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.GetSymbolInfo(xNode.Parent).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.GetSymbolInfo(yNode.Parent).Symbol.ToTestDisplayString());
+
+            var int64 = ((IMethodSymbol)model.GetSymbolInfo(xNode.Parent).Symbol).ReturnType;
+            Assert.Equal("System.Int64", int64.ToTestDisplayString());
+
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_CheckedExplicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ClassifyConversion_02()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return 0;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestExplicitLong1(new C0());
+        TestExplicitLong2(new C0());
+    }
+
+    public static long TestExplicitLong1(C0 x)
+    {
+        unchecked { return (long)x; }
+    }
+
+    public static long TestExplicitLong2(C0 y)
+    {
+        return unchecked( (long)y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+regular C0
+").VerifyDiagnostics();
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+
+            var xNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            var yNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.GetSymbolInfo(xNode.Parent).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.GetSymbolInfo(yNode.Parent).Symbol.ToTestDisplayString());
+
+            var int64 = ((IMethodSymbol)model.GetSymbolInfo(xNode.Parent).Symbol).ReturnType;
+            Assert.Equal("System.Int64", int64.ToTestDisplayString());
+
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
+        public void ClassifyConversion_03()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static explicit operator checked long(C0 x)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return 0;
+    }
+
+    public static explicit operator long(C0 x)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return 0;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        TestExplicitLong1(new C0());
+        TestExplicitLong2(new C0());
+    }
+
+    public static long TestExplicitLong1(C0 x)
+    {
+        checked { unchecked { return (long)x; }}
+    }
+
+    public static long TestExplicitLong2(C0 y)
+    {
+        checked { return unchecked( (long)y); }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+regular C0
+").VerifyDiagnostics();
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+
+            var xNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            var yNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.GetSymbolInfo(xNode.Parent).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.GetSymbolInfo(yNode.Parent).Symbol.ToTestDisplayString());
+
+            var int64 = ((IMethodSymbol)model.GetSymbolInfo(xNode.Parent).Symbol).ReturnType;
+            Assert.Equal("System.Int64", int64.ToTestDisplayString());
+
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode.SpanStart, xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode.SpanStart, yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+            Assert.Equal("System.Int64 C0.op_Explicit(C0 x)", model.ClassifyConversion(xNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: false).Method.ToTestDisplayString());
+
+            // !!! Expected System.Int64 C0.op_Explicit(C0 x) !!!
+            Assert.Equal("System.Int64 C0.op_CheckedExplicit(C0 x)", model.ClassifyConversion(yNode, int64, isExplicitInSource: true).Method.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
+        public void GetSpeculativeSymbolInfo_01()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked -(C0 a)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return a;
+    }
+
+    public static C0 operator -(C0 a)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return a;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        Test1(new C0());
+        Test2(new C0());
+    }
+
+    public static C0 Test1(C0 x)
+    {
+        checked { return -x; }
+    }
+
+    public static C0 Test2(C0 y)
+    {
+        return checked( -y);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+checked C0
+checked C0
+").VerifyDiagnostics();
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+
+            var xNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            var yNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSymbolInfo(xNode.Parent).Symbol.ToTestDisplayString());
+            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSymbolInfo(yNode.Parent).Symbol.ToTestDisplayString());
+
+            var xNodeToSpeculate = SyntaxFactory.ParseExpression("-x");
+            var yNodeToSpeculate = SyntaxFactory.ParseExpression("-y");
+
+            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(xNode.SpanStart, xNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+
+            // !!! Expected C0 C0.op_CheckedUnaryNegation(C0 a) !!!
+            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(60419, "https://github.com/dotnet/roslyn/issues/60419")]
+        public void GetSpeculativeSymbolInfo_02()
+        {
+            var source1 =
+@"
+public class C0 
+{
+    public static C0 operator checked -(C0 a)
+    {
+        System.Console.WriteLine(""checked C0"");
+        return a;
+    }
+
+    public static C0 operator -(C0 a)
+    {
+        System.Console.WriteLine(""regular C0"");
+        return a;
+    }
+}
+";
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        Test1(new C0());
+        Test2(new C0());
+    }
+
+    public static C0 Test1(C0 x)
+    {
+        checked { unchecked { return -x; } }
+    }
+
+    public static C0 Test2(C0 y)
+    {
+        checked { return unchecked( -y); }
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview);
+            CompileAndVerify(compilation1, expectedOutput: @"
+regular C0
+regular C0
+").VerifyDiagnostics();
+
+            var tree = compilation1.SyntaxTrees.Single();
+            var model = compilation1.GetSemanticModel(tree);
+
+            var xNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x").Single();
+            var yNode = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "y").Single();
+
+            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSymbolInfo(xNode.Parent).Symbol.ToTestDisplayString());
+            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSymbolInfo(yNode.Parent).Symbol.ToTestDisplayString());
+
+            var xNodeToSpeculate = SyntaxFactory.ParseExpression("-x");
+            var yNodeToSpeculate = SyntaxFactory.ParseExpression("-y");
+
+            Assert.Equal("C0 C0.op_UnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(xNode.SpanStart, xNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
+
+            // !!! Expected C0 C0.op_UnaryNegation(C0 a) !!!
+            Assert.Equal("C0 C0.op_CheckedUnaryNegation(C0 a)", model.GetSpeculativeSymbolInfo(yNode.SpanStart, yNodeToSpeculate, SpeculativeBindingOption.BindAsExpression).Symbol.ToTestDisplayString());
         }
     }
 }

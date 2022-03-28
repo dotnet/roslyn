@@ -2819,8 +2819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
-                    // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, isChecked: false, ref discardedUseSiteInfo);
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, cdestination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo);
                 }
             }
 
@@ -2872,8 +2871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
-                    // PROTOTYPE(CheckedUserDefinedOperators) : Add an API with ability to specify isChecked?
-                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, isChecked: false, ref discardedUseSiteInfo, forCast: true);
+                    return binder.Conversions.ClassifyConversionFromExpression(bnode, destination, isChecked: binder.CheckOverflowAtRuntime, ref discardedUseSiteInfo, forCast: true);
                 }
             }
 
