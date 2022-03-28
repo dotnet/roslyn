@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     verifier.EqualOrDiff(expectedSources[i].content.ToString(), actual.ToString(), $"content of '{expectedSources[i].filename}' did not match. Diff shown with expected as baseline:");
                     verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                     verifier.Equal(expectedSources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                    verifier.True(FileNamesEqual(expectedSources[i].filename, updatedDocuments[i].Folders, updatedDocuments[i].Name), $"file name was expected to be '{newState.Sources[i].filename}' but was '{GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name)}'");
+                    verifier.True(FileNamesEqual(expectedSources[i].filename, updatedDocuments[i].Folders, updatedDocuments[i].Name), $"file name was expected to be '{expectedSources[i].filename}' but was '{GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name)}'");
                 }
             }
 
