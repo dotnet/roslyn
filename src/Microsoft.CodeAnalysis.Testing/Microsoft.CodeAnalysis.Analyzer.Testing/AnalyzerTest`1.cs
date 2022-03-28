@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// Gets the prefix to apply to source files added without an explicit name.
         /// </summary>
-        protected virtual string DefaultFilePathPrefix { get; } = "/0/Test";
+        protected virtual string DefaultFilePathPrefix { get; } = $"{Path.DirectorySeparatorChar}0{Path.DirectorySeparatorChar}Test";
 
         /// <summary>
         /// Gets the name of the default project created for testing.
@@ -1272,13 +1272,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
             static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string path)
             {
-                string fileName = Path.GetFileName(path);
-                string[] folders = Path.GetDirectoryName(path)!.Split(PathSplitChars, StringSplitOptions.RemoveEmptyEntries);
+                var fileName = Path.GetFileName(path);
+                var folders = Path.GetDirectoryName(path)!.Split(Path.DirectorySeparatorChar);
                 return (fileName, folders);
             }
         }
-
-        private static readonly char[] PathSplitChars = new[] { Path.DirectorySeparatorChar };
 
         /// <summary>
         /// Creates a solution that will be used as parent for the sources that need to be checked.
