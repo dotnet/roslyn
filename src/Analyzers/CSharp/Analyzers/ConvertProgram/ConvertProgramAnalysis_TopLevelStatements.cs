@@ -126,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 
             foreach (var member in typeDeclaration.Members)
             {
-                // method can't be converted with attributes.
+                // method can't be converted with attributes.  While a local function could support it, it would likely
+                // change the meaning of the program if reflection is being used to try to find this method.
                 if (member.AttributeLists.Count > 0)
                     return false;
 
