@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
 {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram
         {
             // We only have to check if the first member is a global statement.  Global statements following anything
             // else is not legal.
-            if (root.Members.Count == 0 && root.Members[0] is not GlobalStatementSyntax)
+            if (!root.IsTopLevelProgram())
                 return false;
 
             if (!CanOfferUseProgramMain(option, forAnalyzer))

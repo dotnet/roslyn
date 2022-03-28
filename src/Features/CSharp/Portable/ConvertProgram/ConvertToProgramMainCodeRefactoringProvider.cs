@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var position = span.Start;
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (root.Members.Count == 0 || root.Members[0] is not GlobalStatementSyntax)
+            if (!root.IsTopLevelProgram())
                 return;
 
             var acceptableLocation = GetUseProgramMainDiagnosticLocation(root, isHidden: true);

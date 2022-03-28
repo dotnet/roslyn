@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -28,8 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             // template' code just calls directly into this if the user prefers Program.Main.  So check and make sure
             // this is actually something we can convert before proceeding.
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var members = root.Members;
-            if (members.Count >= 1 && members[0] is GlobalStatementSyntax)
+            if (root.IsTopLevelProgram())
             {
                 var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                         var classDeclaration = await GenerateProgramClassAsync(
                             document, programType, mainMethod, cancellationToken).ConfigureAwait(false);
 
-                        var newRoot = root.RemoveNodes(members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
+                        var newRoot = root.RemoveNodes(root.Members.OfType<GlobalStatementSyntax>().Skip(1), SyntaxGenerator.DefaultRemoveOptions);
                         Contract.ThrowIfNull(newRoot);
 
                         var firstGlobalStatement = newRoot.Members.OfType<GlobalStatementSyntax>().Single();
