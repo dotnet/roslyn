@@ -486,9 +486,35 @@ namespace Roslyn.Test.Utilities
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
+                InitializeClientRpc();
+            }
+
+            private TestLspServer(
+                TestWorkspace testWorkspace,
+                Dictionary<string, IList<LSP.Location>> locations,
+                LSP.ClientCapabilities clientCapabilities,
+                LanguageServerTarget target,
+                Stream clientStream)
+            {
+                TestWorkspace = testWorkspace;
+                ClientCapabilities = clientCapabilities;
+                _locations = locations;
+
+                _languageServer = target;
+
+                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
+                {
+                    ExceptionStrategy = ExceptionProcessing.ISerializable,
+                };
+
+                InitializeClientRpc();
+            }
+
+            private void InitializeClientRpc()
+            {
                 _clientRpc.StartListening();
 
-                var workspaceWaiter = GetWorkspaceWaiter(testWorkspace);
+                var workspaceWaiter = GetWorkspaceWaiter(TestWorkspace);
                 Assert.False(workspaceWaiter.HasPendingWork);
 
                 // Clear any LSP solutions that were created when the workspace was initialized.
@@ -507,6 +533,19 @@ namespace Roslyn.Test.Utilities
             {
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
                 var server = new TestLspServer(testWorkspace, locations, clientCapabilities, serverKind);
+
+                await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
+                {
+                    Capabilities = clientCapabilities,
+                }, CancellationToken.None);
+
+                return server;
+            }
+
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, LanguageServerTarget target, Stream clientStream)
+            {
+                var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
+                var server = new TestLspServer(testWorkspace, locations, clientCapabilities, target, clientStream);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {

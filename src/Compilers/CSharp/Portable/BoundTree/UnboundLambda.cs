@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     parameterRefKinds,
                     refKind: default,
                     returnType: default);
-                var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
+                var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder));
                 var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, BindingDiagnosticBag.Discarded);
                 var returnTypes = ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)>.GetInstance();
                 BoundLambda.BlockReturns.GetReturnTypes(returnTypes, block);
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 lambdaSymbol = CreateLambdaSymbol(Binder.ContainingMemberOrLambda, returnType, cacheKey.ParameterTypes, cacheKey.ParameterRefKinds, refKind);
-                lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
+                lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder), inExpressionTree ? BinderFlags.InExpressionTree : BinderFlags.None);
                 block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             }
 
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   parameterTypes,
                                                   parameterRefKinds,
                                                   refKind);
-            var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, Binder));
+            var lambdaBodyBinder = new ExecutableCodeBinder(_unboundLambda.Syntax, lambdaSymbol, GetWithParametersBinder(lambdaSymbol, Binder));
             var block = BindLambdaBody(lambdaSymbol, lambdaBodyBinder, diagnostics);
             lambdaSymbol.GetDeclarationDiagnostics(diagnostics);
             return (lambdaSymbol, block, lambdaBodyBinder, diagnostics);
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public virtual Binder ParameterBinder(LambdaSymbol lambdaSymbol, Binder binder)
+        public virtual Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
         {
             return new WithLambdaParametersBinder(lambdaSymbol, binder);
         }
