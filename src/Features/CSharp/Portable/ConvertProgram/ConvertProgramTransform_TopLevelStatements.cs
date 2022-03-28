@@ -109,6 +109,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         private static ImmutableArray<GlobalStatementSyntax> GetGlobalStatements(TypeDeclarationSyntax typeDeclaration, MethodDeclarationSyntax methodDeclaration)
         {
             using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var statements);
+
+            // First, process all fields and convert them to locals.  We do this first as the locals need to be declared
+            // first in order for the main-method statements to reference them.
+
+            foreach (var member in typeDeclaration.Members)
+            {
+                // hit another member, must be a field/method.
+                if (member is FieldDeclarationSyntax fieldDeclaration)
+                {
+                    // Convert fields into local statements
+                    statements.Add(LocalDeclarationStatement(fieldDeclaration.Declaration)
+                        .WithSemicolonToken(fieldDeclaration.SemicolonToken)
+                        .WithTriviaFrom(fieldDeclaration));
+                }
+            }
+
+            // Then convert all remaining methods to local functions (except for 'Main', which becomes the global
+            // statements of the top-level program).
             foreach (var member in typeDeclaration.Members)
             {
                 if (member == methodDeclaration)
@@ -122,23 +140,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                         statements.AddRange(methodDeclaration.Body.Statements[0].WithPrependedLeadingTrivia(methodDeclaration.GetLeadingTrivia()));
 
                     statements.AddRange(methodDeclaration.Body.Statements.Skip(1));
-                    continue;
-                }
-
-                // hit another member, must be a field/method.
-                if (member is FieldDeclarationSyntax fieldDeclaration)
-                {
-                    // Convert fields into local statements
-                    statements.Add(LocalDeclarationStatement(fieldDeclaration.Declaration)
-                        .WithSemicolonToken(fieldDeclaration.SemicolonToken)
-                        .WithTriviaFrom(fieldDeclaration));
                 }
                 else if (member is MethodDeclarationSyntax otherMethod)
                 {
                     // convert methods to local functions.
                     statements.Add(LocalFunctionStatement(
                         attributeLists: default,
-                        modifiers: TokenList(otherMethod.Modifiers.Where(m => m.Kind() is SyntaxKind.AsyncKeyword)),
+                        modifiers: TokenList(otherMethod.Modifiers.Where(m => m.Kind() is SyntaxKind.AsyncKeyword or SyntaxKind.UnsafeKeyword)),
                         returnType: otherMethod.ReturnType,
                         identifier: otherMethod.Identifier,
                         typeParameterList: otherMethod.TypeParameterList,
@@ -147,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                         body: otherMethod.Body,
                         expressionBody: otherMethod.ExpressionBody).WithLeadingTrivia(otherMethod.GetLeadingTrivia()));
                 }
-                else
+                else if (member is not FieldDeclarationSyntax)
                 {
                     // checked by analyzer
                     throw ExceptionUtilities.Unreachable;

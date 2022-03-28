@@ -788,6 +788,33 @@ System.Console.WriteLine(0);
         }
 
         [Fact]
+        public async Task TestFollowingField()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+class Program
+{
+    static void {|IDE0210:Main|}(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+
+    static int x;
+}
+",
+                FixedCode = @"
+
+int x;
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task TestFieldWithPrivateAccessibility()
         {
             await new VerifyCS.Test
@@ -988,9 +1015,11 @@ System.Console.WriteLine(args);
         }
 
         [Fact]
-        public async Task TestNotWithUnsafeMethod()
+        public async Task TestWithUnsafeMethod()
         {
-            var code = @"
+            await new VerifyCS.Test
+            {
+                TestCode = @"
 class Program
 {
     private static int x = 0;
@@ -1000,16 +1029,22 @@ class Program
         return;
     }
 
-    static void Main(string[] args)
+    static void {|IDE0210:Main|}(string[] args)
     {
         System.Console.WriteLine(args);
     }
 }
-";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
+",
+                FixedCode = @"
+int x = 0;
+
+unsafe void OtherMethod()
+{
+    return;
+}
+
+System.Console.WriteLine(args);
+",
                 LanguageVersion = LanguageVersion.CSharp9,
                 TestState = { OutputKind = OutputKind.ConsoleApplication },
                 Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
