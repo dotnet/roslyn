@@ -94,8 +94,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             var token = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged));
             var task = Task.Run(async () =>
             {
-                // Support cancellation without throwing
-                await _asyncListener.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).NoThrowAwaitable(captureContext: false);
+                // Support cancellation without throwing.
+                //
+                // We choose a long delay here so that we can avoid this work as long as the user is continually making
+                // changes to their code.  During that time, features that use this are already kicking off fast work
+                // with frozen-partial semantics and we'd like that to not have to contend with more expensive work
+                // kicked off in OOP to compute full compilations.
+                await _asyncListener.Delay(DelayTimeSpan.NonFocus, cancellationToken).NoThrowAwaitable(captureContext: false);
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
