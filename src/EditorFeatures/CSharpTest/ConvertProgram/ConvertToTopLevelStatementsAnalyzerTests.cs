@@ -88,6 +88,116 @@ System.Console.WriteLine(0);
         }
 
         [Fact]
+        public async Task TestFileHeader1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"// This is a file header
+
+class Program
+{
+    {|IDE0210:static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }|}
+}
+",
+                FixedCode = @"// This is a file header
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFileHeader2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"// This is a file header
+
+namespace N
+{
+    class Program
+    {
+        {|IDE0210:static void Main(string[] args)
+        {
+            System.Console.WriteLine(0);
+        }|}
+    }
+}
+",
+                FixedCode = @"// This is a file header
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFileHeader3()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"// This is a file header
+
+namespace N;
+
+class Program
+{
+    {|IDE0210:static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }|}
+}
+",
+                FixedCode = @"// This is a file header
+
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestFileHeader4()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"// This is a file header
+using System;
+
+namespace N;
+
+class Program
+{
+    {|IDE0210:static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }|}
+}
+",
+                FixedCode = @"// This is a file header
+using System;
+
+System.Console.WriteLine(0);
+",
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task OfferedWithoutArgs()
         {
             await new VerifyCS.Test

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -120,6 +121,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             else if (namespaceDeclaration != null)
             {
                 // we had a parent namespace, but we were the only thing in it.  We can just remove the namespace entirely.
+
+                // If there was a file banner on the namespace, move it to the first statement.
+                var fileBanner = CSharpFileBannerFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(namespaceDeclaration);
+                if (fileBanner.Length > 0 && globalStatements.Length > 0)
+                {
+                    globalStatements = globalStatements.Replace(
+                        globalStatements[0],
+                        globalStatements[0].WithPrependedLeadingTrivia(fileBanner));
+                }
+
                 editor.ReplaceNode(
                     root,
                     root.ReplaceNode(namespaceDeclaration, globalStatements));

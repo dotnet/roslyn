@@ -147,12 +147,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             // Now, consume as many banners as we can.  s_fileBannerMatcher will only be matched at
             // the start of the file.
             var index = 0;
+            if (node.FullSpan.Start == 0)
+                _fileBannerMatcher.TryMatch(leadingTriviaToKeep, ref index);
 
-            while (
-                _oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref index) ||
-                _bannerMatcher.TryMatch(leadingTriviaToKeep, ref index) ||
-                (node.FullSpan.Start == 0 && _fileBannerMatcher.TryMatch(leadingTriviaToKeep, ref index)))
+            while (true)
             {
+                var tempIndex = index;
+                _oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref tempIndex);
+                if (_bannerMatcher.TryMatch(leadingTriviaToKeep, ref tempIndex))
+                {
+                    index = tempIndex;
+                    continue;
+                }
+
+                break;
             }
 
             leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index));
