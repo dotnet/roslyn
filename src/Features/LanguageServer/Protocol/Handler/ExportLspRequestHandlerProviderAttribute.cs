@@ -11,15 +11,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Defines an attribute used to export instances of <see cref="AbstractRequestHandlerProvider"/>.
+    /// Defines an attribute used to export instances of <see cref="IRequestHandlerProvider"/>.
+    /// We specifically disallow multiple as a provider should only provide handlers for a single contract.
+    /// If we exported the same provider for multiple contracts, we would not be able to tell which handlers are associated with which contract.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
     internal class ExportLspRequestHandlerProviderAttribute : ExportAttribute
     {
         public Type[] HandlerTypes { get; }
 
         /// <summary>
-        /// Exports an <see cref="AbstractRequestHandlerProvider"/> and specifies the contract and
+        /// Exports an <see cref="IRequestHandlerProvider"/> and specifies the contract and
         /// <see cref="IRequestHandler"/> types this provider is associated with.
         /// </summary>
         /// <param name="contractName">
@@ -29,13 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// otherwise we will get dll load RPS regressions for the <see cref="HandlerTypes"/>
         /// </param>
         /// <param name="firstHandlerType">
-        /// The concrete type of the <see cref="IRequestHandler"/> provided in <see cref="AbstractRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds)"/>
+        /// The concrete type of the <see cref="IRequestHandler"/> provided in <see cref="IRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds)"/>
         /// </param>
         /// <param name="additionalHandlerTypes">
-        /// Additional <see cref="IRequestHandler"/> if <see cref="AbstractRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds)"/>
+        /// Additional <see cref="IRequestHandler"/> if <see cref="IRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds)"/>
         /// provides more than one handler at once.
         /// </param>
-        public ExportLspRequestHandlerProviderAttribute(string contractName, Type firstHandlerType, params Type[] additionalHandlerTypes) : base(contractName, typeof(AbstractRequestHandlerProvider))
+        public ExportLspRequestHandlerProviderAttribute(string contractName, Type firstHandlerType, params Type[] additionalHandlerTypes) : base(contractName, typeof(IRequestHandlerProvider))
         {
             HandlerTypes = additionalHandlerTypes.Concat(new[] { firstHandlerType }).ToArray();
         }
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <summary>
     /// Defines an easy to use subclass for ExportLspRequestHandlerProviderAttribute with the roslyn languages contract name.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
     internal class ExportRoslynLanguagesLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
     {
         public ExportRoslynLanguagesLspRequestHandlerProviderAttribute(Type firstHandlerType, params Type[] additionalHandlerTypes) : base(ProtocolConstants.RoslynLspLanguagesContract, firstHandlerType, additionalHandlerTypes)
