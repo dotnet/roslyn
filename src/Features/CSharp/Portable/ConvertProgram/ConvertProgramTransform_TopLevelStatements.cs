@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -37,11 +38,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 semanticModel, generator, root, typeDeclaration, methodDeclaration, cancellationToken);
 
             // simple case.  we were in a top level type to begin with.  Nothing we need to do now.
-            if (typeDeclaration.Parent is not NamespaceDeclarationSyntax namespaceDeclaration)
+            if (typeDeclaration.Parent is not BaseNamespaceDeclarationSyntax namespaceDeclaration)
                 return document.WithSyntaxRoot(rootWithGlobalStatements);
 
             // We were parented by a namespace.  Add using statements to bring in all the symbols that were
             // previously visible within the namespace.  Then remove any that we don't need once we've done that.
+            document = await AddUsingDirectivesAsync(
+                document, rootWithGlobalStatements, namespaceDeclaration, cancellationToken).ConfigureAwait(false);
+
+            // if we have a file scoped namespace after converting to top-level-statements, then convert it to a
+            // block-namespace.  Top level statements and file-scoped-namespaces are not allowed together.
+            document = await ConvertFileScopedNamespaceAsync(document, cancellationToken).ConfigureAwait(false);
+
+            return document;
+        }
+
+        private static async Task<Document> ConvertFileScopedNamespaceAsync(Document document, CancellationToken cancellationToken)
+        {
+            var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return root.Members.OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault() is { } fileScopedNamespace
+                ? await ConvertNamespaceTransform.ConvertFileScopedNamespaceAsync(document, fileScopedNamespace, cancellationToken).ConfigureAwait(false)
+                : document;
+        }
+
+        private static async Task<Document> AddUsingDirectivesAsync(
+            Document document, SyntaxNode root, BaseNamespaceDeclarationSyntax namespaceDeclaration, CancellationToken cancellationToken)
+        {
             var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
             var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
 
@@ -49,17 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             using var _ = ArrayBuilder<UsingDirectiveSyntax>.GetInstance(out var directives);
             AddUsingDirectives(namespaceDeclaration.Name, annotation, directives);
 
-            var rootWithImportsAdded = addImportsService.AddImports(
-                compilation: null!, rootWithGlobalStatements, contextLocation: null, directives, generator,
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
+
+            var documentWithImportsAdded = document.WithSyntaxRoot(addImportsService.AddImports(
+                compilation: null!, root, contextLocation: null, directives, generator,
                 await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false),
-                cancellationToken);
-            var documentWithImportsAdded = document.WithSyntaxRoot(rootWithImportsAdded);
+                cancellationToken));
 
-            var documentWithImportsRemoved = await removeImportsService.RemoveUnnecessaryImportsAsync(
+            return await removeImportsService.RemoveUnnecessaryImportsAsync(
                 documentWithImportsAdded, n => n.HasAnnotation(annotation), cancellationToken).ConfigureAwait(false);
-            var rootWithImportsRemoved = await documentWithImportsRemoved.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            return document.WithSyntaxRoot(rootWithImportsRemoved);
         }
 
         private static void AddUsingDirectives(NameSyntax name, SyntaxAnnotation annotation, ArrayBuilder<UsingDirectiveSyntax> directives)
@@ -82,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var globalStatements = GetGlobalStatements(
                 semanticModel, typeDeclaration, methodDeclaration, cancellationToken);
 
-            var namespaceDeclaration = typeDeclaration.Parent as NamespaceDeclarationSyntax;
+            var namespaceDeclaration = typeDeclaration.Parent as BaseNamespaceDeclarationSyntax;
             if (namespaceDeclaration != null &&
                 namespaceDeclaration.Members.Count >= 2)
             {

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
             // Ok, the user does like top level statements.  Check if we can find a suitable hit in this type that
             // indicates we're on the entrypoint of the program.
-            var methodDeclarations = root.DescendantNodes(n => n is CompilationUnitSyntax or NamespaceDeclarationSyntax or ClassDeclarationSyntax).OfType<MethodDeclarationSyntax>();
+            var methodDeclarations = root.DescendantNodes(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or ClassDeclarationSyntax).OfType<MethodDeclarationSyntax>();
             foreach (var methodDeclaration in methodDeclarations)
             {
                 if (IsProgramMainMethod(
