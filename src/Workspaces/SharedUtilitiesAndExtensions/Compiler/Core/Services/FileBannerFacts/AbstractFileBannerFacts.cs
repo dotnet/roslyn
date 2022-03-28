@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             _oneOrMoreBlankLines = Matcher.OneOrMore(singleBlankLine);
             _bannerMatcher =
                 Matcher.Sequence(
+                    Matcher.Repeat(singleBlankLine),
                     Matcher.OneOrMore(commentLine),
                     _oneOrMoreBlankLines);
             _fileBannerMatcher =
@@ -150,18 +151,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             if (node.FullSpan.Start == 0)
                 _fileBannerMatcher.TryMatch(leadingTriviaToKeep, ref index);
 
-            while (true)
-            {
-                var tempIndex = index;
-                _oneOrMoreBlankLines.TryMatch(leadingTriviaToKeep, ref tempIndex);
-                if (_bannerMatcher.TryMatch(leadingTriviaToKeep, ref tempIndex))
-                {
-                    index = tempIndex;
-                    continue;
-                }
-
-                break;
-            }
+            while (_bannerMatcher.TryMatch(leadingTriviaToKeep, ref index))
+                continue;
 
             leadingTriviaToStrip.AddRange(leadingTriviaToKeep.Take(index));
 
