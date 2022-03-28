@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var position = span.Start;
             var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            if (!root.Members.Any(m => m is GlobalStatementSyntax))
+            if (root.Members.Count == 0 || root.Members[0] is not GlobalStatementSyntax)
                 return;
 
             var acceptableLocation = GetUseProgramMainDiagnosticLocation(root, isHidden: true);
