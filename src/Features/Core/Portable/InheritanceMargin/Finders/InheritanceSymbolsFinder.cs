@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         {
             var queue = new Queue<ISymbol>();
             var initialSymbols = await SymbolFinder.FindLinkedSymbolsAsync(initialSymbol, solution, cancellationToken).ConfigureAwait(false);
-            var visitedSet = new HashSet<ISymbol>();
+            using var _ = PooledHashSet<ISymbol>.GetInstance(out var visitedSet);
             EnqueueAll(queue, initialSymbols);
             while (queue.Count > 0)
             {
