@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -1194,7 +1195,6 @@ namespace Microsoft.CodeAnalysis.Testing
                     additionalProjectId,
                     solution.GetProject(additionalProjectId).CompilationOptions
                         .WithOutputKind(projectState.OutputKind)
-                        .WithXmlReferenceResolver(xmlReferenceResolver)
                         .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer));
 
                 solution = solution.WithProjectParseOptions(
@@ -1209,19 +1209,22 @@ namespace Microsoft.CodeAnalysis.Testing
                 foreach (var (newFileName, source) in projectState.Sources)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    solution = solution.AddDocument(documentId, newFileName, source, filePath: newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                    solution = solution.AddDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
 
                 foreach (var (newFileName, source) in projectState.AdditionalFiles)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    solution = solution.AddAdditionalDocument(documentId, newFileName, source, filePath: newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                    solution = solution.AddAdditionalDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
 
                 foreach (var (newFileName, source) in projectState.AnalyzerConfigFiles)
                 {
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
-                    solution = solution.AddAnalyzerConfigDocument(documentId, newFileName, source, filePath: newFileName);
+                    var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                    solution = solution.AddAnalyzerConfigDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
                 }
             }
 
@@ -1230,19 +1233,22 @@ namespace Microsoft.CodeAnalysis.Testing
             foreach (var (newFileName, source) in primaryProject.Sources)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddDocument(documentId, newFileName, source, filePath: newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                solution = solution.AddDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             foreach (var (newFileName, source) in primaryProject.AdditionalFiles)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddAdditionalDocument(documentId, newFileName, source, filePath: newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                solution = solution.AddAdditionalDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             foreach (var (newFileName, source) in primaryProject.AnalyzerConfigFiles)
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddAnalyzerConfigDocument(documentId, newFileName, source, filePath: newFileName);
+                var (fileName, folders) = GetNameAndFoldersFromPath(newFileName);
+                solution = solution.AddAnalyzerConfigDocument(documentId, fileName, source, folders: folders, filePath: newFileName);
             }
 
             solution = AddProjectReferences(solution, projectId, primaryProject.AdditionalProjectReferences.Select(name => projectIdMap[name]));
@@ -1262,6 +1268,13 @@ namespace Microsoft.CodeAnalysis.Testing
             static Solution AddProjectReferences(Solution solution, ProjectId sourceProject, IEnumerable<ProjectId> targetProjects)
             {
                 return solution.AddProjectReferences(sourceProject, targetProjects.Select(id => new ProjectReference(id)));
+            }
+
+            static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string path)
+            {
+                string fileName = Path.GetFileName(path);
+                string[] folders = Path.GetDirectoryName(path)!.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+                return (fileName, folders);
             }
         }
 
