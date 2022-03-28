@@ -509,7 +509,7 @@ class Test<T>
         {
             await TestMissingAsync(
 @"
-        private class Goo
+        class Goo
         {
             private class X { }
             private class Y { }
@@ -520,6 +520,28 @@ class Test<T>
                 var Y = 2;
 
                 if [|(o is X || o is Y)|]
+                {
+                }
+            }
+        }
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUsePatternCombinators)]
+        [WorkItem(57199, "https://github.com/dotnet/roslyn/issues/57199")]
+        public async Task TestMissingInNonConvertibleTypePattern3()
+        {
+            await TestMissingAsync(
+@"
+        class Goo
+        {
+            private class X { }
+            private class Y { }
+            private void M(object o)
+            {
+                var X = 1;
+                var Y = 2;
+                if [|(o is global::Goo.X || o is Y)|]
                 {
                 }
             }
