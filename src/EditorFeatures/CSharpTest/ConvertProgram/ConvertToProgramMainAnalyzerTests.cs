@@ -80,6 +80,56 @@ internal class Program
         }
 
         [Fact]
+        public async Task TestHeader1()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"{|IDE0211:// This is a file banner
+
+System.Console.WriteLine(0);
+|}",
+                FixedCode = @"// This is a file banner
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        System.Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestHeader2()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"{|IDE0211:// This is a file banner
+using System;
+
+System.Console.WriteLine(0);
+|}",
+                FixedCode = @"// This is a file banner
+using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(0);
+    }
+}",
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState = { OutputKind = OutputKind.ConsoleApplication },
+                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent } },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task NotOfferedInLibrary()
         {
             var code = @"

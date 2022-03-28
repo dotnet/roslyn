@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             return document;
         }
 
-        private static async Task<ClassDeclarationSyntax> GenerateProgramClassAsync(
+        private static async Task<SyntaxNode> GenerateProgramClassAsync(
             Document document,
             INamedTypeSymbol programType,
             IMethodSymbol mainMethod,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (method.ParameterList.Parameters.Count == 1 && method.ParameterList.Parameters[0].Type is ArrayTypeSyntax arrayType)
                 method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
 
-            return (ClassDeclarationSyntax)generator.ClassDeclaration(
+            return generator.ClassDeclaration(
                 WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
                 accessibility: accessibilityModifiersRequired ? programType.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: hasExistingPart ? DeclarationModifiers.Partial : DeclarationModifiers.None,
