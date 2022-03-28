@@ -123,8 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
                 // we had a parent namespace, but we were the only thing in it.  We can just remove the namespace entirely.
 
                 // If there was a file banner on the namespace, move it to the first statement.
-                var fileBanner = CSharpFileBannerFacts.Instance.GetLeadingBannerAndPreprocessorDirectives(namespaceDeclaration);
-                if (fileBanner.Length > 0 && globalStatements.Length > 0)
+                var fileBanner = root.GetFirstToken() == namespaceDeclaration.GetFirstToken()
+                    ? CSharpFileBannerFacts.Instance.GetFileBanner(root)
+                    : default;
+                if (!fileBanner.IsDefaultOrEmpty && globalStatements.Length > 0)
                 {
                     globalStatements = globalStatements.Replace(
                         globalStatements[0],
