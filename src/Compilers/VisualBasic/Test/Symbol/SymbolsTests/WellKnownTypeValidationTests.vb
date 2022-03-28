@@ -545,7 +545,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
                          WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
-                         WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute
+                         WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute,
+                         WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute
 
                         ' Not available on all platforms.
                         Continue For
@@ -613,7 +614,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsExternalInit,
                          WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler,
-                         WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute
+                         WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute,
+                         WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -700,7 +702,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
-                         WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -843,7 +846,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
                          WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
-                         WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
