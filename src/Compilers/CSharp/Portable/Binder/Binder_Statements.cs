@@ -3517,16 +3517,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_RecordStructConstructorCallsDefaultConstructor, initializer.ThisOrBaseKeyword);
             }
 
-            // The `: this()` initializer is ignored when it is a default value type constructor
-            // and we need to include field initializers into the constructor.
-            bool skipInitializer = includesFieldInitializers
-                && isDefaultValueTypeInitializer;
-
             // Using BindStatement to bind block to make sure we are reusing results of partial binding in SemanticModel
             return new BoundConstructorMethodBody(constructor,
                                                   bodyBinder.GetDeclaredLocalsForScope(constructor),
-                                                  skipInitializer ? new BoundNoOpStatement(constructor, NoOpStatementFlavor.Default)
-                                                      : initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
+                                                  initializer == null ? null : bodyBinder.BindConstructorInitializer(initializer, diagnostics),
                                                   constructor.Body == null ? null : (BoundBlock)bodyBinder.BindStatement(constructor.Body, diagnostics),
                                                   constructor.ExpressionBody == null ?
                                                       null :

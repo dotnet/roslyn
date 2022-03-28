@@ -1081,7 +1081,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
-                            body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(0, analyzedInitializers));
+                            int insertAt = 0;
+                            // PROTOTYPE: BindMethodBody() should return whether the initializer call was for the zero-init parameterless struct constructor.
+                            if (originalBodyNested &&
+                                methodSymbol.ContainingType.IsStructType() &&
+                                body.Statements[0] is BoundExpressionStatement { Expression: BoundCall { Method: var initMethod } } &&
+                                initMethod.IsDefaultValueTypeConstructor())
+                            {
+                                Debug.Assert(body.Statements[0] is BoundExpressionStatement { Expression: BoundCall { Method: { IsImplicitConstructor: true } } });
+                                insertAt = 1;
+                            }
+                            body = body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(insertAt, analyzedInitializers));
                             includeNonEmptyInitializersInBody = false;
                             analyzedInitializers = null;
                         }
@@ -1801,13 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var constructor = (BoundConstructorMethodBody)methodBody;
                             body = constructor.BlockBody ?? constructor.ExpressionBody;
 
-                            if (constructor.Initializer is BoundNoOpStatement)
-                            {
-                                // We have field initializers and `: this()` is a default value type constructor.
-                                Debug.Assert(body is not null);
-                                return body;
-                            }
-                            else if (constructor.Initializer is BoundExpressionStatement expressionStatement)
+                            if (constructor.Initializer is BoundExpressionStatement expressionStatement)
                             {
                                 ReportCtorInitializerCycles(method, expressionStatement.Expression, compilationState, diagnostics);
 
