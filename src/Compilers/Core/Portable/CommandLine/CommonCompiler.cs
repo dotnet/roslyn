@@ -1050,21 +1050,22 @@ namespace Microsoft.CodeAnalysis
                             // write out the file if we have an output path
                             if (hasGeneratedOutputPath)
                             {
+                                var path = tree.FilePath;
                                 if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
                                 {
-                                    Directory.CreateDirectory(Path.GetDirectoryName(tree.FilePath)!);
+                                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                                 }
 
-                                var fileStream = OpenFile(tree.FilePath, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
                                 if (fileStream is object)
                                 {
                                     Debug.Assert(tree.Encoding is object);
 
-                                    using var disposer = new NoThrowStreamDisposer(fileStream, tree.FilePath, diagnostics, MessageProvider);
+                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
                                     using var writer = new StreamWriter(fileStream, tree.Encoding);
 
                                     sourceText.Write(writer, cancellationToken);
-                                    touchedFilesLogger?.AddWritten(tree.FilePath);
+                                    touchedFilesLogger?.AddWritten(path);
                                 }
                             }
                         }
