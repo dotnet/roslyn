@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         Protected Overrides Function CreateSmartTokenFormatter(document As Document, root As CompilationUnitSyntax, lineToBeIndented As TextLine, options As IndentationOptions) As ISmartTokenFormatter
             Dim services = document.Project.Solution.Workspace.Services
             Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(document, lineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(document))
+            Dim rules = {New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(document, lineToBeIndented.Start)}.Concat(VisualBasicSyntaxFormatting.Instance.GetDefaultFormattingRules())
             Return New VisualBasicSmartTokenFormatter(options.FormattingOptions, rules, root)
         End Function
 
