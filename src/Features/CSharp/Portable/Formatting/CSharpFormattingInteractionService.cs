@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch)
         {
-            var smartIndentOn = options.IndentStyle == FormattingOptions.IndentStyle.Smart;
+            var smartIndentOn = options.IndentStyle == FormattingOptions2.IndentStyle.Smart;
 
             // We consider the proper placement of a close curly or open curly when it is typed at
             // the start of the line to be a smart-indentation operation.  As such, even if "format
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var formatter = CreateSmartTokenFormatter(options, formattingRules, root);
-            var changes = await formatter.FormatTokenAsync(document.Project.Solution.Workspace.Services, token, cancellationToken).ConfigureAwait(false);
+            var changes = await formatter.FormatTokenAsync(token, cancellationToken).ConfigureAwait(false);
             return changes;
         }
 
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
-            var changes = formatter.FormatRange(document.Project.Solution.Workspace.Services, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
+            var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
             return changes.ToImmutableArray();
         }
 

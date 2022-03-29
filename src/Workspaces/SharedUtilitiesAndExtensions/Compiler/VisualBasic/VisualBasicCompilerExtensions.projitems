@@ -27,6 +27,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\RemoveUnnecessaryImports\VisualBasicUnnecessaryImportsProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\VisualBasicSmartTokenFormatter.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\VisualBasicPrecedenceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\VisualBasicSelectedMembers.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\VisualBasicSemanticFacts.vb" />

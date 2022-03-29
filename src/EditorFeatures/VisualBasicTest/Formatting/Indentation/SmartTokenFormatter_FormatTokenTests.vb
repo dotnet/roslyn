@@ -153,7 +153,7 @@ $$)
 End Class
 </code>.Value.Replace(vbLf, vbCrLf)
 
-            Await ExpectException_TestAsync(code, 4, FormattingOptions.IndentStyle.Block)
+            Await ExpectException_TestAsync(code, 4, FormattingOptions2.IndentStyle.Block)
         End Function
 
         <Fact>
@@ -166,14 +166,14 @@ $$)
 End Class
 </code>.Value.Replace(vbLf, vbCrLf)
 
-            Await ExpectException_TestAsync(code, indentation:=0, indentStyle:=FormattingOptions.IndentStyle.None)
+            Await ExpectException_TestAsync(code, indentation:=0, indentStyle:=FormattingOptions2.IndentStyle.None)
         End Function
 
-        Private Shared Async Function ExpectException_TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Task
+        Private Shared Async Function ExpectException_TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart) As Task
             Assert.NotNull(Await Record.ExceptionAsync(Function() TestAsync(codeWithMarkup, indentation, indentStyle:=indentStyle)))
         End Function
 
-        Private Shared Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart) As Threading.Tasks.Task
+        Private Shared Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart) As Threading.Tasks.Task
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)
@@ -202,7 +202,7 @@ End Class
 
                 Dim formatOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)
-                Dim changes = Await smartFormatter.FormatTokenAsync(workspace.Services, token, Nothing)
+                Dim changes = Await smartFormatter.FormatTokenAsync(token, Nothing)
 
                 Using edit = buffer.CreateEdit()
                     For Each change In changes

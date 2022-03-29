@@ -11,9 +11,9 @@ Namespace Microsoft.CodeAnalysis.CodeStyle
     Friend Class VisualBasicFormattingAnalyzer
         Inherits AbstractFormattingAnalyzer
 
-        Protected Overrides ReadOnly Property SyntaxFormattingService As ISyntaxFormattingService
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting
             Get
-                Return VisualBasicSyntaxFormattingService.Instance
+                Return VisualBasicSyntaxFormatting.Instance
             End Get
         End Property
     End Class

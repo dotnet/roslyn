@@ -16,11 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal abstract class AbstractSyntaxFormattingService : ISyntaxFormattingService
+    internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
     {
         private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
 
-        protected AbstractSyntaxFormattingService()
+        protected AbstractSyntaxFormatting()
         {
         }
 
