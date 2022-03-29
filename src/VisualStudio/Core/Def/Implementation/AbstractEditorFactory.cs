@@ -373,9 +373,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 projectToAddTo = AddEditorConfigFile(projectToAddTo, projectFolder, out var foundRoot);
 
                 if (foundRoot)
-                {
                     break;
-                }
+
                 projectFolder = Path.GetDirectoryName(projectFolder);
             }
             while (projectFolder is not null);
@@ -397,9 +396,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 });
 
                 if (text is null)
-                {
                     return project;
-                }
 
                 return project.AddAnalyzerConfigDocument(EditorConfigFileName, text, filePath: editorConfigFile).Project;
             }
