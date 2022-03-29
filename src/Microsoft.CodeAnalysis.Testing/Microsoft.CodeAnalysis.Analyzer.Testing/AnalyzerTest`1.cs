@@ -1195,7 +1195,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     additionalProjectId,
                     solution.GetProject(additionalProjectId).CompilationOptions
                         .WithOutputKind(projectState.OutputKind)
-                        .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer));
+                        .WithAssemblyIdentityComparer(referenceAssemblies.AssemblyIdentityComparer)
+                        .WithXmlReferenceResolver(xmlReferenceResolver));
 
                 solution = solution.WithProjectParseOptions(
                     additionalProjectId,
