@@ -4,9 +4,12 @@
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    public static partial class FormattingOptions
+    internal partial class FormattingOptions2
     {
-        public enum IndentStyle
+        /// <summary>
+        /// For use in the shared CodeStyle layer.  Keep in syntax with IndentStyle.
+        /// </summary>
+        internal enum IndentStyle
         {
             None = 0,
             Block = 1,
