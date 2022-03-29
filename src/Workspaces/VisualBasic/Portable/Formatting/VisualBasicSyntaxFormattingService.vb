@@ -9,45 +9,10 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Diagnostics
-
-#If Not CODE_STYLE Then
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-
-    Friend Class VisualBasicSyntaxFormatting
-        Inherits AbstractSyntaxFormatting
-
-        Public Shared ReadOnly Instance As New VisualBasicSyntaxFormatting
-
-        Private ReadOnly _rules As ImmutableArray(Of AbstractFormattingRule) = ImmutableArray.Create(Of AbstractFormattingRule)(
-            New StructuredTriviaFormattingRule(),
-            New ElasticTriviaFormattingRule(),
-            New AdjustSpaceFormattingRule(),
-            New AlignTokensFormattingRule(),
-            New NodeBasedFormattingRule(),
-            DefaultOperationProvider.Instance)
-
-        Public Overrides Function GetDefaultFormattingRules() As ImmutableArray(Of AbstractFormattingRule)
-            Return _rules
-        End Function
-
-        Public Overrides Function GetFormattingOptions(options As AnalyzerConfigOptions) As SyntaxFormattingOptions
-            Return VisualBasicSyntaxFormattingOptions.Create(options)
-        End Function
-
-        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector) = Nothing) As IFormattingResult
-            Return New AggregatedFormattingResult(node, results, formattingSpans)
-        End Function
-
-        Protected Overrides Function Format(root As SyntaxNode, options As SyntaxFormattingOptions, formattingRules As IEnumerable(Of AbstractFormattingRule), startToken As SyntaxToken, endToken As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
-            Return New VisualBasicFormatEngine(root, options, formattingRules, startToken, endToken).Format(cancellationToken)
-        End Function
-    End Class
-
-#If Not CODE_STYLE Then
     <ExportLanguageService(GetType(ISyntaxFormattingService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyntaxFormattingService
         Inherits VisualBasicSyntaxFormatting
@@ -58,5 +23,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
     End Class
-#End If
 End Namespace

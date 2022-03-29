@@ -5,16 +5,9 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Options;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -25,13 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
     }
 
-#if !CODE_STYLE
-    internal interface ISyntaxFormattingService : ISyntaxFormatting, ILanguageService
-    {
-    }
-#endif
-
-    internal abstract class SyntaxFormattingOptions
+    internal abstract partial class SyntaxFormattingOptions
     {
         public readonly bool UseTabs;
         public readonly int TabSize;
@@ -53,20 +40,5 @@ namespace Microsoft.CodeAnalysis.Formatting
             NewLine = newLine;
             SeparateImportDirectiveGroups = separateImportDirectiveGroups;
         }
-
-#if !CODE_STYLE
-        public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language)
-        {
-            var formattingService = services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
-            var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
-            return formattingService.GetFormattingOptions(configOptions);
-        }
-
-        public static async Task<SyntaxFormattingOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Create(documentOptions, document.Project.Solution.Workspace.Services, document.Project.Language);
-        }
-#endif
     }
 }
