@@ -7,6 +7,7 @@ using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.Build.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Microsoft.RoslynTools.VS;
@@ -59,14 +60,14 @@ internal static class VSBranchInfo
             return;
         }
 
-        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(branch, devdiv, product.PackageName);
+        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(branch, GitVersionType.Branch, devdiv, product.PackageName);
 
         WriteNameAndValue("Package Version", packageVersion);
     }
 
     private static async Task WriteBuildInfo(IProduct product, string branch, bool showArtifacts, AzDOConnection devdiv, AzDOConnection dnceng)
     {
-        var buildNumber = await VisualStudioRepository.GetBuildNumberFromComponentJsonFileAsync(branch, devdiv, product.ComponentJsonFileName, product.ComponentName);
+        var buildNumber = await VisualStudioRepository.GetBuildNumberFromComponentJsonFileAsync(branch, GitVersionType.Branch, devdiv, product.ComponentJsonFileName, product.ComponentName);
 
         // Try getting build info from dnceng first
         var builds = await dnceng.TryGetBuildsAsync(product.BuildPipelineName, buildNumber);
