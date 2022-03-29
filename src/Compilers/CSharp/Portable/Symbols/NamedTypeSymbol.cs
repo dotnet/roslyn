@@ -524,12 +524,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Returns true if there are any required members. Prefer calling this over checking <see cref="AllRequiredMembers"/> for empty, as
+        /// this will avoid calculating base type requirements if not necessary.
+        /// </summary>
+        internal bool HasAnyRequiredMembers => HasDeclaredRequiredMembers || !AllRequiredMembers.IsEmpty;
+
+        /// <summary>
         /// The full list of all required members for this type, including from base classes. If <see cref="HasRequiredMembersError"/> is true,
         /// this returns empty.
         /// </summary>
         /// <remarks>
         /// Do not call this API if all you need are the required members declared on this type. Use <see cref="GetMembers()"/> instead, filtering for
-        /// required members, instead of calling this API.
+        /// required members, instead of calling this API. If you only need to determine whether this type or any base types have required members, call
+        /// <see cref="HasAnyRequiredMembers"/>, which will avoid calling this API if not required.
         /// </remarks>
         internal ImmutableSegmentedDictionary<string, Symbol> AllRequiredMembers
         {

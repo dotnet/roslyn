@@ -1378,16 +1378,17 @@ hasRelatedInterfaces:
         {
             Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
 
-            // PROTOTYPE(req): Adjust for required members
+            bool hasAnyRequiredMembers = type.HasAnyRequiredMembers;
 
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
                 {
-                    return constructor.DeclaredAccessibility == Accessibility.Public;
+                    return constructor.DeclaredAccessibility == Accessibility.Public
+                        && (!hasAnyRequiredMembers || constructor.HasSetsRequiredMembers);
                 }
             }
-            return synthesizedIfMissing;
+            return synthesizedIfMissing && !hasAnyRequiredMembers;
         }
 
         /// <summary>

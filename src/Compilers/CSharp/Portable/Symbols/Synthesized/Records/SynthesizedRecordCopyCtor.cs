@@ -135,6 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override bool HasSetsRequiredMembersImpl
             // If the record type has a required members error, then it does have required members of some kind, we emit the SetsRequiredMembers attribute.
-            => !ContainingType.AllRequiredMembers.IsEmpty || ContainingType.HasRequiredMembersError;
+            => ContainingType.HasAnyRequiredMembers || ContainingType.HasRequiredMembersError;
     }
 }

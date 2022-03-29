@@ -4048,4 +4048,124 @@ public class Derived : Base
             }
         }
     }
+
+    [Theory]
+    [InlineData("struct")]
+    [InlineData("class")]
+    public void ForbidRequiredAsNew_NoInheritance(string typeKind)
+    {
+        var code = $$"""
+            M<C>();
+
+            void M<T>() where T : new()
+            {
+            }
+
+            {{typeKind}} C
+            {
+                public required int Prop1 { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0310: 'C' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+            // M<C>();
+            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<C>").WithArguments("M<T>()", "T", "C").WithLocation(1, 1)
+        );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void ForbidRequiredAsNew_Inheritance(bool useMetadataReference)
+    {
+        var @base = """
+            public class Base
+            {
+                public required int Prop1 { get; set; }
+            }
+            """;
+
+        var code = """
+            M<Derived>();
+
+            void M<T>() where T : new()
+            {
+            }
+
+            class Derived : Base
+            {
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0310: 'Derived' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+            // M<Derived>();
+            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        CompileAndVerify(baseComp).VerifyDiagnostics();
+
+        comp = CreateCompilation(code, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (1,1): error CS0310: 'Derived' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'M<T>()'
+            // M<Derived>();
+            Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
+        );
+    }
+
+    [Theory]
+    [InlineData("class")]
+    [InlineData("struct")]
+    public void AllowRequiredAsNew_SetsRequiredMembersOnConstructor(string typeKind)
+    {
+        var code = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            M<C>();
+
+            void M<T>() where T : new()
+            {
+            }
+
+            {{typeKind}} C
+            {
+                public required int Prop1 { get; set; }
+
+                [SetsRequiredMembers]
+                public C()
+                {
+                }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void AllowRequiredAsNew_IndirectionViaStruct()
+    {
+        var code = """
+            M1<C>();
+
+            void M1<T>() where T : struct
+            {
+                M2<T>();
+            }
+
+            void M2<T>() where T : new()
+            {
+            }
+
+            struct C
+            {
+                public required int Prop1 { get; set; }
+            }
+            """;
+
+        var comp = CreateCompilationWithRequiredMembers(code);
+        CompileAndVerify(comp).VerifyDiagnostics();
+    }
 }
