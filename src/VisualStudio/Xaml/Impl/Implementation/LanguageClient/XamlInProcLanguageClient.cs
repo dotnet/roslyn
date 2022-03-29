@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(xamlDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext)
         {
         }
 
