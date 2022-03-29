@@ -606,7 +606,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(1, project2SyncedSolution.Projects.Count());
             Assert.Equal(project2.Name, project2SyncedSolution.Projects.Single().Name);
 
-            // syncing project 3 should since project 2 as well because of the p2p ref
+            // syncing project 3 should sync project 2 as well because of the p2p ref
             var project3Checksum = await solution.State.GetChecksumAsync(project3.Id, CancellationToken.None);
             var project3SyncedSolution = await remoteWorkspace.GetSolutionAsync(assetProvider, project3Checksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
             Assert.Equal(2, project3SyncedSolution.Projects.Count());
