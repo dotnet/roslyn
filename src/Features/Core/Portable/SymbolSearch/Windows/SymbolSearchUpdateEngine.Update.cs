@@ -531,9 +531,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             {
                 await LogInfoAsync("Read file from client", cancellationToken).ConfigureAwait(false);
 
-                // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
-
-                using var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnNull).ConfigureAwait(false);
+                using var stream = await client.ReadFileAsync(BehaviorOnStale.ReturnStale).ConfigureAwait(false);
 
                 if (stream == null)
                 {
