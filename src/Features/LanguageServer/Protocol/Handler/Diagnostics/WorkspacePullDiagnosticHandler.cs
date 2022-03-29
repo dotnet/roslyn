@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -19,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
-        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
-            : base(serverKind, diagnosticService, editAndContinueDiagnosticUpdateSource)
+        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService, EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+            : base(diagnosticService, editAndContinueDiagnosticUpdateSource)
         {
         }
 
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
-            if (context.ClientName != null)
+            if (context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
                 return ImmutableArray<Document>.Empty;
 
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
@@ -142,6 +143,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     if (context.IsTracking(document.GetURI()))
                     {
                         context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    // Do not attempt to get workspace diagnostics for Razor files, Razor will directly ask us for document diagnostics
+                    // for any razor file they are interested in.
+                    if (document.IsRazorDocument())
+                    {
                         continue;
                     }
 

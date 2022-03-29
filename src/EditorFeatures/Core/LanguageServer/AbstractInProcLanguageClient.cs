@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 {
     internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider
     {
-        private readonly string? _diagnosticsClientName;
         private readonly IThreadingContext _threadingContext;
         private readonly ILspLoggerFactory _lspLoggerFactory;
 
@@ -86,14 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
-            IThreadingContext threadingContext,
-            string? diagnosticsClientName)
+            IThreadingContext threadingContext)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
             GlobalOptions = globalOptions;
             _listenerProvider = listenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _diagnosticsClientName = diagnosticsClientName;
             _lspLoggerFactory = lspLoggerFactory;
             _threadingContext = threadingContext;
         }
@@ -146,7 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 serverStream,
                 serverStream,
                 _lspLoggerFactory,
-                _diagnosticsClientName,
                 cancellationToken).ConfigureAwait(false);
 
             return new Connection(clientStream, clientStream);
@@ -180,7 +176,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             Stream inputStream,
             Stream outputStream,
             ILspLoggerFactory lspLoggerFactory,
-            string? clientName,
             CancellationToken cancellationToken)
         {
             var jsonMessageFormatter = new JsonMessageFormatter();
@@ -193,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             var serverTypeName = languageClient.GetType().Name;
 
-            var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+            var logger = await lspLoggerFactory.CreateLoggerAsync(serverTypeName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
             var server = languageClient.Create(
                 jsonRpc,
@@ -219,7 +214,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 _listenerProvider,
                 logger,
                 SupportedLanguages,
-                clientName: _diagnosticsClientName,
                 ServerKind);
         }
 

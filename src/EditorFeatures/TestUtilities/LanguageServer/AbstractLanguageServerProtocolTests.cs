@@ -288,8 +288,8 @@ namespace Roslyn.Test.Utilities
         protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null)
             => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities);
 
-        protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.VisualBasic, clientCapabilities);
+        private protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.VisualBasic, clientCapabilities, serverKind);
 
         protected Task<TestLspServer> CreateMultiProjectLspServerAsync(string xmlMarkup, LSP.ClientCapabilities? clientCapabilities = null)
             => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition), clientCapabilities, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
@@ -579,7 +579,6 @@ namespace Roslyn.Test.Utilities
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     ProtocolConstants.RoslynLspLanguages,
-                    clientName: null,
                     serverKind);
 
                 jsonRpc.StartListening();
