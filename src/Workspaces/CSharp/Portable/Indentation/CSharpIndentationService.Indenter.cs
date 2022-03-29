@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         {
             var services = document.Project.Solution.Workspace.Services;
             var formattingRuleFactory = services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            var rules = formattingRuleFactory.CreateRule(document, lineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(document));
+            var rules = formattingRuleFactory.CreateRule(document, lineToBeIndented.Start).Concat(CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules());
             return new CSharpSmartTokenFormatter(options, rules, root);
         }
 
