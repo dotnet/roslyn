@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Indentation
     internal abstract partial class AbstractIndentationService<TSyntaxRoot> : IIndentationService
         where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
-        protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle);
+        protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions2.IndentStyle indentStyle);
 
-        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions.IndentStyle indentStyle)
+        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions2.IndentStyle indentStyle)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             Document document, int lineNumber,
             FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
-            var indenter = GetIndenter(document, lineNumber, indentStyle, cancellationToken);
+            var indenter = GetIndenter(document, lineNumber, (FormattingOptions2.IndentStyle)indentStyle, cancellationToken);
 
             if (indentStyle == FormattingOptions.IndentStyle.None)
             {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             return indenter.GetDesiredIndentation(indentStyle) ?? default;
         }
 
-        private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+        private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions2.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
             var options = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var syntacticDoc = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);

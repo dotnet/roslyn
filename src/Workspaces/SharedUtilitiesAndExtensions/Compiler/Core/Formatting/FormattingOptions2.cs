@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// <summary>
     /// Formatting options stored in editorconfig.
     /// </summary>
-    internal sealed class FormattingOptions2
+    internal sealed partial class FormattingOptions2
     {
 #if !CODE_STYLE
         [ExportSolutionOptionProvider, Shared]

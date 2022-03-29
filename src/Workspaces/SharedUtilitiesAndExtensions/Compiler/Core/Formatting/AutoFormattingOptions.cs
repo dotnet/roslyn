@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// Solution-wide formatting options.
     /// </summary>
     internal readonly record struct AutoFormattingOptions(
-        FormattingOptions.IndentStyle IndentStyle,
+        FormattingOptions2.IndentStyle IndentStyle,
         bool FormatOnReturn,
         bool FormatOnTyping,
         bool FormatOnSemicolon,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static AutoFormattingOptions From(OptionSet options, string language)
             => new(
-                IndentStyle: options.GetOption(Metadata.SmartIndent, language),
+                IndentStyle: (FormattingOptions2.IndentStyle)options.GetOption(Metadata.SmartIndent, language),
                 FormatOnReturn: options.GetOption(Metadata.AutoFormattingOnReturn, language),
                 FormatOnTyping: options.GetOption(Metadata.AutoFormattingOnTyping, language),
                 FormatOnSemicolon: options.GetOption(Metadata.AutoFormattingOnSemicolon, language),
