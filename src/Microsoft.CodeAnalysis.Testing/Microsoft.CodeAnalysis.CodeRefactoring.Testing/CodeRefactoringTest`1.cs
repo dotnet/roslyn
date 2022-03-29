@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.EqualOrDiff(newState.Sources[i].content.ToString(), actual.ToString(), $"content of '{newState.Sources[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.Sources[i].content.Encoding, actual.Encoding, $"encoding of '{newState.Sources[i].filename}' was expected to be '{newState.Sources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.Sources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.Sources[i].filename}' was expected to be '{newState.Sources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                verifier.True(FileNamesEqual(newState.Sources[i].filename, updatedDocuments[i].Folders, updatedDocuments[i].Name), $"file name was expected to be '{newState.Sources[i].filename}' but was '{GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name)}'");
+                verifier.Equal(newState.Sources[i].filename, GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name), $"file name was expected to be '{newState.Sources[i].filename}' but was '{GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name)}'");
             }
 
             var updatedAdditionalDocuments = project.AdditionalDocuments.ToArray();
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.EqualOrDiff(newState.AdditionalFiles[i].content.ToString(), actual.ToString(), $"content of '{newState.AdditionalFiles[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.AdditionalFiles[i].content.Encoding, actual.Encoding, $"encoding of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.AdditionalFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AdditionalFiles[i].filename}' was expected to be '{newState.AdditionalFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                verifier.True(FileNamesEqual(newState.AdditionalFiles[i].filename, updatedAdditionalDocuments[i].Folders, updatedAdditionalDocuments[i].Name), $"file name was expected to be '{newState.AdditionalFiles[i].filename}' but was '{GetFileName(updatedAdditionalDocuments[i].Folders, updatedAdditionalDocuments[i].Name)}'");
+                verifier.Equal(newState.AdditionalFiles[i].filename, GetFileName(updatedAdditionalDocuments[i].Folders, updatedAdditionalDocuments[i].Name), $"file name was expected to be '{newState.AdditionalFiles[i].filename}' but was '{GetFileName(updatedAdditionalDocuments[i].Folders, updatedAdditionalDocuments[i].Name)}'");
             }
 
             var updatedAnalyzerConfigDocuments = project.AnalyzerConfigDocuments().ToArray();
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 verifier.EqualOrDiff(newState.AnalyzerConfigFiles[i].content.ToString(), actual.ToString(), $"content of '{newState.AnalyzerConfigFiles[i].filename}' did not match. Diff shown with expected as baseline:");
                 verifier.Equal(newState.AnalyzerConfigFiles[i].content.Encoding, actual.Encoding, $"encoding of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                 verifier.Equal(newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{newState.AnalyzerConfigFiles[i].filename}' was expected to be '{newState.AnalyzerConfigFiles[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                verifier.True(FileNamesEqual(newState.AnalyzerConfigFiles[i].filename, updatedAnalyzerConfigDocuments[i].Folders, updatedAnalyzerConfigDocuments[i].Name), $"file name was expected to be '{newState.AnalyzerConfigFiles[i].filename}' but was '{GetFileName(updatedAnalyzerConfigDocuments[i].Folders, updatedAnalyzerConfigDocuments[i].Name)}'");
+                verifier.Equal(newState.AnalyzerConfigFiles[i].filename, GetFileName(updatedAnalyzerConfigDocuments[i].Folders, updatedAnalyzerConfigDocuments[i].Name), $"file name was expected to be '{newState.AnalyzerConfigFiles[i].filename}' but was '{GetFileName(updatedAnalyzerConfigDocuments[i].Folders, updatedAnalyzerConfigDocuments[i].Name)}'");
             }
 
             static string GetFileName(IEnumerable<string> actualFolders, string actualFileName)
@@ -217,11 +217,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 var elements = new List<string>(actualFolders);
                 elements.Add(actualFileName);
                 return string.Join("/", elements);
-            }
-
-            static bool FileNamesEqual(string expected, IEnumerable<string> actualFolders, string actualFileName)
-            {
-                return expected == GetFileName(actualFolders, actualFileName);
             }
         }
 
