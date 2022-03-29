@@ -843,6 +843,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsRequired(this Symbol symbol) => symbol is FieldSymbol { IsRequired: true } or PropertySymbol { IsRequired: true };
 
         internal static bool ShouldCheckRequiredMembers(this MethodSymbol method)
-            => !method.HasSetsRequiredMembers;
+            => method is { MethodKind: MethodKind.Constructor, HasSetsRequiredMembers: false };
     }
 }
