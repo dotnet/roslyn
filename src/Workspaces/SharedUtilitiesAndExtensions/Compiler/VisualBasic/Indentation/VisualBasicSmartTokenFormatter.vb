@@ -11,20 +11,20 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Friend Class VisualBasicSmartTokenFormatter
         Implements ISmartTokenFormatter
 
         Private ReadOnly _options As SyntaxFormattingOptions
-        Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
+        Private ReadOnly _formattingRules As ImmutableArray(Of AbstractFormattingRule)
 
         Private ReadOnly _root As CompilationUnitSyntax
 
         Public Sub New(options As SyntaxFormattingOptions,
-                       formattingRules As IEnumerable(Of AbstractFormattingRule),
+                       formattingRules As ImmutableArray(Of AbstractFormattingRule),
                        root As CompilationUnitSyntax)
-            Contract.ThrowIfNull(formattingRules)
             Contract.ThrowIfNull(root)
 
             Me._options = options

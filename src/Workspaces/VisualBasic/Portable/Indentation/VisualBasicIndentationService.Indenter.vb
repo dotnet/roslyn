@@ -2,24 +2,42 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Indentation
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend Class VisualBasicIndentationService
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
+            Get
+                Return VisualBasicSyntaxFacts.Instance
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property HeaderFacts As IHeaderFacts
+            Get
+                Return VisualBasicHeaderFacts.Instance
+            End Get
+        End Property
+
         Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)
         End Function
 
-        Protected Overrides Function CreateSmartTokenFormatter(document As Document, root As CompilationUnitSyntax, lineToBeIndented As TextLine, options As IndentationOptions) As ISmartTokenFormatter
-            Dim services = document.Project.Solution.Workspace.Services
-            Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(document, lineToBeIndented.Start)}.Concat(VisualBasicSyntaxFormatting.Instance.GetDefaultFormattingRules())
+        Protected Overrides Function CreateSmartTokenFormatter(
+                root As CompilationUnitSyntax,
+                lineToBeIndented As TextLine,
+                options As IndentationOptions,
+                baseIndentationRule As AbstractFormattingRule) As ISmartTokenFormatter
+            Dim rules = ImmutableArray.Create(New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), baseIndentationRule).
+                                       AddRange(VisualBasicSyntaxFormatting.Instance.GetDefaultFormattingRules())
             Return New VisualBasicSmartTokenFormatter(options.FormattingOptions, rules, root)
         End Function
 

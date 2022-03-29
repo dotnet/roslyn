@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -24,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             => ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options, out syntaxToken);
 
-        protected override ISmartTokenFormatter CreateSmartTokenFormatter(Document document, CompilationUnitSyntax root, TextLine lineToBeIndented, IndentationOptions options)
+        protected override ISmartTokenFormatter CreateSmartTokenFormatter(
+            CompilationUnitSyntax root, TextLine lineToBeIndented,
+            IndentationOptions options, AbstractFormattingRule baseIndentationRule)
         {
-            var services = document.Project.Solution.Workspace.Services;
-            var formattingRuleFactory = services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            var rules = formattingRuleFactory.CreateRule(document, lineToBeIndented.Start).Concat(CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules());
+            var rules = ImmutableArray.Create(baseIndentationRule).AddRange(CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules());
             return new CSharpSmartTokenFormatter(options, rules, root);
         }
 
