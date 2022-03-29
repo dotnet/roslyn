@@ -1275,19 +1275,21 @@ public class C
 
     [Theory]
     [CombinatorialData]
-    public void EnforcedRequiredMembers_NoInheritance_NoneSet_HasSetsRequiredMembers(bool useMetadataReference, [CombinatorialValues("", " C")] string constructor)
+    public void EnforcedRequiredMembers_NoInheritance_NoneSet_HasSetsRequiredMembers(bool useMetadataReference, [CombinatorialValues("", " C")] string constructor, [CombinatorialValues("", "method: ")] string target)
     {
-        var c = @"
-using System.Diagnostics.CodeAnalysis;
-public class C
-{
-    public required int Prop { get; set; }
-    public required int Field;
+#pragma warning disable IDE0055 // Fix formatting
+        var c = $$"""
+            using System.Diagnostics.CodeAnalysis;
+            public class C
+            {
+                public required int Prop { get; set; }
+                public required int Field;
 
-    [SetsRequiredMembers]
-    public C() {}
-}
-";
+                [{{target}}SetsRequiredMembers]
+                public C() {}
+            }
+            """;
+#pragma warning restore IDE0055 // Fix formatting
 
         var creation = $@"C c = new{constructor}();";
         var comp = CreateCompilationWithRequiredMembers(new[] { c, creation });
@@ -2307,6 +2309,7 @@ class Derived3 : Derived { }";
                 01 00 00 00
             )
             """ : "";
+#pragma warning disable IDE0055 // Fix formatting
         return $$"""
                  .assembly extern original {}
                  
@@ -2470,6 +2473,7 @@ class Derived3 : Derived { }";
                  
                  } // end of class Derived
                  """;
+#pragma warning restore IDE0055 // Fix formatting
     }
 
     [Fact]
@@ -3389,6 +3393,7 @@ public struct C
     [InlineData("")]
     public void RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_04(string baseSyntax)
     {
+#pragma warning disable IDE0055 // Fix formatting
         var code = $$"""
 #nullable enable
 public class Base
@@ -3410,6 +3415,7 @@ public class Derived : Base
     }
 }
 """;
+#pragma warning restore IDE0055 // Fix formatting
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
