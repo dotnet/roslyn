@@ -309,6 +309,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     name: nameof(FormatDocumentCreatedFromTemplate),
                     assemblyName: nameof(FormatDocumentCreatedFromTemplate),
                     language: LanguageName);
+
+                // We have to discover .editorconfig files ourselves to ensure that code style rules are followed.
+                // Normally the project system would tell us about these.
+                projectToAddTo = AddEditorConfigFiles(projectToAddTo, Path.GetDirectoryName(filePath));
             }
 
             // We need to ensure that decisions made during new document formatting are based on the right language
@@ -360,6 +364,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
                 formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
             });
+        }
+
+        private static Project AddEditorConfigFiles(Project projectToAddTo, string projectFolder)
+        {
+            do
+            {
+                projectToAddTo = AddEditorConfigFile(projectToAddTo, projectFolder, out var foundRoot);
+
+                if (foundRoot)
+                {
+                    break;
+                }
+                projectFolder = Path.GetDirectoryName(projectFolder);
+            }
+            while (projectFolder is not null);
+
+            return projectToAddTo;
+
+            static Project AddEditorConfigFile(Project project, string folder, out bool foundRoot)
+            {
+                const string EditorConfigFileName = ".editorconfig";
+
+                foundRoot = false;
+
+                var editorConfigFile = Path.Combine(folder, EditorConfigFileName);
+
+                var text = IOUtilities.PerformIO(() =>
+                {
+                    using var stream = File.OpenRead(editorConfigFile);
+                    return SourceText.From(stream);
+                });
+
+                if (text is null)
+                {
+                    return project;
+                }
+
+                // We need to stop looking in the file system if the .editorconfig file is a root file
+                // The root property must be at the top of the file, barring comments and empty lines,
+                // so we can just do a simple parse. If this misses some odd cases we're okay with it as
+                // it's only used for the temporary project anyway.
+                foreach (var line in text.Lines)
+                {
+                    if (line.Span.Length == 0 ||
+                        text[line.Start] == '#')
+                    {
+                        continue;
+                    }
+                    else if (line.Span.Contains(text.IndexOf("root", line.Start, true)))
+                    {
+                        foundRoot = true;
+                    }
+
+                    break;
+                }
+
+                return project.AddAnalyzerConfigDocument(EditorConfigFileName, text, filePath: editorConfigFile).Project;
+            }
         }
     }
 }
