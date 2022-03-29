@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -50,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsLeftSideOfImportAliasDirective;
         public readonly bool IsFunctionPointerTypeArgumentContext;
         public readonly bool IsLocalFunctionDeclarationContext;
+
+        public override bool IsAsyncMemberDeclarationContext => PrecedingModifiers.Contains(SyntaxKind.AsyncKeyword);
 
         private CSharpSyntaxContext(
             Document document,

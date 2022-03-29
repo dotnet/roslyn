@@ -51,6 +51,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
         Public ReadOnly IsWithinPreprocessorContext As Boolean
 
+        Public Overrides ReadOnly Property IsAsyncMemberDeclarationContext As Boolean
+            Get
+                ' In VB cursor placed in "Public Async Function MyFunc() As $$" is treated as within async method
+                Return MyBase.IsWithinAsyncMethod
+            End Get
+        End Property
+
         Private Sub New(
             document As Document,
             semanticModel As SemanticModel,
@@ -108,26 +115,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Dim syntaxTree = semanticModel.SyntaxTree
 
-            Me.FollowsEndOfStatement = targetToken.FollowsEndOfStatement(position)
-            Me.MustBeginNewStatement = targetToken.MustBeginNewStatement(position)
+            FollowsEndOfStatement = targetToken.FollowsEndOfStatement(position)
+            MustBeginNewStatement = targetToken.MustBeginNewStatement(position)
 
             Me.IsSingleLineStatementContext = isSingleLineStatementContext
-            Me.IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
+            IsMultiLineStatementContext = syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken)
 
-            Me.IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
-            Me.IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
-            Me.IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
+            IsTypeDeclarationKeywordContext = syntaxTree.IsTypeDeclarationKeywordContext(position, targetToken, cancellationToken)
+            IsTypeMemberDeclarationKeywordContext = syntaxTree.IsTypeMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
+            IsInterfaceMemberDeclarationKeywordContext = syntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, targetToken, cancellationToken)
 
-            Me.ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
+            ModifierCollectionFacts = New ModifierCollectionFacts(syntaxTree, position, targetToken, cancellationToken)
             Me.IsInLambda = isInLambda
-            Me.IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
-            Me.IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
-            Me.IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
+            IsPreprocessorStartContext = ComputeIsPreprocessorStartContext(position, targetToken)
+            IsWithinPreprocessorContext = ComputeIsWithinPreprocessorContext(position, targetToken)
+            IsQueryOperatorContext = syntaxTree.IsFollowingCompleteExpression(Of QueryExpressionSyntax)(position, targetToken, Function(query) query, cancellationToken)
 
-            Me.EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
+            EnclosingNamedType = CancellableLazy.Create(AddressOf ComputeEnclosingNamedType)
             Me.IsCustomEventContext = isCustomEventContext
 
-            Me.IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
+            IsPreprocessorEndDirectiveKeywordContext = targetToken.FollowsBadEndDirective()
         End Sub
 
         Private Shared Shadows Function IsWithinAsyncMethod(targetToken As SyntaxToken) As Boolean
@@ -211,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         Private Function ComputeEnclosingNamedType(cancellationToken As CancellationToken) As INamedTypeSymbol
-            Dim enclosingSymbol = Me.SemanticModel.GetEnclosingSymbol(Me.TargetToken.SpanStart, cancellationToken)
+            Dim enclosingSymbol = SemanticModel.GetEnclosingSymbol(TargetToken.SpanStart, cancellationToken)
             Dim container = TryCast(enclosingSymbol, INamedTypeSymbol)
             If container Is Nothing Then
                 container = enclosingSymbol.ContainingType

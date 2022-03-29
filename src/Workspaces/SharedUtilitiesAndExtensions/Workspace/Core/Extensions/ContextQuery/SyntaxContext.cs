@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAttributeNameContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
         public bool IsNameOfContext { get; }
+        public abstract bool IsAsyncMemberDeclarationContext { get; }
 
         public bool IsInQuery { get; }
         public bool IsInImportsDirective { get; }
