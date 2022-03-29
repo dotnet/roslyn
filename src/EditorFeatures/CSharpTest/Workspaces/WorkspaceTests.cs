@@ -1278,20 +1278,20 @@ class D { }
             workspace.AddTestProject(project1);
 
             var solution = workspace.CurrentSolution;
-            var optionKey = new OptionKey2(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
             var optionValue = solution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions.IndentStyle.Smart, optionValue);
+            Assert.Equal(FormattingOptions2.IndentStyle.Smart, optionValue);
 
-            var newOptions = solution.Options.WithChangedOption(optionKey, FormattingOptions.IndentStyle.Block);
+            var newOptions = solution.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
             var newSolution = solution.WithOptions(newOptions);
             var newOptionValue = newSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions.IndentStyle.Block, newOptionValue);
+            Assert.Equal(FormattingOptions2.IndentStyle.Block, newOptionValue);
 
             var applied = workspace.TryApplyChanges(newSolution);
             Assert.True(applied);
 
             var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions.IndentStyle.Block, currentOptionValue);
+            Assert.Equal(FormattingOptions2.IndentStyle.Block, currentOptionValue);
         }
 
         [CombinatorialData]
