@@ -16,11 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation
 {
-    internal abstract partial class AbstractIndentationService<TSyntaxRoot>
+    internal abstract partial class AbstractIndentation<TSyntaxRoot>
     {
         protected struct Indenter
         {
-            private readonly AbstractIndentationService<TSyntaxRoot> _service;
+            private readonly AbstractIndentation<TSyntaxRoot> _service;
 
             public readonly IndentationOptions Options;
             public readonly TextLine LineToBeIndented;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             public readonly ISmartTokenFormatter SmartTokenFormatter;
 
             public Indenter(
-                AbstractIndentationService<TSyntaxRoot> service,
+                AbstractIndentation<TSyntaxRoot> service,
                 SyntaxTree tree,
                 ImmutableArray<AbstractFormattingRule> rules,
                 IndentationOptions options,
@@ -67,21 +67,21 @@ namespace Microsoft.CodeAnalysis.Indentation
                     service.HeaderFacts);
             }
 
-            public IndentationResult? GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
+            public IndentationResult? GetDesiredIndentation(FormattingOptions2.IndentStyle indentStyle)
             {
                 // If the caller wants no indent, then we'll return an effective '0' indent.
-                if (indentStyle == FormattingOptions.IndentStyle.None)
+                if (indentStyle == FormattingOptions2.IndentStyle.None)
                     return null;
 
                 // If the user has explicitly set 'block' indentation, or they're in an inactive preprocessor region,
                 // then just do simple block indentation.
-                if (indentStyle == FormattingOptions.IndentStyle.Block ||
+                if (indentStyle == FormattingOptions2.IndentStyle.Block ||
                     _syntaxFacts.IsInInactiveRegion(this.Tree, LineToBeIndented.Start, this.CancellationToken))
                 {
                     return GetDesiredBlockIndentation();
                 }
 
-                Debug.Assert(indentStyle == FormattingOptions.IndentStyle.Smart);
+                Debug.Assert(indentStyle == FormattingOptions2.IndentStyle.Smart);
                 return GetDesiredSmartIndentation();
             }
 
