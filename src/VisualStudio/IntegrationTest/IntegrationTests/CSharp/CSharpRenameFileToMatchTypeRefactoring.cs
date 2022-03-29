@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/60463"), Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public void RenameFileToMatchType_ExistingCode()
         {
             var project = new ProjectUtils.Project(ProjectName);

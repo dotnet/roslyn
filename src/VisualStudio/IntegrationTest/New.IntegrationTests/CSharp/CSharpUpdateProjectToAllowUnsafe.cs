@@ -48,7 +48,7 @@ unsafe class C
             VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
         }
 
-        [IdeFact]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60461")]
         public async Task LegacyProject_AllConfigurationsUpdated()
         {
             var project = ProjectName;
