@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal interface ISyntaxFormatting
     {
         SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
-        IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
+        ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
         IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
     }
 

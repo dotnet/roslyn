@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Indentation
@@ -30,10 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)
         End Function
 
-        Protected Overrides Function CreateSmartTokenFormatter(document As Document, root As CompilationUnitSyntax, lineToBeIndented As TextLine, options As IndentationOptions) As ISmartTokenFormatter
-            Dim services = document.Project.Solution.Workspace.Services
-            Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(document, lineToBeIndented.Start)}.Concat(VisualBasicSyntaxFormatting.Instance.GetDefaultFormattingRules())
+        Protected Overrides Function CreateSmartTokenFormatter(
+                root As CompilationUnitSyntax,
+                lineToBeIndented As TextLine,
+                options As IndentationOptions,
+                baseIndentationRule As AbstractFormattingRule) As ISmartTokenFormatter
+            Dim rules = ImmutableArray.Create(New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), baseIndentationRule).
+                                       AddRange(VisualBasicSyntaxFormatting.Instance.GetDefaultFormattingRules())
             Return New VisualBasicSmartTokenFormatter(options.FormattingOptions, rules, root)
         End Function
 

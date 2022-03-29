@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// <paramref name="token"/> provided by this method.
         /// </summary>
         protected abstract bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken token);
-        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(Document document, TSyntaxRoot root, TextLine lineToBeIndented, IndentationOptions options);
+        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(
+            TSyntaxRoot root, TextLine lineToBeIndented, IndentationOptions options, AbstractFormattingRule baseFormattingRule);
 
         protected abstract IndentationResult? GetDesiredIndentationWorker(
             Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 Formatter.GetDefaultFormattingRules(document));
 
             var smartTokenFormatter = CreateSmartTokenFormatter(
-                document, (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, options);
+                (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, options, baseIndentationRule);
             return new Indenter(this, tree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
         }
     }
