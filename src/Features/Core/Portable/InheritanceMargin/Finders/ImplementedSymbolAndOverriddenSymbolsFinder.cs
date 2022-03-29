@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                 // Add or update the implemented members for overridden members.
                 foreach (var implementedMember in overriddenSymbol.ExplicitOrImplicitInterfaceImplementations())
                 {
-                    if (indegreeSymbolsMapBuilder.TryGetValue(implementedMember, out var indegreeSymbolMap))
+                    if (indegreeSymbolsMapBuilder.TryGetValue(implementedMember, out var indegreeSymbols))
                     {
-                        indegreeSymbolMap.Add(overriddenSymbol);
+                        indegreeSymbols.Add(overriddenSymbol);
                     }
                     else
                     {
