@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -205,7 +206,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return symbols.WhereAsArray(s => !s.IsDelegateType() && !s.IsInterfaceType());
             }
 
+            if (_context.IsAsyncMemberDeclarationContext)
+            {
+                return symbols.WhereAsArray(IsSymbolValidForAsyncDeclarationContext);
+            }
+
             return symbols;
+        }
+
+        private bool IsSymbolValidForAsyncDeclarationContext(ISymbol symbol)
+        {
+            if (symbol.IsNamespace())
+            {
+                return true;
+            }
+
+            if (symbol is not INamedTypeSymbol namedType ||
+                symbol.IsDelegateType() ||
+                namedType.IsEnumType())
+            {
+                return false;
+            }
+
+            if (namedType.TypeKind == TypeKind.Interface)
+            {
+                return (namedType.Name == "IAsyncEnumerable" || namedType.Name == "IAsyncEnumerator") &&
+                    namedType.TypeParameters.Length == 1 &&
+                    IsSymbolFromSystemRuntimeAssembly(namedType);
+            }
+
+            if (namedType.TypeKind == TypeKind.Class &&
+                namedType.Name == "Task" &&
+                namedType.TypeParameters.Length < 2 &&
+                IsSymbolFromSystemRuntimeAssembly(namedType))
+            {
+                return true;
+            }
+
+            var attributes = namedType.GetAttributes();
+
+            if (attributes.Any(el => el.AttributeClass?.Name == "AsyncMethodBuilderAttribute" && IsSymbolFromSystemRuntimeAssembly(el.AttributeClass)))
+            {
+                return true;
+            }
+
+            return false;
+
+            static bool IsSymbolFromSystemRuntimeAssembly(ISymbol symbol)
+            {
+                if (symbol is null)
+                {
+                    return false;
+                }
+
+                if (symbol.ContainingAssembly.Name != "System.Runtime" ||
+                    !symbol.ContainingAssembly.Identity.IsStrongName ||
+                    symbol.ContainingAssembly.Identity.PublicKeyToken.Length != 8)
+                {
+                    return false;
+                }
+
+                var publicTokenKey = symbol.ContainingAssembly.Identity.PublicKeyToken;
+
+                return publicTokenKey[0] == 176 &&
+                       publicTokenKey[1] == 63 &&
+                       publicTokenKey[2] == 95 &&
+                       publicTokenKey[3] == 127 &&
+                       publicTokenKey[4] == 17 &&
+                       publicTokenKey[5] == 213 &&
+                       publicTokenKey[6] == 10 &&
+                       publicTokenKey[7] == 58;
+            }
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext()
