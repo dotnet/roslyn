@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var formatter = new CSharpSmartTokenFormatter(options, formattingRules, (CompilationUnitSyntax)root);
 
-            var changes = formatter.FormatRange(document.Project.Solution.Workspace.Services, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
+            var changes = formatter.FormatRange(tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
             return changes.ToImmutableArray();
         }
 
