@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Diagnostics;
@@ -186,7 +184,6 @@ namespace Microsoft.CodeAnalysis.Remote
         public static Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
             => AppendAssetMapAsync(solution, map, projectId: null, cancellationToken);
 
-#nullable enable
         public static async Task AppendAssetMapAsync(
             this Solution solution, Dictionary<Checksum, object> map, ProjectId? projectId, CancellationToken cancellationToken)
         {
@@ -209,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     await solution.GetRequiredProject(dep).AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
         }
-#nullable restore
 
         private static async Task AppendAssetMapAsync(this Project project, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
         {
