@@ -38,18 +38,6 @@ namespace Microsoft.CodeAnalysis.Indentation
         protected abstract IndentationResult? GetDesiredIndentationWorker(
             Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);
 
-        private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions2.IndentStyle indentStyle)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            var baseIndentationRule = formattingRuleFactory.CreateRule(document, position);
-
-            return ImmutableArray.Create(
-                baseIndentationRule,
-                this.GetSpecializedIndentationFormattingRule(indentStyle)).AddRange(
-                Formatter.GetDefaultFormattingRules(document));
-        }
-
         public IndentationResult GetIndentation(
             Document document, int lineNumber,
             FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
@@ -80,7 +68,14 @@ namespace Microsoft.CodeAnalysis.Indentation
             var sourceText = tree.GetText(cancellationToken);
             var lineToBeIndented = sourceText.Lines[lineNumber];
 
-            var formattingRules = GetFormattingRules(document, lineToBeIndented.Start, indentStyle);
+            var workspace = document.Project.Solution.Workspace;
+            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            var baseIndentationRule = formattingRuleFactory.CreateRule(document, lineToBeIndented.Start);
+
+            var formattingRules = ImmutableArray.Create(
+                baseIndentationRule,
+                this.GetSpecializedIndentationFormattingRule(indentStyle)).AddRange(
+                Formatter.GetDefaultFormattingRules(document));
 
             var smartTokenFormatter = CreateSmartTokenFormatter(
                 document, (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, options);
