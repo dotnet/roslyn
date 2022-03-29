@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
         protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle);
+        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(Document document, TSyntaxRoot root, TextLine lineToBeIndented, IndentationOptions options);
 
         private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions.IndentStyle indentStyle)
         {
@@ -61,7 +63,10 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start, indentStyle);
 
-            return new Indenter(this, syntacticDoc, formattingRules, options, lineToBeIndented, cancellationToken);
+            var smartTokenFormatter = CreateSmartTokenFormatter(
+                document, (TSyntaxRoot)syntacticDoc.Root, lineToBeIndented, options);
+
+            return new Indenter(this, syntacticDoc, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
         }
 
         /// <summary>
@@ -71,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// <paramref name="token"/> provided by this method.
         /// </summary>
         protected abstract bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken token);
-        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter);
 
         protected abstract IndentationResult? GetDesiredIndentationWorker(
             Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);

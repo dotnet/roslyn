@@ -36,12 +36,15 @@ namespace Microsoft.CodeAnalysis.Indentation
             public readonly SyntaxTree Tree => Document.SyntaxTree;
             public readonly SourceText Text => Document.Text;
 
+            public readonly ISmartTokenFormatter SmartTokenFormatter;
+
             public Indenter(
                 AbstractIndentationService<TSyntaxRoot> service,
                 SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
                 IndentationOptions options,
                 TextLine lineToBeIndented,
+                ISmartTokenFormatter smartTokenFormatter,
                 CancellationToken cancellationToken)
             {
                 Document = document;
@@ -52,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 Root = (TSyntaxRoot)document.Root;
                 LineToBeIndented = lineToBeIndented;
                 _tabSize = options.FormattingOptions.TabSize;
+                SmartTokenFormatter = smartTokenFormatter;
                 CancellationToken = cancellationToken;
 
                 Rules = rules;
@@ -166,9 +170,9 @@ namespace Microsoft.CodeAnalysis.Indentation
                     // var root = document.GetSyntaxRootSynchronously(cancellationToken);
                     var sourceText = Tree.GetText(CancellationToken);
 
-                    var formatter = _service.CreateSmartTokenFormatter(this);
-                    var changes = formatter.FormatTokenAsync(token, CancellationToken)
-                                           .WaitAndGetResult_CanCallOnBackground(CancellationToken);
+                    var changes = this.SmartTokenFormatter
+                        .FormatTokenAsync(token, CancellationToken)
+                        .WaitAndGetResult_CanCallOnBackground(CancellationToken);
 
                     var updatedSourceText = sourceText.WithChanges(changes);
                     if (LineToBeIndented.LineNumber < updatedSourceText.Lines.Count)

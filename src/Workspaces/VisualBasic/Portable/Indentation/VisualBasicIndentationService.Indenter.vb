@@ -16,11 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)
         End Function
 
-        Protected Overrides Function CreateSmartTokenFormatter(indenter As Indenter) As ISmartTokenFormatter
-            Dim services = indenter.Document.Project.Solution.Workspace.Services
+        Protected Overrides Function CreateSmartTokenFormatter(document As Document, root As CompilationUnitSyntax, lineToBeIndented As TextLine, options As IndentationOptions) As ISmartTokenFormatter
+            Dim services = document.Project.Solution.Workspace.Services
             Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(indenter.Options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
-            Return New VisualBasicSmartTokenFormatter(indenter.Options.FormattingOptions, rules, indenter.Root)
+            Dim rules = {New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(document, lineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(document))
+            Return New VisualBasicSmartTokenFormatter(options.FormattingOptions, rules, root)
         End Function
 
         Protected Overrides Function GetDesiredIndentationWorker(

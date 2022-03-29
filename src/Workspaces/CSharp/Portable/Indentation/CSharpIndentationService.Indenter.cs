@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Indentation
@@ -23,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             => ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options, out syntaxToken);
 
-        protected override ISmartTokenFormatter CreateSmartTokenFormatter(Indenter indenter)
+        protected override ISmartTokenFormatter CreateSmartTokenFormatter(Document document, CompilationUnitSyntax root, TextLine lineToBeIndented, IndentationOptions options)
         {
-            var services = indenter.Document.Project.Solution.Workspace.Services;
+            var services = document.Project.Solution.Workspace.Services;
             var formattingRuleFactory = services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
-            var rules = formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document));
-            return new CSharpSmartTokenFormatter(indenter.Options, rules, indenter.Root);
+            var rules = formattingRuleFactory.CreateRule(document, lineToBeIndented.Start).Concat(Formatter.GetDefaultFormattingRules(document));
+            return new CSharpSmartTokenFormatter(options, rules, root);
         }
 
         protected override IndentationResult? GetDesiredIndentationWorker(Indenter indenter, SyntaxToken? tokenOpt, SyntaxTrivia? triviaOpt)
