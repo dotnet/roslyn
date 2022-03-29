@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -14,7 +15,6 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,6 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         protected override IHeaderFacts HeaderFacts
             => CSharpHeaderFacts.Instance;
+
+        protected override ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules()
+            => CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules();
+
+#if CODE_STYLE
+        protected override IndentationOptions GetDefaultIndentationOptions(FormattingOptions2.IndentStyle indentStyle)
+        {
+            return new IndentationOptions(
+                CSharpSyntaxFormattingOptions.Default,
+                new AutoFormattingOptions(
+                    indentStyle, FormatOnReturn: true, FormatOnTyping: true, FormatOnSemicolon: true, FormatOnCloseBrace: true));
+        }
+#endif
 
         protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions2.IndentStyle indentStyle)
             => CSharpIndentationFormattingRule.Instance;
@@ -115,10 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
-                // these nodes should be from syntax tree from ITextSnapshot.
-                Debug.Assert(node.SyntaxTree != null);
-                Debug.Assert(node.SyntaxTree.GetText() != null);
-
                 nextOperation.Invoke();
 
                 ReplaceCaseIndentationRules(list, node);

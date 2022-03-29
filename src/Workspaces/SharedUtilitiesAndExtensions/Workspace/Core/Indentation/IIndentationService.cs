@@ -11,9 +11,14 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
+#else
+using Microsoft.CodeAnalysis.Options;
+#endif
+
 namespace Microsoft.CodeAnalysis.Indentation
 {
-
     internal interface IIndentationService : ILanguageService
     {
         /// <summary>
@@ -42,7 +47,11 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// </summary>
         public static string GetPreferredIndentation(this SyntaxToken token, Document document, CancellationToken cancellationToken)
         {
+#if CODE_STYLE
+            var sourceText = document.GetTextAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+#else
             var sourceText = document.GetTextSynchronously(cancellationToken);
+#endif
             var tokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
             var firstNonWhitespacePos = tokenLine.GetFirstNonWhitespacePosition();
             Contract.ThrowIfNull(firstNonWhitespacePos);
@@ -65,10 +74,20 @@ namespace Microsoft.CodeAnalysis.Indentation
             var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(syntaxGenerator.EndOfLine(newLine)));
 
+#if CODE_STYLE
+            var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+#else
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+#endif
+            Contract.ThrowIfNull(root);
             var newRoot = root.ReplaceToken(token, newToken);
             var newDocument = document.WithSyntaxRoot(newRoot);
+
+#if CODE_STYLE
+            var newText = newDocument.GetTextAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+#else
             var newText = newDocument.GetTextSynchronously(cancellationToken);
+#endif
 
             var newTokenLine = newText.Lines.GetLineFromPosition(newRoot.GetAnnotatedTokens(annotation).Single().SpanStart);
 
