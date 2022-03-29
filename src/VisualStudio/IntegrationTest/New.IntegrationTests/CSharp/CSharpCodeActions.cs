@@ -82,7 +82,7 @@ class Program
             await TestServices.EditorVerifier.CodeActionAsync("using System;", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60460"), Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task FastDoubleInvoke()
         {
             // We want to invoke the first smart tag and then *immediately* try invoking the next.
@@ -462,7 +462,7 @@ class D
             AssertEx.EqualOrDiff(expectedSecondFile, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60461"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task ClassificationInPreviewPane()
         {
             await SetUpEditorAsync(@"
@@ -538,7 +538,7 @@ public class P2 { }", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("using System.IO;", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60461"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
         {
             await SetUpEditorAsync(@"
