@@ -401,25 +401,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return project;
                 }
 
-                // We need to stop looking in the file system if the .editorconfig file is a root file
-                // The root property must be at the top of the file, barring comments and empty lines,
-                // so we can just do a simple parse. If this misses some odd cases we're okay with it as
-                // it's only used for the temporary project anyway.
-                foreach (var line in text.Lines)
-                {
-                    if (line.Span.Length == 0 ||
-                        text[line.Start] == '#')
-                    {
-                        continue;
-                    }
-                    else if (line.Span.Contains(text.IndexOf("root", line.Start, true)))
-                    {
-                        foundRoot = true;
-                    }
-
-                    break;
-                }
-
                 return project.AddAnalyzerConfigDocument(EditorConfigFileName, text, filePath: editorConfigFile).Project;
             }
         }
