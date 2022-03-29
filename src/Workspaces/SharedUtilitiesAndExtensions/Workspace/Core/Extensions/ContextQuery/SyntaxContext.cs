@@ -45,33 +45,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             bool isOnArgumentListBracketOrComma,
             CancellationToken cancellationToken)
         {
-            this.Document = document;
-            this.SemanticModel = semanticModel;
-            this.SyntaxTree = semanticModel.SyntaxTree;
-            this.Position = position;
-            this.LeftToken = leftToken;
-            this.TargetToken = targetToken;
-            this.IsTypeContext = isTypeContext;
-            this.IsNamespaceContext = isNamespaceContext;
-            this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
-            this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
-            this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
-            this.IsRightOfNameSeparator = isRightOfNameSeparator;
-            this.IsStatementContext = isStatementContext;
-            this.IsGlobalStatementContext = isGlobalStatementContext;
-            this.IsAnyExpressionContext = isAnyExpressionContext;
-            this.IsAttributeNameContext = isAttributeNameContext;
-            this.IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
-            this.IsNameOfContext = isNameOfContext;
-            this.IsInQuery = isInQuery;
-            this.IsInImportsDirective = isInImportsDirective;
-            this.IsWithinAsyncMethod = isWithinAsyncMethod;
-            this.IsPossibleTupleContext = isPossibleTupleContext;
-            this.IsAtStartOfPattern = isAtStartOfPattern;
-            this.IsAtEndOfPattern = isAtEndOfPattern;
-            this.InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
-            this.IsRightSideOfNumericType = isRightSideOfNumericType;
-            this.IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
+            Document = document;
+            SemanticModel = semanticModel;
+            SyntaxTree = semanticModel.SyntaxTree;
+            Position = position;
+            LeftToken = leftToken;
+            TargetToken = targetToken;
+            IsTypeContext = isTypeContext;
+            IsNamespaceContext = isNamespaceContext;
+            IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
+            IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
+            IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
+            IsRightOfNameSeparator = isRightOfNameSeparator;
+            IsStatementContext = isStatementContext;
+            IsGlobalStatementContext = isGlobalStatementContext;
+            IsAnyExpressionContext = isAnyExpressionContext;
+            IsAttributeNameContext = isAttributeNameContext;
+            IsEnumTypeMemberAccessContext = isEnumTypeMemberAccessContext;
+            IsNameOfContext = isNameOfContext;
+            IsInQuery = isInQuery;
+            IsInImportsDirective = isInImportsDirective;
+            IsWithinAsyncMethod = isWithinAsyncMethod;
+            IsPossibleTupleContext = isPossibleTupleContext;
+            IsAtStartOfPattern = isAtStartOfPattern;
+            IsAtEndOfPattern = isAtEndOfPattern;
+            InferredTypes = document.GetRequiredLanguageService<ITypeInferenceService>().InferTypes(semanticModel, position, cancellationToken);
+            IsRightSideOfNumericType = isRightSideOfNumericType;
+            IsOnArgumentListBracketOrComma = isOnArgumentListBracketOrComma;
         }
 
         public Document Document { get; }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         private ISet<INamedTypeSymbol> ComputeOuterTypes(CancellationToken cancellationToken)
         {
-            var enclosingSymbol = this.SemanticModel.GetEnclosingSymbol(this.LeftToken.SpanStart, cancellationToken);
+            var enclosingSymbol = SemanticModel.GetEnclosingSymbol(LeftToken.SpanStart, cancellationToken);
             if (enclosingSymbol != null)
             {
                 var containingType = enclosingSymbol.GetContainingTypeOrThis();
