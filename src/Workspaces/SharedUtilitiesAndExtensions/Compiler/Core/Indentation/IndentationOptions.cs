@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         SyntaxFormattingOptions FormattingOptions,
         AutoFormattingOptions AutoFormattingOptions)
     {
+#if !CODE_STYLE
         public static async Task<IndentationOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -24,5 +25,6 @@ namespace Microsoft.CodeAnalysis.Indentation
             => new(
                 SyntaxFormattingOptions.Create(options, services, language),
                 AutoFormattingOptions.From(options, language));
+#endif
     }
 }

@@ -4,10 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Options;
+
+#if !CODE_STYLE
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -21,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         bool FormatOnSemicolon,
         bool FormatOnCloseBrace)
     {
+#if !CODE_STYLE
         public static AutoFormattingOptions From(Project project)
             => From(project.Solution.Options, project.Language);
 
@@ -70,5 +74,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 "BraceCompletionOptions", nameof(AutoFormattingOnCloseBrace), defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
         }
+#endif
     }
 }
