@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
@@ -30,12 +31,14 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
         public static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
         {
-            var parsedFrames = Parse(callstack, cancellationToken);
-            return Task.FromResult(new StackTraceAnalysisResult(callstack, parsedFrames.ToImmutableArray()));
+            var result = new StackTraceAnalysisResult(callstack, Parse(callstack, cancellationToken));
+            return Task.FromResult(result);
         }
 
-        private static IEnumerable<ParsedFrame> Parse(string callstack, CancellationToken cancellationToken)
+        private static ImmutableArray<ParsedFrame> Parse(string callstack, CancellationToken cancellationToken)
         {
+            using var _ = ArrayBuilder<ParsedFrame>.GetInstance(out var builder);
+
             // if the callstack comes from ActivityLog.xml it has been
             // encoding to be passed over HTTP. This should only decode 
             // specific characters like "&gt;" and "&lt;" to their "normal"
@@ -62,11 +65,13 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 {
                     if (parser.TryParseLine(trimmedLine, out var parsedFrame))
                     {
-                        yield return parsedFrame;
+                        builder.Add(parsedFrame);
                         break;
                     }
                 }
             }
+
+            return builder.ToImmutable();
         }
 
         private static IEnumerable<VirtualCharSequence> SplitLines(VirtualCharSequence callstack)

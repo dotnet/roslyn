@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             //                     Symbol data we care about
             parsedFrame = null;
 
-            // +1 here because we always want to skip the '!' character
             var startPoint = -1;
             for (var i = 0; i < line.Length; i++)
             {
                 if (line[i].Value == '!')
                 {
-                    startPoint = 0;
+                    // +1 here because we always want to skip the '!' character
+                    startPoint = i + 1;
                     break;
                 }
             }
