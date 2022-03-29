@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static AutoFormattingOptions From(OptionSet options, string language)
             => new(
-                IndentStyle: (FormattingOptions2.IndentStyle)options.GetOption(Metadata.SmartIndent, language),
+                IndentStyle: options.GetOption(Metadata.SmartIndent, language),
                 FormatOnReturn: options.GetOption(Metadata.AutoFormattingOnReturn, language),
                 FormatOnTyping: options.GetOption(Metadata.AutoFormattingOnTyping, language),
                 FormatOnSemicolon: options.GetOption(Metadata.AutoFormattingOnSemicolon, language),
@@ -46,17 +46,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-                SmartIndent,
                 AutoFormattingOnReturn,
                 AutoFormattingOnTyping,
                 AutoFormattingOnSemicolon,
                 AutoFormattingOnCloseBrace);
 
             private const string FeatureName = "FormattingOptions";
-
-            // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
-            public static PerLanguageOption2<FormattingOptions.IndentStyle> SmartIndent { get; } =
-                new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: FormattingOptions.IndentStyle.Smart);
 
             internal static readonly PerLanguageOption2<bool> AutoFormattingOnReturn =
                 new(FeatureName, OptionGroup.Default, nameof(AutoFormattingOnReturn), defaultValue: true,
