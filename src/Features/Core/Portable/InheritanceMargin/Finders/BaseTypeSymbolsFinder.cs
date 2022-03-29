@@ -23,7 +23,72 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
             ISymbol symbol,
             Solution solution,
             CancellationToken cancellationToken)
-            => Task.FromResult(BaseTypeFinder.FindBaseTypesAndInterfaces((INamedTypeSymbol)symbol).CastArray<ISymbol>());
+        {
+            var namedTypeSymbol = (INamedTypeSymbol)symbol;
+            if (namedTypeSymbol.BaseType == null)
+            {
+                // AllInterfaces are topologically sorted by default.
+                return Task.FromResult(namedTypeSymbol.AllInterfaces.CastArray<ISymbol>());
+            }
+
+            // Calculate indegree for all the symbols
+            using var _ = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var indegreeSymbolsMapBuilder);
+            var baseTypes = BaseTypeFinder.FindBaseTypes(namedTypeSymbol);
+            for (var i = 0; i < baseTypes.Length; i++)
+            {
+                // baseTypes are order like,
+                //                        [0]          [1]           [2]
+                // symbol_we_search -> baseClass1 -> baseClass2 -> baseClass3 ...
+                // There is no edge points to the 'baseClass1'.
+                // And since interface can't have base class, the item before a baseClass is just the previous item in the array.
+                // e.g. 'baseClass2' could only be pointed by 'baseClass1'.
+                var baseType = baseTypes[i];
+                if (i == 0)
+                {
+                    indegreeSymbolsMapBuilder[baseType] = new HashSet<ISymbol>();
+                }
+                else
+                {
+                    indegreeSymbolsMapBuilder[baseType] = new HashSet<ISymbol>() { baseTypes[i - 1] };
+                }
+
+                foreach (var baseInterface in baseType.Interfaces)
+                {
+                    if (indegreeSymbolsMapBuilder.TryGetValue(baseInterface, out var indegreeSymbols))
+                    {
+                        indegreeSymbols.Add(baseType);
+                    }
+                    else
+                    {
+                        indegreeSymbolsMapBuilder[baseInterface] = new HashSet<ISymbol>() { baseType };
+                    }
+                }
+            }
+
+            foreach (var baseInterface in namedTypeSymbol.AllInterfaces)
+            {
+                if (!indegreeSymbolsMapBuilder.ContainsKey(baseInterface))
+                {
+                    indegreeSymbolsMapBuilder[baseInterface] = new HashSet<ISymbol>();
+                }
+
+                foreach (var @interface in baseInterface.Interfaces)
+                {
+                    if (indegreeSymbolsMapBuilder.TryGetValue(@interface, out var indegreeSymbols))
+                    {
+                        indegreeSymbols.Add(baseInterface);
+                    }
+                    else
+                    {
+                        indegreeSymbolsMapBuilder[@interface] = new HashSet<ISymbol>() { baseInterface };
+                    }
+                }
+            }
+
+            return Task.FromResult(TopologicalSortAsArray(
+                baseTypes.AddRange(namedTypeSymbol.AllInterfaces).CastArray<ISymbol>(),
+                indegreeSymbolsMapBuilder.ToImmutableDictionary()));
+        }
 
         public async Task<(ImmutableArray<SymbolGroup> baseTypes, ImmutableArray<SymbolGroup> baseInterfaces)> GetBaseTypeAndBaseInterfaceSymbolGroupsAsync(
             ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)

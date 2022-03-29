@@ -17,13 +17,63 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
     {
         public static readonly ImplementedSymbolAndOverriddenSymbolsFinder Instance = new();
 
+        /// <summary>
+        /// Get the implemented symbols in interface, overridden symbols, and implemented symbols in interface for overrriden symbols for <paramref name="symbol"/>
+        /// For example:
+        /// interface IBar { void Goo(); }
+        /// class Bar : IBar { public override void Goo() { } }
+        /// class Bar2 : Bar { public override void Goo() { } }
+        /// For 'Bar2.Goo()',  we need to find 'IBar.Goo()' and 'IBar.Goo()'
+        /// </summary>
         protected override Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+            using var _ = PooledDictionary<ISymbol, HashSet<ISymbol>>.GetInstance(out var indegreeSymbolsMapBuilder);
             var overriddenSymbols = InheritanceMarginServiceHelper.GetOverriddenSymbols(symbol);
-            builder.AddRange(overriddenSymbols);
-            builder.AddRange(InheritanceMarginServiceHelper.GetImplementedSymbolsForTypeMember(symbol, overriddenSymbols));
-            return Task.FromResult(builder.ToImmutable());
+
+            // 1. Add all the direct implemented interface members for this symbol.
+            foreach (var implementedMember in symbol.ExplicitOrImplicitInterfaceImplementations())
+            {
+                if (!indegreeSymbolsMapBuilder.ContainsKey(implementedMember))
+                {
+                    indegreeSymbolsMapBuilder[implementedMember] = new HashSet<ISymbol>();
+                }
+            }
+
+            // 2. Add all the overrriden symbols & the implemented interface members for the overridden symbols.
+            for (var i = 0; i < overriddenSymbols.Length; i++)
+            {
+                // OverriddenSymbol could only be pointed by the previous overrriden symbol.
+                // e.g
+                //                        [0]                     [1]                     [2]
+                // symbol_we_search -> overridden method1 -> overridden method2 -> overridden method2 ...
+                // There is no edge points to the 'overridden method1'.
+                var overriddenSymbol = overriddenSymbols[i];
+                if (i == 0)
+                {
+                    indegreeSymbolsMapBuilder[overriddenSymbol] = new HashSet<ISymbol>();
+                }
+                else
+                {
+                    indegreeSymbolsMapBuilder[overriddenSymbol] = new HashSet<ISymbol>() { overriddenSymbols[i - 1] };
+                }
+
+                // Add or update the implemented members for overridden members.
+                foreach (var implementedMember in overriddenSymbol.ExplicitOrImplicitInterfaceImplementations())
+                {
+                    if (indegreeSymbolsMapBuilder.TryGetValue(implementedMember, out var indegreeSymbolMap))
+                    {
+                        indegreeSymbolMap.Add(overriddenSymbol);
+                    }
+                    else
+                    {
+                        indegreeSymbolsMapBuilder[implementedMember] = new HashSet<ISymbol>() { overriddenSymbol };
+                    }
+                }
+            }
+
+            return Task.FromResult(TopologicalSortAsArray(
+                indegreeSymbolsMapBuilder.SelectAsArray(kvp => kvp.Key),
+                indegreeSymbolsMapBuilder.ToImmutableDictionary()));
         }
 
         public async Task<(ImmutableArray<SymbolGroup> implementedSymbolGroups, ImmutableArray<SymbolGroup> overriddenSymbolGroups)> GetImplementedSymbolAndOverrriddenSymbolGroupsAsync(

@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
         /// <summary>
         /// Get the assoicated symbols for this finder for the given starting <param name="symbol"/>.
         /// If the return symbols are not topologically sorted, then this method might be called unnecessarily.
-        /// The current strategy is:
-        /// For all the down symbols searching, the results would be topologically sorted before return. Because searching downwards is quite expansive.
-        /// For all the up symbols searching, the results would not be strictly topologically sorted. Because search upwards is less expansive, and 
-        /// we want to avoid the cost to sort the results.
         /// </summary>
         protected abstract Task<ImmutableArray<ISymbol>> GetAssociatedSymbolsAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken);
 

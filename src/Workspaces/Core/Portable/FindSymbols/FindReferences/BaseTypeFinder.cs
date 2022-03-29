@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.FindReferences
             return results.ToImmutableAndFree().Distinct();
         }
 
-        private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
+        internal static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)
         {
             var typesBuilder = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 

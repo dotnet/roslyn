@@ -341,35 +341,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 displayName);
         }
 
-        internal static ImmutableArray<ISymbol> GetImplementedSymbolsForTypeMember(
-            ISymbol memberSymbol,
-            ImmutableArray<ISymbol> overriddenSymbols)
-        {
-            if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol)
-            {
-                using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
-
-                // 1. Get the direct implementing symbols in interfaces.
-                var directImplementingSymbols = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
-                builder.AddRange(directImplementingSymbols);
-
-                // 2. Also add the direct implementing symbols for the overridden symbols.
-                // For example:
-                // interface IBar { void Foo(); }
-                // class Bar : IBar { public override void Foo() { } }
-                // class Bar2 : Bar { public override void Foo() { } }
-                // For 'Bar2.Foo()',  we need to find 'IBar.Foo()'
-                foreach (var symbol in overriddenSymbols)
-                {
-                    builder.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
-                }
-
-                return builder.ToImmutableArray();
-            }
-
-            return ImmutableArray<ISymbol>.Empty;
-        }
-
         /// <summary>
         /// For the <param name="memberSymbol"/>, get all the implementing symbols.
         /// </summary>
