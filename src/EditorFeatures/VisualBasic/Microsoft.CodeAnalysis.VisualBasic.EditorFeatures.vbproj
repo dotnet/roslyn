@@ -52,9 +52,6 @@
     <EmbeddedResource Update="VBEditorResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.Editor.VisualBasic" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal interface IDiagnosticAnalyzerService
     {
+        public IGlobalOptionService GlobalOptions { get; }
+
         /// <summary>
         /// Provides and caches analyzer information.
         /// </summary>
