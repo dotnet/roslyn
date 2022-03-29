@@ -11,12 +11,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if !CODE_STYLE
-using System;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class CSharpSyntaxFormatting : AbstractSyntaxFormatting
@@ -50,16 +44,4 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
             => new CSharpFormatEngine(node, options, formattingRules, startToken, endToken).Format(cancellationToken);
     }
-
-#if !CODE_STYLE
-    [ExportLanguageService(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, ISyntaxFormattingService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxFormattingService()
-        {
-        }
-    }
-#endif
 }
