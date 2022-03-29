@@ -61,6 +61,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
                 if (e.Status == QuerySuggestedActionCompletionStatus.Completed)
                     tcs.SetResult(e.ActionSets.ToList());
+                else if (e.Status == QuerySuggestedActionCompletionStatus.CompletedWithoutData)
+                    tcs.SetResult(new List<SuggestedActionSet>());
                 else if (e.Status == QuerySuggestedActionCompletionStatus.Canceled)
                     tcs.TrySetCanceled();
                 else
