@@ -7,11 +7,13 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,16 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     {
         public static readonly CSharpIndentationService Instance = new();
 
-        private static readonly AbstractFormattingRule s_instance = new FormattingRule();
-
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
         public CSharpIndentationService()
         {
         }
 
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
+        protected override IHeaderFacts HeaderFacts
+            => CSharpHeaderFacts.Instance;
+
         protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions2.IndentStyle indentStyle)
-            => s_instance;
+            => CSharpIndentationFormattingRule.Instance;
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<AbstractFormattingRule> formattingRules,
@@ -103,8 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                    token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
-        private class FormattingRule : AbstractFormattingRule
+        private class CSharpIndentationFormattingRule : AbstractFormattingRule
         {
+            public static readonly AbstractFormattingRule Instance = new CSharpIndentationFormattingRule();
+
             public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
                 // these nodes should be from syntax tree from ITextSnapshot.

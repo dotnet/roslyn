@@ -5,12 +5,26 @@
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Indentation
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend Class VisualBasicIndentationService
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
+            Get
+                Return VisualBasicSyntaxFacts.Instance
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property HeaderFacts As IHeaderFacts
+            Get
+                Return VisualBasicHeaderFacts.Instance
+            End Get
+        End Property
+
         Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)

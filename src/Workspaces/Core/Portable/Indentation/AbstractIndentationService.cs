@@ -9,26 +9,45 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Indentation
 {
     internal abstract partial class AbstractIndentationService<TSyntaxRoot> : IIndentationService
         where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
+        protected abstract IHeaderFacts HeaderFacts { get; }
+
         protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions2.IndentStyle indentStyle);
+
+        /// <summary>
+        /// Returns <see langword="true"/> if the language specific <see
+        /// cref="ISmartTokenFormatter"/> should be deferred to figure out indentation.  If so, it
+        /// will be asked to <see cref="ISmartTokenFormatter.FormatTokenAsync"/> the resultant
+        /// <paramref name="token"/> provided by this method.
+        /// </summary>
+        protected abstract bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken token);
         protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(Document document, TSyntaxRoot root, TextLine lineToBeIndented, IndentationOptions options);
 
-        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions2.IndentStyle indentStyle)
+        protected abstract IndentationResult? GetDesiredIndentationWorker(
+            Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);
+
+        private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions2.IndentStyle indentStyle)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var baseIndentationRule = formattingRuleFactory.CreateRule(document, position);
 
-            var formattingRules = new[] { baseIndentationRule, this.GetSpecializedIndentationFormattingRule(indentStyle) }.Concat(Formatter.GetDefaultFormattingRules(document));
-            return formattingRules;
+            return ImmutableArray.Create(
+                baseIndentationRule,
+                this.GetSpecializedIndentationFormattingRule(indentStyle)).AddRange(
+                Formatter.GetDefaultFormattingRules(document));
         }
 
         public IndentationResult GetIndentation(
@@ -56,28 +75,16 @@ namespace Microsoft.CodeAnalysis.Indentation
         private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions2.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
             var options = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            var syntacticDoc = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+            var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
 
-            var sourceText = syntacticDoc.Root.SyntaxTree.GetText(cancellationToken);
+            var sourceText = tree.GetText(cancellationToken);
             var lineToBeIndented = sourceText.Lines[lineNumber];
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start, indentStyle);
 
             var smartTokenFormatter = CreateSmartTokenFormatter(
-                document, (TSyntaxRoot)syntacticDoc.Root, lineToBeIndented, options);
-
-            return new Indenter(this, syntacticDoc, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
+                document, (TSyntaxRoot)tree.GetRoot(cancellationToken), lineToBeIndented, options);
+            return new Indenter(this, tree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
         }
-
-        /// <summary>
-        /// Returns <see langword="true"/> if the language specific <see
-        /// cref="ISmartTokenFormatter"/> should be deferred to figure out indentation.  If so, it
-        /// will be asked to <see cref="ISmartTokenFormatter.FormatTokenAsync"/> the resultant
-        /// <paramref name="token"/> provided by this method.
-        /// </summary>
-        protected abstract bool ShouldUseTokenIndenter(Indenter indenter, out SyntaxToken token);
-
-        protected abstract IndentationResult? GetDesiredIndentationWorker(
-            Indenter indenter, SyntaxToken? token, SyntaxTrivia? trivia);
     }
 }
