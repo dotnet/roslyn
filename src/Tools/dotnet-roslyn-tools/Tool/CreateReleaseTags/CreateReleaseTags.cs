@@ -10,6 +10,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Newtonsoft.Json.Linq;
@@ -18,6 +19,7 @@ namespace Microsoft.RoslynTools.CreateReleaseTags;
 
 public static class CreateReleaseTags
 {
+    private static Roslyn s_roslynInfo = new();
     public static async Task<int> CreateReleaseTagsAsync(ILogger logger)
     {
         try
@@ -118,7 +120,7 @@ public static class CreateReleaseTags
                 return null;
             }
 
-            var buildId = GetBuildDefinitionName(connection) + "_" + buildNumber;
+            var buildId = s_roslynInfo.GetBuildPipelineName(connection.BuildProjectName) + "_" + buildNumber;
 
             return new RoslynBuildInformation(commitSha, branchName, buildId);
         }
@@ -128,14 +130,11 @@ public static class CreateReleaseTags
         }
     }
 
-    private static string GetBuildDefinitionName(AzDOConnection connection)
-        => connection.BuildProjectName.Equals("DevDiv") ? "Roslyn-Signed" : "dotnet-roslyn CI";
-
     private static async Task<(string branchName, string buildNumber)> TryGetRoslynBranchAndBuildNumberForReleaseAsync(
         VisualStudioVersion release,
         AzDOConnection vsConnection)
     {
-        var url = await VisualStudioRepository.GetUrlFromComponentJsonFileAsync(release.CommitSha, GitVersionType.Commit, vsConnection, @".corext\Configs\dotnetcodeanalysis-components.json", "Microsoft.CodeAnalysis.LanguageServices");
+        var url = await VisualStudioRepository.GetUrlFromComponentJsonFileAsync(release.CommitSha, GitVersionType.Commit, vsConnection, s_roslynInfo.ComponentJsonFileName, s_roslynInfo.ComponentName);
         if (url is null)
         {
             return default;
@@ -170,7 +169,7 @@ public static class CreateReleaseTags
         AzDOConnection buildConnection,
         string buildNumber)
     {
-        var build = (await buildConnection.TryGetBuildsAsync(GetBuildDefinitionName(buildConnection), buildNumber))?.SingleOrDefault();
+        var build = (await buildConnection.TryGetBuildsAsync(s_roslynInfo.GetBuildPipelineName(buildConnection.BuildProjectName), buildNumber))?.SingleOrDefault();
 
         if (build == null)
         {
