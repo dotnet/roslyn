@@ -11,9 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         }
 
         public IList<TextChange> FormatRange(
-            HostWorkspaceServices services, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
+            SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(startToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
             Contract.ThrowIfTrue(endToken.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
@@ -60,7 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 smartTokenformattingRules = (new NoLineChangeFormattingRule()).Concat(_formattingRules);
             }
 
-            return Formatter.GetFormattedTextChanges(_root, new[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, services, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+            var formatter = CSharpSyntaxFormatting.Instance;
+            var result = formatter.GetFormattingResult(
+                _root, new[] { TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End) }, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+            return result.GetTextChanges();
         }
 
         private static bool CloseBraceOfTryOrDoBlock(SyntaxToken endToken)
