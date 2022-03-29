@@ -232,6 +232,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\AutoFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingOptions.IndentStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IndentationOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Indentation\ISmartTokenFormatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\FeatureFlagStorageLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\HeaderFacts\IHeaderFactsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
