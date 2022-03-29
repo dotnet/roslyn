@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if DEBUG
 using System.Diagnostics;
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Remote
             var sb = new StringBuilder();
             var allChecksumsFromRequest = await GetAllChildrenChecksumsAsync(checksumFromRequest).ConfigureAwait(false);
 
-            var assetMapFromNewSolution = await solutionFromScratch.GetAssetMapAsync(includeProjectCones: true, CancellationToken.None).ConfigureAwait(false);
-            var assetMapFromIncrementalSolution = await incrementalSolutionBuilt.GetAssetMapAsync(includeProjectCones: true, CancellationToken.None).ConfigureAwait(false);
+            var assetMapFromNewSolution = await solutionFromScratch.GetAssetMapAsync(CancellationToken.None).ConfigureAwait(false);
+            var assetMapFromIncrementalSolution = await incrementalSolutionBuilt.GetAssetMapAsync(CancellationToken.None).ConfigureAwait(false);
 
             // check 4 things
             // 1. first see if we create new solution from scratch, it works as expected (indicating a bug in incremental update)
@@ -163,10 +164,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// create checksum to correspoing object map from solution
         /// this map should contain every parts of solution that can be used to re-create the solution back
         /// </summary>
-        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, bool includeProjectCones, CancellationToken cancellationToken)
+        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
         {
             var map = new Dictionary<Checksum, object>();
-            await solution.AppendAssetMapAsync(includeProjectCones, map, cancellationToken).ConfigureAwait(false);
+            await solution.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             return map;
         }
 
@@ -182,24 +183,33 @@ namespace Microsoft.CodeAnalysis.Remote
             return map;
         }
 
-        public static async Task AppendAssetMapAsync(this Solution solution, bool includeProjectCones, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+        public static Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+            => AppendAssetMapAsync(solution, map, projectId: null, cancellationToken);
+
+#nullable enable
+        public static async Task AppendAssetMapAsync(
+            this Solution solution, Dictionary<Checksum, object> map, ProjectId? projectId, CancellationToken cancellationToken)
         {
-            var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-            await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
-
-            foreach (var project in solution.Projects)
+            if (projectId == null)
             {
-                if (includeProjectCones)
-                {
+                var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
-                    var projectSubsetChecksums = await solution.State.GetStateChecksumsAsync(project.Id, cancellationToken).ConfigureAwait(false);
-                    await projectSubsetChecksums.FindAsync(solution.State, Flatten(projectSubsetChecksums), map, cancellationToken).ConfigureAwait(false);
-                }
+                foreach (var project in solution.Projects)
+                    await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                var solutionChecksums = await solution.State.GetStateChecksumsAsync(projectId, cancellationToken).ConfigureAwait(false);
+                await solutionChecksums.FindAsync(solution.State, Flatten(solutionChecksums), map, cancellationToken).ConfigureAwait(false);
 
+                var project = solution.GetRequiredProject(projectId);
                 await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
+                foreach (var dep in solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(projectId))
+                    await solution.GetRequiredProject(dep).AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             }
         }
+#nullable restore
 
         private static async Task AppendAssetMapAsync(this Project project, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
         {
