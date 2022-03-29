@@ -37,6 +37,21 @@ Commands:
 
 For example you could run `dotnet roslyn-tools vsbranchinfo` to display information about the Roslyn package most recently inserted into Visual Studio's main branch.
 
+## How to Build from Source
+
+You can build and package the tool using the following commands. The instructions assume that you are in the root of the repository.
+
+```console
+.\build.cmd -pack
+# One ofthe final lines from the build will read something like
+# Successfully created package '.\artifacts\packages\Debug\NonShipping\Microsoft.RoslynTools.1.1.0-dev.nupkg'..
+# Use the value that is in the form `1.1.0-dev` as the version in the next command.
+dotnet tool install --add-source .\artifacts\packages\Debug\NonShipping -g Microsoft.RoslynTools --version <version>
+roslyn-tools
+```
+
+> Note: On macOS and Linux, `.\build.cmd` should be replaced with `./build.sh` and `.\artifacts` will need be switched to `./artifacts` to accommodate for the different slash directions.
+
 ## How to Uninstall
 
 You can uninstall the tool using the following command. Include `-g` if you installed as a global tool.
