@@ -209,7 +209,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.ConvertForToForEach.AbstractConvertForToForEachCodeRefactoringProvider`6+MyCodeAction", "Convert For To ForEach" },
             { "Microsoft.CodeAnalysis.ConvertForEachToFor.AbstractConvertForEachToForCodeRefactoringProvider`2+ForEachToForCodeAction", "Convert ForEach To For" },
             { "Microsoft.CodeAnalysis.ConvertCast.AbstractConvertCastCodeRefactoringProvider`3+MyCodeAction", "Convert Cast" },
-            { "Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty.AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider`2+ConvertAutoPropertyToFullPropertyCodeAction", "Convert AutoProperty To Full Property" },
+            { "Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty.AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider`3+ConvertAutoPropertyToFullPropertyCodeAction", "Convert AutoProperty To Full Property" },
             { "Microsoft.CodeAnalysis.ConflictMarkerResolution.AbstractResolveConflictMarkerCodeFixProvider+MyCodeAction", "Resolve Conflict Marker" },
             { "Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass.AbstractConvertAnonymousTypeToClassCodeRefactoringProvider`6+MyCodeAction", "Convert Anonymous Type To Class" },
             { "Microsoft.CodeAnalysis.AddMissingImports.AbstractAddMissingImportsRefactoringProvider+AddMissingImportsCodeAction", "Add Missing Imports (Paste)" },
@@ -282,6 +282,11 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation.VisualBasicSimplifyObjectCreationCodeFixProvider+MyCodeAction", "Simplify Object Creation" },
             { "Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking.RenameTrackingTaggerProvider+RenameTrackingCodeAction", "Rename Tracking" },
             { "Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc.AddInheritdocCodeFixProvider+MyCodeAction", "Add Inheritdoc" },
+            { "Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword.CSharpTransposeRecordKeywordCodeFixProvider+MyCodeAction", "Fix record declaration" },
+            { "Microsoft.CodeAnalysis.CSharp.ConvertToRawString.ConvertRegularStringToRawStringCodeRefactoringProvider+MyCodeAction", "Convert to raw string" },
+            { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression.CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider+MyCodeAction", "Remove Unnecessary Lambda Expression" },
+            { "Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking.CSharpUseParameterNullCheckingCodeFixProvider+MyCodeAction", "Use Parameter Null Checking" },
+            { "Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices.AbstractJsonDetectionCodeFixProvider+MyCodeAction", "Enable all JSON editor features" },
         }.ToImmutableDictionary();
 
         public static void Main(string[] args)
