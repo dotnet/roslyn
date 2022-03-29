@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
             => UnderlyingObject = underlyingObject;
 
         public FormattingOptions.IndentStyle IndentStyle
-            => UnderlyingObject.IndentStyle;
+            => (FormattingOptions.IndentStyle)UnderlyingObject.IndentStyle;
     }
 }

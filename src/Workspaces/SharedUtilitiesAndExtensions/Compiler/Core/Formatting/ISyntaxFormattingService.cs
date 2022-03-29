@@ -17,15 +17,18 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
-    internal interface ISyntaxFormattingService
-#if !CODE_STYLE
-        : ILanguageService
-#endif
+    internal interface ISyntaxFormatting
     {
         SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
         IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
         IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
     }
+
+#if !CODE_STYLE
+    internal interface ISyntaxFormattingService : ISyntaxFormatting, ILanguageService
+    {
+    }
+#endif
 
     internal abstract class SyntaxFormattingOptions
     {
