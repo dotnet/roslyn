@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
         private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)
         {
             var semanticModel = p.Target.SemanticModel;
-            Debug.Assert(semanticModel != null);
+            RoslynDebug.Assert(semanticModel != null);
             var type = semanticModel.GetTypeInfo(expr).Type;
             if (type != null)
             {
@@ -148,7 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
             {
             }
 
+#if !CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
             internal override CodeActionPriority Priority => CodeActionPriority.Low;
+#endif
         }
     }
 }

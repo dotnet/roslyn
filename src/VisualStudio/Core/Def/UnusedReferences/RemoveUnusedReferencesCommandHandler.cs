@@ -9,6 +9,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -31,43 +32,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
     internal sealed class RemoveUnusedReferencesCommandHandler
     {
         private const string ProjectAssetsFilePropertyName = "ProjectAssetsFile";
-
-        private readonly Lazy<IReferenceCleanupService> _lazyReferenceCleanupService;
+        private readonly IThreadingContext _threadingContext;
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private IServiceProvider? _serviceProvider;
+
+        private IReferenceCleanupService ReferenceCleanupService
+            => _workspace.Services.GetRequiredService<IReferenceCleanupService>();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RemoveUnusedReferencesCommandHandler(
+            IThreadingContext threadingContext,
             RemoveUnusedReferencesDialogProvider unusedReferenceDialogProvider,
             IUIThreadOperationExecutor threadOperationExecutor,
             VisualStudioWorkspace workspace,
-            IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext)
+            IGlobalOptionService globalOptions)
         {
+            _threadingContext = threadingContext;
             _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
             _globalOptions = globalOptions;
-            _threadingContext = threadingContext;
-
-            _lazyReferenceCleanupService = new(() => workspace.Services.GetRequiredService<IReferenceCleanupService>());
         }
 
-        public void Initialize(IServiceProvider serviceProvider)
+        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(serviceProvider);
 
-            _serviceProvider = serviceProvider;
+            _serviceProvider = (IServiceProvider)serviceProvider;
 
             // Hook up the "Remove Unused References" menu command for CPS based managed projects.
-            var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
+            var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(_threadingContext.JoinableTaskFactory, throwOnFailure: false).ConfigureAwait(false);
             if (menuCommandService != null)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RemoveUnusedReferences, Guids.RoslynGroupId, OnRemoveUnusedReferencesForSelectedProject, OnRemoveUnusedReferencesForSelectedProjectStatus);
             }
         }
@@ -189,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         {
             var unusedReferences = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
+                var projectReferences = await this.ReferenceCleanupService.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
                 var unusedReferenceAnalysisService = solution.Workspace.Services.GetRequiredService<IUnusedReferenceAnalysisService>();
                 return await unusedReferenceAnalysisService.GetUnusedReferencesAsync(solution, projectFilePath, projectAssetsFile, projectReferences, cancellationToken).ConfigureAwait(true);
             });
