@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Shared ReadOnly Instance As New VisualBasicSyntaxFormatting
 
-        Private ReadOnly _rules As ImmutableList(Of AbstractFormattingRule) = ImmutableList.Create(Of AbstractFormattingRule)(
+        Private ReadOnly _rules As ImmutableArray(Of AbstractFormattingRule) = ImmutableArray.Create(Of AbstractFormattingRule)(
             New StructuredTriviaFormattingRule(),
             New ElasticTriviaFormattingRule(),
             New AdjustSpaceFormattingRule(),
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             New NodeBasedFormattingRule(),
             DefaultOperationProvider.Instance)
 
-        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of AbstractFormattingRule)
+        Public Overrides Function GetDefaultFormattingRules() As ImmutableArray(Of AbstractFormattingRule)
             Return _rules
         End Function
 
