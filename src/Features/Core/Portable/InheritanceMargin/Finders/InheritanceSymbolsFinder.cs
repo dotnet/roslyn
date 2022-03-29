@@ -51,27 +51,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin.Finders
                     var associatedSymbols = await GetAssociatedSymbolsAsync(currentSymbol, solution, cancellationToken).ConfigureAwait(false);
                     foreach (var associatedSymbol in associatedSymbols)
                     {
-                        visitedSet.Add(associatedSymbol);
-                        var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(associatedSymbol, solution, cancellationToken).ConfigureAwait(false);
+                        var originalAssociatedSymbol = await SymbolFinder.FindSourceDefinitionAsync(associatedSymbol.OriginalDefinition, solution, cancellationToken).ConfigureAwait(false)
+                            ?? associatedSymbol.OriginalDefinition;
+                        visitedSet.Add(originalAssociatedSymbol);
+                        var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(originalAssociatedSymbol, solution, cancellationToken).ConfigureAwait(false);
                         EnqueueAll(queue, linkedSymbols);
-
-                        var originalSymbol = associatedSymbol.OriginalDefinition;
-                        if (!builder.ContainsKey(originalSymbol) && InheritanceMarginServiceHelper.IsNavigableSymbol(originalSymbol))
+                        if (!builder.ContainsKey(originalAssociatedSymbol) && InheritanceMarginServiceHelper.IsNavigableSymbol(originalAssociatedSymbol))
                         {
-                            var linkedGroupSymbols =
-                                await linkedSymbols.SelectAsArrayAsync((s, cancellationToken) => FindOriginalSourceDefinitionInNeededAsync(s, solution, cancellationToken), cancellationToken).ConfigureAwait(false);
-                            builder[originalSymbol] = new SymbolGroup(linkedSymbols);
+                            var linkedGroupSymbols = linkedSymbols.SelectAsArray(s => s.OriginalDefinition);
+                            builder[originalAssociatedSymbol] = new SymbolGroup(linkedSymbols);
                         }
                     }
                 }
             }
-        }
-
-        private static async ValueTask<ISymbol> FindOriginalSourceDefinitionInNeededAsync(
-            ISymbol initialSymbol, Solution solution, CancellationToken cancellationToken)
-        {
-            var symbol = await SymbolFinder.FindSourceDefinitionAsync(initialSymbol, solution, cancellationToken).ConfigureAwait(false) ?? initialSymbol;
-            return symbol.OriginalDefinition;
         }
 
         protected static ImmutableArray<ISymbol> TopologicalSortAsArray(
