@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         public static readonly CSharpSyntaxFormatting Instance = new();
 
-        private readonly ImmutableList<AbstractFormattingRule> _rules = ImmutableList.Create<AbstractFormattingRule>(
+        private readonly ImmutableArray<AbstractFormattingRule> _rules = ImmutableArray.Create<AbstractFormattingRule>(
             new WrappingFormattingRule(),
             new SpacingFormattingRule(),
             new NewLineUserSettingFormattingRule(),
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             new TokenBasedFormattingRule(),
             DefaultOperationProvider.Instance);
 
-        public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
+        public override ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;
 
         public override SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options)
