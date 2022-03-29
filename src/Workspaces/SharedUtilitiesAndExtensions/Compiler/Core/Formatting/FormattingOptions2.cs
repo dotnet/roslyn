@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
-        /// <inheritdoc cref="AutoFormattingOptions.IndentStyle"/>
         // Suppression due to https://github.com/dotnet/roslyn/issues/42614
         public static PerLanguageOption2<IndentStyle> SmartIndent { get; } =
             new(FeatureName, FormattingOptionGroups.IndentationAndSpacing, nameof(SmartIndent), defaultValue: IndentStyle.Smart);

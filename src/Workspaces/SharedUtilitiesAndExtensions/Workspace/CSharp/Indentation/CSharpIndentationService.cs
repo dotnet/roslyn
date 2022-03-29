@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            if (options.AutoFormattingOptions.IndentStyle != FormattingOptions2.IndentStyle.Smart)
+            if (options.IndentStyle != FormattingOptions2.IndentStyle.Smart)
             {
                 return false;
             }

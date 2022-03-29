@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Indentation
             var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
             var indentationOptions = new IndentationOptions(
                 syntaxFormatting.GetFormattingOptions(options),
-                new AutoFormattingOptions(indentStyle, FormatOnReturn: true, FormatOnTyping: true, FormatOnSemicolon: true, FormatOnCloseBrace: true));
+                new AutoFormattingOptions(FormatOnReturn: true, FormatOnTyping: true, FormatOnSemicolon: true, FormatOnCloseBrace: true),
+                indentStyle);
 #else
             var indentationOptions = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var tree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);

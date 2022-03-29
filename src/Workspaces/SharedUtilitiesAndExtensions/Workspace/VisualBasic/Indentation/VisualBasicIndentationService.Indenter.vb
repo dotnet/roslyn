@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 lineToBeIndented As TextLine,
                 options As IndentationOptions,
                 baseIndentationRule As AbstractFormattingRule) As ISmartTokenFormatter
-            Dim rules = ImmutableArray.Create(New SpecialFormattingRule(options.AutoFormattingOptions.IndentStyle), baseIndentationRule).
+            Dim rules = ImmutableArray.Create(New SpecialFormattingRule(options.IndentStyle), baseIndentationRule).
                                        AddRange(VisualBasicSyntaxFormatting.Instance.GetDefaultFormattingRules())
             Return New VisualBasicSmartTokenFormatter(options.FormattingOptions, rules, root)
         End Function
