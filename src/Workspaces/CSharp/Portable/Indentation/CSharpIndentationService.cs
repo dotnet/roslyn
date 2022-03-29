@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         {
         }
 
-        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions.IndentStyle indentStyle)
+        protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions2.IndentStyle indentStyle)
             => s_instance;
 
         public static bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            if (options.AutoFormattingOptions.IndentStyle != FormattingOptions.IndentStyle.Smart)
+            if (options.AutoFormattingOptions.IndentStyle != FormattingOptions2.IndentStyle.Smart)
             {
                 return false;
             }

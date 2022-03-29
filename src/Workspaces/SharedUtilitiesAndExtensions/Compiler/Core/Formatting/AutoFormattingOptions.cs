@@ -4,10 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Options;
+
+#if !CODE_STYLE
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -15,18 +18,19 @@ namespace Microsoft.CodeAnalysis.Formatting
     /// Solution-wide formatting options.
     /// </summary>
     internal readonly record struct AutoFormattingOptions(
-        FormattingOptions.IndentStyle IndentStyle,
+        FormattingOptions2.IndentStyle IndentStyle,
         bool FormatOnReturn,
         bool FormatOnTyping,
         bool FormatOnSemicolon,
         bool FormatOnCloseBrace)
     {
+#if !CODE_STYLE
         public static AutoFormattingOptions From(Project project)
             => From(project.Solution.Options, project.Language);
 
         public static AutoFormattingOptions From(OptionSet options, string language)
             => new(
-                IndentStyle: options.GetOption(Metadata.SmartIndent, language),
+                IndentStyle: (FormattingOptions2.IndentStyle)options.GetOption(Metadata.SmartIndent, language),
                 FormatOnReturn: options.GetOption(Metadata.AutoFormattingOnReturn, language),
                 FormatOnTyping: options.GetOption(Metadata.AutoFormattingOnTyping, language),
                 FormatOnSemicolon: options.GetOption(Metadata.AutoFormattingOnSemicolon, language),
@@ -70,5 +74,6 @@ namespace Microsoft.CodeAnalysis.Formatting
                 "BraceCompletionOptions", nameof(AutoFormattingOnCloseBrace), defaultValue: true,
                 storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
         }
+#endif
     }
 }
