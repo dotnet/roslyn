@@ -3011,5 +3011,50 @@ public static readonly string F = ""a""
 
             Assert.True(timing.ElapsedTime >= timing1.ElapsedTime + timing2.ElapsedTime);
         }
+
+        [Fact]
+        public void Timing_Info_Only_Includes_Last_Run()
+        {
+            var source = "class C{}";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    Thread.Sleep(50);
+                    context.AddSource("generated", "");
+                });
+            }).AsSourceGenerator();
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+
+            // run once
+            driver = driver.RunGenerators(compilation);
+            var timing = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing.ElapsedTime);
+
+            var generatorTiming = Assert.Single(timing.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming.ElapsedTime);
+            Assert.True(timing.ElapsedTime >= generatorTiming.ElapsedTime);
+
+
+            // run a second time. No steps should be performed, so overall time should be less
+            driver = driver.RunGenerators(compilation);
+            var timing2 = driver.GetTimingInfo();
+
+            Assert.NotEqual(TimeSpan.Zero, timing2.ElapsedTime);
+            Assert.True(timing.ElapsedTime > timing2.ElapsedTime);
+
+            var generatorTiming2 = Assert.Single(timing2.GeneratorTimes);
+            Assert.Equal(generator, generatorTiming2.Generator);
+            Assert.NotEqual(TimeSpan.Zero, generatorTiming2.ElapsedTime);
+            Assert.True(generatorTiming.ElapsedTime > generatorTiming2.ElapsedTime);
+        }
     }
 }
