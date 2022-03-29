@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                     var sourceText = Tree.GetText(CancellationToken);
 
                     var formatter = _service.CreateSmartTokenFormatter(this);
-                    var changes = formatter.FormatTokenAsync(Document.Project.Solution.Workspace.Services, token, CancellationToken)
+                    var changes = formatter.FormatTokenAsync(token, CancellationToken)
                                            .WaitAndGetResult_CanCallOnBackground(CancellationToken);
 
                     var updatedSourceText = sourceText.WithChanges(changes);

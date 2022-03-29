@@ -202,7 +202,7 @@ End Class
 
                 Dim formatOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)
-                Dim changes = Await smartFormatter.FormatTokenAsync(workspace.Services, token, Nothing)
+                Dim changes = Await smartFormatter.FormatTokenAsync(token, Nothing)
 
                 Using edit = buffer.CreateEdit()
                     For Each change In changes

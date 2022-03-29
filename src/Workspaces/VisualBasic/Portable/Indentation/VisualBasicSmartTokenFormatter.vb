@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Friend Class VisualBasicSmartTokenFormatter
@@ -32,14 +33,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Me._root = root
         End Sub
 
-        Public Function FormatTokenAsync(services As HostWorkspaceServices, token As SyntaxToken, cancellationToken As CancellationToken) As Tasks.Task(Of IList(Of TextChange)) Implements ISmartTokenFormatter.FormatTokenAsync
+        Public Function FormatTokenAsync(token As SyntaxToken, cancellationToken As CancellationToken) As Tasks.Task(Of IList(Of TextChange)) Implements ISmartTokenFormatter.FormatTokenAsync
             Contract.ThrowIfTrue(token.Kind = SyntaxKind.None OrElse token.Kind = SyntaxKind.EndOfFileToken)
 
             ' get previous token
             Dim previousToken = token.GetPreviousToken()
 
             Dim spans = SpecializedCollections.SingletonEnumerable(TextSpan.FromBounds(previousToken.SpanStart, token.Span.End))
-            Return Task.FromResult(Formatter.GetFormattedTextChanges(_root, spans, services, _options, _formattingRules, cancellationToken))
+            Dim formatter = VisualBasicSyntaxFormatting.Instance
+            Dim result = formatter.GetFormattingResult(_root, spans, _options, _formattingRules, cancellationToken)
+            Return Task.FromResult(result.GetTextChanges(cancellationToken))
         End Function
     End Class
 End Namespace

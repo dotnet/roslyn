@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         }
 
         public async Task<IList<TextChange>> FormatTokenAsync(
-            HostWorkspaceServices services, SyntaxToken token, CancellationToken cancellationToken)
+            SyntaxToken token, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(token.Kind() is SyntaxKind.None or SyntaxKind.EndOfFileToken);
 
@@ -113,7 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            return Formatter.GetFormattedTextChanges(_root, new[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) }, services, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+            var formatter = CSharpSyntaxFormatting.Instance;
+            var result = formatter.GetFormattingResult(
+                _root, new[] { TextSpan.FromBounds(adjustedStartPosition, adjustedEndPosition) }, _options.FormattingOptions, smartTokenformattingRules, cancellationToken);
+            return result.GetTextChanges(cancellationToken);
         }
 
         private class NoLineChangeFormattingRule : AbstractFormattingRule
