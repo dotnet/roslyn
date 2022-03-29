@@ -38,18 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         protected override IHeaderFacts HeaderFacts
             => CSharpHeaderFacts.Instance;
 
-        protected override ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules()
-            => CSharpSyntaxFormatting.Instance.GetDefaultFormattingRules();
-
-#if CODE_STYLE
-        protected override IndentationOptions GetDefaultIndentationOptions(FormattingOptions2.IndentStyle indentStyle)
-        {
-            return new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default,
-                new AutoFormattingOptions(
-                    indentStyle, FormatOnReturn: true, FormatOnTyping: true, FormatOnSemicolon: true, FormatOnCloseBrace: true));
-        }
-#endif
+        protected override ISyntaxFormatting SyntaxFormatting
+            => CSharpSyntaxFormatting.Instance;
 
         protected override AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions2.IndentStyle indentStyle)
             => CSharpIndentationFormattingRule.Instance;

@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Indentation
     {
         protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract IHeaderFacts HeaderFacts { get; }
+        protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
         protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule(FormattingOptions2.IndentStyle indentStyle);
 

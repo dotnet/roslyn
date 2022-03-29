@@ -26,6 +26,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting
+            Get
+                Return VisualBasicSyntaxFormatting.Instance
+            End Get
+        End Property
+
         Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)
