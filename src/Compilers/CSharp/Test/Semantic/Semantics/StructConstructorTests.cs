@@ -1420,6 +1420,135 @@ record struct R3
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3").WithArguments("y3").WithLocation(13, 14));
         }
 
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_11(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+#pragma warning disable 414
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S(int unused) { }
+    public S(string unused) : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2 = -1;
+    public R(int unused) { }
+    public R(string unused) : this() { }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (7,12): error CS0171: Field 'S.x1' must be fully assigned before control is returned to the caller
+                //     public S(int unused) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.x1").WithLocation(7, 12),
+                // (14,12): error CS0171: Field 'R.x2' must be fully assigned before control is returned to the caller
+                //     public R(int unused) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "R").WithArguments("R.x2").WithLocation(14, 12));
+        }
+
+        [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_12(LanguageVersion? languageVersion)
+        {
+            var source =
+@"using System;
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S(int unused) { x1 = 2; }
+    public S(string unused) : this() { x1 = 3; }
+    public override string ToString() => (x1, y1).ToString();
+}
+record struct R
+{
+    int x2;
+    int y2 = -1;
+    public R(int unused) { x2 = -2; }
+    public R(string unused) : this() { x2 = -3; }
+    public override string ToString() => (x2, y2).ToString();
+}
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(new S(0));
+        Console.WriteLine(new S(string.Empty));
+        Console.WriteLine(new R(0));
+        Console.WriteLine(new R(string.Empty));
+    }
+}";
+
+            var verifier = CompileAndVerify(source, parseOptions: GetParseOptions(languageVersion), expectedOutput:
+@"(2, 1)
+(3, 1)
+(-2, -1)
+(-3, -1)
+");
+            verifier.VerifyIL("S..ctor(int)",
+@"{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  stfld      ""int S.y1""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  stfld      ""int S.x1""
+  IL_000e:  ret
+}");
+            verifier.VerifyIL("S..ctor(string)",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      ""int S.y1""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.3
+  IL_0010:  stfld      ""int S.x1""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("R..ctor(int)",
+@"{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.m1
+  IL_0002:  stfld      ""int R.y2""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   -2
+  IL_000a:  stfld      ""int R.x2""
+  IL_000f:  ret
+}");
+            verifier.VerifyIL("R..ctor(string)",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""R""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.m1
+  IL_0009:  stfld      ""int R.y2""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4.s   -3
+  IL_0011:  stfld      ""int R.x2""
+  IL_0016:  ret
+}");
+        }
+
         [Fact]
         public void FieldInitializers_None()
         {
