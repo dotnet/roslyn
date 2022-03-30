@@ -74,7 +74,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
             /// <summary>
-            /// Boolean specifies if this is the initial set of tags being computed or not.
+            /// Boolean specifies if this is the initial set of tags being computed or not.  This queue is used to batch
+            /// up event change notifications and only dispatch one recomputation every <see cref="EventChangeDelay"/>
+            /// to actually produce the latest set of tags.
             /// </summary>
             private readonly AsyncBatchingWorkQueue<bool> _eventChangeQueue;
 
@@ -82,6 +84,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             #region Fields that can only be accessed from the foreground thread
 
+            /// <summary>
+            /// Cancellation token governing all our async work.  Canceled/disposed when we are <see cref="Dispose"/>'d.
+            /// </summary>
             private readonly CancellationTokenSource _disposalTokenSource = new();
 
             private readonly ITextView _textViewOpt;
