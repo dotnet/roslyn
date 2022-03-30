@@ -234,7 +234,7 @@ namespace Metalama.Compiler
         public override string LoadMessage(int code, CultureInfo? language) =>
             (MetalamaErrorCode)code switch
             {
-                ERR_TransformerFailed => "Transformer '{0}' failed: {1}",
+                ERR_TransformerFailed => "Transformer '{0}' failed: {1} For details about this exception, see '{2}'.",
                 ERR_TransformerNotFound => "Transformer '{0}' was not found when resolving transformer order.",
                 ERR_TransformerCycleFound => "Dependencies between transformers form a cycle. Members of this cycle are: {0}",
                 ERR_TransformersNotOrdered => "Transformers '{0}' and '{1}' are not strongly ordered. Their order of execution would not be deterministic.",
