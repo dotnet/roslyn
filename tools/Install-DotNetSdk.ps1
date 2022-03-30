@@ -72,6 +72,7 @@ Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
     $OutFile = Join-Path $OutDir $Uri.Segments[-1]
     if (!(Test-Path $OutFile)) {
         Write-Verbose "Downloading $Uri..."
+        if (!(Test-Path $OutDir)) { mkdir $OutDir }
         try {
             (New-Object System.Net.WebClient).DownloadFile($Uri, $OutFile)
         } finally {
@@ -87,12 +88,51 @@ Function Get-InstallerExe($Version, [switch]$Runtime) {
     if ($Runtime) { $sdkOrRuntime = 'Runtime' }
 
     # Get the latest/actual version for the specified one
-    if (([Version]$Version).Build -eq -1) {
+    $TypedVersion = [Version]$Version
+    if ($TypedVersion.Build -eq -1) {
         $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sdkOrRuntime/$Version/latest.version" -UseBasicParsing)
         $Version = $versionInfo[-1]
     }
 
-    Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sdkOrRuntime/$Version/dotnet-$($sdkOrRuntime.ToLowerInvariant())-$Version-win-$arch.exe" -OutDir "$DotNetInstallScriptRoot"
+    $majorMinor = "$($TypedVersion.Major).$($TypedVersion.Minor)"
+    $ReleasesFile = Join-Path $DotNetInstallScriptRoot "$majorMinor\releases.json"
+    if (!(Test-Path $ReleasesFile)) {
+        Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$majorMinor/releases.json" -OutDir (Split-Path $ReleasesFile)
+    }
+
+    $releases = Get-Content $ReleasesFile | ConvertFrom-Json
+    $url = $null
+    foreach ($release in $releases.releases) {
+        $filesElement = $null
+        if ($Runtime) {
+            if ($release.runtime.version -eq $Version) {
+                $filesElement = $release.runtime.files
+            }
+        } else {
+            if ($release.sdk.version -eq $Version) {
+                $filesElement = $release.sdk.files
+            }
+        }
+
+        if ($filesElement) {
+            foreach ($file in $filesElement) {
+                if ($file.rid -eq "win-$arch") {
+                    $url = $file.url
+                    Break
+                }
+            }
+
+            if ($url) {
+                Break
+            }
+        }
+    }
+
+    if ($url) {
+        Get-FileFromWeb -Uri $url -OutDir $DotNetInstallScriptRoot
+    } else {
+        Write-Error "Unable to find release of $sdkOrRuntime v$Version"
+    }
 }
 
 Function Install-DotNet($Version, [switch]$Runtime) {
