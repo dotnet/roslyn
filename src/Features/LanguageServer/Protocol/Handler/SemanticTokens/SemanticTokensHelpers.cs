@@ -146,8 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var textSpan = range is null ? root.FullSpan : ProtocolConversions.RangeToTextSpan(range, text);
 
             // Razor uses isFinalized to determine whether to cache tokens. We should be able to remove it altogether once
-            // Roslyn implements workspace/semanticTokens/refresh:
-            // https://github.com/dotnet/roslyn/issues/60441
+            // Roslyn implements workspace/semanticTokens/refresh: https://github.com/dotnet/roslyn/issues/60441
             var isFinalized = false;
             if (document.Project.TryGetCompilation(out _))
             {
@@ -158,6 +157,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
             document = document.WithFrozenPartialSemantics(cancellationToken);
+            options = options with { ForceFrozenPartialSemanticsForCrossProcessOperations = true };
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
                 document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
