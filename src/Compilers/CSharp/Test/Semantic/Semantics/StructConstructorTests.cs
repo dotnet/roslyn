@@ -1051,7 +1051,7 @@ class Program
             var operation = model.GetOperation(syntax);
             var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
             OperationTreeVerifier.Verify(
-@"    IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
   Initializer:
     IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
       Expression:
