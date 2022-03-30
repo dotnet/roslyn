@@ -21,7 +21,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer : DiagnosticAnalyzer
     {
-        internal static DiagnosticDescriptor Rule = new(
+        internal static readonly DiagnosticDescriptor Rule = new(
             RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,
             CreateLocalizableResourceString(nameof(DoNotMixAttributesFromDifferentVersionsOfMEFTitle)),
             CreateLocalizableResourceString(nameof(DoNotMixAttributesFromDifferentVersionsOfMEFMessage)),

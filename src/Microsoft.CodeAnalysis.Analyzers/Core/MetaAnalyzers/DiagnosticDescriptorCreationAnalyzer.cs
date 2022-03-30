@@ -405,12 +405,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             return creationMethod != null;
 
             bool IsDescriptorConstructor(IMethodSymbol method)
-                => method.ContainingType.Equals(diagnosticDescriptorType);
+                => SymbolEqualityComparer.Default.Equals(method.ContainingType, diagnosticDescriptorType);
 
             // Heuristic to identify helper methods to create DiagnosticDescriptor:
             //  "A method invocation that returns 'DiagnosticDescriptor' and has a first string parameter named 'id'"
             bool IsCreateHelper(IMethodSymbol method)
-                => method.ReturnType.Equals(diagnosticDescriptorType) &&
+                => SymbolEqualityComparer.Default.Equals(method.ReturnType, diagnosticDescriptorType) &&
                     !method.Parameters.IsEmpty &&
                     method.Parameters[0].Name == DiagnosticIdParameterName &&
                     method.Parameters[0].Type.SpecialType == SpecialType.System_String;
@@ -422,25 +422,60 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             [NotNullWhen(returnValue: true)] out string? nameOfLocalizableResource,
             [NotNullWhen(returnValue: true)] out string? resourceFileName)
         {
-            if (operation.WalkDownConversion() is IObjectCreationOperation objectCreation &&
-                objectCreation.Constructor.ContainingType.Equals(localizableResourceStringType) &&
-                objectCreation.Arguments.Length >= 3 &&
-                objectCreation.Arguments.GetArgumentForParameterAtIndex(0) is { } firstParamArgument &&
-                firstParamArgument.Parameter.Type.SpecialType == SpecialType.System_String &&
-                firstParamArgument.Value.ConstantValue.HasValue &&
-                firstParamArgument.Value.ConstantValue.Value is string nameOfResource &&
-                objectCreation.Arguments.GetArgumentForParameterAtIndex(2) is { } thirdParamArgument &&
-                thirdParamArgument.Value is ITypeOfOperation typeOfOperation &&
-                typeOfOperation.TypeOperand is { } typeOfType)
+            return TryGetConstructorCreation(out nameOfLocalizableResource, out resourceFileName) ||
+                TryGetHelperMethodCreation(out nameOfLocalizableResource, out resourceFileName);
+
+            //  Local functions
+
+            //  Attempts to get the resource and file name for the creation of a localizable resource string using the
+            //  constructor on LocalizableResourceString
+            bool TryGetConstructorCreation([NotNullWhen(true)] out string? nameOfLocalizableResource, [NotNullWhen(true)] out string? resourceFileName)
             {
-                nameOfLocalizableResource = nameOfResource;
-                resourceFileName = typeOfType.Name;
-                return true;
+                if (operation.WalkDownConversion() is IObjectCreationOperation objectCreation &&
+                    SymbolEqualityComparer.Default.Equals(objectCreation.Constructor.ContainingType, localizableResourceStringType) &&
+                    objectCreation.Arguments.Length >= 3 &&
+                    objectCreation.Arguments.GetArgumentForParameterAtIndex(0) is { } firstParamArgument &&
+                    firstParamArgument.Parameter.Type.SpecialType == SpecialType.System_String &&
+                    firstParamArgument.Value.ConstantValue.HasValue &&
+                    firstParamArgument.Value.ConstantValue.Value is string nameOfResource &&
+                    objectCreation.Arguments.GetArgumentForParameterAtIndex(2) is { } thirdParamArgument &&
+                    thirdParamArgument.Value is ITypeOfOperation typeOfOperation &&
+                    typeOfOperation.TypeOperand is { } typeOfType)
+                {
+                    nameOfLocalizableResource = nameOfResource;
+                    resourceFileName = typeOfType.Name;
+                    return true;
+                }
+
+                nameOfLocalizableResource = null;
+                resourceFileName = null;
+                return false;
             }
 
-            nameOfLocalizableResource = null;
-            resourceFileName = null;
-            return false;
+            //  Attempts to get the resource and file name for the creation of a localizable resource string using a
+            //  helper method on the resource class. For an operation to be considered a helper method invocation, it must
+            //  - Be an invocation of a static method
+            //  - Method must have return type 'LocalizableResourceString'
+            //  - Method must have single 'string' parameter
+            //  - Argument must be a compile-time constant (typically a nameof operation on one of the resource class's properties).
+            bool TryGetHelperMethodCreation([NotNullWhen(true)] out string? nameOfLocalizableResource, [NotNullWhen(true)] out string? resourceFileName)
+            {
+                if (operation.WalkDownConversion() is IInvocationOperation invocation &&
+                    invocation.TargetMethod.ReturnType.Equals(localizableResourceStringType) &&
+                    invocation.Arguments.Length == 1 &&
+                    invocation.Arguments[0].Parameter.Type.SpecialType == SpecialType.System_String &&
+                    invocation.Arguments[0].Value.ConstantValue.HasValue &&
+                    invocation.Arguments[0].Value.ConstantValue.Value is string nameOfResource)
+                {
+                    nameOfLocalizableResource = nameOfResource;
+                    resourceFileName = invocation.TargetMethod.ContainingType.Name;
+                    return true;
+                }
+
+                nameOfLocalizableResource = null;
+                resourceFileName = null;
+                return false;
+            }
         }
 
         private static void AnalyzeTitle(
@@ -645,7 +680,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 analyzeStringValueCore(argumentValue, argument, argumentValueLocation, operationAnalysisContext.ReportDiagnostic);
             }
             else if (localizableStringsMap != null &&
-                argument.Parameter.Type.Equals(localizableStringType))
+                SymbolEqualityComparer.Default.Equals(argument.Parameter.Type, localizableStringType))
             {
                 RoslynDebug.Assert(resourceDataValueMap != null);
 
@@ -931,7 +966,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                     case DefaultSeverityParameterName:
                         if (argument.Value is IFieldReferenceOperation fieldReference &&
-                            fieldReference.Field.ContainingType.Equals(diagnosticSeverityType) &&
+                            SymbolEqualityComparer.Default.Equals(fieldReference.Field.ContainingType, diagnosticSeverityType) &&
                             Enum.TryParse(fieldReference.Field.Name, out DiagnosticSeverity parsedSeverity))
                         {
                             defaultSeverity = parsedSeverity;
@@ -942,7 +977,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     case RuleLevelParameterName:
                         if (ruleLevelType != null &&
                             argument.Value is IFieldReferenceOperation fieldReference2 &&
-                            fieldReference2.Field.ContainingType.Equals(ruleLevelType) &&
+                            SymbolEqualityComparer.Default.Equals(fieldReference2.Field.ContainingType, ruleLevelType) &&
                             Enum.TryParse(fieldReference2.Field.Name, out RuleLevel parsedRuleLevel))
                         {
                             switch (parsedRuleLevel)

@@ -83,7 +83,7 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
 
                     ' Check for explicit specification of empty or singleton array
                     Dim literalRankSpecifier = DirectCast(arrayCreationExpression.RankSpecifiers(0).ChildNodes() _
-                        .FirstOrDefault(Function(n) n.Kind() = SyntaxKind.NumericLiteralExpression),
+                        .FirstOrDefault(Function(n) n.IsKind(SyntaxKind.NumericLiteralExpression)),
                         LiteralExpressionSyntax)
 
                     If literalRankSpecifier IsNot Nothing Then

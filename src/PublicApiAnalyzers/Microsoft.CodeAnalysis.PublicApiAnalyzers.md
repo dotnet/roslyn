@@ -14,7 +14,7 @@ All public types and members should be declared in PublicAPI.txt. This draws att
 
 ## [RS0017](https://github.com/dotnet/roslyn-analyzers/blob/main/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md): Remove deleted types and members from the declared API
 
-When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '*REMOVED*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
+When removing a public type or member, put that entry in PublicAPI.Unshipped.txt with '\*REMOVED\*' prefix. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.
 
 |Item|Value|
 |-|-|

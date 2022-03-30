@@ -217,6 +217,25 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Returns the first <see cref="IBlockOperation"/> in the parent chain of <paramref name="operation"/>.
+        /// </summary>
+        public static IBlockOperation? GetFirstParentBlock(this IOperation? operation)
+        {
+            IOperation? currentOperation = operation;
+            while (currentOperation != null)
+            {
+                if (currentOperation is IBlockOperation blockOperation)
+                {
+                    return blockOperation;
+                }
+
+                currentOperation = currentOperation.Parent;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Gets the first ancestor of this operation with:
         ///  1. Specified OperationKind
         ///  2. If <paramref name="predicate"/> is non-null, it succeeds for the ancestor.
@@ -1005,18 +1024,16 @@ namespace Analyzer.Utilities.Extensions
             {
                 return ValueUsageInfo.Write;
             }
-            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation)
+            else if (operation.Parent is IVariableInitializerOperation variableInitializerOperation &&
+                variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
             {
-                if (variableInitializerOperation.Parent is IVariableDeclaratorOperation variableDeclaratorOperation)
+                switch (variableDeclaratorOperation.Symbol.RefKind)
                 {
-                    switch (variableDeclaratorOperation.Symbol.RefKind)
-                    {
-                        case RefKind.Ref:
-                            return ValueUsageInfo.ReadableWritableReference;
+                    case RefKind.Ref:
+                        return ValueUsageInfo.ReadableWritableReference;
 
-                        case RefKind.RefReadOnly:
-                            return ValueUsageInfo.ReadableReference;
-                    }
+                    case RefKind.RefReadOnly:
+                        return ValueUsageInfo.ReadableReference;
                 }
             }
 

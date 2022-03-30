@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpRegisterActionAnalyzer : RegisterActionAnalyzer<ClassDeclarationSyntax, InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind>
+    public class CSharpRegisterActionAnalyzer : RegisterActionAnalyzer<InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind>
     {
         internal const string CSharpSyntaxKindName = @"Microsoft.CodeAnalysis.CSharp.SyntaxKind";
         internal const string BasicSyntaxKindName = @"Microsoft.CodeAnalysis.VisualBasic.SyntaxKind";
@@ -77,10 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             }
 
             protected override bool IsSyntaxKind(ITypeSymbol type)
-            {
-                return (_csharpSyntaxKind != null && type.Equals(_csharpSyntaxKind)) ||
-                    (_basicSyntaxKind != null && type.Equals(_basicSyntaxKind));
-            }
+                => SymbolEqualityComparer.Default.Equals(type, _csharpSyntaxKind)
+                    || SymbolEqualityComparer.Default.Equals(type, _basicSyntaxKind);
         }
     }
 }

@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
@@ -108,19 +110,26 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 // Diagnostic Id '{0}' belonging to category '{1}' is not in the required range and/or format '{2}' specified in the file '{3}'.
                 string arg1 = ruleId;
                 string arg2 = category;
-                string arg3 = string.Empty;
+                var arg3 = new StringBuilder();
                 foreach (var range in allowedIdsInfoList)
                 {
                     if (arg3.Length != 0)
                     {
-                        arg3 += ", ";
+                        arg3.Append(", ");
                     }
 
-                    arg3 += !ShouldValidateRange(range) ? range.prefix + "XXXX" : $"{range.prefix}{range.start}-{range.prefix}{range.end}";
+                    if (ShouldValidateRange(range))
+                    {
+                        arg3.AppendFormat(CultureInfo.InvariantCulture, "{0}{1}-{0}{2}", range.prefix, range.start, range.end);
+                    }
+                    else
+                    {
+                        arg3.AppendFormat(CultureInfo.InvariantCulture, "{0}XXXX", range.prefix);
+                    }
                 }
 
                 string arg4 = Path.GetFileName(additionalText.Path);
-                var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeInSpecifiedFormatRule, arg1, arg2, arg3, arg4);
+                var diagnostic = argument.Value.CreateDiagnostic(DiagnosticIdMustBeInSpecifiedFormatRule, arg1, arg2, arg3.ToString(), arg4);
                 addDiagnostic(diagnostic);
             }
         }
@@ -341,34 +350,37 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         {
             // Parse an entry for diagnostic ID.
             // We require diagnostic ID to have an alphabetical prefix followed by a numerical suffix.
-            prefix = string.Empty;
+            var prefixBuilder = new StringBuilder();
             suffix = -1;
-            string suffixStr = string.Empty;
+            var suffixStr = new StringBuilder();
             bool seenDigit = false;
             foreach (char ch in entry)
             {
                 bool isDigit = char.IsDigit(ch);
                 if (seenDigit && !isDigit)
                 {
+                    prefix = prefixBuilder.ToString();
                     return false;
                 }
 
                 if (isDigit)
                 {
-                    suffixStr += ch;
+                    suffixStr.Append(ch);
                     seenDigit = true;
                 }
                 else if (!char.IsLetter(ch))
                 {
+                    prefix = prefixBuilder.ToString();
                     return false;
                 }
                 else
                 {
-                    prefix += ch;
+                    prefixBuilder.Append(ch);
                 }
             }
 
-            return prefix.Length > 0 && suffixStr.Length > 0 && int.TryParse(suffixStr, out suffix);
+            prefix = prefixBuilder.ToString();
+            return prefix.Length > 0 && int.TryParse(suffixStr.ToString(), out suffix);
         }
     }
 }

@@ -293,15 +293,13 @@ namespace Analyzer.Utilities
             var symbolDeclarationId = _symbolToDeclarationId.GetOrAdd(symbol, s => GetDeclarationId(s));
 
             // We start by trying to match with the most precise definition (prefix)...
-            if (_wildcardNamesBySymbolKind.TryGetValue(symbol.Kind, out var names))
+            if (_wildcardNamesBySymbolKind.TryGetValue(symbol.Kind, out var names) &&
+                names.FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var prefixedFirstMatchOrDefault &&
+                !string.IsNullOrWhiteSpace(prefixedFirstMatchOrDefault.Key))
             {
-                if (names.FirstOrDefault(kvp => symbolDeclarationId.StartsWith(kvp.Key, StringComparison.Ordinal)) is var prefixedFirstMatchOrDefault &&
-                    !string.IsNullOrWhiteSpace(prefixedFirstMatchOrDefault.Key))
-                {
-                    (firstMatchName, firstMatchValue) = prefixedFirstMatchOrDefault;
-                    _wildcardMatchResult.AddOrUpdate(symbol, prefixedFirstMatchOrDefault.AsNullable(), (s, match) => prefixedFirstMatchOrDefault.AsNullable());
-                    return true;
-                }
+                (firstMatchName, firstMatchValue) = prefixedFirstMatchOrDefault;
+                _wildcardMatchResult.AddOrUpdate(symbol, prefixedFirstMatchOrDefault.AsNullable(), (s, match) => prefixedFirstMatchOrDefault.AsNullable());
+                return true;
             }
 
             // If not found, then we try to match with the symbol full declaration ID...
