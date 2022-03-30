@@ -147,13 +147,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
-            document = document.WithFrozenPartialSemantics(cancellationToken);
-
-            // Razor uses isFinalized to determine whether to cache tokens. IsFullyLoaded may not contain the fully finalized
-            // tokens, but we should be able to remove it altogether once Roslyn implements workspace/semanticTokens/refresh:
+            // Razor uses isFinalized to determine whether to cache tokens. We should be able to remove it altogether once
+            // Roslyn implements workspace/semanticTokens/refresh:
             // https://github.com/dotnet/roslyn/issues/60441
-            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-            var isFinalized = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            var isFinalized = false;
+            if (document.Project.TryGetCompilation(out _))
+            {
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+                var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                isFinalized = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            }
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
                 document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
