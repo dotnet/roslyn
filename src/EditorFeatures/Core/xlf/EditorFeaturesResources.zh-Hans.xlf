@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
         <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <target state="translated">无法导航到插入点下面的符号。</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
