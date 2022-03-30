@@ -7,17 +7,18 @@ using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.RoslynTools.VS;
+namespace Microsoft.RoslynTools.Utilities;
 
 internal static class VisualStudioRepository
 {
-    public static async Task<string> GetBuildNumberFromComponentJsonFileAsync(string branch, AzDOConnection devdiv, string jsonFile, string componentName)
+    public static async Task<string> GetBuildNumberFromComponentJsonFileAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string jsonFile, string componentName)
     {
-        var fileContents = await GetFileContentsAsync(branch, devdiv, jsonFile);
-        var componentsJson = JObject.Parse(fileContents);
+        var url = await GetUrlFromComponentJsonFileAsync(gitVersion, versionType, devdiv, jsonFile, componentName);
+        return GetBuildNumberFromUrl(url);
+    }
 
-        var url = componentsJson["Components"]?[componentName]?["url"]?.ToString();
-
+    public static string GetBuildNumberFromUrl(string? url)
+    {
         var parts = url?.Split(';');
         if (parts?.Length != 2)
         {
@@ -33,9 +34,18 @@ internal static class VisualStudioRepository
         return buildNumber;
     }
 
-    public static async Task<string> GetPackageVersionFromDefaultConfigAsync(string branch, AzDOConnection devdiv, string packageName)
+    public static async Task<string?> GetUrlFromComponentJsonFileAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string jsonFile, string componentName)
     {
-        var fileContents = await GetFileContentsAsync(branch, devdiv, @".corext\Configs\default.config");
+        var fileContents = await GetFileContentsAsync(gitVersion, versionType, devdiv, jsonFile);
+        var componentsJson = JObject.Parse(fileContents);
+
+        var url = componentsJson["Components"]?[componentName]?["url"]?.ToString();
+        return url;
+    }
+
+    public static async Task<string> GetPackageVersionFromDefaultConfigAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string packageName)
+    {
+        var fileContents = await GetFileContentsAsync(gitVersion, versionType, devdiv, @".corext\Configs\default.config");
 
         var defaultConfig = XDocument.Parse(fileContents);
 
@@ -43,15 +53,19 @@ internal static class VisualStudioRepository
 
         if (packageVersion is null)
         {
-            throw new Exception($"Couldn't find the {packageName} package for branch: {branch}");
+            throw new Exception($"Couldn't find the {packageName} package for branch: {gitVersion}");
         }
 
         return packageVersion;
     }
 
-    public static async Task<string> GetFileContentsAsync(string branch, AzDOConnection devdiv, string jsonFile)
+    public static async Task<string> GetFileContentsAsync(string gitVersion, GitVersionType versionType, AzDOConnection devdiv, string jsonFile)
     {
-        var commit = new GitVersionDescriptor { VersionType = GitVersionType.Branch, Version = branch };
+        var commit = new GitVersionDescriptor
+        {
+            VersionType = versionType,
+            Version = gitVersion
+        };
         var vsRepository = await devdiv.GitClient.GetRepositoryAsync("DevDiv", "VS");
 
         using var componentsJsonStream = await devdiv.GitClient.GetItemContentAsync(

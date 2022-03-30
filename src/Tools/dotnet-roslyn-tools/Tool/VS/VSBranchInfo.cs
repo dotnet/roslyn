@@ -6,7 +6,9 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Utilities;
+using Microsoft.RoslynTools.Products;
 using Microsoft.TeamFoundation.Build.WebApi;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Microsoft.RoslynTools.VS;
@@ -27,8 +29,8 @@ internal static class VSBranchInfo
                 vaultUri: new Uri("https://managedlanguages.vault.azure.net"),
                 credential: new DefaultAzureCredential(includeInteractiveCredentials: true));
 
-            using var devdivConnection = new AzDOConnection("https://devdiv.visualstudio.com/DefaultCollection", "DevDiv", buildDefinitionName: "", client, "vslsnap-vso-auth-token");
-            using var dncengConnection = new AzDOConnection("https://dnceng.visualstudio.com/DefaultCollection", "internal", buildDefinitionName: "", client, "vslsnap-build-auth-token");
+            using var devdivConnection = new AzDOConnection("https://devdiv.visualstudio.com/DefaultCollection", "DevDiv", client, "vslsnap-vso-auth-token");
+            using var dncengConnection = new AzDOConnection("https://dnceng.visualstudio.com/DefaultCollection", "internal", client, "vslsnap-build-auth-token");
 
             foreach (var productConfig in AllProducts)
             {
@@ -59,17 +61,17 @@ internal static class VSBranchInfo
             return;
         }
 
-        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(branch, devdiv, product.PackageName);
+        var packageVersion = await VisualStudioRepository.GetPackageVersionFromDefaultConfigAsync(branch, GitVersionType.Branch, devdiv, product.PackageName);
 
         WriteNameAndValue("Package Version", packageVersion);
     }
 
     private static async Task WriteBuildInfo(IProduct product, string branch, bool showArtifacts, AzDOConnection devdiv, AzDOConnection dnceng)
     {
-        var buildNumber = await VisualStudioRepository.GetBuildNumberFromComponentJsonFileAsync(branch, devdiv, product.ComponentJsonFileName, product.ComponentName);
+        var buildNumber = await VisualStudioRepository.GetBuildNumberFromComponentJsonFileAsync(branch, GitVersionType.Branch, devdiv, product.ComponentJsonFileName, product.ComponentName);
 
         // Try getting build info from dnceng first
-        var builds = await dnceng.TryGetBuildsAsync(product.BuildPipelineName, buildNumber);
+        var builds = await dnceng.TryGetBuildsAsync(product.GetBuildPipelineName(dnceng.BuildProjectName), buildNumber);
         var buildConnection = dnceng;
 
         if (builds is null or { Count: 0 })

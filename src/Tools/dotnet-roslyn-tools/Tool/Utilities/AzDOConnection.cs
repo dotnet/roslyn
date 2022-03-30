@@ -18,7 +18,6 @@ internal sealed class AzDOConnection : IDisposable
     private bool _disposed = false;
 
     public string BuildProjectName { get; }
-    public string BuildDefinitionName { get; }
     private VssConnection Connection { get; }
     public GitHttpClient GitClient { get; }
     public BuildHttpClient BuildClient { get; }
@@ -26,10 +25,9 @@ internal sealed class AzDOConnection : IDisposable
     public FileContainerHttpClient ContainerClient { get; }
     public ProjectHttpClient ProjectClient { get; }
 
-    public AzDOConnection(string azdoUrl, string projectName, string buildDefinitionName, SecretClient client, string secretName)
+    public AzDOConnection(string azdoUrl, string projectName, SecretClient client, string secretName)
     {
         BuildProjectName = projectName;
-        BuildDefinitionName = buildDefinitionName;
 
         var azureDevOpsSecret = client.GetSecret(secretName);
         var credential = new NetworkCredential("vslsnap", azureDevOpsSecret.Value.Value);
@@ -66,10 +64,11 @@ internal sealed class AzDOConnection : IDisposable
             _disposed = true;
 
             Connection.Dispose();
+            NuGetClient.Dispose();
             GitClient.Dispose();
             BuildClient.Dispose();
-            NuGetClient.Dispose();
             ContainerClient.Dispose();
+            ProjectClient.Dispose();
         }
     }
 }

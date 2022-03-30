@@ -2,22 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-using LibGit2Sharp;
-using Microsoft.Extensions.Logging;
-using Microsoft.RoslynTools.Utilities;
-using Microsoft.TeamFoundation.SourceControl.WebApi;
-using Newtonsoft.Json.Linq;
 using System.Collections.Immutable;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using LibGit2Sharp;
+using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Products;
+using Microsoft.RoslynTools.Utilities;
+using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.RoslynTools.CreateReleaseTags;
 
 public static class CreateReleaseTags
 {
+    private static Roslyn s_roslynInfo = new();
     public static async Task<int> CreateReleaseTagsAsync(ILogger logger)
     {
         try
@@ -26,8 +28,8 @@ public static class CreateReleaseTags
                 vaultUri: new Uri("https://managedlanguages.vault.azure.net"),
                 credential: new DefaultAzureCredential(includeInteractiveCredentials: true));
 
-            using var devdivConnection = new AzDOConnection("https://devdiv.visualstudio.com/DefaultCollection", "DevDiv", "Roslyn-Signed", client, "vslsnap-vso-auth-token");
-            using var dncengConnection = new AzDOConnection("https://dnceng.visualstudio.com/DefaultCollection", "internal", "dotnet-roslyn CI", client, "vslsnap-build-auth-token");
+            using var devdivConnection = new AzDOConnection("https://devdiv.visualstudio.com/DefaultCollection", "DevDiv", client, "vslsnap-vso-auth-token");
+            using var dncengConnection = new AzDOConnection("https://dnceng.visualstudio.com/DefaultCollection", "internal", client, "vslsnap-build-auth-token");
 
             var connections = new[] { devdivConnection, dncengConnection };
 
@@ -105,20 +107,20 @@ public static class CreateReleaseTags
     {
         try
         {
-            var (branchName, buildNumber) = await TryGetRoslynBranchAndBuildNumberForReleaseAsync(release, vsConnection.GitClient);
+            var (branchName, buildNumber) = await TryGetRoslynBranchAndBuildNumberForReleaseAsync(release, vsConnection);
             if (string.IsNullOrEmpty(branchName) || string.IsNullOrEmpty(buildNumber))
             {
                 return null;
             }
 
             var commitSha = await TryGetRoslynCommitShaFromBuildAsync(connection, buildNumber)
-                ?? await TryGetRoslynCommitShaFromNuspecAsync(vsConnection.NuGetClient, release, vsConnection.GitClient);
+                ?? await TryGetRoslynCommitShaFromNuspecAsync(vsConnection, release);
             if (string.IsNullOrEmpty(commitSha))
             {
                 return null;
             }
 
-            var buildId = connection.BuildDefinitionName + "_" + buildNumber;
+            var buildId = s_roslynInfo.GetBuildPipelineName(connection.BuildProjectName) + "_" + buildNumber;
 
             return new RoslynBuildInformation(commitSha, branchName, buildId);
         }
@@ -130,50 +132,44 @@ public static class CreateReleaseTags
 
     private static async Task<(string branchName, string buildNumber)> TryGetRoslynBranchAndBuildNumberForReleaseAsync(
         VisualStudioVersion release,
-        GitHttpClient vsGitClient)
+        AzDOConnection vsConnection)
     {
-        GitRepository vsRepository = await GetVSRepositoryAsync(vsGitClient);
-        var commit = new GitVersionDescriptor { VersionType = GitVersionType.Commit, Version = release.CommitSha };
-
-        using var componentsJsonStream = await vsGitClient.GetItemContentAsync(
-            vsRepository.Id,
-            @".corext\Configs\dotnetcodeanalysis-components.json",
-            download: true,
-            versionDescriptor: commit);
-
-        var componentsJsonContents = await new StreamReader(componentsJsonStream).ReadToEndAsync();
-        var componentsJson = JObject.Parse(componentsJsonContents);
-
-        var languageServicesUrlAndManifestName = (string?)componentsJson["Components"]?["Microsoft.CodeAnalysis.LanguageServices"]?["url"];
-        if (languageServicesUrlAndManifestName is null)
+        var url = await VisualStudioRepository.GetUrlFromComponentJsonFileAsync(release.CommitSha, GitVersionType.Commit, vsConnection, s_roslynInfo.ComponentJsonFileName, s_roslynInfo.ComponentName);
+        if (url is null)
         {
             return default;
         }
 
-        var parts = languageServicesUrlAndManifestName.Split(';');
-        if (parts.Length != 2)
+        try
+        {
+            var buildNumber = VisualStudioRepository.GetBuildNumberFromUrl(url);
+            var parts = url.Split(';');
+            if (parts.Length != 2)
+            {
+                return default;
+            }
+
+            if (!parts[1].EndsWith(".vsman"))
+            {
+                return default;
+            }
+
+            var urlSegments = new Uri(parts[0]).Segments;
+            var branchName = string.Join("", urlSegments.SkipWhile(segment => !segment.EndsWith("roslyn/")).Skip(1).TakeWhile(segment => segment.EndsWith("/"))).TrimEnd('/');
+
+            return (branchName, buildNumber);
+        }
+        catch
         {
             return default;
         }
-
-        if (!parts[1].EndsWith(".vsman"))
-        {
-            return default;
-        }
-
-        var urlSegments = new Uri(parts[0]).Segments;
-        var branchName = string.Join("", urlSegments.SkipWhile(segment => !segment.EndsWith("roslyn/")).Skip(1).TakeWhile(segment => segment.EndsWith("/"))).TrimEnd('/');
-        var buildNumber = urlSegments.Last();
-
-        return (branchName, buildNumber);
     }
 
     private static async Task<string?> TryGetRoslynCommitShaFromBuildAsync(
         AzDOConnection buildConnection,
         string buildNumber)
     {
-        var buildDefinition = (await buildConnection.BuildClient.GetDefinitionsAsync(buildConnection.BuildProjectName, name: buildConnection.BuildDefinitionName)).Single();
-        var build = (await buildConnection.BuildClient.GetBuildsAsync(buildDefinition.Project.Id, definitions: new[] { buildDefinition.Id }, buildNumber: buildNumber)).SingleOrDefault();
+        var build = (await buildConnection.TryGetBuildsAsync(s_roslynInfo.GetBuildPipelineName(buildConnection.BuildProjectName), buildNumber))?.SingleOrDefault();
 
         if (build == null)
         {
@@ -184,19 +180,10 @@ public static class CreateReleaseTags
     }
 
     private static async Task<string?> TryGetRoslynCommitShaFromNuspecAsync(
-        HttpClient nugetClient,
-        VisualStudioVersion release,
-        GitHttpClient vsGitClient)
+        AzDOConnection vsConnection,
+        VisualStudioVersion release)
     {
-        GitRepository vsRepository = await GetVSRepositoryAsync(vsGitClient);
-        var commit = new GitVersionDescriptor { VersionType = GitVersionType.Commit, Version = release.CommitSha };
-
-        using var defaultConfigStream = await vsGitClient.GetItemContentAsync(
-            vsRepository.Id,
-            @".corext\Configs\default.config",
-            download: true,
-            versionDescriptor: commit);
-        var defaultConfigContents = await new StreamReader(defaultConfigStream).ReadToEndAsync();
+        var defaultConfigContents = await VisualStudioRepository.GetFileContentsAsync(release.CommitSha, GitVersionType.Commit, vsConnection, @".corext\Configs\default.config");
         var defaultConfig = XDocument.Parse(defaultConfigContents);
 
         var packageElement = defaultConfig.Descendants("package")
@@ -214,7 +201,7 @@ public static class CreateReleaseTags
 
         var nuspecUrl = $@"https://devdiv.pkgs.visualstudio.com/_packaging/VS-CoreXtFeeds/nuget/v3/flat2/vs.externalapis.roslyn/{version}/vs.externalapis.roslyn.nuspec";
 
-        var nuspecResult = await nugetClient.GetAsync(nuspecUrl);
+        var nuspecResult = await vsConnection.NuGetClient.GetAsync(nuspecUrl);
         if (nuspecResult.StatusCode != HttpStatusCode.OK)
         {
             return null;
