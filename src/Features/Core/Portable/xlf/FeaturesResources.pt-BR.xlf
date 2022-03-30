@@ -256,8 +256,8 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_matches_folder_preferences">
-        <source>Apply namespace matches folde preferences</source>
-        <target state="translated">Aplicar preferências de pasta com correspondências de namespace</target>
+        <source>Apply namespace matches folder preferences</source>
+        <target state="new">Apply namespace matches folder preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">
@@ -1060,14 +1060,14 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Inverter condicional</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
-        <source>Making a method an iterator requires restarting the application.</source>
-        <target state="translated">Tornar um método um iterador requer a reinicialização do aplicativo.</target>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method an iterator requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
-        <source>Making a method asynchronous requires restarting the application.</source>
-        <target state="translated">Tornar um método assíncrono requer a reinicialização do aplicativo.</target>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method asynchronous requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method asynchronous requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -4235,9 +4235,9 @@ Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact me
 
 O especificador de formato padrão "O" ou "o" corresponde à cadeia de caracteres de formato personalizado "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" para valores DateTime e à cadeia de caracteres de formato personalizado "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" para valores de DateTimeOffset. Nessa cadeia de caracteres, os pares de aspas simples que delimitam caracteres individuais, como hifens, dois-pontos e a letra "T", indicam que o caractere individual é um literal que não pode ser alterado. Os apóstrofos não aparecem na cadeia de caracteres de saída.
 
-O especificador de formato padrão "O" ou "o" (e a cadeia de caracteres de formato personalizado "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK") aproveita as três maneiras pelas quais o ISO 8601 representa as informações de fuso horário para preservar a propriedade Kind dos valores DateTime: 
+O especificador de formato padrão "O" ou "o" (e a cadeia de caracteres de formato personalizado "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK") aproveita as três maneiras pelas quais o ISO 8601 representa as informações de fuso horário para preservar a propriedade Kind dos valores DateTime:
 
-    O componente de fuso horário de DateTimeKind.Local dos valores de data e hora é uma diferença do UTC (por exemplo, +01:00, -07:00). Todos os valores de DateTimeOffset também são representados nesse formato. 
+    O componente de fuso horário de DateTimeKind.Local dos valores de data e hora é uma diferença do UTC (por exemplo, +01:00, -07:00). Todos os valores de DateTimeOffset também são representados nesse formato.
 
     O componente de fuso horário de DateTimeKind.Utc dos valores de data e hora usa "Z" (que significa diferença zero) para representar o UTC.
 

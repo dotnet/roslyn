@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {

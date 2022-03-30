@@ -256,8 +256,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_matches_folder_preferences">
-        <source>Apply namespace matches folde preferences</source>
-        <target state="translated">应用命名空间匹配文件夹首选项</target>
+        <source>Apply namespace matches folder preferences</source>
+        <target state="new">Apply namespace matches folder preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">
@@ -1060,14 +1060,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">反转条件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application">
-        <source>Making a method an iterator requires restarting the application.</source>
-        <target state="translated">使方法成为迭代器需要重新启动应用程序。</target>
+      <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method an iterator requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method an iterator requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application">
-        <source>Making a method asynchronous requires restarting the application.</source>
-        <target state="translated">使方法成为异步需要重新启动应用程序。</target>
+      <trans-unit id="Making_a_method_asynchronous_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Making a method asynchronous requires restarting the application because is not supported by the runtime.</source>
+        <target state="new">Making a method asynchronous requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Malformed">
@@ -4235,7 +4235,7 @@ Strings that are passed to the Parse, TryParse, ParseExact, and TryParseExact me
 
 "O" 或 "o" 标准格式说明符对应于 DateTime 值的 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" 自定义格式字符串和 DateTimeOffset 值的 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffzzz" 自定义格式字符串。在此字符串中，分隔单个字符的单引号标记对(如连字符、冒号和字母 "T")指示单个字符是不能更改的文本。撇号不会出现在输出字符串中。
 
-"O" 或 "o" 标准格式说明符(以及 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" 自定义格式字符串)利用 ISO 8601 表示时区信息的三种方式保留日期时间值的 Kind 属性: 
+"O" 或 "o" 标准格式说明符(以及 "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" 自定义格式字符串)利用 ISO 8601 表示时区信息的三种方式保留日期时间值的 Kind 属性:
 
 DateTimeKind 日期和时间值的时区部分是相对于 UTC 的偏移量(例如 +01:00, -07:00)。所有 DateTimeOffset 值也以这种格式表示。
 
@@ -4355,7 +4355,7 @@ If the ":" format specifier is used without other custom format specifiers, it's
 For DateTimeOffset values, the "K" format specifier is equivalent to the "zzz" format specifier, and produces a result string containing the DateTimeOffset value's offset from UTC.
 
 If the "K" format specifier is used without other custom format specifiers, it's interpreted as a standard date and time format specifier and throws a FormatException.</source>
-        <target state="translated">"K" 自定义格式说明符表示日期和时间值的时区信息。将此格式说明符与 DateTime 值一起使用时，结果字符串由 DateTime.Kind 属性的值定义: 
+        <target state="translated">"K" 自定义格式说明符表示日期和时间值的时区信息。将此格式说明符与 DateTime 值一起使用时，结果字符串由 DateTime.Kind 属性的值定义:
 
 对于本地时区(DateTimeKind.Local 的 DateTime.Kind 属性值)，此说明符等效于 "zzz" 说明符，并生成包含协调世界时(UTC)的本地偏移量的结果字符串；例如 "-07:00"。
 

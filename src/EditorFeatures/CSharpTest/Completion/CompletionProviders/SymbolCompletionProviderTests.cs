@@ -2216,6 +2216,69 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35178, "https://github.com/dotnet/roslyn/issues/35178")]
+        public async Task RefStructMembersEmptyByDefault()
+        {
+            var markup = @"
+ref struct Test {}
+class C
+{
+    void M()
+    {
+        var test = new Test();
+        test.$$
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35178, "https://github.com/dotnet/roslyn/issues/35178")]
+        public async Task RefStructMembersHasMethodIfItWasOverriden()
+        {
+            var markup = @"
+ref struct Test
+{
+    public override string ToString() => string.Empty;
+}
+class C
+{
+    void M()
+    {
+        var test = new Test();
+        test.$$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyItemIsAbsentAsync(markup, "GetType");
+            await VerifyItemIsAbsentAsync(markup, "Equals");
+            await VerifyItemIsAbsentAsync(markup, "GetHashCode");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35178, "https://github.com/dotnet/roslyn/issues/35178")]
+        public async Task RefStructMembersHasMethodsForNameof()
+        {
+            var markup = @"
+ref struct Test {}
+class C
+{
+    void M()
+    {
+        var test = new Test();
+        _ = nameof(test.$$);
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyItemExistsAsync(markup, "GetType");
+            await VerifyItemExistsAsync(markup, "Equals");
+            await VerifyItemExistsAsync(markup, "GetHashCode");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         public async Task AfterStaticLocalFunction_TypeOnly()
         {
@@ -11782,6 +11845,92 @@ unsafe class Test
 ";
             await VerifyItemIsAbsentAsync(source, "X");
             await VerifyItemIsAbsentAsync(source, "Y");
+        }
+
+        [InlineData("m.MyObject?.$$MyValue!!()")]
+        [InlineData("m.MyObject?.$$MyObject!.MyValue!!()")]
+        [InlineData("m.MyObject?.MyObject!.$$MyValue!!()")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(59714, "https://github.com/dotnet/roslyn/issues/59714")]
+        public async Task OptionalExclamationsAfterConditionalAccessShouldBeHandled(string conditionalAccessExpression)
+        {
+            var source = $@"
+class MyClass
+{{
+    public MyClass? MyObject {{ get; set; }}
+    public MyClass? MyValue() => null;
+
+    public static void F()
+    {{
+        var m = new MyClass();
+        {conditionalAccessExpression};
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "MyValue");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsAvailableAtTopLevel()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+}}
+
+$$
+
+class MyClass
+{{
+    public static void F()
+    {{
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "goo");
+            await VerifyItemExistsAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsAvailableInsideTopLevelFunction()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+    $$
+}}
+
+class MyClass
+{{
+    public static void F()
+    {{
+    }}
+}}";
+            await VerifyItemExistsAsync(source, "goo");
+            await VerifyItemExistsAsync(source, "Bar");
+        }
+
+        [Fact]
+        public async Task TopLevelSymbolsNotAvailableInOtherTypes()
+        {
+            var source = $@"
+int goo;
+
+void Bar()
+{{
+}}
+
+class MyClass
+{{
+    public static void F()
+    {{
+        $$
+    }}
+}}";
+            await VerifyItemIsAbsentAsync(source, "goo");
+            await VerifyItemIsAbsentAsync(source, "Bar");
         }
     }
 }

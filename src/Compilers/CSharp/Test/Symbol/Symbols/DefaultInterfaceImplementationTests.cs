@@ -33165,6 +33165,29 @@ class Test1 : I1, I2
         }
 
         [Fact]
+        public void PartialMethodAccessibility()
+        {
+            var source1 =
+@"
+public partial interface I
+{
+    partial void M();
+    partial void M() { }
+}
+";
+
+            var comp = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            Assert.True(comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            comp.VerifyDiagnostics();
+
+            var @interface = comp.SourceModule.GlobalNamespace.GetTypeMember("I");
+            var method = @interface.GetMembers().OfType<MethodSymbol>().Single();
+            Assert.Equal(Accessibility.Private, method.DeclaredAccessibility);
+        }
+
+        [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void PropertyImplementationInDerived_01()
         {

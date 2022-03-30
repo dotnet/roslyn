@@ -208,8 +208,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
                     return CreateBoundTupleOperation((BoundTupleExpression)boundNode);
-                case BoundKind.UnconvertedInterpolatedString:
-                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.InterpolatedString:
                     return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
@@ -218,8 +216,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundLocalFunctionStatementOperation((BoundLocalFunctionStatement)boundNode);
                 case BoundKind.AnonymousObjectCreationExpression:
                     return CreateBoundAnonymousObjectCreationExpressionOperation((BoundAnonymousObjectCreationExpression)boundNode);
-                case BoundKind.AnonymousPropertyDeclaration:
-                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.ConstantPattern:
                     return CreateBoundConstantPatternOperation((BoundConstantPattern)boundNode);
                 case BoundKind.DeclarationPattern:
@@ -268,10 +264,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
-                case BoundKind.UnconvertedConditionalOperator:
-                    throw ExceptionUtilities.Unreachable;
-                case BoundKind.UnconvertedSwitchExpression:
-                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.ConvertedSwitchExpression:
                     return CreateBoundSwitchExpressionOperation((BoundConvertedSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:
@@ -326,6 +318,10 @@ namespace Microsoft.CodeAnalysis.Operations
                         _ => null
                     };
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: type, constantValue, isImplicit: isImplicit);
+                case BoundKind.UnconvertedInterpolatedString:
+                case BoundKind.UnconvertedConditionalOperator:
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.AnonymousPropertyDeclaration:
                 default:
                     // If you're hitting this because the IOperation test hook has failed, see
                     // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.
@@ -849,7 +845,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     return new PropertyReferenceOperation(property.GetPublicSymbol(), arguments, createReceiver(), _semanticModel, syntax, type, isImplicit);
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(memberSymbol.Kind);
             }
 
             IOperation? createReceiver() => memberSymbol?.IsStatic == true ?
@@ -1727,18 +1723,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
                                                     BoundNode.GetConversion(boundForEachStatement.ElementConversion, boundForEachStatement.ElementPlaceholder),
-                                                    getEnumeratorArguments: enumeratorInfoOpt.GetEnumeratorInfo is { Method: { IsExtensionMethod: true } } getEnumeratorInfo
-                                                        ? Operation.SetParentOperation(
-                                                            DeriveArguments(
-                                                                getEnumeratorInfo.Method,
-                                                                getEnumeratorInfo.Arguments,
-                                                                argumentsToParametersOpt: default,
-                                                                getEnumeratorInfo.DefaultArguments,
-                                                                getEnumeratorInfo.Expanded,
-                                                                boundForEachStatement.Expression.Syntax,
-                                                                invokedAsExtensionMethod: true),
-                                                            null)
-                                                        : default,
+                                                    getEnumeratorArguments: CreateArgumentOperations(enumeratorInfoOpt.GetEnumeratorInfo, boundForEachStatement.Expression.Syntax),
+                                                    moveNextArguments: CreateArgumentOperations(enumeratorInfoOpt.MoveNextInfo, boundForEachStatement.Expression.Syntax),
                                                     disposeArguments: enumeratorInfoOpt.PatternDisposeInfo is object
                                                         ? CreateDisposeArguments(enumeratorInfoOpt.PatternDisposeInfo, boundForEachStatement.Syntax)
                                                         : default);
@@ -1749,6 +1735,29 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             return info;
+
+            ImmutableArray<IArgumentOperation> CreateArgumentOperations(MethodArgumentInfo? info,
+                 SyntaxNode invocationSyntax)
+            {
+                if (info == null)
+                {
+                    return default;
+                }
+                if (info.Arguments.Length == 0)
+                {
+                    return ImmutableArray<IArgumentOperation>.Empty;
+                }
+                var args = DeriveArguments(
+                    info.Method,
+                    info.Arguments,
+                    argumentsToParametersOpt: default,
+                    info.DefaultArguments,
+                    info.Expanded,
+                    invocationSyntax: invocationSyntax,
+                    invokedAsExtensionMethod: info.Method.IsExtensionMethod
+                );
+                return Operation.SetParentOperation(args, null);
+            }
         }
 
         internal IOperation CreateBoundForEachStatementLoopControlVariable(BoundForEachStatement boundForEachStatement)

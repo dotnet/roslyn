@@ -18,7 +18,14 @@ pr:
   paths:
     exclude:
       - docs/*
+      - .vscode/*
       - .github/*
+      - .devcontainer/
+      - .git-blame-ignore-revs
+      - .vsconfig
+      - CODE-OF-CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
 
 jobs:
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:

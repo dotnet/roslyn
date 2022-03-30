@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(_workspace, documentIds: rudeEdits.Select(d => d.DocumentId));
 
             // report emit/apply diagnostics:
-            diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData);
+            diagnosticUpdateSource.ReportDiagnostics(_workspace, solution, diagnosticData, rudeEdits);
 
             return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
         }
