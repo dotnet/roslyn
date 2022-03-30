@@ -22,9 +22,9 @@
         <target state="translated">新增檔案標頭</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">修正名稱違規: {0}</target>
+      <trans-unit id="Fix_Name_Violation">
+        <source>Fix Name Violation</source>
+        <target state="new">Fix Name Violation</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">

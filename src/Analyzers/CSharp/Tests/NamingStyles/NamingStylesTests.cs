@@ -1221,87 +1221,6 @@ namespace Microsoft.CodeAnalysis.Host
 ", new TestParameters(options: s_options.InterfaceNamesStartWithI));
         }
 
-#if CODE_STYLE
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
-#else
-        [Fact]
-#endif
-        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(16562, "https://github.com/dotnet/roslyn/issues/16562")]
-        public async Task TestRefactorNotify()
-        {
-            var markup = @"public class [|c|] { }";
-            var testParameters = new TestParameters(options: s_options.ClassNamesArePascalCase);
-
-            using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
-            var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
-
-            var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
-
-            var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(2, commitOperations.Length);
-
-            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-            Assert.Equal("c", symbolRenamedOperation._symbol.Name);
-            Assert.Equal("C", symbolRenamedOperation._newName);
-        }
-
-#if CODE_STYLE
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
-#else
-        [Fact]
-#endif
-        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
-        public async Task TestRefactorNotifyInterfaceNamesStartWithI()
-        {
-            var markup = @"public interface [|test|] { }";
-            var testParameters = new TestParameters(options: s_options.InterfaceNamesStartWithI);
-
-            using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
-            var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
-
-            var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
-
-            var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(2, commitOperations.Length);
-
-            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-            Assert.Equal("test", symbolRenamedOperation._symbol.Name);
-            Assert.Equal("ITest", symbolRenamedOperation._newName);
-        }
-
-#if CODE_STYLE
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/42218")]
-#else
-        [Fact]
-#endif
-        [Trait(Traits.Feature, Traits.Features.NamingStyle)]
-        [WorkItem(38513, "https://github.com/dotnet/roslyn/issues/38513")]
-        public async Task TestRefactorNotifyTypeParameterNamesStartWithT()
-        {
-            var markup = @"public class A
-{
-    void DoOtherThing<[|arg|]>() { }
-}";
-            var testParameters = new TestParameters(options: s_options.TypeParameterNamesStartWithT);
-
-            using var workspace = CreateWorkspaceFromOptions(markup, testParameters);
-            var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
-
-            var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
-            Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
-
-            var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
-            Assert.Equal(2, commitOperations.Length);
-
-            var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];
-            Assert.Equal("arg", symbolRenamedOperation._symbol.Name);
-            Assert.Equal("TArg", symbolRenamedOperation._newName);
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         [WorkItem(47508, "https://github.com/dotnet/roslyn/issues/47508")]
         public async Task TestRecordParameter_NoDiagnosticWhenCorrect()
@@ -1420,6 +1339,115 @@ class C
 {
     static extern void [|some_p_invoke()|];
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
+
+        [Fact]
+        public async Task TestFixAllInDocument()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+class Cls
+{
+    public void {|FixAllInDocument:hello|}() { }
+    public int world() => 1;
+}",
+                @"
+class Cls
+{
+    public void Hello() { }
+    public int World() => 1;
+}", new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
+
+        [Fact]
+        public async Task TestFixAllInProject()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void {|FixAllInProject:hello|}() { }
+    public int world() => 1;
+}
+        </Document>
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void hello2() { }
+    public int world() => 1;
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void Hello() { }
+    public int World() => 1;
+}
+        </Document>
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void Hello2() { }
+    public int World() => 1;
+}
+        </Document>
+    </Project>
+</Workspace>",
+new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
+
+        [Fact]
+        public async Task TestFixAllInSolution()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void {|FixAllInSolution:hello|}() { }
+    public int world() => 1;
+}
+        </Document>
+    </Project>
+    <Project Language = ""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void hello() { }
+    public int world() => 2;
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void Hello() { }
+    public int World() => 1;
+}
+        </Document>
+    </Project>
+    <Project Language = ""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void Hello() { }
+    public int World() => 2;
+}
+        </Document>
+    </Project>
+</Workspace>",
+new TestParameters(options: s_options.MethodNamesArePascalCase));
+
         }
     }
 }

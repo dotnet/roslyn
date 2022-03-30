@@ -120,8 +120,8 @@
   <data name="Add_file_header" xml:space="preserve">
     <value>Add file header</value>
   </data>
-  <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
-    <value>Fix Name Violation: {0}</value>
+  <data name="Fix_Name_Violation" xml:space="preserve">
+    <value>Fix Name Violation</value>
   </data>
   <data name="Add_both" xml:space="preserve">
     <value>Add both</value>
