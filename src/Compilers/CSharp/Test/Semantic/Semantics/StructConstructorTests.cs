@@ -1549,6 +1549,64 @@ class Program
 }");
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_13(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+struct S
+{
+    int x1;
+    int y1;
+    public S() : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2;
+    public R() : this() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0516: Constructor 'S.S()' cannot call itself
+                //     public S() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("S.S()").WithLocation(6, 18),
+                // (12,18): error CS0516: Constructor 'R.R()' cannot call itself
+                //     public R() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("R.R()").WithLocation(12, 18));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(null)]
+        public void DefaultThisInitializer_14(LanguageVersion? languageVersion)
+        {
+            var source =
+@"#pragma warning disable 169
+struct S
+{
+    int x1;
+    int y1 = 1;
+    public S() : this() { }
+}
+record struct R
+{
+    int x2;
+    int y2 = 2;
+    public R() : this() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: GetParseOptions(languageVersion));
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0516: Constructor 'S.S()' cannot call itself
+                //     public S() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("S.S()").WithLocation(6, 18),
+                // (12,18): error CS0516: Constructor 'R.R()' cannot call itself
+                //     public R() : this() { }
+                Diagnostic(ErrorCode.ERR_RecursiveConstructorCall, "this").WithArguments("R.R()").WithLocation(12, 18));
+        }
+
         [Fact]
         public void FieldInitializers_None()
         {
