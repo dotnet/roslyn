@@ -7065,9 +7065,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public bool IsInferred { get; }
-
         public new TypeSymbol? Type => base.Type;
+
+        public bool IsInferred { get; }
 
         public ImmutableArray<BoundExpression> Initializers { get; }
         [DebuggerStepThrough]
