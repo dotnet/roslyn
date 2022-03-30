@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
 
                 // Pass in null! because the geometry is unused for drawing anything for Inline Diagnostics
-                var graphicsResult = tag.GetGraphics(TextView, null!, GetFormat(classificationType));
+                var graphicsResult = tag.GetGraphics(TextView, unused: null!, GetFormat(classificationType));
 
                 var visualElement = graphicsResult.VisualElement;
 
