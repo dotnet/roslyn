@@ -11,11 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public virtual bool TryGetTelemetryId(out Guid telemetryId)
         {
-            telemetryId = CodeAction.GetType().GetTelemetryId();
+            telemetryId = CodeAction.GetTelemetryId();
             return true;
         }
 

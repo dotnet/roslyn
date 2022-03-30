@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddExplicitCast
 
             ReportTelemetryIfNecessary(potentialConversionTypes);
 
-            context.RegisterCodeFix(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterCodeFix(CodeAction.CodeActionWithNestedActions.Create(
                 FeaturesResources.Add_explicit_cast,
                 actions.ToImmutable(), isInlinable: false),
                 context.Diagnostics);

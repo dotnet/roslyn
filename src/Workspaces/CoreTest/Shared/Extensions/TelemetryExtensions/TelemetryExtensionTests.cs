@@ -5,10 +5,10 @@
 #nullable disable
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
+namespace Microsoft.CodeAnalysis.UnitTests.Extensions
 {
     public class TelemetryExtensionTests
     {

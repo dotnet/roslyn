@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 }
 
                 var groupingTitle = string.Format(FeaturesResources.Alias_ambiguous_type_0, diagnosticNode.ToString());
-                var groupingCodeAction = new CodeActionWithNestedActions(groupingTitle, codeActionsBuilder.ToImmutable(), isInlinable: true);
+                var groupingCodeAction = CodeActionWithNestedActions.Create(groupingTitle, codeActionsBuilder.ToImmutable(), isInlinable: true);
                 context.RegisterCodeFix(groupingCodeAction, context.Diagnostics.First());
             }
         }
