@@ -396,29 +396,20 @@ dotnet_diagnostic.IDE0083.severity = %value%
 # IDE0090
 dotnet_diagnostic.IDE0090.severity = %value%
 
-# IDE0110
-dotnet_diagnostic.IDE0110.severity = %value%
-
 # IDE0100
 dotnet_diagnostic.IDE0100.severity = %value%
 
-# IDE0150
-dotnet_diagnostic.IDE0150.severity = %value%
-
-# IDE1005
-dotnet_diagnostic.IDE1005.severity = %value%
-
-# IDE1006
-dotnet_diagnostic.IDE1006.severity = %value%
-
-# IDE1007
-dotnet_diagnostic.IDE1007.severity = %value%
+# IDE0110
+dotnet_diagnostic.IDE0110.severity = %value%
 
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
 
 # IDE0130
 dotnet_diagnostic.IDE0130.severity = %value%
+
+# IDE0150
+dotnet_diagnostic.IDE0150.severity = %value%
 
 # IDE0160
 dotnet_diagnostic.IDE0160.severity = %value%
@@ -440,6 +431,21 @@ dotnet_diagnostic.IDE0200.severity = %value%
 
 # IDE0210
 dotnet_diagnostic.IDE0210.severity = %value%
+
+# IDE0211
+dotnet_diagnostic.IDE0211.severity = %value%
+
+# IDE0220
+dotnet_diagnostic.IDE0220.severity = %value%
+
+# IDE1005
+dotnet_diagnostic.IDE1005.severity = %value%
+
+# IDE1006
+dotnet_diagnostic.IDE1006.severity = %value%
+
+# IDE1007
+dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
@@ -1040,7 +1046,13 @@ csharp_style_prefer_parameter_null_checking = true
 # IDE0200, PreferMethodGroupConversion
 csharp_style_prefer_method_group_conversion = true
 
-# IDE0210, ForEachExplicitCastInSource
+# IDE0210, PreferTopLevelStatements
+csharp_style_prefer_top_level_statements = true
+
+# IDE0211, PreferTopLevelStatements
+csharp_style_prefer_top_level_statements = true
+
+# IDE0220, ForEachExplicitCastInSource
 dotnet_style_prefer_foreach_explicit_cast_in_source = when_strongly_typed
 
 # IDE1005, PreferConditionalDelegateCall

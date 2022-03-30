@@ -1077,6 +1077,11 @@
         <target state="translated">Statik yerel işlevleri tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_top_level_statements">
+        <source>Prefer top level statements</source>
+        <target state="new">Prefer top level statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_tuple_swap">
         <source>Prefer tuple swap</source>
         <target state="translated">Demet değiştirmeyi tercih et</target>

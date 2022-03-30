@@ -875,9 +875,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    // We don't use a default initial state for value type instance constructors without `: this()` because
-                    // any usages of uninitialized fields will get definite assignment errors anyway.
-                    if (!method.HasThisConstructorInitializer(out _) && (!method.ContainingType.IsValueType || method.IsStatic))
+                    // Pre-C# 11, we don't use a default initial state for value type instance constructors without `: this()`
+                    // because any usages of uninitialized fields will get definite assignment errors anyway.
+                    if (!method.HasThisConstructorInitializer(out _)
+                        && (!method.ContainingType.IsValueType
+                            || method.IsStatic
+                            || compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs)))
                     {
                         return true;
                     }
