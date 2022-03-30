@@ -2296,22 +2296,16 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
         [InlineData("extern")]
         [InlineData("static extern")]
         [InlineData("extern static")]
-        [InlineData("async")]
-        [InlineData("static async")]
-        [InlineData("async static")]
         [InlineData("unsafe")]
         [InlineData("static unsafe")]
         [InlineData("unsafe static")]
-        [InlineData("async unsafe")]
-        [InlineData("unsafe async")]
         [InlineData("unsafe extern")]
         [InlineData("extern unsafe")]
-        [InlineData("extern unsafe async static")]
         public async Task AfterLocalFunction_TypeOnly(string keyword)
         {
             var markup = $@"
@@ -2328,21 +2322,45 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [InlineData("async")]
+        [InlineData("static async")]
+        [InlineData("async static")]
+        [InlineData("async unsafe")]
+        [InlineData("unsafe async")]
+        [InlineData("extern unsafe async static")]
+        public async Task AfterLocalFunction_TypeOnly_Async(string keyword)
+        {
+            var markup = $@"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        {keyword} $$
+    }}
+}}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
         public async Task AfterAsyncLocalFunctionWithTwoAsyncs()
         {
             var markup = @"
 using System;
 class C
 {
-    void M(String parameter)
+    void M(string parameter)
     {
         async async $$
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 

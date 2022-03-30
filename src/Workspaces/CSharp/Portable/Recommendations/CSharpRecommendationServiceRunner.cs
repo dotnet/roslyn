@@ -230,36 +230,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             if (namedType.TypeKind == TypeKind.Interface)
             {
+                // The only interfaces, that are valid in async context are IAsyncEnumerable and IAsyncEnumerator.
+                // So if we are validating an interface, then we can just check for 2 of this possible variants
                 return (namedType.Name == "IAsyncEnumerable" || namedType.Name == "IAsyncEnumerator") &&
                     namedType.TypeParameters.Length == 1 &&
-                    IsSymbolFromSystemRuntimeAssembly(namedType);
+                    IsSymbolFromSystemRuntimeOrMscorlibAssembly(namedType);
             }
 
             if (namedType.TypeKind == TypeKind.Class &&
                 namedType.Name == "Task" &&
                 namedType.TypeParameters.Length < 2 &&
-                IsSymbolFromSystemRuntimeAssembly(namedType))
+                IsSymbolFromSystemRuntimeOrMscorlibAssembly(namedType))
             {
                 return true;
             }
 
             var attributes = namedType.GetAttributes();
 
-            if (attributes.Any(el => el.AttributeClass?.Name == "AsyncMethodBuilderAttribute" && IsSymbolFromSystemRuntimeAssembly(el.AttributeClass)))
+            if (attributes.Any(el => el.AttributeClass?.Name == "AsyncMethodBuilderAttribute" && IsSymbolFromSystemRuntimeOrMscorlibAssembly(el.AttributeClass!)))
             {
                 return true;
             }
 
             return false;
 
-            static bool IsSymbolFromSystemRuntimeAssembly(ISymbol symbol)
+            static bool IsSymbolFromSystemRuntimeOrMscorlibAssembly(ISymbol symbol)
             {
-                if (symbol is null)
-                {
-                    return false;
-                }
-
-                if (symbol.ContainingAssembly.Name != "System.Runtime" ||
+                if ((symbol.ContainingAssembly.Name != "System.Runtime" && symbol.ContainingAssembly.Name != "mscorlib") ||
                     !symbol.ContainingAssembly.Identity.IsStrongName ||
                     symbol.ContainingAssembly.Identity.PublicKeyToken.Length != 8)
                 {
@@ -268,14 +265,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                 var publicTokenKey = symbol.ContainingAssembly.Identity.PublicKeyToken;
 
-                return publicTokenKey[0] == 176 &&
-                       publicTokenKey[1] == 63 &&
-                       publicTokenKey[2] == 95 &&
-                       publicTokenKey[3] == 127 &&
-                       publicTokenKey[4] == 17 &&
-                       publicTokenKey[5] == 213 &&
-                       publicTokenKey[6] == 10 &&
-                       publicTokenKey[7] == 58;
+                // Left column - tokens for System.Runtime, right column - for mscorlib
+                return (publicTokenKey[0] == 176 || publicTokenKey[0] == 183) &&
+                       (publicTokenKey[1] == 63 || publicTokenKey[1] == 122) &&
+                       (publicTokenKey[2] == 95 || publicTokenKey[2] == 92) &&
+                       (publicTokenKey[3] == 127 || publicTokenKey[3] == 86) &&
+                       (publicTokenKey[4] == 17 || publicTokenKey[4] == 25) &&
+                       (publicTokenKey[5] == 213 || publicTokenKey[5] == 52) &&
+                       (publicTokenKey[6] == 10 || publicTokenKey[6] == 224) &&
+                       (publicTokenKey[7] == 58 || publicTokenKey[7] == 137);
             }
         }
 
