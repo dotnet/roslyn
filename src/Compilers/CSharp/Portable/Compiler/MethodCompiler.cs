@@ -1054,7 +1054,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagsForCurrentMethod,
                         processedInitializers.AfterInitializersState,
                         ReportNullableDiagnostics,
-                        includesFieldInitializers: includeInitializersInBody && !processedInitializers.BoundInitializers.IsEmpty,
                         out importChain,
                         out originalBodyNested,
                         out forSemanticModel);
@@ -1714,7 +1713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // NOTE: can return null if the method has no body.
         internal static BoundBlock BindMethodBody(MethodSymbol method, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
-            return BindMethodBody(method, compilationState, diagnostics, nullableInitialState: null, reportNullableDiagnostics: true, includesFieldInitializers: false, out _, out _, out _);
+            return BindMethodBody(method, compilationState, diagnostics, nullableInitialState: null, reportNullableDiagnostics: true, out _, out _, out _);
         }
 
         // NOTE: can return null if the method has no body.
@@ -1724,7 +1723,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             NullableWalker.VariableState nullableInitialState,
             bool reportNullableDiagnostics,
-            bool includesFieldInitializers,
             out ImportChain importChain,
             out bool originalBodyNested,
             out MethodBodySemanticModel.InitialState forSemanticModel)
@@ -1764,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (bodyBinder != null)
                 {
                     importChain = bodyBinder.ImportChain;
-                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics, includesFieldInitializers);
+                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
                     BoundNode methodBodyForSemanticModel = methodBody;
                     NullableWalker.SnapshotManager snapshotManager = null;
                     ImmutableDictionary<Symbol, Symbol> remappedSymbols = null;

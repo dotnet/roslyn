@@ -3402,7 +3402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return requiredValueKind;
         }
 
-        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, bool includesFieldInitializers = false)
+        public virtual BoundNode BindMethodBody(CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             switch (syntax)
             {
@@ -3412,7 +3412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
-                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics, includesFieldInitializers);
+                        return BindConstructorBody((ConstructorDeclarationSyntax)method, diagnostics);
                     }
 
                     return BindMethodBody(method, method.Body, method.ExpressionBody, diagnostics);
@@ -3484,7 +3484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructorInitializer;
         }
 
-        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics, bool includesFieldInitializers)
+        private BoundNode BindConstructorBody(ConstructorDeclarationSyntax constructor, BindingDiagnosticBag diagnostics)
         {
             ConstructorInitializerSyntax initializer = constructor.Initializer;
             if (initializer == null && constructor.Body == null && constructor.ExpressionBody == null)
