@@ -42,12 +42,12 @@ Get-ChildItem "$PSScriptRoot\..\src\*.*proj","$PSScriptRoot\..\test\*.*proj","$P
     $projXml = [xml](Get-Content -Path $_)
     $pg = $projXml.Project.PropertyGroup
     if ($pg) {
-        $targetFrameworks = $pg.TargetFramework
-        if (!$targetFrameworks) {
-            $targetFrameworks = $pg.TargetFrameworks
-            if ($targetFrameworks) {
-                $targetFrameworks = $targetFrameworks -Split ';'
-            }
+        $targetFrameworks = @()
+        $tf = $pg.TargetFramework
+        $targetFrameworks += $tf
+        $tfs = $pg.TargetFrameworks
+        if ($tfs) {
+            $targetFrameworks = $tfs -Split ';'
         }
     }
     $targetFrameworks |? { $_ -match 'net(?:coreapp)?(\d+\.\d+)' } |% {
