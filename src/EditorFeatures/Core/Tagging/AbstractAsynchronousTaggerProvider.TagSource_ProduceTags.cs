@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
                     this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
+                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
                 }
 
                 _firstTagsRequest = false;
