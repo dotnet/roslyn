@@ -168,25 +168,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void EnqueueWork(bool initialTags)
             {
-                using var stateRef = _tagSourceState.TryAddReference();
+                _eventChangeQueue.AddWork(initialTags);
+            }
 
-                // No point proceeding if we've been disposed.
-                if (stateRef is null)
+            private async ValueTask ProcessEventChangeAsync(ImmutableArray<bool> changes, CancellationToken cancellationToken)
+            {
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                // no point preceding if we're already disposed/canceled.
+                if (_disposalTokenSource.IsCancellationRequested)
                     return;
 
-                var state = stateRef.Target;
-
-                var cancellationToken = state.GetCancellationToken(initialTags);
-
-                // Continue after the preceeding task unilaterally.  Note that we pass LazyCancellation so that 
-                // we still wait for that task to complete even if cancelled before we proceed.  This is necessary
-                // as that prior task may mutate state (even if cancelled) so we cannot proceed until we know it
-                // is completely done.
-                state.EnqueueWork(async () =>
-                {
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                    await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
-                }, _dataSource.EventChangeDelay, _asyncListener, _asyncListener.BeginAsyncOperation(nameof(EnqueueWork)), cancellationToken);
+                // If any of the requests was for the initial tags, then compute at that speed (normally faster than
+                // normal tags).
+                var initialTags = changes.Any(b => b);
+                await RecomputeTagsForegroundAsync(changes.Any(b => b), cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -543,11 +539,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    using var stateRef = _tagSourceState.TryAddReference();
-                    if (stateRef != null)
+                    var disposalToken = _disposalTokenSource.Token;
+                    if (!disposalToken.IsCancellationRequested)
                     {
-                        var disposalToken = stateRef.Target.DisposalToken;
-
                         this.ThreadingContext.JoinableTaskFactory.Run(() =>
                             this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
                     }

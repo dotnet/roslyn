@@ -73,11 +73,16 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _normalPriTagsChangedQueue;
 
-            private readonly ReferenceCountedDisposable<TagSourceState> _tagSourceState = new(new TagSourceState());
+            /// <summary>
+            /// Boolean specifies if this is the initial set of tags being computed or not.
+            /// </summary>
+            private readonly AsyncBatchingWorkQueue<bool> _eventChangeQueue;
 
             #endregion
 
             #region Fields that can only be accessed from the foreground thread
+
+            private readonly CancellationTokenSource _disposalTokenSource = new();
 
             private readonly ITextView _textViewOpt;
             private readonly ITextBuffer _subjectBuffer;
@@ -122,12 +127,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
+                _eventChangeQueue = new AsyncBatchingWorkQueue<bool>(
+                    dataSource.EventChangeDelay.ComputeTimeDelay(),
+                    ProcessEventChangeAsync,
+                    EqualityComparer<bool>.Default,
+                    asyncListener,
+                    _disposalTokenSource.Token);
+
                 _highPriTagsChangedQueue = new AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection>(
                     TaggerDelay.NearImmediate.ComputeTimeDelay(),
                     ProcessTagsChangedAsync,
                     equalityComparer: null,
                     asyncListener,
-                    _tagSourceState.Target.DisposalToken);
+                    _disposalTokenSource.Token);
 
                 if (_dataSource.AddedTagNotificationDelay == TaggerDelay.NearImmediate)
                 {
@@ -142,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                         ProcessTagsChangedAsync,
                         equalityComparer: null,
                         asyncListener,
-                        _tagSourceState.Target.DisposalToken);
+                        _disposalTokenSource.Token);
                 }
 
                 DebugRecordInitialStackTrace();
@@ -185,7 +197,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                _tagSourceState.Dispose();
+                _disposalTokenSource.Cancel();
+                _disposalTokenSource.Dispose();
 
                 _dataSource.RemoveTagSource(_textViewOpt, _subjectBuffer);
                 GC.SuppressFinalize(this);
