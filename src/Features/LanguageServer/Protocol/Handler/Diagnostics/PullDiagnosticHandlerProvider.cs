@@ -11,8 +11,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentPullDiagnosticHandler)), Shared]
-    internal class DocumentPullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
+    [Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentPullDiagnosticHandler), typeof(WorkspacePullDiagnosticHandler))]
+    internal class PullDiagnosticHandlerProvider : IRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentPullDiagnosticHandlerProvider(
+        public PullDiagnosticHandlerProvider(
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService,
             EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
@@ -30,9 +31,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
-            return ImmutableArray.Create<IRequestHandler>(new DocumentPullDiagnosticHandler(serverKind, _diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource));
+            return ImmutableArray.Create<IRequestHandler>(
+                new DocumentPullDiagnosticHandler(_diagnosticService, _analyzerService, _editAndContinueDiagnosticUpdateSource),
+                new WorkspacePullDiagnosticHandler(_diagnosticService, _editAndContinueDiagnosticUpdateSource));
         }
     }
 }

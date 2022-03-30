@@ -16,37 +16,21 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 #End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-#If Not CODE_STYLE Then
-    <ExportLanguageService(GetType(ISyntaxFormattingService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxFormattingService
-#Else
-    Friend Class VisualBasicSyntaxFormattingService
-#End If
-        Inherits AbstractSyntaxFormattingService
 
-        Private ReadOnly _rules As ImmutableList(Of AbstractFormattingRule)
+    Friend Class VisualBasicSyntaxFormatting
+        Inherits AbstractSyntaxFormatting
 
-#If CODE_STYLE Then
-        Public Shared ReadOnly Instance As New VisualBasicSyntaxFormattingService
-#End If
+        Public Shared ReadOnly Instance As New VisualBasicSyntaxFormatting
 
-#If Not CODE_STYLE Then
-        <ImportingConstructor>
-        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
-#Else
-        Public Sub New()
-#End If
-            _rules = ImmutableList.Create(Of AbstractFormattingRule)(
-                New StructuredTriviaFormattingRule(),
-                New ElasticTriviaFormattingRule(),
-                New AdjustSpaceFormattingRule(),
-                New AlignTokensFormattingRule(),
-                New NodeBasedFormattingRule(),
-                DefaultOperationProvider.Instance)
-        End Sub
+        Private ReadOnly _rules As ImmutableArray(Of AbstractFormattingRule) = ImmutableArray.Create(Of AbstractFormattingRule)(
+            New StructuredTriviaFormattingRule(),
+            New ElasticTriviaFormattingRule(),
+            New AdjustSpaceFormattingRule(),
+            New AlignTokensFormattingRule(),
+            New NodeBasedFormattingRule(),
+            DefaultOperationProvider.Instance)
 
-        Public Overrides Function GetDefaultFormattingRules() As IEnumerable(Of AbstractFormattingRule)
+        Public Overrides Function GetDefaultFormattingRules() As ImmutableArray(Of AbstractFormattingRule)
             Return _rules
         End Function
 
@@ -62,4 +46,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New VisualBasicFormatEngine(root, options, formattingRules, startToken, endToken).Format(cancellationToken)
         End Function
     End Class
+
+#If Not CODE_STYLE Then
+    <ExportLanguageService(GetType(ISyntaxFormattingService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicSyntaxFormattingService
+        Inherits VisualBasicSyntaxFormatting
+        Implements ISyntaxFormattingService
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+    End Class
+#End If
 End Namespace

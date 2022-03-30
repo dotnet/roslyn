@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var startPoint = openingPoint;
             var endPoint = AdjustFormattingEndPoint(text, root, startPoint, closingPoint);
 
-            if (options.AutoFormattingOptions.IndentStyle == FormattingOptions.IndentStyle.Smart)
+            if (options.AutoFormattingOptions.IndentStyle == FormattingOptions2.IndentStyle.Smart)
             {
                 // Set the formatting start point to be the beginning of the first word to the left 
                 // of the opening brace location.

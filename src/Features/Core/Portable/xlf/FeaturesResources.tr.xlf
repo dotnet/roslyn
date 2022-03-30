@@ -256,8 +256,8 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <note />
       </trans-unit>
       <trans-unit id="Apply_namespace_matches_folder_preferences">
-        <source>Apply namespace matches folde preferences</source>
-        <target state="new">Apply namespace matches folde preferences</target>
+        <source>Apply namespace matches folder preferences</source>
+        <target state="new">Apply namespace matches folder preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_null_checking_preferences">

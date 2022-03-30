@@ -19,39 +19,26 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-#if !CODE_STYLE
-    [ExportLanguageService(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
-#endif
-    internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
+    internal class CSharpSyntaxFormatting : AbstractSyntaxFormatting
     {
-        private readonly ImmutableList<AbstractFormattingRule> _rules;
+        public static readonly CSharpSyntaxFormatting Instance = new();
 
-#if CODE_STYLE
-        public static readonly CSharpSyntaxFormattingService Instance = new();
+        private readonly ImmutableArray<AbstractFormattingRule> _rules = ImmutableArray.Create<AbstractFormattingRule>(
+            new WrappingFormattingRule(),
+            new SpacingFormattingRule(),
+            new NewLineUserSettingFormattingRule(),
+            new IndentUserSettingsFormattingRule(),
+            new ElasticTriviaFormattingRule(),
+            new EndOfFileTokenFormattingRule(),
+            new StructuredTriviaFormattingRule(),
+            new IndentBlockFormattingRule(),
+            new SuppressFormattingRule(),
+            new AnchorIndentationFormattingRule(),
+            new QueryExpressionFormattingRule(),
+            new TokenBasedFormattingRule(),
+            DefaultOperationProvider.Instance);
 
-#else
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-#endif
-        public CSharpSyntaxFormattingService()
-        {
-            _rules = ImmutableList.Create<AbstractFormattingRule>(
-                new WrappingFormattingRule(),
-                new SpacingFormattingRule(),
-                new NewLineUserSettingFormattingRule(),
-                new IndentUserSettingsFormattingRule(),
-                new ElasticTriviaFormattingRule(),
-                new EndOfFileTokenFormattingRule(),
-                new StructuredTriviaFormattingRule(),
-                new IndentBlockFormattingRule(),
-                new SuppressFormattingRule(),
-                new AnchorIndentationFormattingRule(),
-                new QueryExpressionFormattingRule(),
-                new TokenBasedFormattingRule(),
-                DefaultOperationProvider.Instance);
-        }
-
-        public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
+        public override ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;
 
         public override SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options)
@@ -63,4 +50,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
             => new CSharpFormatEngine(node, options, formattingRules, startToken, endToken).Format(cancellationToken);
     }
+
+#if !CODE_STYLE
+    [ExportLanguageService(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
+    internal class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, ISyntaxFormattingService
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpSyntaxFormattingService()
+        {
+        }
+    }
+#endif
 }
