@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1041,6 +1043,28 @@ class Program
   IL_0009:  stfld      ""int R.x""
   IL_000e:  ret
 }");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"    IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ExpressionBody:
+    null
+",
+                actualText);
         }
 
         [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
@@ -1114,6 +1138,28 @@ class Program
   IL_0010:  stfld      ""int R.y""
   IL_0015:  ret
 }");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  ExpressionBody:
+    null
+",
+                actualText);
         }
 
         [WorkItem(58790, "https://github.com/dotnet/roslyn/issues/58790")]
@@ -1189,6 +1235,37 @@ class Program
   IL_0010:  stfld      ""int R.y""
   IL_0015:  ret
 }");
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+            var operation = model.GetOperation(syntax);
+            var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
+            OperationTreeVerifier.Verify(
+@"IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null) (Syntax: 'public S(in ... }')
+  Initializer:
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression:
+        IInvocationOperation ( S..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver:
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'this.y = y;')
+        Expression:
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'this.y = y')
+            Left:
+              IFieldReferenceOperation: System.Int32 S.y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'this.y')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: S) (Syntax: 'this')
+            Right:
+              IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
+  ExpressionBody:
+    null
+",
+                actualText);
         }
 
         [Theory]

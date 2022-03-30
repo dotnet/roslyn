@@ -1086,7 +1086,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // In order to get correct diagnostics, we need to analyze initializers and the body together.
                             int insertAt = 0;
                             if (originalBodyNested &&
-                                methodSymbol.ContainingType.IsStructType() &&
                                 prependedDefaultValueTypeConstructorInitializer)
                             {
                                 insertAt = 1;
