@@ -132,6 +132,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
+                // Collapse all booleans added to just a max of two ('true' or 'false') representing if we're being
+                // asked for initial tags or not
                 _eventChangeQueue = new AsyncBatchingWorkQueue<bool>(
                     dataSource.EventChangeDelay.ComputeTimeDelay(),
                     ProcessEventChangeAsync,
