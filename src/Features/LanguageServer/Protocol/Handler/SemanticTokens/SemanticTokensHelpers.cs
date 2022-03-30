@@ -147,10 +147,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             // If the full compilation is not yet available, we'll try getting a partial one. It may contain inaccurate
             // results but will speed up how quickly we can respond to the client's request.
-            var frozenDocument = document.WithFrozenPartialSemantics(cancellationToken);
-            var semanticModel = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
-            document = frozenDocument;
+            document = document.WithFrozenPartialSemantics(cancellationToken);
+            var workspaceStatusService = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var isFinalized = await workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
                 document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);

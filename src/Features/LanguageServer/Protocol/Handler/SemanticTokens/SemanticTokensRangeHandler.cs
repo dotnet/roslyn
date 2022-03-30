@@ -50,6 +50,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var options = _globalOptions.GetClassificationOptions(context.Document.Project.Language);
 
+            // If the project's compilation isn't yet available, kick off a task in the background to
+            // hopefully make it available faster since we'll need it later to compute tokens.
+            if (!context.Document.Project.TryGetCompilation(out _))
+            {
+                _ = context.Document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole
             // document request, so caching range results is unnecessary since the whole document
