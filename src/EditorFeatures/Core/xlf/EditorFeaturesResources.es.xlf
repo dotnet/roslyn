@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
         <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <target state="translated">No se puede navegar al símbolo que hay debajo del símbolo de intercalación.</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
