@@ -47,7 +47,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "latest");
         }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/60463")]
+        [IdeFact]
         public async Task LegacyProject_AllConfigurationsUpdated()
         {
             var project = ProjectName;
