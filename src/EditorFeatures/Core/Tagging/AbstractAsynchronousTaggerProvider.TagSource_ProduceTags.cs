@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // If any of the requests was for the initial tags, then compute at that speed (normally faster than
                 // normal tags).
                 var initialTags = changes.Any(b => b);
-                await RecomputeTagsForegroundAsync(changes.Any(b => b), cancellationToken).ConfigureAwait(false);
+                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
