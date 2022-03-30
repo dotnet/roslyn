@@ -175,8 +175,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                // no point preceding if we're already disposed/canceled.
-                if (_disposalTokenSource.IsCancellationRequested)
+                // no point preceding if we're already disposed.  We check this on the UI thread so that we will know
+                // about any prior disposal on the UI thread.
+                if (cancellationToken.IsCancellationRequested)
                     return;
 
                 // If any of the requests was for the initial tags, then compute at that speed (normally faster than
@@ -530,6 +531,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             {
                 this.AssertIsForeground();
 
+                // If we've been disposed, no need to proceed.
+                if (_disposalTokenSource.Token.IsCancellationRequested)
+                    return null;
+
                 // If this is the first time we're being asked for tags, and we're a tagger that
                 // requires the initial tags be available synchronously on this call, and the 
                 // computation of tags hasn't completed yet, then force the tags to be computed
@@ -539,12 +544,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     _dataSource.ComputeInitialTagsSynchronously(buffer) &&
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
-                    var disposalToken = _disposalTokenSource.Token;
-                    if (!disposalToken.IsCancellationRequested)
-                    {
-                        this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                            this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
-                    }
+                    this.ThreadingContext.JoinableTaskFactory.Run(() =>
+                        this.RecomputeTagsForegroundAsync(initialTags: true, disposalToken));
                 }
 
                 _firstTagsRequest = false;
