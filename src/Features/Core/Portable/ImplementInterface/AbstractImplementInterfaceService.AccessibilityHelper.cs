@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+
 namespace Microsoft.CodeAnalysis.ImplementInterface
 {
     internal abstract partial class AbstractImplementInterfaceService
@@ -78,18 +80,26 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 }
             }
 
-            private static bool IsTypeLessAccessibleThanOtherType(ITypeSymbol? first, INamedTypeSymbol second)
+            private static bool IsTypeLessAccessibleThanOtherType(ITypeSymbol? first, INamedTypeSymbol second, List<ITypeSymbol>? alreadyCheckingTypes = null)
             {
                 if (first is null)
                 {
                     return false;
                 }
 
+                alreadyCheckingTypes ??= new();
+                alreadyCheckingTypes.Add(first);
+
                 if (first is ITypeParameterSymbol typeParameter)
                 {
                     foreach (var constraint in typeParameter.ConstraintTypes)
                     {
-                        if (IsTypeLessAccessibleThanOtherType(constraint, second))
+                        if (alreadyCheckingTypes.Contains(constraint))
+                        {
+                            continue;
+                        }
+
+                        if (IsTypeLessAccessibleThanOtherType(constraint, second, alreadyCheckingTypes))
                         {
                             return true;
                         }
@@ -111,14 +121,19 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 {
                     foreach (var genericParam in namedType.TypeArguments)
                     {
-                        if (IsTypeLessAccessibleThanOtherType(genericParam, second))
+                        if (alreadyCheckingTypes.Contains(genericParam))
+                        {
+                            continue;
+                        }
+
+                        if (IsTypeLessAccessibleThanOtherType(genericParam, second, alreadyCheckingTypes))
                         {
                             return true;
                         }
                     }
                 }
 
-                if (IsTypeLessAccessibleThanOtherType(first.ContainingType, second))
+                if (IsTypeLessAccessibleThanOtherType(first.ContainingType, second, alreadyCheckingTypes))
                 {
                     return true;
                 }
