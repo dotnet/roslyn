@@ -32,8 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// Can be accessed via the <see cref="IDocumentTrackingService"/> as a workspace service.
     /// </summary>
     [Export]
-    [Export(typeof(ITextBufferVisibilityTracker))]
-    internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents, ITextBufferVisibilityTracker
+    internal class VisualStudioActiveDocumentTracker : ForegroundThreadAffinitizedObject, IVsSelectionEvents
     {
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 

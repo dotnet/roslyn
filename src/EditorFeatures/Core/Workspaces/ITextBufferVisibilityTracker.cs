@@ -2,21 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Workspaces
 {
+    /// <summary>
+    /// All methods must be called on UI thread.
+    /// </summary>
     internal interface ITextBufferVisibilityTracker
     {
         /// <summary>
-        /// Can be called on any thread.
+        /// Whether or not this text buffer is in an actively visible <see cref="ITextView"/>.
         /// </summary>
         bool IsVisible(ITextBuffer subjectBuffer);
 
         /// <summary>
-        /// Will always fire on UI thread.
+        /// Registers to hear about visibility changes for this particular buffer.
         /// </summary>
-        event EventHandler? DocumentsChanged;
+        void RegisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback);
+        void UnregisterForVisibilityChanges(ITextBuffer subjectBuffer, ITextBufferVisibilityChangedCallback callback);
+    }
+
+    internal interface ITextBufferVisibilityChangedCallback
+    {
+        void OnTextBufferVisibilityChanged();
     }
 }

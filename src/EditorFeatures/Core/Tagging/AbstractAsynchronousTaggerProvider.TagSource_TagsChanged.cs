@@ -43,17 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private async ValueTask ProcessTagsChangedAsync(
+            private ValueTask ProcessTagsChangedAsync(
                 ImmutableArray<NormalizedSnapshotSpanCollection> snapshotSpans, CancellationToken cancellationToken)
             {
-                // Once we've computed tags, pause ourselves if we're no longer visible.  That way we don't consume any
-                // machine resources that the user won't even notice.
-                if (_visibilityTracker != null && !_visibilityTracker.IsVisible(_subjectBuffer))
-                    await PauseAsync(cancellationToken).ConfigureAwait(false);
-
                 var tagsChanged = this.TagsChanged;
                 if (tagsChanged == null)
-                    return;
+                    return default;
 
                 foreach (var collection in snapshotSpans)
                 {
@@ -70,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     foreach (var span in coalesced)
                         tagsChanged(this, new SnapshotSpanEventArgs(span));
                 }
+
+                return default;
             }
         }
     }

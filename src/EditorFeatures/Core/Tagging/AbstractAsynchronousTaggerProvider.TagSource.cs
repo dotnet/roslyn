@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// and <see cref="ITagger{T}"/>s. Special cases, like reference highlighting (which processes multiple
         /// subject buffers at once) have their own providers and tag source derivations.</para>
         /// </summary>
-        private sealed partial class TagSource : ForegroundThreadAffinitizedObject
+        private sealed partial class TagSource : ForegroundThreadAffinitizedObject, ITextBufferVisibilityChangedCallback
         {
             /// <summary>
             /// If we get more than this many differences, then we just issue it as a single change
@@ -162,8 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // to a complete state as soon as possible.
                 EnqueueWork(initialTags: true);
 
-                if (_visibilityTracker != null)
-                    _visibilityTracker.DocumentsChanged += OnTextBufferVisibilityChanged;
+                _visibilityTracker?.RegisterForVisibilityChanges(subjectBuffer, this);
 
                 return;
 
@@ -196,8 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
             private void Dispose()
             {
-                if (_visibilityTracker != null)
-                    _visibilityTracker.DocumentsChanged -= OnTextBufferVisibilityChanged;
+                _visibilityTracker?.UnregisterForVisibilityChanges(_subjectBuffer, this);
 
                 _tagSourceState.Dispose();
 
@@ -230,19 +228,17 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 }
             }
 
-            private void OnTextBufferVisibilityChanged(object? _1, EventArgs _2)
+            void ITextBufferVisibilityChangedCallback.OnTextBufferVisibilityChanged()
             {
                 this.AssertIsForeground();
 
-                // any time visbility changes, resume tagging on all taggers.  Any non-visible taggers will pause
+                // any time visibility changes, resume tagging on all taggers.  Any non-visible taggers will pause
                 // themselves immediately afterwards.
                 Resume();
             }
 
-            private async Task PauseAsync(CancellationToken cancellationToken)
+            private void Pause()
             {
-                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
                 this.AssertIsForeground();
                 _paused = true;
                 _eventSource.Pause();
