@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             return
-                context.IsStatementContext ||
+                !context.IsAsyncMemberDeclarationContext &&
+                (context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 context.IsDefiniteCastTypeContext ||
                 syntaxTree.IsPossibleCastTypeContext(position, context.LeftToken, cancellationToken) ||
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken));
         }
 
         private static bool IsAfterRefTypeContext(CSharpSyntaxContext context)

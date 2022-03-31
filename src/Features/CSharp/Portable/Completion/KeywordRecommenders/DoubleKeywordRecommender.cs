@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
             return
-                context.IsAnyExpressionContext ||
+                !context.IsAsyncMemberDeclarationContext &&
+                (context.IsAnyExpressionContext ||
                 context.IsDefiniteCastTypeContext ||
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken));
         }
 
         protected override SpecialType SpecialType => SpecialType.System_Double;
