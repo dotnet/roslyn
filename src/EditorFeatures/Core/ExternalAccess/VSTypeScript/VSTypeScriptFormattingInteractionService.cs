@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public bool SupportsFormatOnPaste => _implementation.SupportsFormatOnPaste;
         public bool SupportsFormatOnReturn => _implementation.SupportsFormatOnReturn;
 
-        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, char ch)
+        public bool SupportsFormattingOnTypedCharacter(Document document, AutoFormattingOptions options, FormattingOptions2.IndentStyle indentStyle, char ch)
             => _implementation.SupportsFormattingOnTypedCharacter(document, ch);
 
         public Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)

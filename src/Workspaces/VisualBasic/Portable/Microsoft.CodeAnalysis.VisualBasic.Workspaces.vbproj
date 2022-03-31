@@ -13,6 +13,10 @@
       .NET Compiler Platform ("Roslyn") support for analyzing Visual Basic projects and solutions.
     </PackageDescription>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="My Project\**" />
+    <EmbeddedResource Remove="My Project\**" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
@@ -50,7 +54,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Workspace\LanguageServices\" />
-    <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

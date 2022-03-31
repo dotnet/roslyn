@@ -1599,6 +1599,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
+        public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            if (syntaxTree == null)
+            {
+                return false;
+            }
+
+            return syntaxTree.IsInInactiveRegion(position, cancellationToken);
+        }
+
         #region IsXXX members
 
         public bool IsAnonymousFunctionExpression([NotNullWhen(true)] SyntaxNode? node)

@@ -87,13 +87,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (openBraceLine == closeBraceLine)
                 return null;
 
+#if CODE_STYLE
+            var options = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(namespaceDeclaration.SyntaxTree!);
+#else
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var style = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
+#endif
+            var style = options.GetOption(FormattingOptions2.SmartIndent, document.Project.Language);
 
-            var indentation = indentationService.GetIndentation(document, openBraceLine + 1, style, cancellationToken);
+            var indentation = indentationService.GetIndentation(document, openBraceLine + 1, (FormattingOptions.IndentStyle)style, cancellationToken);
 
-            var useTabs = options.GetOption(FormattingOptions.UseTabs);
-            var tabSize = options.GetOption(FormattingOptions.TabSize);
+            var useTabs = options.GetOption(FormattingOptions2.UseTabs);
+            var tabSize = options.GetOption(FormattingOptions2.TabSize);
 
             return indentation.GetIndentationString(sourceText, useTabs, tabSize);
         }
