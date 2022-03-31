@@ -18,13 +18,23 @@ jobs:
     vmImage: ubuntu-latest
   steps:
   - checkout: none
-  - powershell: Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
-    displayName: Set pipeline name
+  - powershell: |
+      Write-Host "##vso[build.updatebuildnumber]$(resources.pipeline.CI.runName)"
+      if ('$(resources.pipeline.CI.runName)'.Contains('-')) {
+        Write-Host "##vso[task.setvariable variable=IsPrerelease]true"
+      } else {
+        Write-Host "##vso[task.setvariable variable=IsPrerelease]false"
+      }
+    displayName: Set up pipeline
   - task: UseDotNet@2
     displayName: Install .NET SDK
     inputs:
       packageType: sdk
       version: 6.x
+  - download: CI
+    artifact: deployables-Windows
+    displayName: Download deployables-Windows artifact
+    patterns: 'deployables-Windows/*'
   - task: GitHubRelease@1
     displayName: GitHub release (create)
     inputs:
@@ -35,6 +45,8 @@ jobs:
       tag: v$(resources.pipeline.CI.runName)
       title: v$(resources.pipeline.CI.runName)
       isDraft: true # After running this step, visit the new draft release, edit, and publish.
+      isPreRelease: $(IsPrerelease)
+      assets: $(Pipeline.Workspace)/CI/deployables-Windows/*.nupkg
       changeLogCompareToRelease: lastNonDraftRelease
       changeLogType: issueBased
       changeLogLabels: |
@@ -42,10 +54,6 @@ jobs:
           { "label" : "bug", "displayName" : "Fixes", "state" : "closed" },
           { "label" : "enhancement", "displayName": "Enhancements", "state" : "closed" }
         ]
-  - download: CI
-    artifact: deployables-Windows
-    displayName: Download deployables-Windows artifact
-    patterns: 'deployables-Windows/*'
   - script: dotnet nuget push $(Pipeline.Workspace)/CI/deployables-Windows/*.nupkg -s https://api.nuget.org/v3/index.json --api-key $(NuGetOrgApiKey) --skip-duplicate
     displayName: Push nuget packages
     condition: and(succeeded(), ne(variables['NuGetOrgApiKey'], ''))
