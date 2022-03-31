@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 var updatedDocuments = project.Documents.ToArray();
                 var expectedSources = testState.Sources.Concat(testState.GeneratedSources).ToArray();
+                var numOriginalSources = testState.Sources.Count;
 
                 verifier.Equal(expectedSources.Length, updatedDocuments.Length, $"expected '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' to match '{nameof(updatedDocuments)}', but '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' contains '{expectedSources.Length}' documents and '{nameof(updatedDocuments)}' contains '{updatedDocuments.Length}' documents");
 
@@ -92,19 +93,28 @@ namespace Microsoft.CodeAnalysis.Testing
                     verifier.EqualOrDiff(expectedSources[i].content.ToString(), actual.ToString(), $"content of '{expectedSources[i].filename}' did not match. Diff shown with expected as baseline:");
                     verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding?.WebName}' but was '{actual.Encoding?.WebName}'");
                     verifier.Equal(expectedSources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                    verifier.Equal(expectedSources[i].filename, GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name), $"file name was expected to be '{expectedSources[i].filename}' but was '{GetFileName(updatedDocuments[i].Folders, updatedDocuments[i].Name)}'");
+
+                    // Source-generated sources are implicitly in a subtree, so they have a different folders calculation.
+                    var (fileName, folders) = i < numOriginalSources
+                        ? GetNameAndFoldersFromPath(expectedSources[i].filename)
+                        : GetNameAndFoldersFromSourceGeneratedFilePath(expectedSources[i].filename);
+                    verifier.Equal(fileName, updatedDocuments[i].Name, $"file name was expected to be '{fileName}' but was '{updatedDocuments[i].Name}'");
+                    verifier.SequenceEqual(folders, updatedDocuments[i].Folders, message: $"folders was expected to be '{string.Join(DirectorySeparatorString, folders)}' but was '{string.Join(DirectorySeparatorString, updatedDocuments[i].Folders)}'");
                 }
             }
 
             return diagnostics;
-
-            static string GetFileName(IEnumerable<string> actualFolders, string actualFileName)
-            {
-                var elements = new List<string>(actualFolders);
-                elements.Add(actualFileName);
-                return string.Join("/", elements);
-            }
         }
+
+        private static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromSourceGeneratedFilePath(string filePath)
+        {
+            // Source-generated files are always implicitly subpaths under the project root path.
+            var folders = Path.GetDirectoryName(filePath)!.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var fileName = Path.GetFileName(filePath);
+            return (fileName, folders);
+        }
+
+        private static readonly string DirectorySeparatorString = Path.AltDirectorySeparatorChar.ToString();
 
         private async Task<(Project project, ImmutableArray<Diagnostic> diagnostics)> ApplySourceGeneratorAsync(ImmutableArray<ISourceGenerator> sourceGenerators, Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
@@ -117,7 +127,8 @@ namespace Microsoft.CodeAnalysis.Testing
             var updatedProject = project;
             foreach (var tree in result.GeneratedTrees)
             {
-                updatedProject = updatedProject.AddDocument(tree.FilePath, await tree.GetTextAsync(cancellationToken).ConfigureAwait(false), filePath: tree.FilePath).Project;
+                var (fileName, folders) = GetNameAndFoldersFromSourceGeneratedFilePath(tree.FilePath);
+                updatedProject = updatedProject.AddDocument(fileName, await tree.GetTextAsync(cancellationToken).ConfigureAwait(false), folders: folders, filePath: tree.FilePath).Project;
             }
 
             return (updatedProject, result.Diagnostics);

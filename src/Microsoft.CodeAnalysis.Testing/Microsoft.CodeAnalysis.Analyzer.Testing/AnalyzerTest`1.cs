@@ -1270,14 +1270,47 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 return solution.AddProjectReferences(sourceProject, targetProjects.Select(id => new ProjectReference(id)));
             }
-
-            static (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string path)
-            {
-                var fileName = Path.GetFileName(path);
-                var folders = Path.GetDirectoryName(path)!.Split("/");
-                return (fileName, folders);
-            }
         }
+
+        protected (string fileName, IEnumerable<string> folders) GetNameAndFoldersFromPath(string path)
+        {
+            if (Path.IsPathRooted(path))
+            {
+                // If the user provides a rooted path as the file name, just use that as-is.
+                return (path, NoFoldersArray);
+            }
+
+            // Normalize to platform path separators for simplicity later on
+            var normalizedPath = path.Replace('\\', Path.DirectorySeparatorChar);
+            var normalizedDefaultPathPrefix = DefaultFilePath.Replace('\\', Path.DirectorySeparatorChar);
+            if (!Path.IsPathRooted(normalizedDefaultPathPrefix))
+            {
+                // If our default path isn't rooted, then we assume that we don't have any rooted paths
+                // and just use the file name
+                return (Path.GetFileName(normalizedPath), NoFoldersArray);
+            }
+
+            var projectRootPath = Path.GetFileName(normalizedDefaultPathPrefix) == string.Empty
+                ? normalizedDefaultPathPrefix
+                : Path.GetDirectoryName(normalizedDefaultPathPrefix)!;
+
+            // If the default path prefix is a directory name (ending with a directory separator)
+            // then treat it as the project root.
+            if (!normalizedPath.StartsWith(projectRootPath))
+            {
+                // If our path doesn't start with the default path prefix, then the file is out of tree.
+                // To match VS behavior, we will report no folders and only the file name.
+                return (Path.GetFileName(normalizedPath), NoFoldersArray);
+            }
+
+            var subpath = normalizedPath.Substring(projectRootPath.Length);
+
+            var fileName = Path.GetFileName(subpath);
+            var folders = Path.GetDirectoryName(subpath)!.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            return (fileName, folders);
+        }
+
+        private static readonly string[] NoFoldersArray = new string[0];
 
         /// <summary>
         /// Creates a solution that will be used as parent for the sources that need to be checked.
