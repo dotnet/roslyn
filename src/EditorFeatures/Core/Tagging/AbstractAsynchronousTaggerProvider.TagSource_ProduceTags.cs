@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // If any of the requests was for the initial tags, then compute at that speed (normally faster than
                 // normal tags).
                 var initialTags = changes.Any(b => b);
-                await RecomputeTagsForegroundAsync(initialTags, cancellationToken).ConfigureAwait(false);
+                await RecomputeTagsAsync(initialTags, cancellationToken).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -196,24 +196,22 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// complete almost immediately.  Once open though, our normal delays come into play
             /// so as to not cause a flashy experience.
             /// </summary>
-            private async Task RecomputeTagsForegroundAsync(bool initialTags, CancellationToken cancellationToken)
+            private async Task RecomputeTagsAsync(bool initialTags, CancellationToken cancellationToken)
             {
+                // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
+                // consuming machine resources on work the user isn't likely to see.  ConfigureAwait(true) so that if
+                // we're on the UI thread that we stay on it.
+                await _visibilityTracker.DelayWhileNonVisibleAsync(
+                    _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(true);
+
+                await _dataSource.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 this.AssertIsForeground();
                 if (cancellationToken.IsCancellationRequested)
                     return;
 
-                // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
-                // consuming machine resources on work the user isn't likely to see.
-                await _visibilityTracker.DelayWhileNonVisibleAsync(
-                    _dataSource.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
-
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_RecomputeTags, cancellationToken))
                 {
-                    // if we're tagging documents that are not visible, then introduce a long delay so that we avoid
-                    // consuming machine resources on work the user isn't likely to see.
-                    await _visibilityTracker.DelayWhileNonVisibleAsync(
-                        this.ThreadingContext, _subjectBuffer, DelayTimeSpan.NonFocus, cancellationToken).ConfigureAwait(false);
-
                     // Make a copy of all the data we need while we're on the foreground.  Then switch to a threadpool
                     // thread to do the computation. Finally, once new tags have been computed, then we update our state
                     // again on the foreground.
@@ -537,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     !this.CachedTagTrees.TryGetValue(buffer, out _))
                 {
                     this.ThreadingContext.JoinableTaskFactory.Run(() =>
-                        this.RecomputeTagsForegroundAsync(initialTags: true, _disposalTokenSource.Token));
+                        this.RecomputeTagsAsync(initialTags: true, _disposalTokenSource.Token));
                 }
 
                 _firstTagsRequest = false;
