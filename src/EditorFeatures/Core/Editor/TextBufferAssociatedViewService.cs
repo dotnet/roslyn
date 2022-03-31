@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
             }
 
-            this.SubjectBuffersConnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
+            this.SubjectBuffersDisconnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 
         private static bool IsSupportedContentType(IContentType contentType)
